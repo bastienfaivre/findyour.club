@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UX Design Directions — Chosen Direction</title>
+<style>
+/* ── Reset ──────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 16px; scroll-behavior: smooth; }
+
+/* ── Design Tokens ──────────────────────────────────── */
+:root {
+  --bg:         oklch(1 0 0);
+  --fg:         oklch(0.141 0.005 285.823);
+  --muted-fg:   oklch(0.552 0.016 285.938);
+  --secondary:  oklch(0.967 0.001 286.375);
+  --border:     oklch(0.92 0.004 286.32);
+  --primary:    oklch(0.21 0.006 285.885);
+  --primary-fg: oklch(0.985 0 0);
+  --card:       oklch(1 0 0);
+  --dark-bg:    oklch(0.141 0.005 285.823);
+  --dark-fg:    oklch(0.985 0 0);
+  --dark-muted: oklch(0.552 0.016 285.938);
+  --dark-card:  oklch(0.21 0.006 285.885);
+  --dark-border:oklch(1 0 0 / 10%);
+  --amber:      oklch(0.769 0.188 70.08);
+  --green-ok:   oklch(0.6 0.15 145);
+}
+
+/* ── Shell nav ──────────────────────────────────────── */
+body { background: oklch(0.94 0 0); color: var(--fg); }
+.shell-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: var(--dark-bg); height: 48px;
+  display: flex; align-items: center;
+  border-bottom: 1px solid var(--dark-border);
+}
+.shell-nav-title {
+  padding: 0 20px; font-size: 12px; font-weight: 600;
+  color: var(--dark-fg); letter-spacing: 0.02em;
+  border-right: 1px solid var(--dark-border);
+  height: 100%; display: flex; align-items: center; white-space: nowrap;
+}
+.shell-tabs { display: flex; padding: 0 8px; gap: 2px; overflow-x: auto; }
+.tab-btn {
+  background: none; border: none; cursor: pointer;
+  color: oklch(0.6 0 0); font-size: 12px; font-family: inherit;
+  padding: 0 14px; height: 48px; display: flex; align-items: center; gap: 6px;
+  white-space: nowrap; border-radius: 4px; transition: all 0.12s;
+}
+.tab-btn:hover { color: var(--dark-fg); background: oklch(1 0 0 / 6%); }
+.tab-btn.active { color: var(--dark-fg); background: oklch(1 0 0 / 10%); }
+.tab-num {
+  font-size: 10px; background: oklch(1 0 0 / 15%); color: oklch(0.7 0 0);
+  padding: 1px 6px; border-radius: 3px;
+}
+
+/* ── Panel wrapper ──────────────────────────────────── */
+.panels-wrap { padding-top: 48px; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── Panel header ───────────────────────────────────── */
+.panel-header {
+  background: var(--dark-bg); color: var(--dark-fg);
+  padding: 18px 32px; display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--dark-border);
+}
+.ph-left { display: flex; flex-direction: column; gap: 3px; }
+.ph-num { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: oklch(0.55 0 0); }
+.ph-title { font-size: 17px; font-weight: 700; }
+.ph-sub { font-size: 12px; color: oklch(0.65 0 0); margin-top: 1px; }
+.ph-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.ph-tag {
+  font-size: 10px; padding: 3px 9px; border-radius: 999px;
+  border: 1px solid oklch(1 0 0 / 18%); color: oklch(0.7 0 0);
+}
+
+/* ── Mockup frame ───────────────────────────────────── */
+.mockup-grid {
+  display: grid; gap: 0;
+  border-top: 1px solid var(--border);
+}
+.mockup-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+.mockup-grid.cols-1 { grid-template-columns: 1fr; }
+.mockup-cell {
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  min-height: 600px; position: relative; overflow: hidden;
+}
+.mockup-cell:last-child { border-right: none; }
+.cell-label {
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  background: var(--dark-bg); color: var(--dark-fg);
+  font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 999px; z-index: 20; white-space: nowrap;
+}
+.cell-label.edit { background: var(--amber); color: oklch(0.15 0 0); }
+
+/* ── Notes strip ────────────────────────────────────── */
+.notes {
+  background: oklch(0.96 0 0); padding: 20px 32px;
+  border-top: 1px solid var(--border);
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 20px;
+}
+.note h4 { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted-fg); margin-bottom: 5px; }
+.note p { font-size: 12px; line-height: 1.55; color: var(--fg); }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SURFACE A — Platform main homepage
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.a-topbar {
+  height: 52px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 40px; justify-content: space-between;
+}
+.a-brand { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; }
+.a-nav { display: flex; gap: 28px; align-items: center; }
+.a-nav a { font-size: 13px; color: var(--muted-fg); text-decoration: none; }
+.a-apply {
+  background: var(--primary); color: var(--primary-fg);
+  font-size: 13px; font-weight: 600; padding: 7px 16px; border-radius: 7px;
+  border: none; cursor: pointer; font-family: inherit;
+}
+.a-hero {
+  text-align: center; padding: 64px 40px 40px; max-width: 560px; margin: 0 auto;
+}
+.a-hero h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 12px; }
+.a-hero p { font-size: 15px; color: var(--muted-fg); line-height: 1.65; }
+.a-stats {
+  display: flex; gap: 0; justify-content: center;
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  margin: 32px 40px 0;
+}
+.a-stat {
+  flex: 1; text-align: center; padding: 20px 0;
+  border-right: 1px solid var(--border);
+}
+.a-stat:last-child { border-right: none; }
+.a-stat-value { font-size: 24px; font-weight: 800; }
+.a-stat-label { font-size: 11px; color: var(--muted-fg); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.06em; }
+.a-countries { padding: 32px 40px 40px; }
+.a-region-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--muted-fg); margin-bottom: 12px; font-weight: 600;
+}
+.a-country-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 32px; }
+.a-country-btn {
+  display: flex; align-items: center; gap: 8px;
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px 16px; background: var(--bg); cursor: pointer;
+  transition: all 0.12s; text-decoration: none; color: var(--fg);
+  font-family: inherit;
+}
+.a-country-btn:hover { border-color: oklch(0.7 0 0); background: var(--secondary); }
+.a-country-btn .flag { font-size: 20px; line-height: 1; }
+.a-country-btn .info { display: flex; flex-direction: column; gap: 1px; }
+.a-country-btn .name { font-size: 13px; font-weight: 600; }
+.a-country-btn .count { font-size: 11px; color: var(--muted-fg); }
+.a-country-btn.soon { opacity: 0.45; cursor: default; }
+.a-country-btn.soon:hover { background: var(--bg); border-color: var(--border); }
+.a-footer {
+  border-top: 1px solid var(--border); padding: 16px 40px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.a-footer-left { font-size: 12px; color: var(--muted-fg); }
+.a-footer-right { font-size: 12px; color: var(--muted-fg); }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SURFACE B — Country page (ch.platform-name.com)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.b-topbar {
+  height: 48px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 32px; gap: 16px;
+}
+.b-back { font-size: 12px; color: var(--muted-fg); text-decoration: none; display: flex; align-items: center; gap: 4px; }
+.b-divider { width: 1px; height: 18px; background: var(--border); }
+.b-country-name { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.b-apply { margin-left: auto; background: var(--primary); color: var(--primary-fg); font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 6px; border: none; cursor: pointer; font-family: inherit; }
+.b-search {
+  padding: 24px 32px; border-bottom: 1px solid var(--border);
+  background: var(--secondary);
+}
+.b-search-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.b-search-field { display: flex; flex-direction: column; gap: 4px; }
+.b-search-field label { font-size: 11px; color: var(--muted-fg); font-weight: 500; }
+.b-select {
+  border: 1px solid var(--border); border-radius: 7px;
+  padding: 7px 12px; font-size: 13px; font-family: inherit;
+  background: var(--bg); color: var(--fg); cursor: pointer; min-width: 160px;
+}
+.b-search-btn {
+  align-self: flex-end; background: var(--primary); color: var(--primary-fg);
+  border: none; border-radius: 7px; padding: 8px 20px; font-size: 13px;
+  font-weight: 600; cursor: pointer; font-family: inherit;
+}
+.b-results { padding: 20px 32px; }
+.b-results-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+.b-results-header h2 { font-size: 14px; font-weight: 600; }
+.b-results-header span { font-size: 12px; color: var(--muted-fg); }
+.b-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+.b-card { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.b-card-top { height: 52px; display: flex; align-items: center; padding: 0 14px; gap: 10px; }
+.b-card-logo { width: 32px; height: 32px; border-radius: 7px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.b-card-name { font-size: 12px; font-weight: 700; }
+.b-card-body { padding: 10px 14px; }
+.b-card-tag { font-size: 10px; background: var(--secondary); color: var(--muted-fg); padding: 2px 7px; border-radius: 3px; display: inline-block; margin-bottom: 5px; }
+.b-card-desc { font-size: 11px; color: var(--muted-fg); line-height: 1.5; }
+.b-card-foot { padding: 8px 14px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; }
+.b-card-foot a { font-size: 11px; font-weight: 500; color: var(--fg); text-decoration: none; }
+.b-powered { border-top: 1px solid var(--border); padding: 12px 32px; font-size: 11px; color: var(--muted-fg); }
+.b-powered span { font-weight: 600; color: var(--fg); }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SURFACE C — Club site public (D4 sidebar + D1 hero)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.c-wrap { display: flex; min-height: 600px; }
+.c-sidebar {
+  width: 210px; flex-shrink: 0; border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; padding: 24px 16px;
+  background: var(--secondary);
+}
+.c-sidebar-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; padding: 0 4px; }
+.c-logo-mark { width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.c-logo-name { font-size: 13px; font-weight: 700; line-height: 1.25; }
+.c-nav { display: flex; flex-direction: column; gap: 1px; }
+.c-nav a {
+  font-size: 13px; color: var(--muted-fg); text-decoration: none;
+  padding: 8px 10px; border-radius: 6px; display: block;
+}
+.c-nav a.active { background: var(--bg); color: var(--fg); font-weight: 500; box-shadow: 0 1px 3px oklch(0 0 0 / 7%); }
+.c-powered { margin-top: auto; font-size: 11px; color: var(--muted-fg); padding: 4px; }
+.c-powered span { font-weight: 600; color: var(--fg); }
+/* D1-style hero in the main area */
+.c-main { flex: 1; display: flex; flex-direction: column; }
+.c-hero { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 56px; text-align: center; }
+.c-hero-logo { width: 80px; height: 80px; border-radius: 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; font-size: 36px; }
+.c-hero h1 { font-size: 28px; font-weight: 800; margin-bottom: 14px; line-height: 1.2; letter-spacing: -0.01em; }
+.c-hero p { font-size: 15px; color: var(--muted-fg); line-height: 1.7; max-width: 380px; margin-bottom: 28px; }
+.c-divider { width: 36px; height: 2px; background: var(--border); margin: 0 auto 24px; }
+.c-contact-btn { background: var(--primary); color: var(--primary-fg); border: none; border-radius: 8px; padding: 11px 28px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SURFACE D — Club site edit mode
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* Edit wrapper: dark sidebar left, main right (split: fields top + preview bottom) */
+.d-wrap { display: flex; min-height: 620px; }
+/* Dark sidebar */
+.d-sidebar {
+  width: 210px; flex-shrink: 0; background: var(--dark-bg);
+  color: var(--dark-fg); display: flex; flex-direction: column;
+  padding: 16px 12px;
+}
+.d-sidebar-logo { font-size: 13px; font-weight: 700; color: var(--dark-fg); padding: 0 8px; margin-bottom: 20px; }
+.d-section-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: oklch(0.45 0 0); padding: 0 8px; margin-bottom: 5px; margin-top: 14px; }
+.d-sidebar-nav { display: flex; flex-direction: column; gap: 1px; }
+.d-page-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 8px; border-radius: 5px; font-size: 12px; color: oklch(0.65 0 0);
+}
+.d-page-row.active { background: oklch(1 0 0 / 8%); color: var(--dark-fg); }
+.d-lock { font-size: 9px; opacity: 0.35; }
+.d-toggle {
+  width: 26px; height: 15px; border-radius: 8px; background: oklch(0.35 0 0);
+  position: relative; cursor: pointer; flex-shrink: 0;
+}
+.d-toggle.on { background: oklch(0.75 0 0); }
+.d-toggle::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 11px; height: 11px; border-radius: 50%; background: white; transition: transform 0.12s;
+}
+.d-toggle.on::after { transform: translateX(11px); background: oklch(0.15 0 0); }
+.d-add-page-btn {
+  width: 100%; background: oklch(1 0 0 / 6%); border: 1px dashed oklch(1 0 0 / 15%);
+  border-radius: 5px; padding: 6px; font-size: 11px; color: oklch(0.55 0 0);
+  cursor: pointer; font-family: inherit; margin-top: 6px;
+}
+/* Admin section (only in edit mode) */
+.d-admin-section { margin-top: 14px; }
+.d-admin-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 8px; border-radius: 5px; font-size: 12px; color: oklch(0.6 0 0);
+  cursor: pointer;
+}
+.d-admin-item:hover { background: oklch(1 0 0 / 6%); color: var(--dark-fg); }
+.d-admin-item .icon { font-size: 11px; opacity: 0.7; }
+/* Accent swatches */
+.d-swatches { display: flex; gap: 4px; padding: 6px 8px; flex-wrap: wrap; }
+.d-swatch { width: 16px; height: 16px; border-radius: 50%; cursor: pointer; }
+.d-swatch.active { outline: 2px solid white; outline-offset: 1px; }
+/* Main right panel */
+.d-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+/* Edit save bar at top */
+.d-save-bar {
+  background: var(--dark-bg); padding: 8px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--dark-border); flex-shrink: 0;
+}
+.d-unsaved { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--amber); }
+.d-unsaved-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--amber); }
+.d-save-btn { background: var(--dark-fg); color: var(--dark-bg); border: none; border-radius: 5px; padding: 5px 14px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+/* Split: fields (top) + preview (bottom) */
+.d-split { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.d-fields-area { background: oklch(0.97 0 0); padding: 14px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.d-fields-card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.d-fields-card-header {
+  background: var(--secondary); padding: 10px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+.d-fields-card-header h4 { font-size: 12px; font-weight: 600; }
+.d-field-tag { font-size: 10px; color: var(--muted-fg); padding: 2px 7px; border: 1px solid var(--border); border-radius: 3px; }
+.d-field-row { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.d-field-row:last-child { border-bottom: none; }
+.d-field-row label { font-size: 10px; color: var(--muted-fg); display: block; margin-bottom: 3px; }
+.d-field-input { width: 100%; border: 1px solid var(--border); border-radius: 5px; padding: 6px 9px; font-size: 12px; font-family: inherit; background: var(--bg); color: var(--fg); }
+.d-field-input:focus { outline: 2px solid var(--primary); border-color: transparent; }
+.d-textarea { resize: none; }
+/* Live preview area */
+.d-preview-area { flex: 1; background: oklch(0.93 0 0); padding: 10px 16px; min-height: 200px; }
+.d-preview-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted-fg); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.d-preview-label::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green-ok); }
+.d-preview-frame {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; overflow: hidden;
+  display: flex; box-shadow: 0 2px 8px oklch(0 0 0 / 8%);
+}
+/* Miniature club site in preview */
+.d-mini-sidebar {
+  width: 90px; flex-shrink: 0; border-right: 1px solid var(--border);
+  background: var(--secondary); padding: 10px 8px;
+}
+.d-mini-logo-row { display: flex; align-items: center; gap: 5px; margin-bottom: 10px; }
+.d-mini-logo { width: 18px; height: 18px; border-radius: 4px; background: oklch(0.546 0.245 262.881); flex-shrink: 0; }
+.d-mini-name { font-size: 8px; font-weight: 700; line-height: 1.2; }
+.d-mini-nav a { display: block; font-size: 8px; padding: 4px 5px; border-radius: 3px; color: var(--muted-fg); text-decoration: none; }
+.d-mini-nav a.active { background: var(--bg); color: var(--fg); font-weight: 600; }
+.d-mini-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 10px; text-align: center; }
+.d-mini-club-logo { width: 28px; height: 28px; border-radius: 7px; background: oklch(0.546 0.245 262.881); display: flex; align-items: center; justify-content: center; font-size: 13px; margin-bottom: 8px; }
+.d-mini-h1 { font-size: 10px; font-weight: 700; margin-bottom: 5px; }
+.d-mini-p { font-size: 8px; color: var(--muted-fg); line-height: 1.4; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SURFACE E — Platform admin dashboard
+   (D6 content, D4-style dark sidebar)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.e-wrap { display: flex; min-height: 600px; }
+.e-sidebar {
+  width: 210px; flex-shrink: 0; background: var(--dark-bg);
+  color: var(--dark-fg); display: flex; flex-direction: column;
+  padding: 20px 12px;
+}
+.e-sidebar-brand { font-size: 14px; font-weight: 800; padding: 0 8px; margin-bottom: 24px; color: var(--dark-fg); }
+.e-section-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: oklch(0.45 0 0); padding: 0 8px; margin-bottom: 5px; margin-top: 12px; }
+.e-nav { display: flex; flex-direction: column; gap: 1px; }
+.e-nav a {
+  font-size: 12px; color: oklch(0.65 0 0); text-decoration: none;
+  padding: 8px 8px; border-radius: 5px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.e-nav a.active { background: oklch(1 0 0 / 10%); color: var(--dark-fg); }
+.e-nav a:hover { background: oklch(1 0 0 / 6%); color: oklch(0.85 0 0); }
+.e-badge { background: var(--amber); color: oklch(0.15 0 0); font-size: 9px; font-weight: 800; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.e-main { flex: 1; padding: 24px; background: oklch(0.97 0 0); }
+.e-page-header { margin-bottom: 20px; }
+.e-page-header h2 { font-size: 16px; font-weight: 700; }
+.e-page-header p { font-size: 12px; color: var(--muted-fg); margin-top: 2px; }
+.e-metrics { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 20px; }
+.e-metric { background: var(--bg); border: 1px solid var(--border); border-radius: 9px; padding: 14px; }
+.e-metric-label { font-size: 10px; color: var(--muted-fg); margin-bottom: 3px; }
+.e-metric-value { font-size: 22px; font-weight: 800; }
+.e-metric-sub { font-size: 10px; color: var(--muted-fg); margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+.e-dot { width: 6px; height: 6px; border-radius: 50%; }
+.e-dot.green { background: var(--green-ok); }
+.e-dot.amber { background: var(--amber); }
+.e-table-label { font-size: 12px; font-weight: 600; margin-bottom: 10px; }
+.e-table { background: var(--bg); border: 1px solid var(--border); border-radius: 9px; overflow: hidden; }
+.e-row { display: grid; grid-template-columns: 1fr 110px 100px 120px; padding: 11px 14px; border-bottom: 1px solid var(--border); font-size: 12px; align-items: center; }
+.e-row:last-child { border-bottom: none; }
+.e-row.head { font-size: 10px; color: var(--muted-fg); font-weight: 600; background: var(--secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+.e-club-info h4 { font-size: 12px; font-weight: 600; }
+.e-club-info p { font-size: 10px; color: var(--muted-fg); margin-top: 1px; }
+.e-chip { font-size: 10px; background: var(--secondary); color: var(--muted-fg); padding: 2px 8px; border-radius: 3px; display: inline-block; }
+.e-row-actions { display: flex; gap: 5px; }
+.e-approve { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 4px; border: none; cursor: pointer; font-family: inherit; background: oklch(0.88 0.1 145); color: oklch(0.25 0.08 145); }
+.e-reject { font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 4px; border: none; cursor: pointer; font-family: inherit; background: var(--secondary); color: var(--muted-fg); }
+</style>
+</head>
+<body>
+
+<nav class="shell-nav">
+  <div class="shell-nav-title">Chosen Design Direction</div>
+  <div class="shell-tabs">
+    <button class="tab-btn active" onclick="show(0)"><span class="tab-num">01</span> Platform Homepage</button>
+    <button class="tab-btn" onclick="show(1)"><span class="tab-num">02</span> Country Page (ch.)</button>
+    <button class="tab-btn" onclick="show(2)"><span class="tab-num">03</span> Club Site — Public</button>
+    <button class="tab-btn" onclick="show(3)"><span class="tab-num">04</span> Club Site — Edit Mode</button>
+    <button class="tab-btn" onclick="show(4)"><span class="tab-num">05</span> Admin Dashboard</button>
+  </div>
+</nav>
+
+<div class="panels-wrap">
+
+  <!-- ══ 01 · PLATFORM HOMEPAGE ══════════════════════ -->
+  <div class="panel active" id="p0">
+    <div class="panel-header">
+      <div class="ph-left">
+        <span class="ph-num">Surface 01</span>
+        <span class="ph-title">Platform Main Homepage</span>
+        <span class="ph-sub">platform-name.com — sober, global, no listing — country buttons redirect to subdomains</span>
+      </div>
+      <div class="ph-tags">
+        <span class="ph-tag">platform-name.com</span>
+        <span class="ph-tag">Country buttons</span>
+        <span class="ph-tag">Stats only</span>
+        <span class="ph-tag">howmuch.tax inspired</span>
+      </div>
+    </div>
+    <div class="mockup-grid cols-1">
+      <div class="mockup-cell">
+        <span class="cell-label">platform-name.com</span>
+        <div style="padding-top:30px;">
+          <!-- Topbar -->
+          <div class="a-topbar">
+            <span class="a-brand">[Platform]</span>
+            <nav class="a-nav">
+              <a href="#">About</a>
+              <a href="#">Support &amp; Donate</a>
+              <button class="a-apply">Apply for your association →</button>
+            </nav>
+          </div>
+          <!-- Hero -->
+          <div class="a-hero">
+            <h1>The worldwide<br>activities glossary</h1>
+            <p>Find non-profit associations near you — ski clubs, sports clubs, music groups, cultural societies — all in one place.</p>
+          </div>
+          <!-- Stats -->
+          <div class="a-stats">
+            <div class="a-stat">
+              <div class="a-stat-value">24</div>
+              <div class="a-stat-label">Associations</div>
+            </div>
+            <div class="a-stat">
+              <div class="a-stat-value">1</div>
+              <div class="a-stat-label">Countries</div>
+            </div>
+            <div class="a-stat">
+              <div class="a-stat-value">9</div>
+              <div class="a-stat-label">Activity types</div>
+            </div>
+            <div class="a-stat">
+              <div class="a-stat-value">CHF 0</div>
+              <div class="a-stat-label">Marketing spend</div>
+            </div>
+          </div>
+          <!-- Countries -->
+          <div class="a-countries">
+            <div class="a-region-label">Available now</div>
+            <div class="a-country-grid">
+              <a href="#" class="a-country-btn">
+                <span class="flag">🇨🇭</span>
+                <div class="info">
+                  <span class="name">Switzerland</span>
+                  <span class="count">24 associations · ch.platform-name.com</span>
+                </div>
+              </a>
+            </div>
+            <div class="a-region-label">Coming soon</div>
+            <div class="a-country-grid">
+              <a href="#" class="a-country-btn soon">
+                <span class="flag">🇫🇷</span>
+                <div class="info"><span class="name">France</span><span class="count">fr.platform-name.com</span></div>
+              </a>
+              <a href="#" class="a-country-btn soon">
+                <span class="flag">🇩🇪</span>
+                <div class="info"><span class="name">Germany</span><span class="count">de.platform-name.com</span></div>
+              </a>
+              <a href="#" class="a-country-btn soon">
+                <span class="flag">🇦🇹</span>
+                <div class="info"><span class="name">Austria</span><span class="count">at.platform-name.com</span></div>
+              </a>
+              <a href="#" class="a-country-btn soon">
+                <span class="flag">🇮🇹</span>
+                <div class="info"><span class="name">Italy</span><span class="count">it.platform-name.com</span></div>
+              </a>
+            </div>
+          </div>
+          <div class="a-footer">
+            <span class="a-footer-left">© [Platform] · Civic infrastructure, not SaaS</span>
+            <span class="a-footer-right">Philosophy · Privacy · Contact</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note"><h4>Key decisions</h4><p>No listing on the main site — only country entry points. Stats replace the directory. Each country button links to its own subdomain with country-specific search.</p></div>
+      <div class="note"><h4>Architecture</h4><p>Subdomains per country: ch.platform-name.com, fr.platform-name.com, etc. The main domain is global landing + philosophy. Country domains host the actual directories.</p></div>
+      <div class="note"><h4>Growth signal</h4><p>"Coming soon" country buttons make the global vision tangible from day one. They validate the philosophy ("this is infrastructure, not a local app") and prime word-of-mouth from early Swiss clubs.</p></div>
+    </div>
+  </div>
+
+  <!-- ══ 02 · COUNTRY PAGE ════════════════════════════ -->
+  <div class="panel" id="p1">
+    <div class="panel-header">
+      <div class="ph-left">
+        <span class="ph-num">Surface 02</span>
+        <span class="ph-title">Country Page — Switzerland</span>
+        <span class="ph-sub">ch.platform-name.com — canton-first search, then club listing</span>
+      </div>
+      <div class="ph-tags">
+        <span class="ph-tag">ch.platform-name.com</span>
+        <span class="ph-tag">Canton filter</span>
+        <span class="ph-tag">Activity type filter</span>
+        <span class="ph-tag">Club grid</span>
+      </div>
+    </div>
+    <div class="mockup-grid cols-1">
+      <div class="mockup-cell">
+        <span class="cell-label">ch.platform-name.com</span>
+        <div style="padding-top:30px;">
+          <div class="b-topbar">
+            <a href="#" class="b-back">← platform-name.com</a>
+            <div class="b-divider"></div>
+            <span class="b-country-name">🇨🇭 Switzerland</span>
+            <button class="b-apply">Apply for your association →</button>
+          </div>
+          <div class="b-search">
+            <div class="b-search-row">
+              <div class="b-search-field">
+                <label>Canton</label>
+                <select class="b-select">
+                  <option>All cantons</option>
+                  <option selected>Vaud</option>
+                  <option>Valais</option>
+                  <option>Bern</option>
+                  <option>Geneva</option>
+                  <option>Zurich</option>
+                  <option>Fribourg</option>
+                  <option>Basel-City</option>
+                </select>
+              </div>
+              <div class="b-search-field">
+                <label>Activity type</label>
+                <select class="b-select">
+                  <option>All types</option>
+                  <option>Winter sports</option>
+                  <option>Football</option>
+                  <option>Music</option>
+                  <option>Racket sports</option>
+                  <option>Outdoors</option>
+                  <option>Cultural</option>
+                </select>
+              </div>
+              <div class="b-search-field">
+                <label>Language</label>
+                <select class="b-select" style="min-width:120px;">
+                  <option>Any</option>
+                  <option selected>French</option>
+                  <option>German</option>
+                  <option>Italian</option>
+                </select>
+              </div>
+              <button class="b-search-btn">Search</button>
+            </div>
+          </div>
+          <div class="b-results">
+            <div class="b-results-header">
+              <h2>Associations in Vaud</h2>
+              <span>6 results</span>
+            </div>
+            <div class="b-grid">
+              <div class="b-card">
+                <div class="b-card-top" style="background:oklch(0.25 0.08 145);">
+                  <div class="b-card-logo" style="background:oklch(0.55 0.15 145);">⚽</div>
+                  <span class="b-card-name" style="color:white;">FC Lausanne Amateurs</span>
+                </div>
+                <div class="b-card-body">
+                  <span class="b-card-tag">Football · Lausanne</span>
+                  <p class="b-card-desc">Amateur football for all levels. Training twice weekly.</p>
+                </div>
+                <div class="b-card-foot"><a href="#">Visit site →</a></div>
+              </div>
+              <div class="b-card">
+                <div class="b-card-top" style="background:oklch(0.2 0.04 262);">
+                  <div class="b-card-logo" style="background:oklch(0.55 0.18 262);">🏸</div>
+                  <span class="b-card-name" style="color:white;">Badminton Lausanne</span>
+                </div>
+                <div class="b-card-body">
+                  <span class="b-card-tag">Racket sports · Lausanne</span>
+                  <p class="b-card-desc">Friendly badminton club. All levels welcome every Thursday.</p>
+                </div>
+                <div class="b-card-foot"><a href="#">Visit site →</a></div>
+              </div>
+              <div class="b-card">
+                <div class="b-card-top" style="background:oklch(0.22 0.04 295);">
+                  <div class="b-card-logo" style="background:oklch(0.55 0.15 295);">🎭</div>
+                  <span class="b-card-name" style="color:white;">Théâtre Amateur Nyon</span>
+                </div>
+                <div class="b-card-body">
+                  <span class="b-card-tag">Cultural · Nyon</span>
+                  <p class="b-card-desc">Amateur theatre with two productions per year.</p>
+                </div>
+                <div class="b-card-foot"><a href="#">Visit site →</a></div>
+              </div>
+            </div>
+          </div>
+          <div class="b-powered">Powered by <span>[Platform]</span> · platform-name.com</div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note"><h4>Country-specific fields</h4><p>Switzerland: Canton is the primary geographic filter. France would use Département or Région. Germany: Bundesland. Each country domain has its own field schema — no one-size-fits-all form.</p></div>
+      <div class="note"><h4>Language filter</h4><p>Switzerland's multilingual nature (FR/DE/IT/RM) makes language a meaningful filter. Other countries may not need it. Country-specific configuration handled per subdomain.</p></div>
+      <div class="note"><h4>SEO</h4><p>Each country page is server-rendered. Each club card has structured data. The canton/region filter works without JavaScript for crawlability. Club URLs are indexed directly by search engines.</p></div>
+    </div>
+  </div>
+
+  <!-- ══ 03 · CLUB SITE — PUBLIC ══════════════════════ -->
+  <div class="panel" id="p2">
+    <div class="panel-header">
+      <div class="ph-left">
+        <span class="ph-num">Surface 03</span>
+        <span class="ph-title">Club Site — Public View</span>
+        <span class="ph-sub">D4 sidebar navigation + D1-style centered hero on the home page</span>
+      </div>
+      <div class="ph-tags">
+        <span class="ph-tag">skiclubvalais.ch</span>
+        <span class="ph-tag">Sidebar nav</span>
+        <span class="ph-tag">Centered hero</span>
+        <span class="ph-tag">Logo · Title · Description · CTA</span>
+      </div>
+    </div>
+    <div class="mockup-grid cols-1">
+      <div class="mockup-cell">
+        <span class="cell-label">Club site — public</span>
+        <div style="padding-top:30px;">
+          <div class="c-wrap">
+            <div class="c-sidebar">
+              <div class="c-sidebar-logo">
+                <div class="c-logo-mark" style="background:oklch(0.55 0.18 220);">⛷️</div>
+                <span class="c-logo-name">Ski Club<br>Valais</span>
+              </div>
+              <nav class="c-nav">
+                <a href="#" class="active">Home</a>
+                <a href="#">Calendar</a>
+                <a href="#">Gallery</a>
+                <a href="#">Contact</a>
+              </nav>
+              <div class="c-powered">Powered by <span>[Platform]</span></div>
+            </div>
+            <div class="c-main">
+              <div class="c-hero">
+                <div class="c-hero-logo" style="background:oklch(0.2 0.04 220);">⛷️</div>
+                <h1>Ski Club Valais</h1>
+                <p>A community of ski enthusiasts in the heart of canton Valais. Weekends on the slopes, shared passion, new friends — all levels welcome.</p>
+                <div class="c-divider"></div>
+                <button class="c-contact-btn">Contact us</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note"><h4>D4 + D1 hybrid</h4><p>The sidebar gives persistent, clear navigation for all pages. The D1-style centered hero makes the home page feel dignified and spacious — the club's identity takes center stage immediately.</p></div>
+      <div class="note"><h4>Logo placement</h4><p>Logo appears twice: small in the sidebar (navigation identity) and large in the centered hero (visual pride). This is intentional — the sidebar keeps context, the hero delivers impact.</p></div>
+      <div class="note"><h4>"Powered by" placement</h4><p>Sits at the bottom of the sidebar — persistent, never intrusive, always present. Every page view surfaces it to visitors without it dominating the club's content.</p></div>
+    </div>
+  </div>
+
+  <!-- ══ 04 · CLUB SITE — EDIT MODE ══════════════════ -->
+  <div class="panel" id="p3">
+    <div class="panel-header">
+      <div class="ph-left">
+        <span class="ph-num">Surface 04</span>
+        <span class="ph-title">Club Site — Edit Mode</span>
+        <span class="ph-sub">Dark sidebar with Pages + Admin sections · Fields card + live preview below</span>
+      </div>
+      <div class="ph-tags">
+        <span class="ph-tag">Edit mode</span>
+        <span class="ph-tag">Page management</span>
+        <span class="ph-tag">Admin section</span>
+        <span class="ph-tag">Accent picker</span>
+        <span class="ph-tag">Live preview</span>
+      </div>
+    </div>
+    <div class="mockup-grid cols-1">
+      <div class="mockup-cell" style="background:oklch(0.97 0 0);">
+        <span class="cell-label edit">Edit mode</span>
+        <div style="padding-top:30px;">
+          <div class="d-wrap">
+            <!-- Dark sidebar -->
+            <div class="d-sidebar">
+              <div class="d-sidebar-logo">[Platform]</div>
+
+              <div class="d-section-label">Pages</div>
+              <div class="d-page-row active">
+                <span>Home</span>
+                <span class="d-lock">🔒</span>
+              </div>
+              <div class="d-page-row">
+                <span>Calendar</span>
+                <div class="d-toggle on"></div>
+              </div>
+              <div class="d-page-row">
+                <span>Gallery</span>
+                <div class="d-toggle"></div>
+              </div>
+              <div class="d-page-row">
+                <span>Documents</span>
+                <div class="d-toggle"></div>
+              </div>
+              <div class="d-page-row">
+                <span>Contact</span>
+                <span class="d-lock">🔒</span>
+              </div>
+              <button class="d-add-page-btn">+ Add custom page</button>
+
+              <!-- Admin section — only visible in edit mode -->
+              <div class="d-admin-section">
+                <div class="d-section-label">Admin</div>
+                <div class="d-admin-item active" style="background:oklch(1 0 0 / 8%);color:var(--dark-fg);">
+                  <span class="icon">🎨</span> Accent color
+                </div>
+                <div class="d-swatches">
+                  <div class="d-swatch active" style="background:oklch(0.21 0.006 285.885);" title="Zinc"></div>
+                  <div class="d-swatch" style="background:oklch(0.546 0.245 262.881);" title="Blue"></div>
+                  <div class="d-swatch" style="background:oklch(0.527 0.154 150.069);" title="Green"></div>
+                  <div class="d-swatch" style="background:oklch(0.577 0.245 27.325);" title="Red"></div>
+                  <div class="d-swatch" style="background:oklch(0.558 0.22 295);" title="Violet"></div>
+                  <div class="d-swatch" style="background:oklch(0.646 0.222 41.116);" title="Orange"></div>
+                  <div class="d-swatch" style="background:oklch(0.592 0.215 12.5);" title="Rose"></div>
+                  <div class="d-swatch" style="background:oklch(0.769 0.188 70.08);" title="Yellow"></div>
+                </div>
+                <div class="d-admin-item"><span class="icon">👤</span> Account</div>
+                <div class="d-admin-item"><span class="icon">📜</span> Version history</div>
+                <div class="d-admin-item"><span class="icon">🌐</span> Custom domain</div>
+                <div class="d-admin-item"><span class="icon">📤</span> Export data</div>
+              </div>
+            </div>
+
+            <!-- Main: save bar + split (fields + preview) -->
+            <div class="d-main">
+              <div class="d-save-bar">
+                <div class="d-unsaved">
+                  <span class="d-unsaved-dot"></span>
+                  Unsaved changes
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <span style="font-size:11px;color:oklch(0.55 0 0);">Editing: Home</span>
+                  <button class="d-save-btn">Save</button>
+                </div>
+              </div>
+
+              <div class="d-split">
+                <!-- Fields card -->
+                <div class="d-fields-area">
+                  <div class="d-fields-card">
+                    <div class="d-fields-card-header">
+                      <h4>Home — Static content</h4>
+                      <span class="d-field-tag">Always visible</span>
+                    </div>
+                    <div class="d-field-row">
+                      <label>Club name</label>
+                      <input class="d-field-input" type="text" value="Ski Club Valais">
+                    </div>
+                    <div class="d-field-row">
+                      <label>Welcome text</label>
+                      <textarea class="d-field-input d-textarea" rows="2">A community of ski enthusiasts in the heart of canton Valais.</textarea>
+                    </div>
+                    <div class="d-field-row" style="display:flex;gap:10px;align-items:center;">
+                      <div style="flex:1;">
+                        <label>Club logo</label>
+                        <div style="border:1px dashed var(--border);border-radius:5px;padding:8px;text-align:center;font-size:11px;color:var(--muted-fg);">
+                          Current logo · Click to replace · PNG/SVG · max 2 MB
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Live preview -->
+                <div class="d-preview-area">
+                  <div class="d-preview-label">Live preview — what visitors see</div>
+                  <div class="d-preview-frame">
+                    <div class="d-mini-sidebar">
+                      <div class="d-mini-logo-row">
+                        <div class="d-mini-logo">⛷️</div>
+                        <span class="d-mini-name">Ski Club<br>Valais</span>
+                      </div>
+                      <nav class="d-mini-nav">
+                        <a href="#" class="active">Home</a>
+                        <a href="#">Calendar</a>
+                        <a href="#">Contact</a>
+                      </nav>
+                    </div>
+                    <div class="d-mini-main">
+                      <div class="d-mini-club-logo">⛷️</div>
+                      <div class="d-mini-h1">Ski Club Valais</div>
+                      <div class="d-mini-p">A community of ski enthusiasts<br>in the heart of canton Valais.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note"><h4>Admin section in sidebar</h4><p>Only visible in edit mode — admins discover it naturally when they activate editing. Contains: accent color picker, account, version history, custom domain, data export. Collapses when in public view.</p></div>
+      <div class="note"><h4>Live preview</h4><p>The preview panel shows the actual club site miniature below the edit fields, updating as the admin types. Closing the cognitive gap between "what I'm editing" and "what visitors will see" without leaving the page.</p></div>
+      <div class="note"><h4>Lock icons</h4><p>Home and Contact have lock icons — immovable anchor pages. The toggle on/off for optional pages makes activation/deactivation instant and visual. "Add custom page" creates a new page slot.</p></div>
+    </div>
+  </div>
+
+  <!-- ══ 05 · ADMIN DASHBOARD ═════════════════════════ -->
+  <div class="panel" id="p4">
+    <div class="panel-header">
+      <div class="ph-left">
+        <span class="ph-num">Surface 05</span>
+        <span class="ph-title">Platform Admin Dashboard</span>
+        <span class="ph-sub">D4-style dark sidebar · D6 metrics &amp; application queue content · Linear-inspired calm</span>
+      </div>
+      <div class="ph-tags">
+        <span class="ph-tag">Operator view</span>
+        <span class="ph-tag">D4 sidebar style</span>
+        <span class="ph-tag">Metrics panel</span>
+        <span class="ph-tag">Application queue</span>
+      </div>
+    </div>
+    <div class="mockup-grid cols-1">
+      <div class="mockup-cell" style="background:oklch(0.97 0 0);">
+        <span class="cell-label">Platform operator</span>
+        <div style="padding-top:30px;">
+          <div class="e-wrap">
+            <!-- D4-style dark sidebar -->
+            <div class="e-sidebar">
+              <div class="e-sidebar-brand">[Platform]</div>
+              <div class="e-section-label">Overview</div>
+              <nav class="e-nav">
+                <a href="#">Dashboard</a>
+              </nav>
+              <div class="e-section-label">Clubs</div>
+              <nav class="e-nav">
+                <a href="#" class="active">
+                  Applications
+                  <span class="e-badge">1</span>
+                </a>
+                <a href="#">All clubs</a>
+                <a href="#">Site health</a>
+              </nav>
+              <div class="e-section-label">Platform</div>
+              <nav class="e-nav">
+                <a href="#">Support queue</a>
+                <a href="#">Settings</a>
+              </nav>
+            </div>
+            <!-- Main content -->
+            <div class="e-main">
+              <div class="e-page-header">
+                <h2>Applications</h2>
+                <p>1 pending review</p>
+              </div>
+              <div class="e-metrics">
+                <div class="e-metric">
+                  <div class="e-metric-label">Clubs live</div>
+                  <div class="e-metric-value">24</div>
+                  <div class="e-metric-sub"><span class="e-dot green"></span>All sites up</div>
+                </div>
+                <div class="e-metric">
+                  <div class="e-metric-label">Custom domains</div>
+                  <div class="e-metric-value">19</div>
+                  <div class="e-metric-sub">of 24 clubs</div>
+                </div>
+                <div class="e-metric">
+                  <div class="e-metric-label">Uptime (30d)</div>
+                  <div class="e-metric-value">100%</div>
+                  <div class="e-metric-sub"><span class="e-dot green"></span>No incidents</div>
+                </div>
+                <div class="e-metric">
+                  <div class="e-metric-label">Support tickets</div>
+                  <div class="e-metric-value">1</div>
+                  <div class="e-metric-sub"><span class="e-dot amber"></span>Open</div>
+                </div>
+              </div>
+              <div class="e-table-label">Pending applications</div>
+              <div class="e-table">
+                <div class="e-row head">
+                  <span>Association</span>
+                  <span>Activity type</span>
+                  <span>Region</span>
+                  <span>Action</span>
+                </div>
+                <div class="e-row">
+                  <div class="e-club-info">
+                    <h4>Brass Band Fribourg</h4>
+                    <p>Applied 2 hours ago</p>
+                  </div>
+                  <span class="e-chip">Music</span>
+                  <span style="font-size:11px;color:var(--muted-fg);">Fribourg, CH</span>
+                  <div class="e-row-actions">
+                    <button class="e-approve">Approve</button>
+                    <button class="e-reject">Reject</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note"><h4>Sidebar consistency</h4><p>Same dark sidebar pattern as the club site edit mode — one visual language across both operator and admin interfaces. Section labels (Overview / Clubs / Platform) map cleanly to operator mental model.</p></div>
+      <div class="note"><h4>Approve in-row</h4><p>Approve/Reject actions live directly in the table row — no modal, no separate page. Low-volume workflow; operator makes the decision in one glance. Approval triggers automated subdomain provisioning + email.</p></div>
+      <div class="note"><h4>Calm by default</h4><p>The metrics panel is the most prominent element — showing platform health at a glance. If everything is green, the operator closes the tab. The amber support-ticket dot is the only signal requiring attention today.</p></div>
+    </div>
+  </div>
+
+</div><!-- /panels-wrap -->
+
+<script>
+  function show(i) {
+    document.querySelectorAll('.panel').forEach((p,j) => p.classList.toggle('active', i===j));
+    document.querySelectorAll('.tab-btn').forEach((b,j) => b.classList.toggle('active', i===j));
+  }
+</script>
+</body>
+</html>
