@@ -63,8 +63,9 @@ FR42: System presents a cookie consent mechanism to users on the platform site a
 FR43: System automatically generates and maintains SEO metadata for all club site pages without requiring any admin configuration
 FR44: Club Admin can view stored contact form submissions received for their site
 FR45: Platform Operator can view detailed per-club analytics (traffic, page views, edit events, login events, contact form submission counts)
+FR46: Club Admin can select an accent color for their club site from a curated palette of 8 presets (Zinc, Blue, Green, Red, Violet, Orange, Rose, Yellow)
 
-**Total FRs: 45**
+**Total FRs: 46**
 
 ### Non-Functional Requirements
 
@@ -122,10 +123,11 @@ NFR27: All platform-wide configurable variables adjustable via the admin dashboa
 - **Build order:** Database schema first (prerequisite), then Club webapp and Platform site built in parallel
 - **Hybrid MPA/SPA rendering:** club home + platform site server-rendered; inner pages + edit mode + admin dashboard SPA-style
 - **Image alt text** in edit mode: enforced field, not optional
+- **Accent color picker:** 8 curated presets (Zinc, Blue, Green, Red, Violet, Orange, Rose, Yellow) applied via OKLCH CSS token — **MVP Phase 1** (FR46 newly added to PRD)
 
 ### PRD Completeness Assessment
 
-The PRD is thorough and well-structured. Requirements are explicitly numbered (FR1–FR45, NFR1–NFR27), making traceability straightforward. All four core user journeys (Club Admin, Public Visitor, Club Applicant, Platform Operator) are fully described. Phased development is clearly defined with MVP vs. post-MVP boundaries. The document is suitable as a complete basis for epic coverage validation.
+The PRD is thorough and well-structured. Requirements are explicitly numbered (FR1–FR46, NFRs described by category). All four core user journeys (Club Admin, Public Visitor, Club Applicant, Platform Operator) are fully described. Phased development is clearly defined with MVP vs. post-MVP boundaries. Notably, **FR46 (accent color picker) has been added to MVP scope** since the previous assessment, resolving the prior phase conflict between the PRD and UX spec. The document is suitable as a complete basis for epic coverage validation.
 
 ---
 
@@ -133,7 +135,7 @@ The PRD is thorough and well-structured. Requirements are explicitly numbered (F
 
 ### Coverage Matrix
 
-| FR | PRD Requirement (summary) | Epic (coverage map) | Story | Status |
+| FR | PRD Requirement (summary) | Epic | Story | Status |
 |---|---|---|---|---|
 | FR1 | Club Admin configures name, logo, welcome text | Epic 4 | Story 4.2 | ✅ Covered |
 | FR2 | Toggle edit/public mode on club website | Epic 4 | Story 4.1 | ✅ Covered |
@@ -141,9 +143,9 @@ The PRD is thorough and well-structured. Requirements are explicitly numbered (F
 | FR4 | Create custom pages with nav labels | Epic 4 | Story 4.3 | ✅ Covered |
 | FR5 | Configure one level of sub-pages | Epic 4 | Story 4.4 | ✅ Covered |
 | FR6 | System prevents removal of anchor pages (Home, Contact) | Epic 4 | Story 4.3 | ✅ Covered |
-| FR7 | Enforce configurable max page count | Epic 4 | Story 4.3 | ✅ Covered |
+| FR7 | Enforce configurable max page count | Epic 4 | Stories 4.3, 4.4 | ✅ Covered |
 | FR8 | Club Admin sets up and manages custom domain | Epic 8 | Story 8.1 | ✅ Covered |
-| FR9 | System provisions subdomain on acceptance | Epic 2 | Story 2.3 | ✅ Covered |
+| FR9 | System provisions URL path on acceptance | Epic 2 | Story 2.3 | ✅ Covered |
 | FR10 | Visual element picker on custom pages | Epic 5 | Story 5.1 | ✅ Covered |
 | FR11 | Contact page sub-blocks (form, map, phone, email, subjects) | Epic 5 | Story 5.6 | ✅ Covered |
 | FR12 | Calendar event management | Epic 5 | Story 5.3 | ✅ Covered |
@@ -168,71 +170,40 @@ The PRD is thorough and well-structured. Requirements are explicitly numbered (F
 | FR31 | Operator views/manages application queue | Epic 2 | Story 2.2 | ✅ Covered |
 | FR32 | Operator approves application + provisioning | Epic 2 | Story 2.3 | ✅ Covered |
 | FR33 | Operator rejects application with email | Epic 2 | Story 2.4 | ✅ Covered |
-| FR34 | Operator views platform-wide metrics (aggregate) | Epic 7 | Story 7.1 (partial — per-club list only, no aggregate dashboard) | ⚠️ Partial |
-| FR35 | Operator monitors site health across all clubs | Epic 7 | Story 7.4 (misplaced reference — settings page, not health monitoring) | ❌ Missing story |
-| FR36 | Operator sends notification/nudge to club admin | Epic 7 | Story 7.2 (misplaced reference — metrics display, not nudge) | ❌ Missing story |
-| FR37 | Operator views and responds to support requests | Epic 7 | Story 7.2 (misplaced reference — limits enforcement, not support inbox) | ❌ Missing story |
-| FR38 | Operator configures platform-wide variables | Epic 7 | Story 7.4 (implements it but doesn't reference FR38) | ✅ Covered (ref error) |
-| FR39 | System auto-applies template updates without downtime | Epic 7 | Story 7.4 (misplaced reference — settings panel, not migration mechanism) | ❌ Missing story |
-| FR40 | Club Admin exports club data in portable format | Epic 8 | Story 8.2 (references FR40 in deletion context — wrong) | ❌ Missing story |
+| FR34 | Operator views platform-wide aggregate metrics | Epic 7 | Story 7.1 (includes aggregate dashboard panel) | ✅ Covered |
+| FR35 | Operator monitors site health across all clubs | Epic 7 | Story 7.6 | ✅ Covered |
+| FR36 | Operator sends notification/nudge to club admin | Epic 7 | Story 7.7 | ✅ Covered |
+| FR37 | Operator views and responds to support requests | Epic 7 | Story 7.8 | ✅ Covered |
+| FR38 | Operator configures platform-wide variables | Epic 7 | Story 7.4 | ✅ Covered |
+| FR39 | System auto-applies template updates without downtime | Epic 7 | Story 7.9 | ✅ Covered |
+| FR40 | Club Admin exports club data (GDPR portability) | Epic 8 | Story 8.4 | ✅ Covered |
 | FR41 | Club Admin requests data deletion | Epic 8 | Story 8.2 | ✅ Covered |
-| FR42 | Cookie consent mechanism | Epic 8 | Story 8.3 (references FR42 for cleanup job — wrong context) | ❌ Missing story |
+| FR42 | Cookie consent mechanism | Epic 8 | Story 8.5 | ✅ Covered |
 | FR43 | Automated SEO metadata generation | Epic 3 | Stories 3.3, 3.5 | ✅ Covered |
 | FR44 | Club Admin views stored contact submissions | Epic 6 | Story 6.3 | ✅ Covered |
-| FR45 | Operator views per-club analytics | Epic 7 | Stories 7.3, 7.5 | ✅ Covered |
+| FR45 | Operator views per-club analytics | Epic 7 | Story 7.3 | ✅ Covered |
+| FR46 | Club Admin selects accent color from 8 presets | Epic 4 | Story 4.7 | ✅ Covered |
 
 ### Missing Requirements
 
-#### ❌ Critical Missing Stories
+None — all 46 PRD FRs are accounted for in the epics.
 
-**FR35: Platform Operator monitors site health status across all hosted club sites**
-- Impact: The PRD user journey explicitly describes the operator checking Lighthouse scores ≥ 90 and uptime % for all sites. No story implements a health monitoring view (beyond email relay in Story 6.2).
-- Recommendation: New story in Epic 7 — "Operator Dashboard — Site Health Status" covering Lighthouse score tracking, uptime indicators, and per-club health status panel.
+#### ⚠️ Minor FR Reference Errors (Cosmetic — No Implementation Gap)
 
-**FR36: Platform Operator sends a notification/nudge to a club admin regarding a detected site issue**
-- Impact: Core operational workflow described in PRD Journey 4 (operator sends a nudge about a broken gallery image). Referenced in Story 7.2 with an incorrect/misplaced AC.
-- Recommendation: New story in Epic 7 — "Operator Nudge — Club Admin Notification" covering the nudge sending interface and the email delivery to the Club Admin.
+The following ACs contain incorrect FR references that should be corrected for traceability accuracy, but do not indicate any implementation gap:
 
-**FR37: Platform Operator views and responds to club admin support requests**
-- Impact: Story 6.4 covers Club Admin submitting a ticket and operator receiving a notification email. But no story covers the operator's admin interface for viewing, managing, and responding to the support inbox. Referenced in Story 7.2 with an incorrect AC.
-- Recommendation: New story in Epic 7 — "Operator Support Inbox" covering the `/admin/support` page: ticket list, status management (open/closed), and reply flow.
-
-**FR39: System applies template version updates automatically without downtime**
-- Impact: Silent template migration is a core platform promise. No story implements the migration mechanism — what happens when a new template version is deployed, how club content is preserved, and how zero-downtime is achieved.
-- Recommendation: New story in Epic 7 (or Epic 1) — "Template Versioning & Silent Migration" covering: template version tracking, migration process, rollback safety, zero-downtime deployment, and content preservation validation.
-
-**FR40: Club Admin can export all their club's content data in a portable standard format**
-- Impact: GDPR data portability right. The PRD states this is a core product value ("export right already in scope"). No story implements the export UI or the export generation mechanism. Story 8.2 incorrectly references FR40 for deletion.
-- Recommendation: New story in Epic 8 — "Club Admin — Data Export (GDPR Portability)" covering: export trigger, JSON/CSV generation of all club data (pages, elements, events, gallery items, documents metadata, contact submissions), and download delivery.
-
-**FR42: Cookie consent mechanism**
-- Impact: Required for GDPR compliance at launch. No story implements the consent UI. Story 8.3 references FR42 only in the context of automated data cleanup, which is unrelated.
-- Recommendation: New story in Epic 8 (or Epic 3) — "Cookie Consent Mechanism" covering: consent banner on platform site, consent handling on club sites for applicable third-party embeds, consent state persistence.
-
-#### ⚠️ Partial Coverage Issues
-
-**FR34: Operator views platform-wide aggregate metrics**
-- Story 7.1 provides a per-club list. The PRD describes a metrics panel with aggregate totals: "24 clubs now live, 19 have set up custom domains, uptime: 100% for the last 30 days, all club sites returning Lighthouse scores ≥ 90." No story implements this aggregate dashboard view.
-- Recommendation: Story 7.1 should be extended or a new AC added to cover the aggregate metrics summary panel.
-
-#### ⚠️ Incorrect FR References in Stories (Cosmetic — Not Blocking)
-
-The following FR references in story ACs are misplaced and should be corrected for traceability:
-- Story 7.2: AC "metrics displayed" references FR36 (should reference FR34/FR35)
-- Story 7.2: AC "limit enforcement" references FR37 (should reference FR7/FR38)
-- Story 7.4: AC "settings page displayed" references FR35 (should reference FR38)
-- Story 8.2: AC "deletion list shown" references FR40 (should reference FR41; FR40 has no story)
-- Story 8.3: AC "cleanup job runs" references FR41 and FR42 (FR41 is club data deletion — not analytics; FR42 is cookie consent — not cleanup)
+- **Story 7.3** (Page View Tracking): ACs reference `(FR38)` for analytics recording and display — should be `(FR45)`. FR38 is "configure platform-wide variables"; FR45 is "per-club analytics view."
+- **Story 7.4** (Feature Flags & Config): Last AC references `(FR45)` for the settings audit log — should be `(FR38)`. FR45 is per-club analytics; FR38 is platform variable configuration.
+- **Story 7.5** (Audit Log Viewer): First AC references `(FR45)` for the audit log record creation — FR45 is per-club analytics. This AC should reference FR38 or no specific FR (audit logging is a cross-cutting concern).
 
 ### Coverage Statistics
 
-- **Total PRD FRs:** 45
-- **FRs with dedicated story implementation:** 37
-- **FRs with partial coverage only:** 1 (FR34)
-- **FRs with no story implementation:** 6 (FR35, FR36, FR37, FR39, FR40, FR42)
-- **FRs with incorrect story references (no implementation gap):** 1 (FR38 — implemented but not referenced)
-- **Coverage percentage (complete):** 82% (37/45)
-- **Coverage percentage (including partial):** 84% (38/45)
+- **Total PRD FRs:** 46
+- **FRs with dedicated story implementation:** 46
+- **FRs with partial coverage only:** 0
+- **FRs with no story implementation:** 0
+- **FRs with incorrect story references (no implementation gap):** 3 stories affected
+- **Coverage percentage:** 100% (46/46)
 
 ---
 
@@ -240,61 +211,60 @@ The following FR references in story ACs are misplaced and should be corrected f
 
 ### UX Document Status
 
-**Found:** `_bmad-output/planning-artifacts/ux-design-specification.md` (64 KB, 2026-02-26) — complete 14-step workflow output covering: executive summary, user personas, emotional journey, design system, component library, journey flows, consistency patterns, responsive strategy, and accessibility implementation guidelines.
+**Found:** `_bmad-output/planning-artifacts/ux-design-specification.md` — complete 14-step workflow output (2026-02-26) covering: executive summary, user personas, emotional journey, design system, component library, journey flows, consistency patterns, responsive strategy, and accessibility implementation guidelines.
 
 ---
 
 ### UX ↔ PRD Alignment
 
 **✅ Well-aligned areas:**
-- All four user personas in the UX spec (Club Admin, Public Visitor, Club Applicant, Platform Operator) match PRD user journeys exactly
-- All four user journey flows (Journey 1, 1b, 2, 3, 4) precisely map to the PRD journey narratives including edge cases
-- Philosophy and value proposition framing is consistent across both documents
-- Edit mode mechanics (explicit save, N-version history, amber indicator, inline constraints) match FR17, FR18, FR19 exactly
+- All four user personas (Club Admin, Public Visitor, Club Applicant, Platform Operator) match PRD user journeys exactly
+- All four journey flows (Journey 1, 1b, 2, 3, 4) precisely map to PRD narratives including edge cases
+- Edit mode mechanics (explicit save, N-version history, amber indicator, inline constraints, `?edit=true` URL param) match FR17, FR18, FR19 exactly
 - Contact form with reply-to routing matches FR23/FR24
 - "Powered by" footer as acquisition loop matches FR25/FR26
-- Defensive UX patterns (confirmation dialogs for destructive actions) correctly align with PRD's "no irreversible actions by accident" requirement
+- Defensive UX patterns align with PRD's "no irreversible actions by accident" requirement
 
-**⚠️ Misalignment: AccentColorPicker — MVP vs Post-MVP scope**
-- **PRD (Phase 2 — Post-MVP):** "Per-club color theme picker"
-- **UX Spec (Phase 1 — MVP Critical):** `AccentColorPicker` listed in the Phase 1 MVP Critical component list under "Club admin — identity setup (Admin sidebar tab)"
-- **Epics:** No story implements the AccentColorPicker
-- **Verdict:** The UX designer promoted the accent picker to MVP scope without a corresponding PRD scope change. The epics correctly follow the PRD (no picker story). If MVP includes the picker, a new story is needed; if not, the UX spec's Phase 1 classification needs correction.
-- **Required action:** Decide: is per-club accent color picking MVP or Post-MVP? Align UX Phase 1 component list and epics accordingly.
+**✅ AccentColorPicker phase conflict: RESOLVED**
+- PRD now includes FR46 explicitly as MVP. UX spec Phase 1 component list includes `AccentColorPicker`. Story 4.7 implements FR46. Full alignment across all three documents.
 
-**⚠️ UX designs for FR40 and FR37 entry points — no story implementations**
-- The UX spec explicitly designs the **"Export" entry point** in the Admin sidebar tab (Admin tab contains: "Accent picker, Version History, Account, Custom Domain, **Export**"). This is the UX home for FR40 (club data export). No story implements this.
-- The UX Journey 4 operator flow explicitly shows **"Check support queue" → "Read ticket" → "Reply directly"** — this is the UX design for FR37 (operator support inbox). No story implements this.
-- These reinforce the critical missing stories identified in Step 3.
+**✅ Admin sidebar tab UX: fully implemented**
+- UX spec designs Admin sidebar tab: Accent picker → Story 4.7 ✅ | Version History → Story 4.6 ✅ | Custom Domain → Story 8.1 ✅ | Export → Story 8.4 ✅
+
+**✅ Operator journey flows: all implemented**
+- UX Journey 4 (application queue → metrics → health detection → nudge → support queue) maps fully to Stories 2.2, 7.1, 7.6, 7.7, 7.8 ✅
 
 ---
 
 ### UX ↔ Architecture Alignment
 
 **✅ Well-aligned areas:**
-- Design system: UX specifies Tailwind CSS + Radix UI (shadcn/ui pattern) — architecture confirms same choice
-- Color system: UX specifies OKLCH color tokens as CSS custom properties — architecture confirms OKLCH token architecture
-- URL architecture: UX refers to country subdomains (e.g., `ch.platform-name.com`) — architecture confirms `ch.platform-name.com/{club-slug}` routing via `lib/country.ts`
-- Edit mode mechanism: UX specifies `?edit=true` URL param as source of truth; `EditModeContext` — architecture confirms URL param `?edit=true` as source of truth for edit mode
-- Rich text: UX implies in-place rich text editing — architecture specifies TipTap (MIT) loaded via `dynamic(..., { ssr: false })`
-- File upload: UX specifies presigned URL upload, no bytes through server — architecture confirms Cloudflare R2 with presigned URLs
-- Auth flow: UX Journey 1 shows "Click login link → club site loads in Edit Mode" — architecture specifies magic link flow (1-hour TTL, hashed, single-use) matching Story 1.3 exactly
-- Skeleton loading within 100ms — both UX and architecture specify this threshold
-- Accessibility: UX specifies WCAG 2.1 AA binding + axe-core + Pa11y + Lighthouse ≥ 90 in CI — architecture confirms axe-core + Pa11y + Lighthouse ≥ 90 gated in CI
+- Design system: Tailwind CSS + Radix UI (shadcn/ui) — confirmed across both ✅
+- Color system: OKLCH tokens as CSS custom properties — confirmed ✅
+- URL architecture: `ch.platform-name.com/{club-slug}` — confirmed ✅
+- Edit mode: `?edit=true` URL param + `EditModeContext` — confirmed ✅
+- Rich text: TipTap via `dynamic(..., { ssr: false })` — confirmed ✅
+- File upload: Cloudflare R2 presigned URLs — confirmed ✅
+- Auth flow: magic link (1-hour TTL, hashed, single-use) — confirmed ✅
+- Skeleton loading within 100ms — confirmed ✅
+- Accessibility: axe-core + Pa11y + Lighthouse ≥ 90 in CI — confirmed ✅
 
 **✅ No architectural blockers for UX requirements found**
 
-All UX performance requirements (TTFCP < 2s, SPA transitions < 2s, skeleton < 100ms) are addressed in the architecture via hybrid MPA/SPA rendering, server-side rendering for club home pages, and loading skeleton requirements in stories.
+---
 
 ### Warnings
 
-1. **AccentColorPicker phase conflict** — UX lists as MVP Phase 1 Critical; PRD defers to Post-MVP. Epics contain no story. Resolution required before sprint planning begins.
+**⚠️ Minor: Account settings page has no dedicated story**
+- UX spec shows "Account" as a named section in the Admin sidebar tab (alongside Accent picker, Version History, Custom Domain, Export)
+- Story 1.3 covers first-login password setup and TOTP enrollment; Story 1.5 references "account settings" for passkey registration
+- No dedicated story covers the ongoing account management screen (change password, manage TOTP device, manage registered passkeys) as a standalone admin UI
+- **Recommendation:** Add a dev note to Story 1.5 to define the account settings page scope, or create Story 1.6: "Account Settings — Credential Management"
 
-2. **FR40 (Export) and FR37 (Support Inbox) have UX design but no stories** — The UX has designed the UI entry points and flows for both features. Development will be blocked waiting for story definition when teams try to implement what the UX shows.
-
-3. **Cookie consent UI (FR42) has no UX design and no story** — Neither the UX spec nor the epics address the cookie consent banner/mechanism design or implementation. This is a GDPR launch requirement.
-
-4. **FR36 nudge mechanism has UX flow but no story** — The UX operator journey shows "Send nudge to club admin" as a clear step after site health flag detection, but no story implements the nudge sending UI or email dispatch.
+**⚠️ Minor: Cookie consent banner (Story 8.5) has no UX design in spec**
+- `CookieConsentBanner` is absent from the UX component strategy; no design reference exists for the consent UI
+- Story 8.5 has detailed ACs sufficient for implementation, but developers will design the banner without a UX reference — risk of inconsistency with design system
+- **Recommendation:** Add a design note to Story 8.5: use a bottom-anchored `Sheet` or `Dialog`, zinc base palette, Radix `Switch` for category toggles, WCAG AA minimum touch targets
 
 ---
 
@@ -310,8 +280,8 @@ All UX performance requirements (TTFCP < 2s, SPA transitions < 2s, skeleton < 10
 | Epic 4 | ✅ | ✅ | ✅ | ⚠️ Minor | ✅ | ✅ | ✅ Pass |
 | Epic 5 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ Pass |
 | Epic 6 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ Pass |
-| Epic 7 | ✅ | ✅ | ✅ | ✅ | ⚠️ FR refs | 🟠 Wrong FRs | ⚠️ Note |
-| Epic 8 | ✅ | ✅ | ✅ | ✅ | ⚠️ FR refs | 🟠 Wrong FRs | ⚠️ Note |
+| Epic 7 | ✅ | ✅ | ✅ | ✅ | ⚠️ FR refs | ⚠️ Minor | ✅ Pass |
+| Epic 8 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ Pass |
 
 ---
 
@@ -320,44 +290,27 @@ All UX performance requirements (TTFCP < 2s, SPA transitions < 2s, skeleton < 10
 #### Issue 1: Epic 1 — Technical scope in first two stories (Acceptable Greenfield Exception)
 
 - **Violation:** Stories 1.1 and 1.2 use "As a developer" as the user persona and deliver no end-user value directly.
-- **Context (mitigating):** The create-epics-and-stories best practices explicitly allow for greenfield project scaffolding stories ("Greenfield projects should have: Initial project setup story, Development environment configuration, CI/CD pipeline setup early"). The PRD also states "Database schema is the single prerequisite (unblocks all parallel work)." This is intentional and documented.
-- **Verdict:** Acceptable for greenfield project with documented intent. Minor framing issue only.
+- **Context (mitigating):** The create-epics-and-stories best practices explicitly allow for greenfield project scaffolding stories. The PRD explicitly designates "Database schema as the single prerequisite (unblocks all parallel work)." This is intentional and documented.
+- **Verdict:** Acceptable for greenfield project. Minor framing issue only.
 
 #### Issue 2: Story 1.2 creates complete database schema upfront — best practice deviation
 
-- **Violation:** Best practice states "Right: Each story creates tables it needs." Story 1.2 creates the complete schema upfront: `clubs`, `pages`, `page_elements`, `content_versions`, `users`, `sessions`, `page_events`, plus Auth.js adapter tables — plus seed data referencing `events`, `gallery_items`, and `documents` that are only consumed in Epics 4, 5, and 7.
-- **Impact:** Schema is tightly coupled to all planned features from Story 1.2; late-epic changes require modifying the foundation migration. Seed data in Story 1.2 depends on element types defined in Epics 4 and 5.
+- **Violation:** Best practice states "Right: Each story creates tables it needs." Story 1.2 creates the complete schema upfront — all core tables plus seed data referencing element types defined in Epics 4 and 5.
 - **Mitigating factor:** The PRD explicitly designates database schema as the single prerequisite enabling parallel development. This is a deliberate architectural decision.
 - **Verdict:** Intentional deviation with understood trade-offs. Not a blocking issue given explicit PRD guidance.
 
-#### Issue 3: Story 4.5 (Explicit Save) defines the pattern that Stories 4.2 and 4.3 already partially implement
+#### Issue 3: Story 4.5 (Explicit Save) defines the pattern that Stories 4.2 and 4.3 partially implement
 
-- **Violation:** Stories 4.2 and 4.3 reference the amber dot, Save button, and Server Action — but Story 4.5 is where the complete save-protection pattern (beforeunload, discard confirmation, full dirty-state management) is formally specified.
-- **Impact:** If stories are implemented in order, developers building 4.2 and 4.3 may implement a partial save pattern; Story 4.5 then attempts to complete it. Risk of inconsistent save behavior across the epic.
-- **Recommendation:** Add an explicit note to Story 4.2 that "full save protection is defined in Story 4.5 — implement holistically." Alternatively, reorder so Story 4.5 is implemented first as the save framework, then 4.2 and 4.3 build on it.
+- **Status:** Dev notes have been added to Stories 4.2 and 4.3: *"The complete explicit-save protection pattern is formally defined in Story 4.5 and must be implemented holistically — implement Story 4.5 as the save framework before finalising 4.2 and 4.3."*
+- **Verdict:** Mitigated by dev notes. No structural change required.
 
-#### Issue 4: Story 7.2 — incorrect FR references undermine traceability
+#### Issue 4: Remaining incorrect FR references in Epic 7 stories (Cosmetic)
 
-- **Violation:** Two misplaced FR references in Story 7.2 ACs:
-  - AC "storage counters displayed (FR36)" — FR36 is "Operator sends notification to club admin." Correct: FR34/FR35.
-  - AC "maximum pages error returned (FR37)" — FR37 is "Operator views support requests." Correct: FR7/FR38.
-- **Impact:** Developers cannot trace from these ACs to the correct PRD requirements. Audit of FR36 and FR37 will incorrectly show them as implemented via Story 7.2.
-
-#### Issue 5: Story 7.4 — incorrect FR references for platform settings page
-
-- **Violation:** AC references FR35 and FR39 for the settings page display.
-  - FR35 is "health monitoring" — not settings display.
-  - FR39 is "template migration" — not settings display.
-  - **The correct FR is FR38** (Operator configures platform-wide operational variables).
-- **Impact:** FR38 appears untraced in stories (no story claims to implement it), when in fact Story 7.4 does. False negative in coverage analysis.
-
-#### Issue 6: Stories 8.2 and 8.3 — swapped and misplaced FR references
-
-- **Story 8.2 violation:** AC "listing exactly what will be deleted (FR40)" — FR40 is "Club Admin can EXPORT data." Story 8.2 implements FR41 (data deletion), not FR40.
-- **Story 8.3 violations:**
-  - AC "operator can export `page_events` records (FR41)" — FR41 is "Club Admin requests deletion," not analytics export.
-  - AC "records older than 12 months deleted (FR42)" — FR42 is "cookie consent mechanism," entirely unrelated to data retention.
-- **Impact:** FR40 appears falsely covered by Story 8.2. FR41 and FR42 are falsely attributed to unrelated ACs. The actual FR40 (data export) and FR42 (cookie consent) remain unimplemented.
+- **Story 7.3** ACs: `(FR38)` for analytics recording/display — should be `(FR45)`.
+- **Story 7.4** AC: `(FR45)` for settings audit log — should be `(FR38)`.
+- **Story 7.5** AC: `(FR45)` for audit log creation — governance cross-cut, reference should be removed or corrected to `(FR38)`.
+- **Impact:** Traceability confusion only. No implementation gap.
+- **Verdict:** Fix before sprint planning. 15-minute edit.
 
 ---
 
@@ -365,23 +318,23 @@ All UX performance requirements (TTFCP < 2s, SPA transitions < 2s, skeleton < 10
 
 #### Minor 1: Story 3.1 forward reference to Epic 6
 
-Story 3.1 AC: "a `/support` placeholder page (full support form implemented in Epic 6)." This documents a forward dependency but correctly marks it as a placeholder — the page functions independently of Epic 6. Acceptable for phased delivery. Implementation note should be added to avoid confusion.
+Story 3.1 explicitly documents: "a `/support` placeholder page (full support form implemented in Epic 6)." Marked as a placeholder — page is functional independently. Acceptable for phased delivery.
 
-#### Minor 2: Epic 1 title is technical-sounding
+#### Minor 2: Epic 1 title is technically-sounding
 
-"Project Foundation & Core Infrastructure" leans technical. A more user-centric framing would be "Platform Foundation: Authentication & Secure Access." Cosmetic concern only.
+"Project Foundation & Core Infrastructure" leans technical. A more user-centric framing: "Platform Foundation: Authentication & Secure Access." Cosmetic concern only.
 
 #### Minor 3: Story 7.3 `page_events` table was pre-created in Story 1.2
 
-Story 7.3 references inserting into `page_events` — the table was already created in Story 1.2. No conflict, but developers should know no migration is needed in Story 7.3. Minor documentation gap.
+Story 7.3 inserts into `page_events` — this table was created in Story 1.2. No conflict, but developers implementing Story 7.3 should know no migration is needed. Minor documentation gap.
 
 ---
 
 ### Greenfield Starter Template Check ✅
 
 - Architecture specifies: `pnpm create next-app@latest website-template --typescript --tailwind --eslint --app --turbopack --import-alias "@/*"`
-- Story 1.1 correctly implements this as first story ("As a developer, I want the project initialized with Next.js 16 App Router...") ✅
-- CI/CD pipeline (GitHub Actions: lint → typecheck → audit → build → SSH deploy) included in Story 1.1 ✅
+- Story 1.1 implements this as first story ✅
+- CI/CD pipeline (GitHub Actions: lint → typecheck → audit → build → SSH deploy) in Story 1.1 ✅
 - Development environment (Docker Compose with Next.js + PostgreSQL + Nginx + Certbot) in Story 1.1 ✅
 - **Starter template requirement properly satisfied** ✅
 
@@ -416,19 +369,19 @@ Story 7.3 references inserting into `page_events` — the table was already crea
 | 4.1 Edit Mode | ✅ | ✅ | Unauthorized edit attempt | ✅ |
 | 5.2 Rich Text | ✅ | ✅ | XSS sanitization, storage error | ✅ Strong |
 | 6.1 Contact Form | ✅ | ✅ | Turnstile fail, invalid data | ✅ Strong |
-| 7.2 Metrics | ✅ | ✅ | Limit enforcement, grandfathering | ✅ |
-| 8.2 Data Deletion | ✅ | ✅ | Rollback on partial failure | ✅ Strong |
+| 7.7 Nudge | ✅ | ✅ | 24h spam guard, Resend failure | ✅ Strong |
+| 8.5 Cookie Consent | ✅ | ✅ | Accept/Decline/Manage prefs, map overlay | ✅ Strong |
 
-Overall AC quality is **high**. GWT format consistently applied. Error conditions well-covered across all sampled stories. No vague criteria found.
+Overall AC quality is **high**. GWT format consistently applied. Error conditions well-covered. No vague criteria found.
 
 ---
 
 ### Epic Quality Summary
 
 - **🔴 Critical Violations:** 0
-- **🟠 Major Issues:** 6 (Issues 1–2 are intentional deviations with documented rationale; Issues 3–6 are actionable traceability and sequencing problems)
+- **🟠 Major Issues:** 4 (Issues 1–2 intentional deviations with PRD backing; Issues 3–4 actionable but low-risk)
 - **🟡 Minor Concerns:** 3
-- **Overall Epic Quality:** **High** — structurally sound, well-written ACs, no circular dependencies, proper greenfield scaffolding, clear user value in all user-facing stories. Primary concerns are incorrect FR references (Issues 4–6) and save-pattern ordering (Issue 3).
+- **Overall Epic Quality:** **High** — structurally sound, well-written ACs, no circular dependencies, proper greenfield scaffolding, clear user value in all user-facing stories. Primary remaining concern is incorrect FR references in Stories 7.3, 7.4, 7.5 (cosmetic only).
 
 ---
 
@@ -436,110 +389,77 @@ Overall AC quality is **high**. GWT format consistently applied. Error condition
 
 ### Overall Readiness Status
 
-> ## ⚠️ NEEDS WORK — Conditionally Ready
+> ## ✅ READY FOR IMPLEMENTATION
 
-**The core platform flows are well-planned and can begin implementation immediately (Epics 1–6).** However, 6 functional requirements have no story implementation, 2 of which are GDPR compliance obligations at launch. Epic 7 and Epic 8 require story additions before those epics begin development.
-
----
-
-### Critical Issues Requiring Immediate Action
-
-#### 🚨 GDPR Compliance Blockers (Must resolve before launch)
-
-**1. FR42 — Cookie Consent Mechanism: No story, no UX design**
-- Required at launch for GDPR/nDSG compliance
-- Not designed in the UX spec
-- Not implemented in any story
-- **Action:** Create UX design for cookie consent banner (platform site + club sites with applicable third-party embeds), then add a story to Epic 8.
-
-**2. FR40 — Club Admin Data Export: No story**
-- GDPR data portability right — PRD states this is "already in scope as a core product value"
-- UX Admin sidebar tab shows an "Export" link with no story behind it
-- Story 8.2 incorrectly claims this FR via a mislabeled AC reference
-- **Action:** Add Story 8.4 to Epic 8: "Club Admin — Data Export (GDPR Portability)" — JSON/CSV export of all club content, delivered via download link.
-
-#### 🚨 Missing Stories for Designed Features (Epics 7 & 8)
-
-**3. FR35 — Site Health Monitoring: No story**
-- PRD Journey 4 describes the operator checking Lighthouse scores and uptime across all clubs
-- Story 7.4 references FR35 incorrectly in the settings page context
-- **Action:** Add Story 7.6: "Operator Dashboard — Site Health Status" covering per-club Lighthouse score tracking, uptime indicators, and health status flags across all clubs.
-
-**4. FR36 — Operator Nudge to Club Admin: No story**
-- Both PRD Journey 4 and UX Journey 4 explicitly show "Send nudge to club admin" as a distinct step after detecting a site issue
-- Story 7.2 references FR36 incorrectly in a metrics context
-- **Action:** Add Story 7.7: "Operator Nudge — Club Admin Notification" covering the nudge UI and email delivery via Resend.
-
-**5. FR37 — Operator Support Inbox: No story**
-- Story 6.4 covers the Club Admin submitting a ticket and operator receiving an email notification — but no story covers the operator's `/admin/support` view and response interface
-- UX Journey 4 shows this as "Check support queue → Read ticket → Reply directly" — a designed flow with no implementation
-- **Action:** Add Story 7.8: "Operator Support Inbox" covering the `/admin/support` page: ticket list, status tracking (open/closed), and direct reply flow.
-
-**6. FR39 — Silent Template Migration Mechanism: No story**
-- The platform's core promise ("associations simply find their sites have improved over time") depends on this mechanism
-- Story 7.4 references FR39 incorrectly in a settings context
-- Zero-downtime template migration is architectural and needs its own story
-- **Action:** Add Story 7.9 (or Story 1.6): "Template Versioning & Silent Migration" covering: template version tracking in the database, migration trigger process, content preservation during migration, zero-downtime deployment, and CI/CD integration.
+**All 8 Epics are cleared to begin development.** The previous blocking issues (6 missing stories, GDPR compliance gaps, UX/PRD phase conflicts) have been fully resolved. FR coverage is now 100% (46/46). No implementation gaps remain.
 
 ---
 
-### Actionable Fixes (Before Sprint Planning)
+### Issues Resolved Since Previous Assessment
 
-These are lower-risk corrections that should be made before development begins to prevent traceability confusion:
+| Previous Issue | Resolution |
+|---|---|
+| FR46 AccentColorPicker — UX/PRD phase conflict | FR46 added to PRD MVP scope; Story 4.7 added to Epic 4 |
+| FR35 Site Health Monitoring — no story | Story 7.6 added to Epic 7 |
+| FR36 Operator Nudge — no story | Story 7.7 added to Epic 7 |
+| FR37 Operator Support Inbox — no story | Story 7.8 added to Epic 7 |
+| FR39 Silent Template Migration — no story | Story 7.9 added to Epic 7 |
+| FR40 Club Data Export (GDPR) — no story | Story 8.4 added to Epic 8 |
+| FR42 Cookie Consent (GDPR) — no story | Story 8.5 added to Epic 8 |
+| FR34 Aggregate metrics — partial only | Story 7.1 extended with aggregate dashboard panel |
+| FR reference errors in Stories 7.2, 7.4, 8.2, 8.3 | Corrected |
+| Story 4.2/4.3 save pattern ordering | Dev notes added |
 
-**7. Correct FR references in stories** (cosmetic — no implementation change required):
-- Story 7.2: Change `(FR36)` → `(FR34)` for metrics display; change `(FR37)` → `(FR7, FR38)` for limit enforcement
-- Story 7.4: Change `(FR35, FR39)` → `(FR38)` for settings page display
-- Story 8.2: Change `(FR40)` → `(FR41)` for deletion confirmation listing
-- Story 8.3: Remove incorrect `(FR41)` and `(FR42)` references from cleanup job ACs
+---
 
-**8. Resolve AccentColorPicker phase conflict:**
-- PRD places "per-club color theme picker" in Phase 2 (Post-MVP)
-- UX spec lists `AccentColorPicker` as Phase 1 MVP Critical
-- Epics contain no story for it
-- **Decision required:** Is the accent picker MVP or Post-MVP? If MVP: add story to Epic 4 and update PRD scope. If Post-MVP: update UX Phase 1 component list to Phase 2.
+### Remaining Actionable Fixes (Low Priority — Before Sprint Planning)
 
-**9. Add save-pattern note to Stories 4.2 and 4.3:**
-- Add a dev note that the full explicit-save protection pattern (beforeunload, dirty state, discard confirmation) is defined in Story 4.5 and must be implemented holistically across the epic, not story by story.
+**1. Fix incorrect FR references in 3 stories** (cosmetic, 15-minute edit):
+- Story 7.3: Change `(FR38)` → `(FR45)` in analytics recording/display ACs
+- Story 7.4: Change `(FR45)` → `(FR38)` in settings audit log AC
+- Story 7.5: Remove or correct `(FR45)` in audit log creation AC
+
+**2. Clarify Account Settings page scope** (minor UX gap):
+- UX spec shows "Account" as a named section in the Admin sidebar tab, but no dedicated story covers the full account management UI (change password, manage TOTP, manage passkeys as ongoing operations)
+- Add a dev note to Story 1.5 defining the Account settings page scope, or add Story 1.6: "Account Settings — Credential Management"
+
+**3. Add design guidance to Story 8.5** (cookie consent UX):
+- No UX design exists for the `CookieConsentBanner`; Story 8.5 has complete ACs but no design reference
+- Add a note: use bottom-anchored `Sheet` or fixed bottom bar, zinc base palette, Radix `Switch` for category toggles, 44px touch targets
 
 ---
 
 ### Recommended Next Steps
 
-1. **Immediately create the 6 missing stories** (FR35, FR36, FR37, FR39, FR40, FR42) before sprint planning for Epics 7 and 8. Stories for Epics 1–6 are implementation-ready now.
+1. **Begin implementation immediately** — all 8 Epics (Stories 1.1–8.5) are implementation-ready with complete, well-formed ACs and no unresolved structural dependencies.
 
-2. **Resolve the AccentColorPicker MVP/Post-MVP decision** — update either the PRD scope section or the UX Phase 1 component list to eliminate the ambiguity.
+2. **Fix the 3 remaining FR reference errors** in Stories 7.3, 7.4, 7.5 — a quick edit to prevent traceability confusion before the first sprint planning session.
 
-3. **Fix incorrect FR references** in Stories 7.2, 7.4, 8.2, and 8.3 — this is a 15-minute edit that prevents downstream traceability confusion.
+3. **Clarify Story 1.5 account settings scope** — add a dev note defining what the "Account" Admin sidebar tab contains for ongoing credential management.
 
-4. **Add a cookie consent UX design pass** — FR42 has zero design work. Even a brief wireframe of the consent banner for the platform site and club sites is needed before a story can be written.
-
-5. **Clarify Story 4.5 sequencing** — add an implementation note that the save framework (4.5) should be considered foundational to 4.2 and 4.3, not implemented last.
-
-6. **Begin implementation** — Epics 1, 2, 3, 4, 5, and 6 are implementation-ready. All 23 stories within these epics have complete ACs, clear FR traceability (after fixing minor reference errors), proper user value, and no unresolved structural dependencies.
+4. **Add cookie consent design note to Story 8.5** — prevents the banner from being built inconsistently with the design system.
 
 ---
 
 ### Issues Count by Category
 
-| Category | Count |
-|---|---|
-| Missing stories (no implementation) | 6 (FR35, FR36, FR37, FR39, FR40, FR42) |
-| Partial coverage | 1 (FR34 — aggregate metrics) |
-| Incorrect FR references (cosmetic) | 4 stories affected |
-| UX/PRD phase conflict | 1 (AccentColorPicker) |
-| Epic quality major issues | 6 (Issues 1–6 in quality review) |
-| Epic quality minor concerns | 3 |
+| Category | Count | Status |
+|---|---|---|
+| Missing stories (no implementation) | 0 | ✅ All resolved |
+| Partial FR coverage | 0 | ✅ All resolved |
+| Incorrect FR references (cosmetic) | 3 stories | ⚠️ Low priority fix |
+| UX/PRD phase conflicts | 0 | ✅ All resolved |
+| Epic quality major issues | 4 | ⚠️ 2 intentional, 2 low-risk |
+| Epic quality minor concerns | 3 | ⚠️ Cosmetic |
+| UX minor warnings | 2 | ⚠️ Dev notes recommended |
 
-**Total issues: 21** across 6 categories.
+**Total remaining issues: 12** across 4 categories — all low priority. Zero blocking issues.
 
 ---
 
 ### Final Note
 
-This assessment identified **21 issues** across **6 categories**. The most critical are the 2 GDPR compliance gaps (FR40, FR42) and the 4 missing stories for designed features (FR35, FR36, FR37, FR39). The overall planning quality is **high** — PRD is thorough, UX is complete and largely aligned, architecture is detailed and consistent, and stories 1.1–6.4 are ready for implementation.
-
-**Epics 1–6 are cleared to begin development.** Epics 7 and 8 require the addition of 4–6 new stories before their sprint planning sessions.
+This assessment confirmed that the previously identified 21 issues across 6 categories have been addressed. The project is in **excellent shape for implementation**. PRD is thorough (46 FRs, 27 NFRs), architecture is detailed and consistent, UX is complete and aligned, and all 31 stories across 8 epics have implementation-ready ACs. The only remaining work before sprint planning is 3 cosmetic FR reference corrections and 2 optional dev notes.
 
 ---
 
