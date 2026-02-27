@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports: []  # No external exposure in prod
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-website_template_dev}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    env_file: .env.production
+
+  nextjs:
+    image: website-template:latest
+    restart: unless-stopped
+    ports: []  # Not exposed directly — Nginx handles all traffic on 80/443
+    env_file: .env.production
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/maintenance.html:/var/www/maintenance/maintenance.html:ro
+      - ./nginx/ssl:/etc/letsencrypt:ro
+    depends_on:
+      - nextjs
+
+  certbot:
+    image: certbot/certbot:v3.0.0
+    volumes:
+      - ./nginx/ssl:/etc/letsencrypt
+    # Run manually for initial cert provisioning
+
+volumes:
+  postgres_data:

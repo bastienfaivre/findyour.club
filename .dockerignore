@@ -1,0 +1,16 @@
+.dockerignore
+Dockerfile
+.git
+.gitignore
+.next
+node_modules
+.env*
+!.env.example
+README.md
+_bmad
+_bmad-output
+docs
+nginx
+.github
+coverage
+*.md

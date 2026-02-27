@@ -83,7 +83,7 @@ Full-stack web — frontend-heavy (SSR + SPA hybrid) with Next.js App Router, ba
 - **Language:** TypeScript (strict)
 - **Database:** PostgreSQL with Prisma ORM v7
 - **Deployment:** Self-hosted (Docker + Nginx reverse proxy + Certbot for TLS)
-- **Auth library:** Auth.js (NextAuth v5) for core auth; `otplib` for TOTP; `@simplewebauthn/*` for passkeys
+- **Auth library:** Auth.js (NextAuth v4) for core auth; `otplib` for TOTP; `@simplewebauthn/*` for passkeys
 - **Dependency philosophy:** Minimal — prefer base libraries and Next.js native patterns over meta-frameworks
 - **Type safety:** Zod schemas as the single source of truth at all client-server boundaries
 - **Package manager:** pnpm
@@ -118,7 +118,7 @@ pnpm add @prisma/client
 pnpm add -D prisma
 
 # Auth
-pnpm add next-auth@beta
+pnpm add next-auth
 
 # Validation & type safety
 pnpm add zod
@@ -1027,7 +1027,7 @@ CONTACT_ENCRYPTION_KEY="dev_key_exactly_32_chars_padding!"
 
 **Decision Compatibility:**
 
-All technology choices are compatible and mutually reinforcing. Next.js 16 App Router + Prisma v7 + Auth.js v5 + Tailwind CSS + Radix UI/shadcn form a coherent, well-documented stack with no known version conflicts. Cloudflare R2 uses the standard AWS S3 SDK (`@aws-sdk/client-s3`), which is framework-agnostic. Auth.js v5 integrates natively with Next.js App Router via the `auth()` helper and Server Action support. TipTap (MIT, free) integrates via the `dynamic(() => import(...), { ssr: false })` pattern — no conflict with SSR. argon2 native bindings require `build-essential` + `python3` in the Dockerfile builder stage, documented in the implementation patterns.
+All technology choices are compatible and mutually reinforcing. Next.js 16 App Router + Prisma v7 + Auth.js v4 + Tailwind CSS + Radix UI/shadcn form a coherent, well-documented stack with no known version conflicts. Cloudflare R2 uses the standard AWS S3 SDK (`@aws-sdk/client-s3`), which is framework-agnostic. Auth.js v4 integrates natively with Next.js App Router via the `auth()` helper and Server Action support. TipTap (MIT, free) integrates via the `dynamic(() => import(...), { ssr: false })` pattern — no conflict with SSR. argon2 native bindings require `build-essential` + `python3` in the Dockerfile builder stage, documented in the implementation patterns.
 
 **Pattern Consistency:**
 
@@ -1078,7 +1078,7 @@ The project structure directly reflects architectural decisions:
 **Decision Completeness:**
 
 All critical decisions are documented with exact versions:
-- Next.js 16, Prisma v7, Auth.js v5, TipTap (latest MIT), Tailwind CSS v4, Radix UI (via shadcn), PostgreSQL 16, pnpm
+- Next.js 16, Prisma v7, Auth.js v4, TipTap (latest MIT), Tailwind CSS v4, Radix UI (via shadcn), PostgreSQL 16, pnpm
 - Technology choices include explicit rationale and alternative rejection reasons
 - Reserved slug list defined: `lib/slug.ts → RESERVED_SLUGS` constant (21 entries)
 - MVP boundary clearly drawn: custom domain TLS is operator-provisioned manually; post-MVP: automated sidecar
@@ -1155,7 +1155,7 @@ No blocking issues found. All 6 gaps resolved collaboratively during validation.
 
 **✅ Architectural Decisions**
 
-- [x] Critical decisions documented with versions (Next.js 16, Prisma v7, Auth.js v5, PostgreSQL 16, pnpm)
+- [x] Critical decisions documented with versions (Next.js 16, Prisma v7, Auth.js v4, PostgreSQL 16, pnpm)
 - [x] Technology stack fully specified (all packages named with rationale)
 - [x] Integration patterns defined (R2 presigned URL, Turnstile siteverify, Resend relay, Auth.js adapter)
 - [x] Performance considerations addressed (SSR hybrid, TipTap dynamic import, JSONB for element data)
