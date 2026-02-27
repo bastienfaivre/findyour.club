@@ -27,6 +27,7 @@ FR6: System prevents Club Admin from removing anchor pages (Home and Contact)
 FR7: System enforces a configurable maximum page count per club site
 FR8: Club Admin can set up and manage a custom domain for their site
 FR9: System provisions a subdomain for each approved club immediately upon acceptance
+FR46: Club Admin can select an accent color for their site from a curated palette of 8 presets
 
 **Content Editing & Element Library**
 
@@ -216,6 +217,7 @@ NFR27: All platform-wide configurable variables adjustable via the admin dashboa
 | FR7 | Epic 4 | Configurable page limit enforcement |
 | FR8 | Epic 8 | Custom domain management |
 | FR9 | Epic 2 | Subdomain provisioning on acceptance |
+| FR46 | Epic 4 | Accent color picker (MVP) |
 | FR10 | Epic 5 | Element picker for custom pages |
 | FR11 | Epic 5 | Contact page sub-blocks |
 | FR12 | Epic 5 | Calendar event management |
@@ -270,8 +272,8 @@ Public Visitors can browse the platform homepage, filter the country directory b
 **NFRs addressed:** NFR1, NFR2, NFR3, NFR21–24
 
 ### Epic 4: Club Site Identity & Navigation
-Club Admins can configure their site's core identity (name, logo, welcome text), manage pages (activate, deactivate, create, enforce limit), toggle between edit and public view directly on their own URL, explicitly save changes, and restore any previous version from version history.
-**FRs covered:** FR1, FR2, FR3, FR4, FR5, FR6, FR7, FR17, FR18
+Club Admins can configure their site's core identity (name, logo, welcome text, accent color), manage pages (activate, deactivate, create, enforce limit), toggle between edit and public view directly on their own URL, explicitly save changes, and restore any previous version from version history.
+**FRs covered:** FR1, FR2, FR3, FR4, FR5, FR6, FR7, FR17, FR18, FR46
 **NFRs addressed:** NFR4, NFR17
 
 ### Epic 5: Club Content Elements
@@ -285,9 +287,9 @@ Public Visitors can contact clubs through a contact form with automatic email re
 **NFRs addressed:** NFR7 (contact submission encryption), NFR16 (email relay monitoring)
 
 ### Epic 7: Platform Operations & Health Monitoring
-The Platform Operator can view platform-wide metrics, monitor club site health, send nudges to club admins about detected issues, manage the support inbox, configure platform-wide operational variables without a deployment, and view per-club analytics.
+The Platform Operator can view platform-wide metrics, monitor club site health, send nudges to club admins about detected issues, manage the support inbox, configure platform-wide operational variables without a deployment, view per-club analytics, and trust that template updates are silently applied to all clubs with zero downtime.
 **FRs covered:** FR34, FR35, FR36, FR37, FR38, FR39, FR45
-**NFRs addressed:** NFR5, NFR16, NFR25, NFR27
+**NFRs addressed:** NFR4, NFR5, NFR15, NFR16, NFR25, NFR27
 
 ### Epic 8: Custom Domains & Data Compliance
 Club Admins can set up a custom domain for their site with automated TLS. All GDPR/nDSG data rights are available: clubs can export their data and request deletion. A cookie consent mechanism is presented where legally required.
@@ -753,6 +755,8 @@ So that my club's public home page reflects our identity from the very first sav
 **When** the `saveClubIdentity` Server Action executes,
 **Then** `clubId` is read from the session (never from client input); the club record is updated; `revalidatePath` invalidates the club home page SSR cache; a "Saved" toast appears; the amber dot clears.
 
+> **Dev note:** The amber dot, Save button, and dirty-state management shown here are partial implementations. The complete explicit-save protection pattern (beforeunload guard, discard confirmation, full dirty-state lifecycle) is formally defined in Story 4.5 and must be implemented holistically across the epic — not story by story. Implement Story 4.5 as the save framework before finalising 4.2 and 4.3.
+
 ---
 
 ### Story 4.3: Page Management — Activate, Deactivate & Create Pages
@@ -781,6 +785,8 @@ So that I can control which sections are publicly visible and grow my site's con
 
 **Given** the Club Admin attempts to deactivate the Home or Contact page,
 **Then** no deactivation toggle is shown for these anchor pages — they cannot be removed or deactivated (FR6).
+
+> **Dev note:** The amber dot and save mechanics referenced here are partial. The complete explicit-save protection pattern is defined in Story 4.5 — implement Story 4.5 as the save framework foundation before finalising this story.
 
 ---
 
@@ -864,6 +870,34 @@ So that I can recover from unwanted changes with confidence, knowing my work is 
 
 **Given** the version history list,
 **Then** each "Restore" button has an `aria-label` including the version timestamp; the list is keyboard-navigable.
+
+---
+
+### Story 4.7: Accent Color Picker
+
+As a Club Admin,
+I want to select an accent color for my club's site from a curated palette,
+So that my site reflects my association's visual identity and feels distinctly ours.
+
+**Acceptance Criteria:**
+
+**Given** the Club Admin is in edit mode and opens the Admin sidebar tab,
+**When** they view the Identity section,
+**Then** an `AccentColorPicker` is displayed showing 8 color swatches with labels: Zinc, Blue, Green, Red, Violet, Orange, Rose, Yellow; the currently active accent is visually indicated with a checkmark ring (FR46).
+
+**Given** the Club Admin selects a different accent color,
+**When** the selection is made,
+**Then** the site's OKLCH accent token updates in real time in the `LivePreviewPanel` — the accent is immediately visible on the active nav indicator border, CTA button, and link colors without a page reload; the amber unsaved-changes dot appears.
+
+**Given** the Club Admin saves,
+**When** the `saveClubIdentity` Server Action executes,
+**Then** the selected accent color slug (e.g., `"blue"`) is persisted to `clubs.accentColor`; the public club site immediately reflects the new accent via CSS custom property override on the `<html>` element — served server-side to avoid flash of unstyled content.
+
+**Given** a club with no accent color set (legacy or newly provisioned),
+**Then** the accent defaults to `Zinc`; no migration is required — the Zinc preset is the base Tailwind palette already in use.
+
+**Given** the `AccentColorPicker`,
+**Then** it is fully keyboard-accessible: arrow keys move focus between swatches; Enter or Space selects the focused swatch; the active swatch has `aria-checked="true"` and the group uses `role="radiogroup"`.
 
 ---
 
@@ -1170,6 +1204,10 @@ So that I can oversee the platform's club population and take administrative act
 **Given** the operator triggers a "Reinstate" action on a suspended club,
 **Then** the club's `status` is reset to `active`; their public site is restored immediately.
 
+**Given** the operator navigates to `/admin/dashboard`,
+**When** the page loads,
+**Then** an aggregate platform metrics panel is shown with: total clubs live, number with custom domains configured, platform-wide uptime % for the last 30 days, and percentage of club sites with all Lighthouse scores ≥ 90 — all displayed as summary statistics without requiring drill-down into individual clubs (FR34).
+
 ---
 
 ### Story 7.2: Operator Dashboard — Site Metrics & Usage Limits
@@ -1182,11 +1220,11 @@ So that the platform stays performant and fair across all member associations.
 
 **Given** the operator views the club detail page,
 **When** the metrics section loads,
-**Then** the following counters are displayed: page count, element count per page, total R2/MinIO storage used (MB), and a breakdown by asset type (images, videos, documents) (FR36).
+**Then** the following counters are displayed: page count, element count per page, total R2/MinIO storage used (MB), and a breakdown by asset type (images, videos, documents) (FR34).
 
 **Given** a Club Admin attempts to exceed a platform-defined limit (e.g., max pages, max storage),
 **When** the limit is reached,
-**Then** the system returns a clear error: "You have reached the maximum number of pages allowed" — no partial state is created; the operation is rejected atomically (FR37).
+**Then** the system returns a clear error: "You have reached the maximum number of pages allowed" — no partial state is created; the operation is rejected atomically (FR7, FR38).
 
 **Given** the operator updates a limit value in the admin panel,
 **When** saved,
@@ -1229,7 +1267,7 @@ So that I can control rollouts and adjust platform behaviour without code deploy
 
 **Given** the operator navigates to `/admin/settings`,
 **When** the page loads,
-**Then** a list of configurable platform settings is shown: new club registrations enabled/disabled, maintenance mode, max storage per club, max pages per club, supported country codes, and contact email for platform support (FR35, FR39).
+**Then** a list of configurable platform settings is shown: new club registrations enabled/disabled, maintenance mode, max storage per club, max pages per club, supported country codes, and contact email for platform support (FR38).
 
 **Given** the operator toggles "New Club Registrations" to disabled,
 **When** a visitor submits the club application form,
@@ -1270,9 +1308,121 @@ So that I have a clear audit trail for governance and incident response.
 
 ---
 
+### Story 7.6: Operator Dashboard — Site Health Status
+
+As a Platform Operator,
+I want to view health status indicators for all club sites,
+So that I can proactively identify and address site issues before club admins or visitors notice them.
+
+**Acceptance Criteria:**
+
+**Given** the operator navigates to `/admin/health`,
+**When** the page loads,
+**Then** a table of all active clubs is shown with columns: club name, Lighthouse performance score, accessibility score, SEO score, uptime % (last 30 days), last checked timestamp, and an overall status badge (FR35).
+
+**Given** any Lighthouse score or uptime % is below threshold (Lighthouse < 90, uptime < 99.9%),
+**Then** the affected column and the row's status badge are styled red; clubs with all metrics meeting thresholds show a green "Healthy" badge.
+
+**Given** a background job runs on a configurable schedule (default: daily),
+**When** the job executes,
+**Then** it runs Lighthouse CI against each active club's home page URL and records results in a `health_checks` table: `clubId`, `lighthousePerf`, `lighthouseA11y`, `lighthouseSEO`, `uptimePct`, `checkedAt`.
+
+**Given** the operator clicks "Re-check" on a specific club row,
+**When** the re-check completes,
+**Then** the health row updates with fresh Lighthouse scores within 60 seconds; a spinner is shown during the check.
+
+**Given** the health dashboard,
+**Then** it is accessible to operator sessions only — no health data is exposed to club admins or the public.
+
+---
+
+### Story 7.7: Operator Nudge — Club Admin Notification
+
+As a Platform Operator,
+I want to send a notification to a club admin about a detected site issue,
+So that I can prompt them to fix problems without needing to contact them outside the platform.
+
+**Acceptance Criteria:**
+
+**Given** the operator is on the health dashboard (Story 7.6) or any club detail page,
+**When** they click "Send nudge",
+**Then** a modal opens with: a pre-filled subject ("Action needed: [detected issue type]"), an editable message body, and a Send button (FR36).
+
+**Given** the operator fills in or edits the message and clicks Send,
+**When** the `sendNudge` Server Action executes,
+**Then** Resend dispatches an email to the club admin's registered address; the `reply-to` header is set to the operator's platform email; a `operator_nudges` record is created with: `clubId`, `operatorId`, `subject`, `messageBody`, `sentAt`.
+
+**Given** the nudge is sent successfully,
+**Then** a confirmation toast appears: "Nudge sent to [club name] admin"; the club detail page shows a "Last nudged" timestamp.
+
+**Given** the operator attempts to send a second nudge to the same club within 24 hours,
+**Then** the Send button is disabled with the label: "Nudge already sent in the last 24 hours" — preventing spam to club admins.
+
+**Given** the Resend API call fails,
+**Then** the Server Action returns an error; the `operator_nudges` record is not created; the operator sees an inline error with a retry option.
+
+---
+
+### Story 7.8: Operator Support Inbox
+
+As a Platform Operator,
+I want to view, manage, and respond to club admin support requests from a dedicated inbox,
+So that I can handle support tickets efficiently without relying solely on email threads.
+
+**Acceptance Criteria:**
+
+**Given** the operator navigates to `/admin/support`,
+**When** the page loads,
+**Then** a paginated list of all support tickets is shown with: club name, subject, status (open/closed), submitted date, last updated; tickets are sorted newest first; an open-ticket count badge is shown in the admin nav (FR37).
+
+**Given** the ticket list,
+**Then** open and closed tickets are visually distinguished; the operator can filter by status (All / Open / Closed).
+
+**Given** the operator clicks a ticket,
+**When** the detail view opens,
+**Then** the full ticket is shown: club name, club admin email, subject, message body, submission date, any file attachment, and a reply thread of previous replies.
+
+**Given** the operator composes a reply and submits,
+**When** the `replyToTicket` Server Action executes,
+**Then** Resend dispatches an email to the club admin's registered address with the reply text; `reply-to` is set to the operator platform email; the reply is saved to a `ticket_replies` table with: `ticketId`, `operatorId`, `body`, `sentAt`.
+
+**Given** the operator changes ticket status (open → closed or closed → open),
+**When** confirmed,
+**Then** the `support_tickets` record is updated; the status badge updates immediately (optimistic UI); the status change is logged to `audit_log`.
+
+---
+
+### Story 7.9: Template Versioning & Silent Migration
+
+As a Platform Operator,
+I want club sites to automatically receive template updates silently after each deployment,
+So that all clubs benefit from improvements and fixes without any action required from me or from club admins.
+
+**Acceptance Criteria:**
+
+**Given** a new Next.js build is deployed,
+**When** the deployment completes,
+**Then** all club sites immediately serve the updated template — no per-club migration step is required; club content stored in `page_elements`, `events`, `gallery_items`, and `documents` is schema-agnostic JSONB and is never corrupted by UI-layer changes (FR39, NFR15).
+
+**Given** the `clubs` table,
+**Then** it includes a `templateVersion` field recording the version string at the time of each club's last content save; a `migration_log` table records: `templateVersion`, `migratedAt`, `clubsAffected`, `migrationType` (content-safe / structural).
+
+**Given** the CI/CD pipeline (GitHub Actions),
+**When** a new build is staged,
+**Then** a migration smoke test runs automatically: it spins up a test club site against the new build and asserts all Lighthouse scores ≥ 90, all page elements render without error, and no 5xx responses occur; a failing smoke test blocks the deployment (NFR4).
+
+**Given** the deployment uses Docker rolling update,
+**When** the new container starts and passes the Nginx upstream health check,
+**Then** traffic is switched to the new container without dropping requests; the old container is terminated only after the health check passes — zero-downtime guaranteed (NFR15).
+
+**Given** the operator navigates to `/admin/settings`,
+**Then** a "Template" section shows: current template version, last migration date, and number of clubs on the current version.
+
+---
+
 ## Epic 8: Custom Domains & Data Compliance
 
-Club Admins can connect a custom domain to their site; the platform enforces GDPR-compliant data handling including right-to-erasure; data retention policies are applied automatically.
+Club Admins can connect a custom domain to their site, export their data (GDPR portability), and request account deletion (GDPR right-to-erasure). A cookie consent mechanism is presented where legally required. Data retention policies are applied automatically.
 
 ### Story 8.1: Custom Domain Setup & DNS Verification
 
@@ -1310,11 +1460,11 @@ So that my association can exercise its right to erasure under GDPR.
 
 **Given** the Club Admin navigates to the "Delete Club Account" section,
 **When** they initiate the deletion request,
-**Then** a confirmation dialog is shown listing exactly what will be deleted: club profile, all pages and elements, all uploaded files (R2/MinIO), all contact form submissions, and the club admin user account (FR40).
+**Then** a confirmation dialog is shown listing exactly what will be deleted: club profile, all pages and elements, all uploaded files (R2/MinIO), all contact form submissions, and the club admin user account (FR41).
 
 **Given** the Club Admin confirms the deletion,
 **When** the deletion job runs,
-**Then** all R2/MinIO objects for the club are deleted; all Prisma records scoped to the `clubId` are hard-deleted in dependency order (child records before parent); the club's subdomain routing is removed; the deletion is logged to `audit_log` (FR40).
+**Then** all R2/MinIO objects for the club are deleted; all Prisma records scoped to the `clubId` are hard-deleted in dependency order (child records before parent); the club's subdomain routing is removed; the deletion is logged to `audit_log` (FR41).
 
 **Given** the deletion job completes,
 **Then** the club admin's session is invalidated immediately; any subsequent request using their credentials returns HTTP 401; the platform subdomain for the club returns HTTP 404.
@@ -1334,15 +1484,80 @@ So that the platform is compliant with GDPR data minimisation and right-to-acces
 
 **Given** a Data Subject Access Request (DSAR) is received by the operator (via support ticket or email),
 **When** the operator looks up the requester's `ip_hash` in the analytics dashboard,
-**Then** the operator can export all `page_events` records matching that hash for the relevant date range — the export is a downloadable CSV (FR41).
+**Then** the operator can export all `page_events` records matching that hash for the relevant date range — the export is a downloadable CSV.
 
 **Given** the requester exercises their right to erasure for analytics data,
 **When** the operator runs the erasure action for a specific `ip_hash`,
-**Then** all matching `page_events` records are permanently deleted; the action is recorded in `audit_log` (FR41).
+**Then** all matching `page_events` records are permanently deleted; the action is recorded in `audit_log`.
 
 **Given** the automated retention policy is active,
 **When** the nightly cleanup job runs (scheduled via `node-cron` or equivalent),
-**Then** all `page_events` records older than 12 months are deleted; all `contact_submissions` records older than 24 months are deleted; a summary of deleted record counts is appended to an application log (FR42).
+**Then** all `page_events` records older than 12 months are deleted; all `contact_submissions` records older than 24 months are deleted; a summary of deleted record counts is appended to an application log.
 
 **Given** the cleanup job runs,
-**Then** the job itself is idempotent — running it twice in the same window produces no errors and no additional deletions; the job's last-run timestamp is stored and visible in `/admin/settings` (FR42).
+**Then** the job itself is idempotent — running it twice in the same window produces no errors and no additional deletions; the job's last-run timestamp is stored and visible in `/admin/settings`.
+
+---
+
+### Story 8.4: Club Admin — Data Export (GDPR Portability)
+
+As a Club Admin,
+I want to export all my club's content data in a portable, machine-readable format,
+So that I can exercise my right to data portability and migrate my content if needed.
+
+**Acceptance Criteria:**
+
+**Given** the Club Admin is in edit mode and opens the Admin sidebar tab,
+**When** they view the Admin section,
+**Then** an "Export data" option is available alongside Version History, Account, and Custom Domain (FR40).
+
+**Given** the Club Admin clicks "Export data",
+**When** the dialog opens,
+**Then** a confirmation dialog explains what will be exported: club profile, all pages and elements, calendar events, gallery item metadata, documents metadata, and decrypted contact form submissions.
+
+**Given** the Club Admin confirms the export,
+**When** the `exportClubData` Server Action executes,
+**Then** `clubId` is read from the session (never from client input); a structured JSON export is generated containing all club-scoped data and delivered as a `.zip` download within 30 seconds for up to 5,000 records.
+
+**Given** the club has more than 5,000 records,
+**When** the export is confirmed,
+**Then** an async export job is triggered; the club admin receives an email via Resend when the download link is ready; the link expires after 24 hours.
+
+**Given** the generated export,
+**Then** it contains no raw file binaries (images, videos, documents) — only metadata and R2/MinIO URLs; the JSON structure includes: `version`, `exportedAt`, `club`, `pages`, `elements`, `events`, `gallery_items`, `documents`, `contact_submissions`; the export operation is logged to `audit_log` with: `clubId`, `exportedAt`, `recordCount`.
+
+---
+
+### Story 8.5: Cookie Consent Mechanism
+
+As a visitor on the platform site or any club site,
+I want to be informed about cookie usage and give or decline consent before any non-essential cookies are set,
+So that my privacy choices are respected and the platform meets its GDPR/nDSG obligations.
+
+**Acceptance Criteria:**
+
+**Given** a first-time visitor to the platform site or any club site,
+**When** the page loads,
+**Then** a cookie consent banner appears at the bottom of the viewport before any non-essential cookies or tracking scripts are activated; the banner shows: a brief explanation of cookie usage, an "Accept" button, a "Decline" button, and a "Manage preferences" link (FR42).
+
+**Given** the visitor clicks "Accept",
+**When** consent is recorded,
+**Then** consent is stored in a `consent` cookie (SameSite=Strict, 12-month expiry); the banner is dismissed; analytics tracking (`page_events` recording) activates for this session.
+
+**Given** the visitor clicks "Decline",
+**When** the choice is recorded,
+**Then** only strictly necessary cookies are set; analytics tracking is suppressed for this session; the banner is dismissed; no `page_events` record is created for this visitor.
+
+**Given** the visitor clicks "Manage preferences",
+**When** the modal opens,
+**Then** toggles are shown for each category: Strictly Necessary (always on, non-togglable), Analytics (default off); saving preferences records the choice identically to Accept or Decline.
+
+**Given** a club site with the Map sub-block enabled on the Contact page,
+**When** a visitor who has not consented views the Contact page,
+**Then** the static map image is blocked behind a click-to-load overlay: "Click to load map (requires cookies)" — clicking reveals the map and prompts for analytics consent.
+
+**Given** consent state,
+**Then** it is checked server-side before inserting `page_events` records — no analytics events are created for visitors who declined; consent persists across pages within a session and across sessions for 12 months.
+
+**Given** the consent banner and preferences modal,
+**Then** they meet WCAG 2.1 AA: fully keyboard-accessible, screen-reader compatible, minimum 44px touch targets on all interactive elements.

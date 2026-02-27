@@ -471,6 +471,8 @@ and configurable from the platform admin dashboard — adjustable without a depl
   skeletons
 - Edit mode: toggled on club's own site, card-style affordances, explicit save, N-version
   history, defensive UX, inline constraint display
+- Per-club accent color picker: 8 curated presets (Zinc, Blue, Green, Red, Violet, Orange,
+  Rose, Yellow) applied via OKLCH CSS token
 - Single admin account per club; login entry from platform site
 - Subdomain provisioning (immediate on approval); custom domain support
 - Mandatory non-removable "Powered by" footer
@@ -500,7 +502,6 @@ and configurable from the platform admin dashboard — adjustable without a depl
 
 - Role-based multi-user access per club
 - Member management
-- Per-club color theme picker
 - Calendar event sub-page detail design
 - Federation / umbrella organization partnerships
 - Community roadmap page (block requests, feature visibility)
@@ -590,6 +591,7 @@ and configurable from the platform admin dashboard — adjustable without a depl
 - **FR43:** System automatically generates and maintains SEO metadata for all club site pages without requiring any admin configuration
 - **FR44:** Club Admin can view stored contact form submissions received for their site
 - **FR45:** Platform Operator can view detailed per-club analytics (traffic, page views, edit events, login events, contact form submission counts)
+- **FR46:** Club Admin can select an accent color for their club site from a curated palette of 8 presets (Zinc, Blue, Green, Red, Violet, Orange, Rose, Yellow)
 
 ## Non-Functional Requirements
 
