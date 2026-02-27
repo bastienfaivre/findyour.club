@@ -26,12 +26,20 @@ cp .env.example .env
 # 3. Start infrastructure (PostgreSQL, MinIO, Mailpit)
 docker compose -f docker-compose.dev.yml up -d
 
-# 4. Generate Prisma client
-pnpm prisma generate
+# 4. Run database migrations
+pnpm prisma migrate dev
 
-# 5. Start the dev server
+# 5. Seed development data (sample clubs, users, pages, analytics)
+pnpm prisma db seed
+
+# 6. Start the dev server
 pnpm dev
 ```
+
+> **Dev credentials (seeded):**
+> - Operator: `clashware.geology074@aleeas.com` / `123456`
+> - Club admin (Ski Club Valais): `admin@ski-club-valais.ch` / `admin123`
+> - Club admin (Football Club Lausanne): `admin@football-club-lausanne.ch` / `admin123`
 
 The app is now available at:
 

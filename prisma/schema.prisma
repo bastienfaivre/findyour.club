@@ -13,3 +13,407 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// ─── ENUMS ──────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  CLUB_ADMIN
+  OPERATOR
+}
+
+enum ApplicationStatus {
+  pending
+  approved
+  rejected
+}
+
+enum ClubStatus {
+  active
+  suspended
+}
+
+enum ElementType {
+  rich_text
+  image
+  gallery
+  calendar
+  documents
+  contact
+}
+
+enum PageEventType {
+  page_view
+  contact_form_sent
+  apply_form_sent
+  login_event
+  edit_event
+}
+
+// ─── AUTH.JS V4 ADAPTER MODELS ───────────────────────────────────────────────
+// Required by @next-auth/prisma-adapter (installed in Story 1.3)
+// Reference: https://authjs.dev/reference/adapter/prisma
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+
+  // Platform custom fields
+  role         UserRole @default(CLUB_ADMIN)
+  clubId       String?  @map("club_id") // null for OPERATOR role
+  passwordHash String?  @map("password_hash")
+  totpSecret   String?  @map("totp_secret")
+  totpEnabled  Boolean  @default(false) @map("totp_enabled")
+  magicToken   String?  @unique @map("magic_token") // SHA-256 hash of the token
+  magicTokenExp DateTime? @map("magic_token_exp")
+
+  accounts      Account[]
+  sessions      Session[]
+  club          Club?               @relation(fields: [clubId], references: [id])
+  passkeys      WebauthnCredential[]
+  ticketReplies TicketReply[]
+
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ─── PLATFORM MODELS ────────────────────────────────────────────────────────
+
+model Club {
+  id                String     @id @default(cuid())
+  name              String
+  slug              String     @unique
+  country           String // "ch" | "fr" | "de"
+  status            ClubStatus @default(active)
+  email             String
+  logoUrl           String?    @map("logo_url")
+  logoAlt           String?    @map("logo_alt")
+  welcomeText       String?    @map("welcome_text")
+  accentColor       String     @default("zinc") @map("accent_color")
+  customDomain      String?    @unique @map("custom_domain")
+  storageUsedBytes  BigInt     @default(0) @map("storage_used_bytes")
+  storageLimitBytes BigInt     @default(5368709120) @map("storage_limit_bytes") // 5 GB default
+  templateVersion   String     @default("1.0.0") @map("template_version")
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
+
+  admins             User[]
+  pages              Page[]
+  pageElements       PageElement[]
+  contentVersions    ContentVersion[]
+  pageEvents         PageEvent[]
+  contactSubmissions ContactSubmission[]
+  operatorNudges     OperatorNudge[]
+  supportTickets     SupportTicket[]
+  events             Event[]
+  galleryItems       GalleryItem[]
+  documents          Document[]
+  healthChecks       HealthCheck[]
+
+  @@map("clubs")
+}
+
+model Application {
+  id              String            @id @default(cuid())
+  name            String
+  activityType    String            @map("activity_type")
+  description     String
+  email           String
+  status          ApplicationStatus @default(pending)
+  rejectionReason String?           @map("rejection_reason")
+  submittedAt     DateTime          @default(now()) @map("submitted_at")
+  reviewedAt      DateTime?         @map("reviewed_at")
+
+  @@map("applications")
+}
+
+model Page {
+  id        String   @id @default(cuid())
+  clubId    String   @map("club_id")
+  slug      String
+  label     String
+  isActive  Boolean  @default(true) @map("is_active")
+  isAnchor  Boolean  @default(false) @map("is_anchor")
+  parentId  String?  @map("parent_id")
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  club     Club            @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  parent   Page?           @relation("SubPages", fields: [parentId], references: [id])
+  subPages Page[]          @relation("SubPages")
+  elements PageElement[]
+  versions ContentVersion[]
+
+  @@unique([clubId, slug])
+  @@map("pages")
+}
+
+model PageElement {
+  id       String      @id @default(cuid())
+  pageId   String      @map("page_id")
+  clubId   String      @map("club_id")
+  position Int
+  type     ElementType
+  data     Json
+
+  page         Page          @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  club         Club          @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  events       Event[]
+  galleryItems GalleryItem[]
+  documents    Document[]
+
+  @@index([clubId, pageId])
+  @@map("page_elements")
+}
+
+model ContentVersion {
+  id        String   @id @default(cuid())
+  pageId    String   @map("page_id")
+  clubId    String   @map("club_id")
+  snapshot  Json // Full page_elements state at save time
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String   @map("created_by") // userId
+
+  page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@index([clubId, pageId])
+  @@map("content_versions")
+}
+
+// ─── RELATIONAL CONTENT MODELS ───────────────────────────────────────────────
+
+model Event {
+  id          String    @id @default(cuid())
+  clubId      String    @map("club_id")
+  elementId   String    @map("element_id")
+  title       String
+  date        DateTime
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  element PageElement @relation(fields: [elementId], references: [id], onDelete: Cascade)
+  club    Club        @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@map("events")
+}
+
+model GalleryItem {
+  id        String   @id @default(cuid())
+  clubId    String   @map("club_id")
+  elementId String   @map("element_id")
+  url       String
+  alt       String
+  type      String // "image" | "video"
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  element PageElement @relation(fields: [elementId], references: [id], onDelete: Cascade)
+  club    Club        @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@map("gallery_items")
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  clubId      String   @map("club_id")
+  elementId   String   @map("element_id")
+  displayName String   @map("display_name")
+  fileName    String   @map("file_name")
+  fileType    String   @map("file_type")
+  fileSize    Int      @map("file_size")
+  url         String
+  position    Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  element PageElement @relation(fields: [elementId], references: [id], onDelete: Cascade)
+  club    Club        @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@map("documents")
+}
+
+// ─── ANALYTICS & COMMUNICATION ──────────────────────────────────────────────
+
+model PageEvent {
+  id        String        @id @default(cuid())
+  clubId    String        @map("club_id")
+  pageSlug  String        @map("page_slug")
+  eventType PageEventType @map("event_type")
+  country   String?
+  referrer  String?
+  ipHash    String?       @map("ip_hash") // SHA-256(IP + daily salt) — never raw IP
+  visitedAt DateTime      @default(now()) @map("visited_at")
+
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@index([clubId, visitedAt])
+  @@index([ipHash])
+  @@map("page_events")
+}
+
+model ContactSubmission {
+  id            String   @id @default(cuid())
+  clubId        String   @map("club_id")
+  senderName    String   @map("sender_name")
+  senderEmail   String   @map("sender_email")
+  subject       String
+  encryptedBody String   @map("encrypted_body") @db.Text // AES-256-GCM ciphertext
+  iv            String // GCM IV (hex string)
+  isRead        Boolean  @default(false) @map("is_read")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@map("contact_submissions")
+}
+
+// ─── AUTH EXTENSIONS ─────────────────────────────────────────────────────────
+
+model WebauthnCredential {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  credentialId String   @unique @map("credential_id")
+  publicKey    String   @map("public_key")
+  counter      BigInt   @default(0)
+  deviceType   String?  @map("device_type")
+  backedUp     Boolean  @default(false) @map("backed_up")
+  transports   String[]
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("webauthn_credentials")
+}
+
+// ─── PLATFORM OPERATIONS ─────────────────────────────────────────────────────
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String   @map("actor_id")
+  action    String // e.g. "APPROVE_APPLICATION", "SUSPEND_CLUB", "UPDATE_SETTING"
+  targetId  String?  @map("target_id")
+  oldValue  Json?    @map("old_value")
+  newValue  Json?    @map("new_value")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // NOTE: No UPDATE or DELETE operations on audit_log — append-only table
+  @@map("audit_logs")
+}
+
+model OperatorNudge {
+  id          String   @id @default(cuid())
+  clubId      String   @map("club_id")
+  operatorId  String   @map("operator_id")
+  subject     String
+  messageBody String   @map("message_body")
+  sentAt      DateTime @default(now()) @map("sent_at")
+
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@map("operator_nudges")
+}
+
+model SupportTicket {
+  id        String   @id @default(cuid())
+  clubId    String   @map("club_id")
+  subject   String
+  message   String   @db.Text
+  status    String   @default("open") // "open" | "closed"
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  replies TicketReply[]
+  club    Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@index([clubId])
+  @@map("support_tickets")
+}
+
+model TicketReply {
+  id         String   @id @default(cuid())
+  ticketId   String   @map("ticket_id")
+  operatorId String   @map("operator_id")
+  body       String   @db.Text
+  sentAt     DateTime @default(now()) @map("sent_at")
+
+  ticket   SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  operator User          @relation(fields: [operatorId], references: [id])
+
+  @@map("ticket_replies")
+}
+
+model HealthCheck {
+  id             String   @id @default(cuid())
+  clubId         String   @map("club_id")
+  lighthousePerf Float?   @map("lighthouse_perf")
+  lighthouseA11y Float?   @map("lighthouse_a11y")
+  lighthouseSEO  Float?   @map("lighthouse_seo")
+  uptimePct      Float?   @map("uptime_pct")
+  checkedAt      DateTime @default(now()) @map("checked_at")
+
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@map("health_checks")
+}
+
+model MigrationLog {
+  id              String   @id @default(cuid())
+  templateVersion String   @map("template_version")
+  migratedAt      DateTime @default(now()) @map("migrated_at")
+  clubsAffected   Int      @map("clubs_affected")
+  migrationType   String   @map("migration_type") // "content-safe" | "structural"
+
+  @@map("migration_logs")
+}
+
+model FeatureFlag {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("feature_flags")
+}
