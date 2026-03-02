@@ -1,5 +1,5 @@
 // src/proxy.ts
-// Placeholder — full auth guards are implemented in Story 1.4: Platform Operator Authentication & Admin Route Protection
+// Central routing / proxy logic. All request-level rules live here.
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 

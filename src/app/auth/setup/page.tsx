@@ -8,7 +8,7 @@ export default async function SetupPage() {
   // Already authenticated — account setup is complete; send user home.
   const session = await getAuthSession()
   if (session?.user?.id) {
-    redirect('/')
+    redirect('/my-clubs')
   }
 
   const cookieStore = await cookies()

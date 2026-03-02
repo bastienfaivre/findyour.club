@@ -7,6 +7,7 @@
 - [ ] Epic Tech Spec located or warning recorded
 - [ ] Architecture/standards docs loaded (as available)
 - [ ] Tech stack detected and documented
+- [ ] `pnpm lint` executed and passes (lint errors are HIGH severity findings)
 - [ ] MCP doc search performed (or web fallback) and references captured
 - [ ] Acceptance Criteria cross-checked against implementation
 - [ ] File List reviewed and validated for completeness

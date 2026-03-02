@@ -100,13 +100,13 @@ describe('GET /auth/magic-link', () => {
       })
     })
 
-    it('redirects to / when the user is already authenticated', async () => {
+    it('redirects to /my-clubs when the user is already authenticated', async () => {
       vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'u1' } } as never)
 
       const response = await GET(makeRequest('stale-token'))
 
       expect(response.status).toBe(307)
-      expect(response.headers.get('location')).toBe(`${BASE}/`)
+      expect(response.headers.get('location')).toBe(`${BASE}/my-clubs`)
       expect(response.cookies.get('setup_session')).toBeUndefined()
     })
 

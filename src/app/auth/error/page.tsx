@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 interface AuthErrorPageProps {
   searchParams: Promise<{ error?: string }>
 }
@@ -22,9 +24,9 @@ export default async function AuthErrorPage({ searchParams }: AuthErrorPageProps
       <div className="max-w-md w-full text-center space-y-4">
         <h1 className="text-2xl font-semibold">Authentication Error</h1>
         <p className="text-muted-foreground">{message}</p>
-        <a href="/auth/login" className="underline text-sm">
+        <Link href="/auth/login" className="underline text-sm">
           Return to sign in
-        </a>
+        </Link>
       </div>
     </div>
   )

@@ -27,7 +27,7 @@ export function LoginForm() {
       }
 
       // If TOTP enrolled → challenge required; otherwise session is already verified
-      router.push(result.totpEnabled ? '/auth/totp' : '/')
+      router.push(result.totpEnabled ? '/auth/totp' : '/my-clubs')
     })
   }
 

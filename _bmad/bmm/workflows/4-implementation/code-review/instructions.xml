@@ -59,6 +59,15 @@
   <step n="3" goal="Execute adversarial review">
     <critical>VALIDATE EVERY CLAIM - Check git reality vs story claims</critical>
 
+    <!-- Lint check -->
+    <action>Run `pnpm lint` and capture output</action>
+    <check if="lint exits with errors">
+      <action>Record each lint error as a HIGH finding with file and line reference</action>
+    </check>
+    <check if="lint exits cleanly">
+      <action>Note "pnpm lint: PASSED" in review summary</action>
+    </check>
+
     <!-- Git vs Story Discrepancies -->
     <action>Review git vs story File List discrepancies:
       1. **Files changed but not in story File List** → MEDIUM finding (incomplete documentation)

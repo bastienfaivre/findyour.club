@@ -1,19 +1,15 @@
 // Club public site placeholder — full implementation in Epic 3 (Public Platform Site & Discovery)
-import { headers } from 'next/headers'
-import { getCountryFromHost } from '@/lib/country'
 import { notFound } from 'next/navigation'
+import { isValidCountry } from '@/lib/country'
 
 export default async function ClubPage({
   params,
 }: {
-  params: Promise<{ club: string }>
+  params: Promise<{ country: string; club: string }>
 }) {
-  const { club } = await params
-  const headersList = await headers()
-  const host = headersList.get('host') ?? ''
-  const country = getCountryFromHost(host)
+  const { country, club } = await params
 
-  if (!country) notFound()
+  if (!isValidCountry(country)) notFound()
 
   return (
     <div>

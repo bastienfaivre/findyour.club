@@ -77,7 +77,7 @@ describe('setupPassword()', () => {
     expect(result).toMatchObject({ success: false, code: 'VALIDATION_ERROR' })
   })
 
-  it('hashes password, clears magic token, creates session, and redirects to /', async () => {
+  it('hashes password, clears magic token, creates session, and redirects to /my-clubs', async () => {
     vi.mocked(decodeSetupCookie).mockReturnValue('user-123')
     vi.mocked(prisma.user.update).mockResolvedValue({} as never)
 
@@ -104,8 +104,8 @@ describe('setupPassword()', () => {
       expect.objectContaining({ data: expect.objectContaining({ userId: 'user-123' }) })
     )
 
-    // L5: Redirect to home, not to /auth/totp-setup
-    expect(redirect).toHaveBeenCalledWith('/')
+    // Redirect to /my-clubs after successful password setup
+    expect(redirect).toHaveBeenCalledWith('/my-clubs')
   })
 
   it('returns PASSWORD_BREACHED when HIBP returns a matching SHA-1 suffix', async () => {
@@ -134,6 +134,6 @@ describe('setupPassword()', () => {
 
     expect(prisma.user.update).toHaveBeenCalled()
     expect(prisma.session.create).toHaveBeenCalled()
-    expect(redirect).toHaveBeenCalledWith('/')
+    expect(redirect).toHaveBeenCalledWith('/my-clubs')
   })
 })

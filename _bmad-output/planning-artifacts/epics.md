@@ -26,7 +26,7 @@ FR5: Club Admin can configure one level of sub-pages within their site's navigat
 FR6: System prevents Club Admin from removing anchor pages (Home and Contact)
 FR7: System enforces a configurable maximum page count per club site
 FR8: Club Admin can set up and manage a custom domain for their site
-FR9: System provisions a subdomain for each approved club immediately upon acceptance
+FR9: System provisions a URL path for each approved club immediately upon acceptance
 FR46: Club Admin can select an accent color for their site from a curated palette of 8 presets
 
 **Content Editing & Element Library**
@@ -62,7 +62,7 @@ FR30: Club Admin can submit a support request to the platform team from the plat
 **Platform Operations**
 
 FR31: Platform Operator can view and manage a queue of pending club applications
-FR32: Platform Operator can approve an application, triggering automatic subdomain provisioning and an acceptance email to the applicant
+FR32: Platform Operator can approve an application, triggering automatic URL path provisioning and an acceptance email to the applicant
 FR33: Platform Operator can reject an application with an explanatory email to the applicant
 FR34: Platform Operator can view platform-wide metrics (clubs live, custom domains, uptime, performance scores, storage)
 FR35: Platform Operator can monitor site health status across all hosted club sites
@@ -139,8 +139,8 @@ NFR27: All platform-wide configurable variables adjustable via the admin dashboa
 **Architecture — Infrastructure & Deployment:**
 
 - Docker Compose setup: Next.js + PostgreSQL + Nginx + Certbot (self-hosted on Infomaniak VPS, Swiss/EU)
-- Nginx for wildcard subdomain routing (`*.platform-name.com`) and custom domain passthrough
-- Certbot/Let's Encrypt for automated TLS (wildcard via DNS-01, per-club custom domains via HTTP-01)
+- Nginx for single-domain routing and custom domain passthrough
+- Certbot/Let's Encrypt for automated TLS (single domain via HTTP-01, per-club custom domains via HTTP-01)
 - GitHub Actions CI/CD pipeline: lint → typecheck → pnpm audit → build → SSH deploy
 - `next.config.ts` output: 'standalone' for minimal Docker image
 
@@ -153,7 +153,7 @@ NFR27: All platform-wide configurable variables adjustable via the admin dashboa
 - Version history: full JSONB page snapshots in `content_versions` table; N-version retention configurable
 - File storage: Cloudflare R2 (S3-compatible), presigned URLs, no bytes through Next.js server
 - Analytics: custom `page_events` table with irreversible ip_hash (SHA-256 + daily salt); 12-month retention
-- URL architecture: country-level paths — `ch.platform-name.com/{club-slug}` (no DNS provisioning per club)
+- URL architecture: country and club as path segments — `platform-name.com/{country}/{club-slug}` (no DNS provisioning per club)
 
 **Architecture — Authentication & Security:**
 
@@ -315,8 +315,8 @@ So that the team has a consistent, fully deployable development environment from
 **Then** the Next.js dev server, PostgreSQL, MinIO (R2 equivalent), and Mailpit (email equivalent) containers all start successfully with no errors.
 
 **Given** the dev environment is running,
-**When** the browser navigates to `http://lvh.me:3000`,
-**Then** the Next.js app loads; and `http://ch.lvh.me:3000` resolves to the CH country route via `lib/country.ts`.
+**When** the browser navigates to `http://localhost:3000`,
+**Then** the Next.js app loads; and `http://localhost:3000/ch/ski-club-valais` resolves to the CH country route via `lib/country.ts`.
 
 **Given** code is pushed to the `main` branch,
 **When** GitHub Actions runs the CI pipeline,
@@ -330,7 +330,7 @@ So that the team has a consistent, fully deployable development environment from
 **Then** `.env.example` documents every required environment variable with local dev default values and no real secrets committed.
 
 **Given** the Nginx config in `nginx/nginx.conf`,
-**Then** wildcard subdomain routing routes all requests to the Next.js server, and `maintenance.html` is served on 502/503 responses.
+**Then** all requests are routed to the Next.js server, and `maintenance.html` is served on 502/503 responses.
 
 ---
 
@@ -702,7 +702,7 @@ So that I immediately understand the platform's purpose and can find clubs in my
 **Then** it scores ≥ 90 on Core Web Vitals (Lighthouse performance, SEO, accessibility) and includes full meta tags and Open Graph tags generated automatically.
 
 **Given** a visitor clicks a `CountryButton`,
-**When** they are redirected to the country subdomain (e.g., `ch.platform-name.com`),
+**When** they are redirected to the country path (e.g., `platform-name.com/ch`),
 **Then** the country directory page loads — routing is handled at the application layer via `lib/country.ts`, not DNS.
 
 **Given** the platform site,
@@ -718,7 +718,7 @@ So that I can discover clubs matching my activity interest and geographic region
 
 **Acceptance Criteria:**
 
-**Given** a visitor navigates to a country subdomain (e.g., `ch.platform-name.com`),
+**Given** a visitor navigates to a country path (e.g., `platform-name.com/ch`),
 **When** the page loads,
 **Then** it renders server-side with a filter bar (activity type select, region/canton select) and a grid of `ClubCard` components for all active clubs in that country.
 
@@ -745,7 +745,7 @@ So that I can quickly understand who the club is and find the information I need
 
 **Acceptance Criteria:**
 
-**Given** a visitor navigates to a club's URL path (e.g., `ch.platform-name.com/ski-club-valais`),
+**Given** a visitor navigates to a club's URL path (e.g., `platform-name.com/ch/ski-club-valais`),
 **When** the page loads,
 **Then** it renders server-side with: the club's logo, name (`<h1>`), welcome text, a primary CTA button linking to the Contact page, and the `ClubSidebarNav` with all active pages listed.
 
@@ -775,7 +775,7 @@ So that I can browse the club's content without full-page reloads.
 **When** navigation occurs,
 **Then** a loading skeleton matching the expected content shape is displayed within 100ms; content loads from the Route Handler and renders within 2 seconds.
 
-**Given** a visitor directly navigates to a club inner page URL (e.g., `ch.platform-name.com/ski-club-valais/calendar`),
+**Given** a visitor directly navigates to a club inner page URL (e.g., `platform-name.com/ch/ski-club-valais/calendar`),
 **When** the page loads,
 **Then** it renders correctly and is crawlable via direct URL access.
 
@@ -1309,7 +1309,7 @@ So that I can oversee the platform's club population and take administrative act
 
 **Given** the operator is authenticated and navigates to `/admin/clubs`,
 **When** the page loads,
-**Then** a paginated list of all clubs is shown with columns: club name, slug, country, status (active/suspended), subdomain, registration date, and a link to their public site (FR34).
+**Then** a paginated list of all clubs is shown with columns: club name, slug, country, status (active/suspended), URL path, registration date, and a link to their public site (FR34).
 
 **Given** the operator clicks on a club,
 **When** the detail view opens,
@@ -1546,7 +1546,7 @@ Club Admins can connect a custom domain to their site, export their data (GDPR p
 
 As a Club Admin,
 I want to configure a custom domain for my club's website,
-So that visitors can reach my club at my own branded URL instead of the platform subdomain.
+So that visitors can reach my club at my own branded URL instead of the platform path.
 
 **Acceptance Criteria:**
 
@@ -1560,11 +1560,11 @@ So that visitors can reach my club at my own branded URL instead of the platform
 
 **Given** the domain is verified,
 **When** a visitor accesses the club at the custom domain,
-**Then** Nginx routes the request to the Next.js app using the custom domain; the club is resolved from the `clubs` table by `customDomain` field; the correct club site is rendered — the platform subdomain continues to work in parallel.
+**Then** Nginx routes the request to the Next.js app using the custom domain; the club is resolved from the `clubs` table by `customDomain` field; the correct club site is rendered — the platform path URL continues to work in parallel.
 
 **Given** the Club Admin removes their custom domain,
 **When** confirmed,
-**Then** the `customDomain` field is cleared; Nginx routing falls back to the platform subdomain within one deployment cycle; the removed domain record is deleted.
+**Then** the `customDomain` field is cleared; Nginx routing falls back to the platform path URL within one deployment cycle; the removed domain record is deleted.
 
 ---
 
@@ -1582,10 +1582,10 @@ So that my association can exercise its right to erasure under GDPR.
 
 **Given** the Club Admin confirms the deletion,
 **When** the deletion job runs,
-**Then** all R2/MinIO objects for the club are deleted; all Prisma records scoped to the `clubId` are hard-deleted in dependency order (child records before parent); the club's subdomain routing is removed; the deletion is logged to `audit_log` (FR41).
+**Then** all R2/MinIO objects for the club are deleted; all Prisma records scoped to the `clubId` are hard-deleted in dependency order (child records before parent); the club's URL path is de-provisioned; the deletion is logged to `audit_log` (FR41).
 
 **Given** the deletion job completes,
-**Then** the club admin's session is invalidated immediately; any subsequent request using their credentials returns HTTP 401; the platform subdomain for the club returns HTTP 404.
+**Then** the club admin's session is invalidated immediately; any subsequent request using their credentials returns HTTP 401; the platform path URL for the club returns HTTP 404.
 
 **Given** the Club Admin has a custom domain configured at time of deletion,
 **Then** the custom domain record is also cleared; if the deletion fails mid-way, the operation rolls back fully (Prisma transaction) — no partial deletion state is possible.

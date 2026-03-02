@@ -56,8 +56,8 @@ Architecture-driving NFRs:
 - **Hosting:** Swiss or EU infrastructure required (GDPR/nDSG compliance + association trust signal).
 - **Auth standards:** TOTP (authenticator app), WebAuthn/FIDO2 (passkeys) — both required; bcrypt or Argon2 for password hashing.
 - **Email:** External email relay service required (contact form relay + transactional emails for application acceptance/rejection). DPA required with provider.
-- **URL architecture:** Country-level subdomains (ch.platform-name.com, fr.platform-name.com) operated by the platform. Clubs identified by first path segment: `ch.platform-name.com/{club-slug}`. No per-club DNS provisioning — routing is handled at the application layer. Club slugs are generated at provisioning time, URL-safe, **unique per country** (two clubs in different countries may share the same slug — e.g., `ch.platform.com/ski-club` and `fr.platform.com/ski-club` are both valid), and treated as immutable identifiers. The DB constraint is `@@unique([slug, country])` on the `Club` model.
-- **Reserved path management:** The application routing layer must distinguish reserved country-level paths (directory root, /apply, /about, /support, etc.) from club slugs. Slug generation must exclude reserved path names.
+- **URL architecture:** Single domain with country and club as path segments: `platform-name.com/{country}/{club-slug}`. No per-club DNS provisioning — routing is handled at the application layer. Club slugs are generated at provisioning time, URL-safe, **unique per country** (two clubs in different countries may share the same slug — e.g., `platform-name.com/ch/ski-club` and `platform-name.com/fr/ski-club` are both valid), and treated as immutable identifiers. The DB constraint is `@@unique([slug, country])` on the `Club` model.
+- **Reserved path management:** The application routing layer must distinguish reserved root paths (directory root, /apply, /about, /support, /admin, /auth, /api, /my-clubs, etc.) from country path segments. Country codes (`ch`, `fr`, `de`, …) are reserved root paths that route to the country directory. Slug generation must exclude reserved path names; uniqueness is enforced per country.
 - **Custom domains:** Club admins can configure a custom domain. The platform maps the custom domain to the club via lookup and serves identical content. TLS provisioning for custom domains must be automated.
 - **Multi-tenancy:** Club data isolation at storage layer — one club's data cannot affect another's performance or be accessed across boundaries.
 - **Billing:** Explicitly deferred to post-MVP. No payment infrastructure in scope.
@@ -160,7 +160,7 @@ Next.js 16 with Turbopack (dev); `next build` for production. `output: 'standalo
 src/
   app/                    # Next.js App Router
     (platform)/           # Route group: platform site (SSR)
-    (country)/[country]/  # Route group: country subdomains
+    (country)/[country]/  # Route group: country path segment (ch, fr, de, …)
       [club]/             # Club site pages (SSR home + RSC inner pages)
     api/                  # Route Handlers (client-side data endpoints)
     admin/                # Platform operator dashboard
@@ -181,8 +181,8 @@ prisma/
 ```
 
 **Self-Hosting:**
-`next.config.ts` sets `output: 'standalone'`. Nginx acts as the reverse proxy: wildcard subdomain routing (`*.platform-name.com`) and custom domain passthrough to the Next.js server. TLS is handled by Certbot (Let's Encrypt):
-- Wildcard certificate (`*.platform-name.com`) via DNS-01 challenge (requires DNS provider API access for auto-renewal)
+`next.config.ts` sets `output: 'standalone'`. Nginx acts as the reverse proxy: single-domain routing and custom domain passthrough to the Next.js server. TLS is handled by Certbot (Let's Encrypt):
+- Single certificate for `platform-name.com` via HTTP-01 challenge (no DNS provider API access required)
 - Per-domain certificates for club custom domains, provisioned and renewed via Certbot HTTP-01 challenge
 
 Docker Compose orchestrates Next.js + PostgreSQL + Nginx + Certbot.
@@ -372,7 +372,7 @@ Docker Compose orchestrates Next.js + PostgreSQL + Nginx + Certbot.
 3. Prisma schema (core models: `clubs`, `club_memberships`, `pages`, `page_elements`, `content_versions`, `users`, `sessions`, `page_events`)
 4. Auth.js configuration (database sessions + magic link + TOTP + passkeys)
 5. Multi-tenant Prisma middleware (clubId enforcement)
-6. Nginx configuration (wildcard subdomain routing, custom domain passthrough, maintenance page)
+6. Nginx configuration (single-domain routing, custom domain passthrough, maintenance page)
 7. Cloudflare R2 integration (presigned URLs, storage accounting)
 8. Core Server Actions with Zod validation and `{ success, error, code }` contract
 9. Resend email integration + Cloudflare Turnstile integration
@@ -580,10 +580,12 @@ export async function savePageContent(
 
 **Club Resolution Pattern (slug → clubId)**
 
-A club is resolved from the URL **once per request** in the club layout. Both `slug` (from URL path params) and `country` (from the host via `getCountryFromHost`) are required:
+A club is resolved from the URL **once per request** in the club layout. Both `slug` and `country` come from URL path params (`[country]` and `[club]` segments):
 
 ```typescript
 // ✅ CORRECT — always resolve by (slug, country) composite key
+const { country, club: slug } = await params
+if (!isValidCountry(country)) notFound()
 const club = await prisma.club.findUnique({
   where: { slug_country: { slug, country } },
   select: { id: true },
@@ -591,7 +593,7 @@ const club = await prisma.club.findUnique({
 if (!club) notFound()
 ```
 
-`country` is derived server-side from `headers().get('host')` via `lib/country.ts` — **never from user input or URL path params**. Never query a club by `slug` alone; two clubs in different countries may share the same slug.
+`country` is derived from the `[country]` URL path parameter and validated against `SUPPORTED_COUNTRIES` via `lib/country.ts` — **never from the Host header** (the host carries no country information in the path-based architecture). Never query a club by `slug` alone; two clubs in different countries may share the same slug.
 
 **Multi-Tenant Query Pattern (CRITICAL)**
 
@@ -734,7 +736,7 @@ website-template/
 │   └── workflows/
 │       └── ci.yml                    # lint → typecheck → pnpm audit → build
 ├── nginx/
-│   ├── nginx.conf                    # Wildcard subdomain + custom domain routing
+│   ├── nginx.conf                    # Single-domain + custom domain routing
 │   ├── maintenance.html              # Static maintenance page (served on 502/503)
 │   └── ssl/                          # Certbot-managed certs (gitignored)
 ├── prisma/
@@ -908,7 +910,7 @@ website-template/
 │   │   │   ├── contact.ts            # contactFormSchema, applyFormSchema, supportFormSchema
 │   │   │   └── analytics.ts          # pageEventSchema
 │   │   │
-│   │   ├── country.ts                # getCountryFromHost() — host → country code (env-agnostic)
+│   │   ├── country.ts                # isValidCountry() — validates [country] URL param against SUPPORTED_COUNTRIES
 │   │   ├── crypto.ts                 # AES-256-GCM encrypt/decrypt
 │   │   ├── totp.ts                   # otplib: generateSecret, verifyToken
 │   │   ├── webauthn.ts               # @simplewebauthn: registration + authentication helpers
@@ -929,7 +931,7 @@ website-template/
 ├── Dockerfile                        # Multi-stage: deps → build → standalone runner
 ├── .env.example                      # All required env vars documented (no secrets)
 ├── .gitignore
-├── next.config.ts                    # output: 'standalone', headers (CSP), rewrites
+├── next.config.ts                    # output: 'standalone', headers (CSP)
 ├── tailwind.config.ts
 ├── tsconfig.json                     # strict: true, paths: { "@/*": ["./src/*"] }
 ├── eslint.config.mjs
@@ -975,33 +977,27 @@ website-template/
 
 ### Local Development Infrastructure
 
-**Subdomain routing solution: `lvh.me`**
-
-`*.lvh.me` resolves to `127.0.0.1` via public DNS — no hosts file edits, no dnsmasq, works in all browsers. Country prefix extraction is environment-agnostic via `lib/country.ts`:
+**No special subdomain routing required.** Country is a URL path segment, so local development uses plain `localhost:3000` with no `hosts` file edits or special DNS tricks. Country validation is handled via `lib/country.ts`:
 
 ```typescript
 // lib/country.ts
 const SUPPORTED_COUNTRIES = ['ch', 'fr', 'de'] as const
 export type Country = typeof SUPPORTED_COUNTRIES[number]
 
-export function getCountryFromHost(host: string): Country | null {
-  const subdomain = host.split('.')[0]
-  return (SUPPORTED_COUNTRIES as readonly string[]).includes(subdomain)
-    ? (subdomain as Country)
-    : null
+export function isValidCountry(country: string): country is Country {
+  return (SUPPORTED_COUNTRIES as readonly string[]).includes(country)
 }
-// ch.platform-name.com → 'ch'  ✅
-// ch.lvh.me            → 'ch'  ✅
-// lvh.me               → null  (platform routes)
+// params.country = 'ch'  → isValidCountry('ch')  → true  ✅
+// params.country = 'xyz' → isValidCountry('xyz') → false → notFound() ✅
 ```
 
 **Local dev URLs**
 
 | Surface | URL |
 |---|---|
-| Platform directory | `http://lvh.me:3000` |
-| Club site | `http://ch.lvh.me:3000/ski-club-valais` |
-| Admin dashboard | `http://lvh.me:3000/admin` |
+| Platform directory | `http://localhost:3000` |
+| Club site | `http://localhost:3000/ch/ski-club-valais` |
+| Admin dashboard | `http://localhost:3000/admin` |
 | MinIO console | `http://localhost:9001` |
 | Mailpit inbox | `http://localhost:8025` |
 
@@ -1017,8 +1013,8 @@ export function getCountryFromHost(host: string): Country | null {
 
 ```bash
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/website_template_dev"
-NEXTAUTH_URL="http://lvh.me:3000"
-NEXTAUTH_SECRET="dev_secret_change_in_production"
+AUTH_URL="http://localhost:3000"
+AUTH_SECRET="dev_secret_change_in_production"
 R2_ENDPOINT="http://localhost:9000"
 R2_ACCESS_KEY_ID="minioadmin"
 R2_SECRET_ACCESS_KEY="minioadmin"
@@ -1210,7 +1206,7 @@ No blocking issues found. All 6 gaps resolved collaboratively during validation.
 
 - **Multi-tenant safety by design**: Prisma middleware enforces `clubId` scoping at the database layer, making cross-club data leaks structurally impossible
 - **SSR + SPA hybrid simplicity**: Next.js App Router handles the hard routing complexity; the edit-mode SPA is cleanly scoped to `?edit=true` with React Context
-- **Local dev parity**: MinIO + Mailpit + lvh.me give exact production-equivalent behavior without cloud accounts or hosts file hacks
+- **Local dev parity**: MinIO + Mailpit give exact production-equivalent behavior without cloud accounts; path-based routing works on plain `localhost:3000` with no hosts file hacks
 - **GDPR by architecture**: Irreversible `ip_hash` analytics and AES-256-GCM encrypted contact submissions require no runtime decisions from developers
 - **Minimal dependency philosophy**: pnpm + MIT-licensed stack eliminates licensing risk and reduces supply chain surface area
 - **Silent template migration**: The SSR-first architecture makes FR38 a zero-cost property of every deployment

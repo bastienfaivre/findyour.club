@@ -9,8 +9,7 @@ import { verifyTotpCode } from '@/lib/totp'
 import { checkRateLimit, clearRateLimit } from '@/lib/rate-limit'
 import { encodeTotpVerifiedCookie } from '@/lib/setup-cookie'
 
-// TODO (Story 1.4): update to '/my-clubs' once the club dashboard landing page exists
-const POST_AUTH_REDIRECT = '/'
+const POST_AUTH_REDIRECT = '/my-clubs'
 
 export type TotpChallengeResult =
   | { success: false; error: string; code: 'UNAUTHENTICATED' | 'VALIDATION_ERROR' | 'TOTP_INVALID' | 'RATE_LIMITED' | 'TOTP_NOT_CONFIGURED' }
@@ -70,6 +69,7 @@ export async function verifyTotpChallenge(input: unknown): Promise<TotpChallenge
     sameSite: 'lax',
     maxAge: 60 * 60 * 24 * 30, // 30 days
     path: '/',
+    domain: process.env.COOKIE_DOMAIN,
   })
 
   redirect(POST_AUTH_REDIRECT)

@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { _resetStore } from '@/lib/rate-limit'
 
-vi.mock('next/navigation', () => ({ redirect: vi.fn() }))
+vi.mock('next/navigation', () => ({
+  redirect: vi.fn((url: string) => { throw new Error(`NEXT_REDIRECT:${url}`) }),
+}))
 vi.mock('next/headers', () => ({
   headers: vi.fn(async () => ({ get: vi.fn(() => '1.2.3.4') })),
   cookies: vi.fn(async () => ({ set: vi.fn(), get: vi.fn() })),
@@ -76,14 +78,14 @@ describe('verifyTotpChallenge()', () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue({ totpSecret: 'SECRET' } as never)
     vi.mocked(verifyTotpCode).mockResolvedValue(true)
 
-    await verifyTotpChallenge({ code: '123456' })
+    await expect(verifyTotpChallenge({ code: '123456' })).rejects.toThrow('NEXT_REDIRECT:/my-clubs')
 
     expect(mockCookieSet).toHaveBeenCalledWith(
       'totp_verified',
       expect.any(String),
       expect.objectContaining({ httpOnly: true })
     )
-    expect(redirect).toHaveBeenCalledWith('/')
+    expect(redirect).toHaveBeenCalledWith('/my-clubs')
   })
 
   it('blocks after 5 failed attempts from same IP (rate limit)', async () => {

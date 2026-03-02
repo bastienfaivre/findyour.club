@@ -12,7 +12,7 @@ export default async function TotpChallengePage() {
 
   // Already verified (totpEnabled=false or cookie set) → redirect to home
   if (session.user.totpVerified) {
-    redirect('/')
+    redirect('/my-clubs')
   }
 
   return (

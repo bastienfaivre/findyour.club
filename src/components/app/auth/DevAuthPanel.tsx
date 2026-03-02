@@ -44,6 +44,7 @@ export async function DevAuthPanel() {
         {user ? (
           <>
             {/* Plain <a> — forces a full page load so the Server Component re-renders with cleared cookies */}
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a href="/auth/logout" className="block rounded bg-red-800 px-2 py-1 text-center text-white hover:bg-red-700">
               Logout
             </a>
@@ -91,6 +92,9 @@ export async function DevAuthPanel() {
           </Link>
           <Link href="/auth/error" className="block rounded bg-zinc-800 px-2 py-1 text-center text-zinc-400 hover:bg-zinc-700">
             Error page
+          </Link>
+          <Link href="/my-clubs" className="block rounded bg-zinc-800 px-2 py-1 text-center text-zinc-400 hover:bg-zinc-700">
+            My clubs
           </Link>
         </div>
       </div>

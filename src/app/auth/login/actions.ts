@@ -70,6 +70,7 @@ export async function loginWithCredentials(input: unknown): Promise<LoginResult>
     sameSite: 'lax',
     path: '/',
     expires,
+    domain: process.env.COOKIE_DOMAIN,
   })
 
   // If TOTP is not enrolled, mark the session as verified immediately
@@ -80,6 +81,7 @@ export async function loginWithCredentials(input: unknown): Promise<LoginResult>
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24 * 30, // 30 days
+      domain: process.env.COOKIE_DOMAIN,
     })
   }
 

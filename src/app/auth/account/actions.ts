@@ -84,6 +84,7 @@ export async function removeTotp(): Promise<RemoveTotpResult> {
     sameSite: 'lax',
     path: '/',
     maxAge: 0,
+    domain: process.env.COOKIE_DOMAIN,
   })
 
   return { success: true }

@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
   // have a session, so calling getAuthSession() unconditionally would always return null.
   if (result.alreadyConfigured) {
     const session = await getAuthSession()
-    const dest = session?.user?.id ? '/' : '/auth/login'
+    const dest = session?.user?.id ? '/my-clubs' : '/auth/login'
     return NextResponse.redirect(new URL(dest, request.url))
   }
 

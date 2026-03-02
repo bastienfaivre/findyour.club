@@ -5,9 +5,10 @@ import { LoginForm } from '@/components/app/auth/LoginForm'
 export default async function LoginPage() {
   const session = await getAuthSession()
 
-  // Already fully authenticated → redirect to club site
-  if (session?.user?.totpVerified) {
-    redirect('/')
+  // Already fully authenticated → redirect to personal homepage
+  // Non-TOTP users: totpVerified is always false (no cookie), so check totpEnabled too
+  if (session?.user && (!session.user.totpEnabled || session.user.totpVerified)) {
+    redirect('/my-clubs')
   }
 
   return (

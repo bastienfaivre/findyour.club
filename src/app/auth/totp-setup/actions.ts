@@ -8,8 +8,7 @@ import { verifyTotpCode } from '@/lib/totp'
 import { encodeTotpVerifiedCookie } from '@/lib/setup-cookie'
 import { checkRateLimit, clearRateLimit } from '@/lib/rate-limit'
 
-// TODO (Story 1.4): update to '/my-clubs' once the club dashboard landing page exists
-const POST_AUTH_REDIRECT = '/'
+const POST_AUTH_REDIRECT = '/my-clubs'
 
 export type EnrollTotpResult =
   | { success: false; error: string; code: 'UNAUTHORIZED' | 'VALIDATION_ERROR' | 'TOTP_INVALID' | 'SERVER_ERROR' | 'RATE_LIMITED' }
@@ -89,6 +88,7 @@ export async function enrollTotp(input: unknown): Promise<EnrollTotpResult> {
     sameSite: 'lax',
     path: '/',
     maxAge: 60 * 60 * 24 * 30, // 30 days
+    domain: process.env.COOKIE_DOMAIN,
   })
 
   redirect(POST_AUTH_REDIRECT)

@@ -10,7 +10,7 @@ import { prisma } from '@/server/db'
  * redirects to /auth/magic-link?token=... so you can test the full first-login flow.
  *
  * Usage:
- *   http://lvh.me:3000/dev/magic-link?email=admin@ski-club-valais.ch
+ *   https://localhost:3000/dev/magic-link?email=admin@ski-club-valais.ch
  */
 export async function GET(request: NextRequest) {
   if (process.env.NODE_ENV === 'production') {

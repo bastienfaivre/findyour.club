@@ -8,8 +8,7 @@ import { setupPasswordSchema } from '@/lib/schemas/user'
 import { decodeSetupCookie, SETUP_COOKIE_NAME, encodeTotpVerifiedCookie } from '@/lib/setup-cookie'
 import { SESSION_COOKIE_NAME } from '@/server/auth'
 
-// TODO (Story 1.4): update to '/my-clubs' once the club dashboard landing page exists
-const POST_AUTH_REDIRECT = '/'
+const POST_AUTH_REDIRECT = '/my-clubs'
 
 export type SetupPasswordResult =
   | { success: false; error: string; code: 'UNAUTHORIZED' | 'ALREADY_CONFIGURED' | 'VALIDATION_ERROR' | 'PASSWORD_BREACHED' | 'SERVER_ERROR' }
@@ -105,6 +104,7 @@ export async function setupPassword(input: unknown): Promise<SetupPasswordResult
     sameSite: 'lax',
     path: '/',
     expires,
+    domain: process.env.COOKIE_DOMAIN,
   })
 
   // totpEnabled is false at this point — mark as verified immediately
@@ -114,6 +114,7 @@ export async function setupPassword(input: unknown): Promise<SetupPasswordResult
     sameSite: 'lax',
     path: '/',
     maxAge: 60 * 60 * 24 * 30, // 30 days
+    domain: process.env.COOKIE_DOMAIN,
   })
 
   // Clear the setup_session cookie — user is now fully authenticated

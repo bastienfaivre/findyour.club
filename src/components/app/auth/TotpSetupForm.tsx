@@ -1,5 +1,6 @@
 'use client'
 import { useState, useTransition } from 'react'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -40,12 +41,13 @@ export function TotpSetupForm({ qrDataUrl, secret }: TotpSetupFormProps) {
   return (
     <div className="space-y-6">
       <div className="flex flex-col items-center gap-4">
-        <img
+        <Image
           src={qrDataUrl}
           alt="Scan this QR code with your authenticator app"
           width={200}
           height={200}
           className="rounded border"
+          unoptimized
         />
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <code className="bg-muted px-2 py-1 rounded font-mono break-all">{secret}</code>
