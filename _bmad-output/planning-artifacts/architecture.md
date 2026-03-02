@@ -56,7 +56,7 @@ Architecture-driving NFRs:
 - **Hosting:** Swiss or EU infrastructure required (GDPR/nDSG compliance + association trust signal).
 - **Auth standards:** TOTP (authenticator app), WebAuthn/FIDO2 (passkeys) — both required; bcrypt or Argon2 for password hashing.
 - **Email:** External email relay service required (contact form relay + transactional emails for application acceptance/rejection). DPA required with provider.
-- **URL architecture:** Country-level subdomains (ch.platform-name.com, fr.platform-name.com) operated by the platform. Clubs identified by first path segment: `ch.platform-name.com/{club-slug}`. No per-club DNS provisioning — routing is handled at the application layer. Club slugs are generated at provisioning time, URL-safe, unique per country, and treated as immutable identifiers.
+- **URL architecture:** Country-level subdomains (ch.platform-name.com, fr.platform-name.com) operated by the platform. Clubs identified by first path segment: `ch.platform-name.com/{club-slug}`. No per-club DNS provisioning — routing is handled at the application layer. Club slugs are generated at provisioning time, URL-safe, **unique per country** (two clubs in different countries may share the same slug — e.g., `ch.platform.com/ski-club` and `fr.platform.com/ski-club` are both valid), and treated as immutable identifiers. The DB constraint is `@@unique([slug, country])` on the `Club` model.
 - **Reserved path management:** The application routing layer must distinguish reserved country-level paths (directory root, /apply, /about, /support, etc.) from club slugs. Slug generation must exclude reserved path names.
 - **Custom domains:** Club admins can configure a custom domain. The platform maps the custom domain to the club via lookup and serves identical content. TLS provisioning for custom domains must be automated.
 - **Multi-tenancy:** Club data isolation at storage layer — one club's data cannot affect another's performance or be accessed across boundaries.
@@ -219,7 +219,7 @@ Docker Compose orchestrates Next.js + PostgreSQL + Nginx + Certbot.
 ### Data Architecture
 
 **Multi-Tenant Isolation**
-- Strategy: Application-level — `clubId` on every Prisma query; Prisma middleware enforces presence of `clubId` filter on all club-scoped models
+- Strategy: Application-level — `clubId` on every Prisma query; Prisma middleware enforces presence of `clubId` filter on all club-scoped models. `clubId` is derived from URL path params, verified by the `ClubMembership` check in the club layout.
 - Version: Prisma ORM v7
 - Rationale: PostgreSQL row-level security adds operational complexity without meaningful additional safety for a single-application multi-tenant platform; application-level isolation is standard for this scale
 - Affects: all data models, all Server Actions, all Route Handlers
@@ -274,7 +274,7 @@ Docker Compose orchestrates Next.js + PostgreSQL + Nginx + Certbot.
 - XSS: TipTap HTML output sanitized via `sanitize-html` before storage; rendered via React's `dangerouslySetInnerHTML` only after sanitization
 - File upload: UUID-keyed R2 objects (no predictable URLs); MIME type validated server-side before presigned URL issuance; file extension allowlist enforced
 - Open relay prevention: Contact form `reply-to` uses sender email; `from` is always the platform domain; Resend account-level domain verification
-- Multi-tenant leakage: Prisma middleware enforces `clubId` scope; integration tests must cover cross-club data access attempts
+- Multi-tenant leakage: Prisma middleware enforces `clubId` scope; membership guard checks `ClubMembership` table before every club-scoped action; integration tests must cover cross-club data access attempts
 - Magic link security: Token hashed in DB; TTL enforced; one-use; no token in server logs
 - Open redirect prevention: All redirect targets validated against allowlist
 - HTTP security headers: Configured in Nginx (`Strict-Transport-Security`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`)
@@ -369,7 +369,7 @@ Docker Compose orchestrates Next.js + PostgreSQL + Nginx + Certbot.
 **Implementation Sequence:**
 1. Project initialization (`create-next-app` + post-init dependencies)
 2. Docker Compose setup (Next.js + PostgreSQL + Nginx + Certbot)
-3. Prisma schema (core models: `clubs`, `pages`, `page_elements`, `content_versions`, `users`, `sessions`, `page_events`)
+3. Prisma schema (core models: `clubs`, `club_memberships`, `pages`, `page_elements`, `content_versions`, `users`, `sessions`, `page_events`)
 4. Auth.js configuration (database sessions + magic link + TOTP + passkeys)
 5. Multi-tenant Prisma middleware (clubId enforcement)
 6. Nginx configuration (wildcard subdomain routing, custom domain passthrough, maintenance page)
@@ -578,6 +578,21 @@ export async function savePageContent(
 
 ### Process Patterns
 
+**Club Resolution Pattern (slug → clubId)**
+
+A club is resolved from the URL **once per request** in the club layout. Both `slug` (from URL path params) and `country` (from the host via `getCountryFromHost`) are required:
+
+```typescript
+// ✅ CORRECT — always resolve by (slug, country) composite key
+const club = await prisma.club.findUnique({
+  where: { slug_country: { slug, country } },
+  select: { id: true },
+})
+if (!club) notFound()
+```
+
+`country` is derived server-side from `headers().get('host')` via `lib/country.ts` — **never from user input or URL path params**. Never query a club by `slug` alone; two clubs in different countries may share the same slug.
+
 **Multi-Tenant Query Pattern (CRITICAL)**
 
 Every Prisma query on a club-scoped model must filter by **both** `id` and `clubId` in a single `where` clause:
@@ -604,17 +619,17 @@ export async function savePageContent(input: unknown) {
   if (!session?.user) {
     return { success: false, error: 'Unauthenticated', code: 'UNAUTHENTICATED' }
   }
-  // 2. Derive clubId from session — never trust client-supplied clubId
-  const { clubId, role } = session.user
+  // 2. Derive clubId from URL params — validated by the club layout membership check (never from client input)
+  const { role } = session.user
   // 3. Check role capability
   if (role !== 'CLUB_ADMIN') {
     return { success: false, error: 'Forbidden', code: 'FORBIDDEN' }
   }
-  // ... proceed with validated clubId
+  // ... proceed with clubId from URL params (verified by layout)
 }
 ```
 
-The `clubId` used in all Prisma queries must come from the **session**, not from client-supplied input.
+The `clubId` used in all Prisma queries must come from the **URL params** (validated server-side by the club layout membership check), not from the session or from client-supplied input.
 
 **Zod Validation Pattern**
 
@@ -662,7 +677,7 @@ try {
 - Filter club-scoped Prisma queries with `where: { id, clubId }` — atomic double-filter, never sequential
 - Return `{ success: true, data: T }` or `{ success: false, error: string, code?: string }` — no deviation
 - Serialize all `Date` objects to `.toISOString()` before passing to Client Components
-- Begin every authenticated Server Action with the three-step guard (session → clubId from session → role check)
+- Begin every authenticated Server Action with the three-step guard (session → role check → clubId from URL params verified by layout)
 - Place Server Actions in `actions.ts` co-located with their route segment
 - Name error codes in SCREAMING_SNAKE_CASE
 - Instantiate Prisma only in `src/server/db.ts`; instantiate Auth.js only in `src/server/auth.ts`
@@ -673,6 +688,9 @@ try {
 ```typescript
 // ❌ Single-field query on club-scoped model
 prisma.page.findFirst({ where: { id: pageId } })
+
+// ❌ clubId sourced from session (removed — must come from URL params)
+// session.user.clubId no longer exists
 
 // ❌ clubId sourced from client input
 const clubId = formData.get('clubId') as string
@@ -767,8 +785,11 @@ website-template/
 │   │   │   └── magic-link/
 │   │   │       └── page.tsx          # Magic link verification handler
 │   │   │
+│   │   ├── my-clubs/                 # Club admin dashboard — lists all clubs the user is a member of
+│   │   │   └── page.tsx              # ClubMembership list with links to each club's URL
+│   │   │
 │   │   ├── admin/                    # FR31–39: Platform operator dashboard
-│   │   │   ├── layout.tsx            # Admin layout (operator auth guard via middleware)
+│   │   │   ├── layout.tsx            # Admin layout (operator auth guard via middleware, Story 1.5)
 │   │   │   ├── page.tsx              # FR35: Platform metrics dashboard
 │   │   │   ├── login/
 │   │   │   │   └── page.tsx          # FR29: Operator login (separate entry point)
@@ -876,14 +897,14 @@ website-template/
 │   │           └── metadata.ts       # FR44: generateClubMetadata, generateDirectoryMetadata
 │   │
 │   ├── server/
-│   │   ├── db.ts                     # Prisma client singleton + middleware (clubId enforcement)
+│   │   ├── db.ts                     # Prisma client singleton + middleware (clubId enforcement from URL params)
 │   │   └── auth.ts                   # Auth.js configuration (providers, adapter, callbacks)
 │   │
 │   ├── lib/
 │   │   ├── schemas/
 │   │   │   ├── club.ts               # clubCreateSchema, clubUpdateSchema, provisionSchema
 │   │   │   ├── page.ts               # pageElementSchema, saveContentSchema, elementTypeEnum
-│   │   │   ├── user.ts               # loginSchema, setupPasswordSchema, totpSchema
+│   │   │   ├── user.ts               # loginSchema, setupPasswordSchema, totpVerifySchema, changePasswordSchema
 │   │   │   ├── contact.ts            # contactFormSchema, applyFormSchema, supportFormSchema
 │   │   │   └── analytics.ts          # pageEventSchema
 │   │   │
@@ -897,7 +918,7 @@ website-template/
 │   │   ├── email.ts                  # Resend/SMTP client + email sending helpers
 │   │   └── turnstile.ts              # Cloudflare Turnstile server-side token verification
 │   │
-│   ├── middleware.ts                  # Route protection: /admin/* → operator, ?edit=true → club admin
+│   ├── proxy.ts                       # Route protection: /admin/* → operator, ?edit=true → club admin
 │   │
 │   └── styles/
 │       └── globals.css               # OKLCH color tokens + base Tailwind directives
@@ -935,7 +956,7 @@ website-template/
 **Data Boundaries**
 
 - Club data: every Prisma query scoped to `clubId` from session — no cross-club reads possible
-- Operator data: accessible only via `admin/` routes with `operator` role verified in `middleware.ts`
+- Operator data: accessible only via `admin/` routes with `operator` role verified in `proxy.ts`
 - Contact submissions: encrypted at write time in Server Action; decrypted on demand in operator inbox
 - Analytics: `ip_hash` is irreversible (SHA-256 + daily salt); raw IP never persisted
 - Media files: stored in R2/MinIO under `{clubId}/{uuid}.{ext}` — no predictable URL enumeration
@@ -1054,7 +1075,7 @@ The project structure directly reflects architectural decisions:
 
 | FR Group | FRs | Architectural Support |
 |---|---|---|
-| Club Site Config & Navigation (FR1–FR9) | 9/9 | `(country)/[country]/[club]/` routes + Prisma `clubs` + `pages` tables + `middleware.ts` |
+| Club Site Config & Navigation (FR1–FR9) | 9/9 | `(country)/[country]/[club]/` routes + Prisma `clubs` + `pages` tables + `proxy.ts` |
 | Content Editing & Element Library (FR10–FR19) | 10/10 | `components/app/page-editor/` + `page_elements` JSONB + `page_versions` + Server Actions |
 | Public Discovery & Contact (FR20–FR26) | 7/7 | `(platform)/` directory + `(country)/[country]/[club]/` public SSR + `ContactForm.tsx` + Resend relay |
 | Application & Access (FR27–FR30) | 4/4 | `(platform)/apply/` + Auth.js (magic link, TOTP, passkeys, password) + `admin/` dashboard |
@@ -1125,6 +1146,7 @@ Six gaps identified during validation — all resolved:
 - Risk: club slug could collide with platform routes (`/api`, `/auth`, `/admin`, etc.)
 - Solution: `lib/slug.ts → RESERVED_SLUGS` constant enforced at application submission time via Zod schema
 - 21 reserved slugs: `about`, `apply`, `support`, `admin`, `auth`, `api`, `health`, `login`, `logout`, `register`, `404`, `500`, `favicon.ico`, `robots.txt`, `sitemap.xml`, `_next`, `static`, `images`, `fonts`, `icons`, `manifest`
+- Slug uniqueness is **per country**: `@@unique([slug, country])` on `Club`. The uniqueness DB check at provisioning time must be scoped to the target country: `prisma.club.count({ where: { slug: candidate, country } })`. Two clubs in different countries may share a slug.
 
 **Gap 5 — TipTap SSR constraint (was: Critical gap)** → RESOLVED ✅
 - Risk: TipTap DOM globals cause SSR crash in Next.js if imported at module level
@@ -1208,7 +1230,7 @@ No blocking issues found. All 6 gaps resolved collaboratively during validation.
 **AI Agent Guidelines:**
 
 - Follow all architectural decisions exactly as documented — versions, naming conventions, and patterns are non-negotiable
-- Use the multi-tenant query guard pattern on every Prisma query (always co-filter `clubId` from session)
+- Use the multi-tenant query guard pattern on every Prisma query (always co-filter `clubId` from session); verify club access via `ClubMembership` table — never rely on a `clubId` field on the `User` model
 - Use the `{ success: boolean; data?: T; error?: string; code?: string }` contract for all Server Actions and Route Handlers
 - Import TipTap only via `dynamic(() => import(...), { ssr: false })` — never at module level
 - Respect the `server/` vs `lib/` boundary: `server/` files are server-only singletons; `lib/` files may be shared
@@ -1225,3 +1247,127 @@ pnpm create next-app@latest website-template \
 Then: install dependencies → configure Prisma schema → configure Auth.js → scaffold route groups → implement seed data → wire local dev docker-compose.
 
 **Reference this document** for all architectural questions — every decision has a rationale, every pattern has an example, and every gap has a documented resolution.
+
+---
+
+## ADR-001: Club Membership Model (Supersedes original User→Club design)
+
+_Recorded: 2026-03-02_
+
+### Context
+
+The original design used a `User.clubId` foreign key, giving each user exactly one club affiliation. This assumed a single, permanent person per club. The real-world constraint is that club management passes between people over time, and multiple people may co-manage a club simultaneously. A person may also manage multiple clubs (as primary owner of some, as an invited editor in others).
+
+### Decision
+
+Replace the `User.clubId` FK with a `ClubMembership` junction table implementing a proper many-to-many relationship between `User` and `Club`.
+
+**New models added to schema:**
+
+```prisma
+enum ClubMemberRole {
+  OWNER   // full admin rights + can invite/remove editors + transfer ownership
+  EDITOR  // content editing rights only
+}
+
+enum MembershipStatus {
+  PENDING   // invited, not yet accepted
+  ACTIVE
+  REVOKED
+}
+
+model ClubMembership {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  clubId    String           @map("club_id")
+  role      ClubMemberRole
+  status    MembershipStatus @default(ACTIVE)
+  invitedBy String?          @map("invited_by") // null = operator-provisioned
+  createdAt DateTime         @default(now()) @map("created_at")
+  joinedAt  DateTime?        @map("joined_at")
+
+  user    User  @relation("Memberships", ...)
+  club    Club  @relation(...)
+  inviter User? @relation("SentInvitations", ...)
+
+  @@unique([userId, clubId])
+}
+```
+
+**Removed from schema:** `User.clubId`, `User.club Club?` relation, `Club.admins User[]`.
+
+### Role Semantics
+
+| Capability | OWNER | EDITOR |
+|---|:---:|:---:|
+| Edit content (pages, elements, media) | ✓ | ✓ |
+| Configure club settings (email, domain, slug) | ✓ | — |
+| Invite / remove editors | ✓ | — |
+| Transfer ownership | ✓ | — |
+| Request club deletion | ✓ | — |
+
+### Ownership Transfer
+
+An OWNER may transfer ownership to any ACTIVE member of the club, or to a newly invited user. The transferring OWNER's role is downgraded to EDITOR (or their membership is revoked — their choice). The platform operator may also force-transfer via the admin panel (e.g., when a club loses contact with its previous manager).
+
+### Invitation Flow
+
+**Inviting an existing platform user** (already manages another club):
+1. OWNER submits the invitee's email.
+2. A `PENDING` `ClubMembership` is created.
+3. An invitation email is sent with a one-time accept link (token stored hashed, TTL 48h).
+4. On acceptance: `status → ACTIVE`, `joinedAt` set.
+
+**Inviting a new user** (no existing account):
+1. Same as above, but the accept link triggers credential setup (password + TOTP), identical to the operator provisioning magic link flow.
+2. On completion: a new `User` is created + `ClubMembership` activated in the same transaction.
+
+**Invitation token storage:** A lightweight `Invitation` model (or reuse `VerificationToken`) holds `{ email, clubId, role, tokenHash, expiresAt }`. Resolved and deleted on acceptance.
+
+### Auth Session & Middleware
+
+The Auth.js session no longer carries a `clubId`. Instead:
+
+- Session carries: `{ userId, role: UserRole }` (platform-level role: `CLUB_ADMIN` | `OPERATOR`)
+- On club selection (from personal dashboard or direct URL), the server resolves the active club context: `ClubMembership.findUnique({ where: { userId_clubId }, select: { role, status } })`
+- The resolved `{ clubId, memberRole }` is stored in the session cookie for the duration of the club context
+- Every club-scoped server action and route handler validates:
+  1. The session's `clubId` matches the route's club slug
+  2. The `ClubMembership` record is `ACTIVE`
+  3. For OWNER-only actions: `memberRole === 'OWNER'`
+
+**Performance:** `ClubMembership` has `@@unique([userId, clubId])` and `@@index([clubId])` — lookups are O(1). The resolved `{ clubId, memberRole }` in the session avoids a DB round-trip on every request; the session is invalidated on membership revocation.
+
+### Personal Dashboard
+
+When a `CLUB_ADMIN` user logs in:
+- Query: `ClubMembership.findMany({ where: { userId, status: ACTIVE }, include: { club: true } })`
+- If **one club**: redirect directly to club editor (skip dashboard)
+- If **multiple clubs**: show personal dashboard listing all clubs with their role badge (Owner / Editor)
+
+The dashboard is served at the platform domain (e.g., `ch.platform.com/dashboard`), not under a club slug.
+
+### Impact on Implemented Stories
+
+The following already-implemented stories require rework due to this model change:
+
+| Story | Impact | Required Change |
+|---|---|---|
+| **1.2** (Club provisioning) | `User` created with `clubId` | Replace `clubId` assignment with `ClubMembership` creation (`role: OWNER`, `status: ACTIVE`, `invitedBy: null`) |
+| **1.3** (Magic link + TOTP setup) | Session/token uses `clubId` on User | Auth callback and session callback must resolve club context from `ClubMembership` instead of `user.clubId` |
+| `src/server/auth.ts` | `session.user.clubId` populated from `user.clubId` | Query `ClubMembership` to resolve club context; populate `session.user.clubId` + `session.user.clubRole` |
+| `src/lib/schemas/user.ts` | May reference `clubId` field | Audit and update any Zod schemas referencing the removed field |
+| Prisma migration | `User.clubId` column exists in DB | New migration: drop `user.club_id` column, create `club_memberships` table |
+
+### Consequences
+
+**Positive:**
+- TOTP and passkeys work correctly — each user has personal credentials on their own device; no sharing required on handover
+- Meaningful audit trail — `ContentVersion.createdBy` unambiguously identifies which person made each change
+- Ownership transfer is clean — revoke old membership, promote or invite new owner; no credential sharing
+- Scales naturally — same model supports 1 or 10 co-managers per club without schema change
+
+**Negative / Accepted trade-offs:**
+- Auth middleware is slightly more complex — one additional DB lookup per club-context resolution (mitigated by session caching)
+- Stories 1.2 and 1.3 require rework — accepted cost of catching this before deeper implementation
+- Invitation flow is a new feature surface not covered by existing stories — must be added to backlog

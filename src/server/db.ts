@@ -70,7 +70,7 @@ function createPrismaClient() {
             if (!where || !hasClubIdFilter(where)) {
               throw new Error(
                 `Multi-tenant violation: ${model}.${operation} missing required clubId filter. ` +
-                `Always include clubId from the session in your Prisma where clause.`
+                `Always include clubId from URL params (verified by the club layout membership check) in your Prisma where clause.`
               )
             }
           }

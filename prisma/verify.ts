@@ -191,6 +191,13 @@ async function verifySeedData() {
     fail(`Expected 1 operator, got ${operatorCount}`)
   }
 
+  const membershipCount = await rawPrisma.clubMembership.count()
+  if (membershipCount === 2) {
+    ok(`ClubMemberships: ${membershipCount} (1 OWNER per club)`)
+  } else {
+    fail(`Expected 2 ClubMemberships (1 per club), got ${membershipCount}`)
+  }
+
   console.log('\n── Element Type Coverage ──')
 
   const allTypes = ['rich_text', 'image', 'gallery', 'calendar', 'documents', 'contact'] as const

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { DevAuthPanel } from "@/components/app/auth/DevAuthPanel";
 
 export const metadata: Metadata = {
   title: "Clashware",
@@ -13,8 +14,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">
+      <body className="antialiased" suppressHydrationWarning>
         {children}
+        {process.env.NODE_ENV === 'development' && <DevAuthPanel />}
       </body>
     </html>
   );

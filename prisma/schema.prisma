@@ -21,6 +21,17 @@ enum UserRole {
   OPERATOR
 }
 
+enum ClubMemberRole {
+  OWNER
+  EDITOR
+}
+
+enum MembershipStatus {
+  PENDING  // invited, not yet accepted
+  ACTIVE
+  REVOKED
+}
+
 enum ApplicationStatus {
   pending
   approved
@@ -93,18 +104,19 @@ model User {
 
   // Platform custom fields
   role         UserRole @default(CLUB_ADMIN)
-  clubId       String?  @map("club_id") // null for OPERATOR role
   passwordHash String?  @map("password_hash")
-  totpSecret   String?  @map("totp_secret")
-  totpEnabled  Boolean  @default(false) @map("totp_enabled")
-  magicToken   String?  @unique @map("magic_token") // SHA-256 hash of the token
-  magicTokenExp DateTime? @map("magic_token_exp")
+  totpSecret          String?  @map("totp_secret")
+  totpEnabled         Boolean  @default(false) @map("totp_enabled")
+  pendingTotpSecret   String?  @map("pending_totp_secret")
+  magicToken          String?  @unique @map("magic_token") // SHA-256 hash of the token
+  magicTokenExp       DateTime? @map("magic_token_exp")
 
-  accounts      Account[]
-  sessions      Session[]
-  club          Club?               @relation(fields: [clubId], references: [id])
-  passkeys      WebauthnCredential[]
-  ticketReplies TicketReply[]
+  accounts        Account[]
+  sessions        Session[]
+  memberships     ClubMembership[]    @relation("Memberships")
+  sentInvitations ClubMembership[]    @relation("SentInvitations")
+  passkeys        WebauthnCredential[]
+  ticketReplies   TicketReply[]
 
   @@map("users")
 }
@@ -118,12 +130,31 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
+model ClubMembership {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  clubId    String           @map("club_id")
+  role      ClubMemberRole
+  status    MembershipStatus @default(ACTIVE)
+  invitedBy String?          @map("invited_by") // null for operator-provisioned owners
+  createdAt DateTime         @default(now()) @map("created_at")
+  joinedAt  DateTime?        @map("joined_at") // set on invitation acceptance
+
+  user    User  @relation("Memberships", fields: [userId], references: [id], onDelete: Cascade)
+  club    Club  @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  inviter User? @relation("SentInvitations", fields: [invitedBy], references: [id])
+
+  @@unique([userId, clubId])
+  @@index([clubId])
+  @@map("club_memberships")
+}
+
 // ─── PLATFORM MODELS ────────────────────────────────────────────────────────
 
 model Club {
   id                String     @id @default(cuid())
   name              String
-  slug              String     @unique
+  slug              String
   country           String // "ch" | "fr" | "de"
   status            ClubStatus @default(active)
   email             String
@@ -138,7 +169,7 @@ model Club {
   createdAt         DateTime   @default(now()) @map("created_at")
   updatedAt         DateTime   @updatedAt @map("updated_at")
 
-  admins             User[]
+  memberships        ClubMembership[]
   pages              Page[]
   pageElements       PageElement[]
   contentVersions    ContentVersion[]
@@ -151,6 +182,7 @@ model Club {
   documents          Document[]
   healthChecks       HealthCheck[]
 
+  @@unique([slug, country])
   @@map("clubs")
 }
 

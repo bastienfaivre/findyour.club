@@ -2,6 +2,12 @@
 CREATE TYPE "UserRole" AS ENUM ('CLUB_ADMIN', 'OPERATOR');
 
 -- CreateEnum
+CREATE TYPE "ClubMemberRole" AS ENUM ('OWNER', 'EDITOR');
+
+-- CreateEnum
+CREATE TYPE "MembershipStatus" AS ENUM ('PENDING', 'ACTIVE', 'REVOKED');
+
+-- CreateEnum
 CREATE TYPE "ApplicationStatus" AS ENUM ('pending', 'approved', 'rejected');
 
 -- CreateEnum
@@ -49,10 +55,10 @@ CREATE TABLE "users" (
     "email_verified" TIMESTAMP(3),
     "image" TEXT,
     "role" "UserRole" NOT NULL DEFAULT 'CLUB_ADMIN',
-    "club_id" TEXT,
     "password_hash" TEXT,
     "totp_secret" TEXT,
     "totp_enabled" BOOLEAN NOT NULL DEFAULT false,
+    "pending_totp_secret" TEXT,
     "magic_token" TEXT,
     "magic_token_exp" TIMESTAMP(3),
 
@@ -64,6 +70,20 @@ CREATE TABLE "verification_tokens" (
     "identifier" TEXT NOT NULL,
     "token" TEXT NOT NULL,
     "expires" TIMESTAMP(3) NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "club_memberships" (
+    "id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "club_id" TEXT NOT NULL,
+    "role" "ClubMemberRole" NOT NULL,
+    "status" "MembershipStatus" NOT NULL DEFAULT 'ACTIVE',
+    "invited_by" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "joined_at" TIMESTAMP(3),
+
+    CONSTRAINT "club_memberships_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -333,13 +353,25 @@ CREATE UNIQUE INDEX "verification_tokens_token_key" ON "verification_tokens"("to
 CREATE UNIQUE INDEX "verification_tokens_identifier_token_key" ON "verification_tokens"("identifier", "token");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "clubs_slug_key" ON "clubs"("slug");
+CREATE INDEX "club_memberships_club_id_idx" ON "club_memberships"("club_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "club_memberships_user_id_club_id_key" ON "club_memberships"("user_id", "club_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "clubs_custom_domain_key" ON "clubs"("custom_domain");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "clubs_slug_country_key" ON "clubs"("slug", "country");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "pages_club_id_slug_key" ON "pages"("club_id", "slug");
+
+-- CreateIndex
+CREATE INDEX "page_elements_club_id_page_id_idx" ON "page_elements"("club_id", "page_id");
+
+-- CreateIndex
+CREATE INDEX "content_versions_club_id_page_id_idx" ON "content_versions"("club_id", "page_id");
 
 -- CreateIndex
 CREATE INDEX "page_events_club_id_visited_at_idx" ON "page_events"("club_id", "visited_at");
@@ -351,6 +383,9 @@ CREATE INDEX "page_events_ip_hash_idx" ON "page_events"("ip_hash");
 CREATE UNIQUE INDEX "webauthn_credentials_credential_id_key" ON "webauthn_credentials"("credential_id");
 
 -- CreateIndex
+CREATE INDEX "support_tickets_club_id_idx" ON "support_tickets"("club_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "feature_flags_key_key" ON "feature_flags"("key");
 
 -- AddForeignKey
@@ -360,7 +395,13 @@ ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_fkey" FOREIGN KEY ("user
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "users" ADD CONSTRAINT "users_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "club_memberships" ADD CONSTRAINT "club_memberships_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "club_memberships" ADD CONSTRAINT "club_memberships_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "club_memberships" ADD CONSTRAINT "club_memberships_invited_by_fkey" FOREIGN KEY ("invited_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "pages" ADD CONSTRAINT "pages_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -372,16 +413,31 @@ ALTER TABLE "pages" ADD CONSTRAINT "pages_parent_id_fkey" FOREIGN KEY ("parent_i
 ALTER TABLE "page_elements" ADD CONSTRAINT "page_elements_page_id_fkey" FOREIGN KEY ("page_id") REFERENCES "pages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "page_elements" ADD CONSTRAINT "page_elements_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "content_versions" ADD CONSTRAINT "content_versions_page_id_fkey" FOREIGN KEY ("page_id") REFERENCES "pages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "content_versions" ADD CONSTRAINT "content_versions_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "events" ADD CONSTRAINT "events_element_id_fkey" FOREIGN KEY ("element_id") REFERENCES "page_elements"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "events" ADD CONSTRAINT "events_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "gallery_items" ADD CONSTRAINT "gallery_items_element_id_fkey" FOREIGN KEY ("element_id") REFERENCES "page_elements"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "gallery_items" ADD CONSTRAINT "gallery_items_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "documents" ADD CONSTRAINT "documents_element_id_fkey" FOREIGN KEY ("element_id") REFERENCES "page_elements"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "documents" ADD CONSTRAINT "documents_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "page_events" ADD CONSTRAINT "page_events_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -396,4 +452,13 @@ ALTER TABLE "webauthn_credentials" ADD CONSTRAINT "webauthn_credentials_user_id_
 ALTER TABLE "operator_nudges" ADD CONSTRAINT "operator_nudges_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "support_tickets" ADD CONSTRAINT "support_tickets_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "ticket_replies" ADD CONSTRAINT "ticket_replies_ticket_id_fkey" FOREIGN KEY ("ticket_id") REFERENCES "support_tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ticket_replies" ADD CONSTRAINT "ticket_replies_operator_id_fkey" FOREIGN KEY ("operator_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "health_checks" ADD CONSTRAINT "health_checks_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -58,7 +58,7 @@ async function main() {
 
   // ─── Clubs ────────────────────────────────────────────────────────────
   const clubValais = await prisma.club.upsert({
-    where: { slug: 'ski-club-valais' },
+    where: { slug_country: { slug: 'ski-club-valais', country: 'ch' } },
     update: {},
     create: {
       name: 'Ski Club Valais',
@@ -70,12 +70,11 @@ async function main() {
       accentColor: 'blue',
       storageUsedBytes: BigInt(0),
       storageLimitBytes: BigInt(5368709120), // 5 GB
-      admins: { connect: { id: adminValais.id } },
     },
   })
 
   const clubLausanne = await prisma.club.upsert({
-    where: { slug: 'football-club-lausanne' },
+    where: { slug_country: { slug: 'football-club-lausanne', country: 'ch' } },
     update: {},
     create: {
       name: 'Football Club Lausanne',
@@ -87,13 +86,20 @@ async function main() {
       accentColor: 'green',
       storageUsedBytes: BigInt(0),
       storageLimitBytes: BigInt(5368709120),
-      admins: { connect: { id: adminLausanne.id } },
     },
   })
 
-  // Update users with their clubId
-  await prisma.user.update({ where: { id: adminValais.id }, data: { clubId: clubValais.id } })
-  await prisma.user.update({ where: { id: adminLausanne.id }, data: { clubId: clubLausanne.id } })
+  // Link each club admin as OWNER via ClubMembership (ADR-001: no clubId on User)
+  await prisma.clubMembership.upsert({
+    where: { userId_clubId: { userId: adminValais.id, clubId: clubValais.id } },
+    update: {},
+    create: { userId: adminValais.id, clubId: clubValais.id, role: 'OWNER', status: 'ACTIVE', invitedBy: null, joinedAt: new Date() },
+  })
+  await prisma.clubMembership.upsert({
+    where: { userId_clubId: { userId: adminLausanne.id, clubId: clubLausanne.id } },
+    update: {},
+    create: { userId: adminLausanne.id, clubId: clubLausanne.id, role: 'OWNER', status: 'ACTIVE', invitedBy: null, joinedAt: new Date() },
+  })
 
   console.log('✓ Clubs created:', clubValais.slug, clubLausanne.slug)
 

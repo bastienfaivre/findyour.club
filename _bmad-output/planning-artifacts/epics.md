@@ -177,7 +177,7 @@ NFR27: All platform-wide configurable variables adjustable via the admin dashboa
 - React Context for EditModeContext and AuthContext; URL param `?edit=true` as source of truth for edit mode
 - Zod schemas as single source of truth for Server Actions, Route Handlers, and react-hook-form validation
 - API response contract: `{ success: true; data: T }` or `{ success: false; error: string; code?: string }`
-- All Server Actions begin with 3-step auth guard: session → clubId from session → role check
+- All Server Actions begin with 3-step auth guard: session → role check → clubId from URL params (verified by ClubMembership in layout)
 
 **UX — Design System:**
 
@@ -258,7 +258,7 @@ NFR27: All platform-wide configurable variables adjustable via the admin dashboa
 ## Epic List
 
 ### Epic 1: Project Foundation & Core Infrastructure
-The development environment, database schema, authentication system, and deployment pipeline are operational. Developers can run the full stack locally; Club Admins and Operators can authenticate securely via magic link, TOTP, and passkeys.
+The development environment, database schema, authentication system, multi-club membership model, and deployment pipeline are operational. Developers can run the full stack locally; Club Admins can authenticate via magic link, TOTP, and passkeys, manage multiple clubs from a personal homepage, and Owners can invite Editors, transfer ownership, and revoke access; Platform Operators can authenticate through a dedicated admin interface.
 **FRs covered:** FR28, FR29
 **NFRs addressed:** NFR6, NFR8–13, NFR14–15, NFR18–20, NFR25–27
 
@@ -300,7 +300,7 @@ Club Admins can set up a custom domain for their site with automated TLS. All GD
 
 ## Epic 1: Project Foundation & Core Infrastructure
 
-The development environment, database schema, authentication system, and deployment pipeline are operational. Club Admins and Operators can authenticate securely via magic link, TOTP, and passkeys.
+The development environment, database schema, authentication system, multi-club membership model, and deployment pipeline are operational. Club Admins can authenticate via magic link, TOTP, and passkeys; navigate a personal homepage listing all their clubs; and manage membership (invite Editors, transfer ownership, revoke access). Platform Operators authenticate via a dedicated admin interface.
 
 ### Story 1.1: Project Scaffold & Development Environment
 
@@ -344,7 +344,7 @@ So that all subsequent features can be built on a secure, isolated data foundati
 
 **Given** `pnpm prisma migrate dev` is run on a fresh database,
 **When** migrations complete,
-**Then** all tables exist with correct snake_case column names via `@map`/`@@map` directives: `clubs`, `pages`, `page_elements`, `content_versions`, `users`, `sessions`, `page_events`, plus Auth.js adapter tables.
+**Then** all tables exist with correct snake_case column names via `@map`/`@@map` directives: `clubs`, `club_memberships`, `pages`, `page_elements`, `content_versions`, `users`, `sessions`, `page_events`, plus Auth.js adapter tables; `club_memberships` has a unique constraint on `(user_id, club_id)` and is indexed by `club_id`.
 
 **Given** the Prisma client singleton in `src/server/db.ts`,
 **When** any club-scoped Prisma query executes without a `clubId` filter,
@@ -355,7 +355,7 @@ So that all subsequent features can be built on a secure, isolated data foundati
 
 **Given** `pnpm prisma db seed` is run,
 **When** the seed completes,
-**Then** the database contains: 1 operator account (Argon2-hashed), 2 sample clubs with all element types populated, 3 content versions per page, 3 applications (pending/approved/rejected), 5 encrypted contact submissions, and 90 days of analytics events.
+**Then** the database contains: 1 operator account (Argon2-hashed), 2 sample clubs with all element types populated, 3 content versions per page, 3 applications (pending/approved/rejected), 5 encrypted contact submissions, and 90 days of analytics events; each sample club has at least one `ClubMembership` record with `role: OWNER, status: ACTIVE` linked to a seeded club admin user with TOTP enrolled.
 
 **Given** the `clubs` table schema,
 **Then** it includes `storage_limit_bytes` and `storage_used_bytes` columns for per-club storage accounting.
@@ -380,7 +380,7 @@ So that I can securely log into my club's edit mode without a default password e
 
 **Given** the Club Admin completes password setup,
 **When** the form is submitted successfully,
-**Then** they are taken to the TOTP enrollment screen displaying a QR code for any authenticator app; submitting the correct 6-digit code marks the account as TOTP-enrolled.
+**Then** a session is created and they are redirected to `/my-clubs` (personal homepage); if TOTP is not yet enrolled, a persistent non-dismissible banner on every club page prompts enrollment — the QR code screen is accessed from that banner's link.
 
 **Given** a Club Admin session exists but TOTP is not yet enrolled,
 **When** they access any authenticated page,
@@ -388,14 +388,53 @@ So that I can securely log into my club's edit mode without a default password e
 
 **Given** a Club Admin has TOTP enrolled,
 **When** they log in with their password on the standard login page,
-**Then** they are redirected to a TOTP challenge page; a valid 6-digit code is required before the session is established.
+**Then** they are redirected to a TOTP challenge page; a valid 6-digit code is required before the session is fully established; on success they are redirected to `/my-clubs`.
 
 **Given** an incorrect TOTP code is submitted,
 **Then** an inline error is shown and subsequent attempts from the same IP are rate-limited via the in-memory sliding window limiter.
 
 ---
 
-### Story 1.4: Platform Operator Authentication & Admin Route Protection
+### Story 1.4: Personal Homepage & Club Membership Guard
+
+As a Club Admin,
+I want a personal homepage (`/my-clubs`) that lists every club I manage with a role indicator, and a server-side membership check on every club edit route,
+So that I can navigate to any of my clubs in one place and be blocked from accessing clubs I am not a member of.
+
+**Acceptance Criteria:**
+
+**Given** an authenticated Club Admin navigates to `/my-clubs`,
+**When** the page loads,
+**Then** all clubs where they hold an `ACTIVE` `ClubMembership` are listed with a role badge (`Owner` or `Editor`); each entry links to that club's admin URL.
+
+**Given** an authenticated Club Admin has exactly one active membership,
+**When** they navigate to `/my-clubs`,
+**Then** they are automatically redirected to that club's admin URL — the club picker is skipped entirely.
+
+**Given** an authenticated Club Admin has no active memberships,
+**When** they navigate to `/my-clubs`,
+**Then** an empty-state message is displayed: "You are not a member of any club — contact the platform operator."
+
+**Given** any authenticated user visits a club edit URL (`/ch/[club]/...`),
+**When** the club layout renders,
+**Then** the server performs a `ClubMembership.findFirst({ where: { userId, clubSlug, status: ACTIVE } })` lookup; if no active membership exists the user is redirected to `/my-clubs`.
+
+**Given** the session object,
+**Then** it never includes `clubId`; the active club is always resolved from the URL path and verified via `ClubMembership` at layout render time — never from stored session data.
+
+**Given** every successful authentication event (password setup, TOTP enrollment, TOTP challenge, regular login without TOTP),
+**Then** the user is redirected to `/my-clubs` — never directly to a specific club edit URL.
+
+**Given** `pnpm prisma db seed` is run,
+**When** the seed completes,
+**Then** `prisma/seed.ts` creates `ClubMembership` records (`role: OWNER, status: ACTIVE`) linking each seeded club admin user to their respective sample club — the `/my-clubs` page and membership guard are fully exercisable against seeded data without any manual DB intervention.
+
+> **Dev note — seed carry-over from Story 1.2:** The `prisma/seed.ts` was not updated when the architect introduced the `ClubMembership` model (ADR-001). The schema is correct; only the seed data is missing. Updating the seed is the **first task** of this story.
+
+---
+
+### Story 1.5: Platform Operator Authentication & Admin Route Protection
+
 
 As a Platform Operator,
 I want to authenticate via a dedicated login page with password and TOTP, with all `/admin/*` routes protected by middleware,
@@ -409,15 +448,15 @@ So that I can securely access the platform admin dashboard, fully isolated from 
 
 **Given** a valid operator session,
 **When** any `/admin/*` route is accessed,
-**Then** `middleware.ts` allows access and the operator dashboard renders.
+**Then** `proxy.ts` allows access and the operator dashboard renders.
 
 **Given** no session or a Club Admin session,
 **When** any `/admin/*` route is accessed,
-**Then** `middleware.ts` redirects to `/admin/login` — no dashboard content is served.
+**Then** `proxy.ts` redirects to `/admin/login` — no dashboard content is served.
 
-**Given** a Club Admin session for Club A,
-**When** `?edit=true` is attempted on Club B's URL,
-**Then** middleware denies access — the `clubId` from the session does not match the URL's club slug.
+**Given** a Club Admin with an active membership for Club A only,
+**When** they attempt to access Club B's edit route,
+**Then** the club layout membership guard blocks access — no active `ClubMembership` exists for Club B — and redirects to `/my-clubs`.
 
 **Given** a public visitor (no session),
 **When** `?edit=true` is appended to any club URL,
@@ -429,7 +468,7 @@ So that I can securely access the platform admin dashboard, fully isolated from 
 
 ---
 
-### Story 1.5: Passkey (WebAuthn) Authentication
+### Story 1.6: Passkey (WebAuthn) Authentication
 
 As a Club Admin or Platform Operator,
 I want to register and use a passkey (biometrics or hardware security key) as an authentication method,
@@ -452,6 +491,85 @@ So that I have a phishing-resistant, passwordless login option that also satisfi
 **Given** a user account with a registered passkey,
 **When** the credential is removed from account settings,
 **Then** the WebAuthn credential is deleted from the database and can no longer be used to authenticate.
+
+---
+
+### Story 1.7: Invite Editor
+
+As a Club Owner,
+I want to invite another person by email to co-manage my club as an Editor,
+So that I can delegate content editing without sharing my credentials.
+
+**Acceptance Criteria:**
+
+**Given** a Club Owner is on the club settings page,
+**When** they submit an email address to invite as Editor,
+**Then** if the email matches an existing user, a `ClubMembership` record is created with `role: EDITOR, status: PENDING` and an invitation email is sent with a time-limited accept link; if the email belongs to a new user, a user record is created (no password, no TOTP) and the same flow applies — the accept link triggers credential setup followed by automatic membership activation.
+
+**Given** the invited person clicks the accept link and is a new user,
+**When** they complete password setup and TOTP enrollment,
+**Then** their `ClubMembership` status is atomically updated to `ACTIVE` in the same transaction that completes credential setup; they are then redirected to `/my-clubs`.
+
+**Given** the invited person clicks the accept link and is an already-authenticated existing user,
+**When** they land on the accept page,
+**Then** their `ClubMembership` status is updated to `ACTIVE` immediately and they are redirected to `/my-clubs` where the new club appears in their list.
+
+**Given** an invite accept link is accessed more than 7 days after issuance,
+**Then** the link is expired; the user sees a clear error message instructing them to ask the Club Owner to resend the invitation.
+
+**Given** a Club Owner views the club settings membership panel,
+**Then** all memberships for that club are listed with their role, status (`Pending` / `Active`), and the email address of each member.
+
+---
+
+### Story 1.8: Transfer Ownership
+
+As a Club Owner,
+I want to transfer ownership of my club to an active Editor,
+So that management responsibility can change hands cleanly without credential sharing.
+
+**Acceptance Criteria:**
+
+**Given** a Club Owner opens the club settings membership panel,
+**When** they select an active Editor and initiate an ownership transfer,
+**Then** a confirmation dialog is shown: "Transfer ownership to [name]? You will become an Editor." — no action is taken until the Owner confirms.
+
+**Given** the transfer is confirmed,
+**When** the `transferOwnership` Server Action executes,
+**Then** the target member's `ClubMembership.role` is set to `OWNER` and the current owner's `ClubMembership.role` is set to `EDITOR` in a single atomic transaction — both succeed or neither does.
+
+**Given** the transfer completes successfully,
+**Then** the page reflects the updated role badges and a success toast confirms the transfer.
+
+**Given** a Platform Operator initiates a force-transfer via the admin dashboard (e.g., original owner is unreachable),
+**Then** ownership is transferred without requiring current-owner confirmation.
+
+**Given** a Club Owner attempts to transfer to a user with `PENDING` membership,
+**Then** the action is rejected: "Cannot transfer ownership to a member who has not yet accepted their invitation."
+
+---
+
+### Story 1.9: Revoke Access
+
+As a Club Owner,
+I want to revoke a member's access to my club,
+So that former collaborators can no longer edit my club's content.
+
+**Acceptance Criteria:**
+
+**Given** a Club Owner views the membership list,
+**When** they click Revoke next to an active Editor,
+**Then** a confirmation popover is shown: "Revoke [name]'s access to [club]?" — no action is taken until confirmed.
+
+**Given** revocation is confirmed,
+**When** the `revokeMembership` Server Action executes,
+**Then** the `ClubMembership.status` is updated to `REVOKED`; on the revoked member's next request to any route under `/ch/[club]/`, the club layout membership guard detects no active membership and redirects them to `/my-clubs`.
+
+**Given** a Club Owner attempts to revoke the last active `OWNER` membership for a club,
+**Then** the action is rejected: "A club must always have at least one active Owner."
+
+**Given** a revoked member's active session,
+**Then** their existing session token is not invalidated server-side immediately (sessions are short-lived); access is blocked on the next request via the membership guard — no special session invalidation mechanism is required.
 
 ---
 
@@ -528,7 +646,7 @@ So that approved clubs can start setting up their site immediately with no manua
 
 **Given** the club record is created,
 **When** provisioning completes,
-**Then** an acceptance email is dispatched via Resend to the applicant's email address containing the club's URL path and a one-time magic link (1-hour TTL, SHA-256 hashed token) for first login.
+**Then** a `ClubMembership` record is created for the applicant with `role: OWNER, status: ACTIVE, invitedBy: null` in the same transaction as the club record; an acceptance email is dispatched via Resend to the applicant's email address containing the club's URL path and a one-time magic link (1-hour TTL, SHA-256 hashed token) for first login.
 
 **Given** approval completes successfully,
 **Then** the `ApplicationQueueItem` row fades out of the queue; a success toast confirms: "Approved — login link sent to [email]."
@@ -717,7 +835,7 @@ So that I always know which mode is active and visitors are never exposed to adm
 
 **Given** `?edit=true` is in the URL,
 **When** a public visitor (no session) attempts to access the URL,
-**Then** `middleware.ts` redirects them to the platform login page — the edit chrome is never served.
+**Then** `proxy.ts` redirects them to the platform login page — the edit chrome is never served.
 
 **Given** edit mode is active,
 **When** the Club Admin clicks "View site" (public view toggle),
@@ -753,7 +871,7 @@ So that my club's public home page reflects our identity from the very first sav
 
 **Given** the Club Admin clicks Save,
 **When** the `saveClubIdentity` Server Action executes,
-**Then** `clubId` is read from the session (never from client input); the club record is updated; `revalidatePath` invalidates the club home page SSR cache; a "Saved" toast appears; the amber dot clears.
+**Then** `clubId` is resolved from URL params (verified by the club layout membership check — never from client input or stored session data); the club record is updated; `revalidatePath` invalidates the club home page SSR cache; a "Saved" toast appears; the amber dot clears.
 
 > **Dev note:** The amber dot, Save button, and dirty-state management shown here are partial implementations. The complete explicit-save protection pattern (beforeunload guard, discard confirmation, full dirty-state lifecycle) is formally defined in Story 4.5 and must be implemented holistically across the epic — not story by story. Implement Story 4.5 as the save framework before finalising 4.2 and 4.3.
 
@@ -1517,7 +1635,7 @@ So that I can exercise my right to data portability and migrate my content if ne
 
 **Given** the Club Admin confirms the export,
 **When** the `exportClubData` Server Action executes,
-**Then** `clubId` is read from the session (never from client input); a structured JSON export is generated containing all club-scoped data and delivered as a `.zip` download within 30 seconds for up to 5,000 records.
+**Then** `clubId` is resolved from URL params (verified by the club layout membership check — never from client input or stored session data); a structured JSON export is generated containing all club-scoped data and delivered as a `.zip` download within 30 seconds for up to 5,000 records.
 
 **Given** the club has more than 5,000 records,
 **When** the export is confirmed,

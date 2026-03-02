@@ -50,7 +50,7 @@ so that the team has a consistent, fully deployable development environment from
   - [x] Create `src/lib/country.ts` — `getCountryFromHost()` function (see Dev Notes)
   - [x] Create `src/lib/schemas/` directory with empty placeholder files: `club.ts`, `page.ts`, `user.ts`, `contact.ts`, `analytics.ts`
   - [x] Update `src/app/globals.css` with OKLCH color token placeholders and Tailwind directives (shadcn/ui init output)
-  - [x] Create `src/middleware.ts` — placeholder (full implementation in Story 1.4)
+  - [x] Create `src/proxy.ts` — placeholder (full implementation in Story 1.4)
   - [x] Create App Router route groups: `src/app/(platform)/`, `src/app/(country)/`, `src/app/api/`, `src/app/admin/`
   - [x] Add placeholder `page.tsx` files in `(platform)/` (dispatches to platform or country homepage based on subdomain) and `(country)/[club]/` with minimal JSX
   - [x] Create `public/images/` directory
@@ -177,12 +177,12 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
 
 > **Note:** The Prisma middleware for `clubId` enforcement will be added in Story 1.2 when models are defined. The singleton pattern above is the correct scaffold.
 
-### `src/middleware.ts` — Placeholder
+### `src/proxy.ts` — Placeholder
 
 Create a minimal placeholder — full auth guards are implemented in Story 1.4:
 
 ```typescript
-// src/middleware.ts
+// src/proxy.ts
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -597,7 +597,7 @@ claude-sonnet-4-6 (Claude Code)
 
 2. **create-next-app non-empty directory**: The workspace already contained BMAD files (`_bmad/`, `_bmad-output/`, `docs/`, `README.md`). `create-next-app` refuses non-empty directories, so the project was scaffolded in `/tmp/nextjs-init` and merged into the workspace root (excluding `.git`).
 
-3. **Next.js 16 middleware deprecation**: Next.js 16 deprecated `src/middleware.ts` in favor of `src/proxy.ts`. Build shows a deprecation warning. The file is kept as `middleware.ts` as specified by the story (Story 1.4 will implement the full proxy logic and should rename the file at that time).
+3. **Next.js 16 proxy.ts**: Next.js 16 uses `src/proxy.ts` instead of the legacy `src/middleware.ts`. The placeholder was created as `src/proxy.ts` accordingly; full route protection logic is implemented in Story 1.4.
 
 4. **shadcn/ui init**: The interactive prompt defaulted to "Neutral" base color. Updated `components.json` and `src/app/globals.css` manually to use zinc OKLCH values.
 

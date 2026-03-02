@@ -11,6 +11,8 @@
     other instruction.</critical>
   <critical>Do NOT schedule a "next session" or request review pauses unless a HALT condition applies. Only Step 6 decides completion.</critical>
   <critical>User skill level ({user_skill_level}) affects conversation style ONLY, not code updates.</critical>
+  <critical>Before executing ANY shell command that requires environment tools (node, pnpm, npm, bun, etc.), first source the appropriate shell profile to ensure the correct PATH and environment variables are available (e.g., ~/.zshrc for zsh, ~/.bashrc for bash, or equivalent for the current shell/OS).</critical>
+  <critical>Implementation must be story-agnostic: produced code, comments, and commit messages must NEVER reference story IDs, story titles, acceptance criteria numbers, or any planning artifact. Write code as if it were the natural, standalone evolution of the codebase.</critical>
 
   <step n="1" goal="Find next ready story and load it" tag="sprint-status">
     <check if="{{story_path}} is provided">

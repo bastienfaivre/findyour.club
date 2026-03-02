@@ -162,7 +162,7 @@ project-name/
 │   │   ├── auth.ts
 │   │   └── utils.ts
 │   ├── types/
-│   └── middleware.ts
+│   └── proxy.ts
 ├── prisma/
 │   ├── schema.prisma
 │   └── migrations/
