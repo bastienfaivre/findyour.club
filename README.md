@@ -1,6 +1,6 @@
 # Clashware — Website Template
 
-Multi-tenant club website platform. Each club gets a public site on a country subdomain (`ch.lvh.me/<club-slug>`). The platform directory lives at the apex (`lvh.me`).
+Multi-tenant club website platform. Each club gets a public site at `localhost:3000/{country}/{club-slug}`. The platform directory lives at the root (`localhost:3000`).
 
 **Stack:** Next.js 16 · TypeScript · Tailwind CSS v4 · Prisma v7 · PostgreSQL 16 · Auth.js v4 · shadcn/ui · pnpm
 
@@ -37,7 +37,7 @@ pnpm dev
 ```
 
 > **Dev credentials (seeded):**
-> - Operator: `clashware.geology074@aleeas.com` / `123456`
+> - Operator: `admin@platform-name.com` / `123456`
 > - Club admin (Ski Club Valais): `admin@ski-club-valais.ch` / `admin123`
 > - Club admin (Football Club Lausanne): `admin@football-club-lausanne.ch` / `admin123`
 
@@ -45,20 +45,20 @@ The app is now available at:
 
 | Surface | URL |
 |---|---|
-| Platform directory | http://lvh.me:3000 |
-| Club site (CH) | http://ch.lvh.me:3000/\<club-slug\> |
+| Platform directory | http://localhost:3000 |
+| Club site | http://localhost:3000/{country}/{club-slug} |
+| Operator dashboard | http://localhost:3000/admin |
 | MinIO console | http://localhost:9001 |
 | Mailpit inbox | http://localhost:8025 |
 
-> `*.lvh.me` resolves to `127.0.0.1` via public DNS — no `/etc/hosts` edits needed.
+### URL routing
 
-### Subdomain routing
-
-Country is read from the subdomain via `src/lib/country.ts`:
+Country and club are resolved from URL path segments — no subdomain configuration required:
 
 ```
-ch.lvh.me:3000/ski-club-valais  →  country=ch, club=ski-club-valais
-lvh.me:3000                     →  platform directory
+localhost:3000/ch/ski-club-valais  →  country=ch, club=ski-club-valais
+localhost:3000                     →  platform directory
+localhost:3000/admin               →  operator dashboard
 ```
 
 ---
@@ -94,15 +94,15 @@ Each stage must pass before the next runs.
 ```
 src/
   app/
-    (platform)/     # Platform routes — lvh.me/
-    (country)/      # Country routes  — ch.lvh.me/[club]
-    admin/          # Admin dashboard (Story 1.4+)
+    (platform)/     # Platform routes — localhost:3000/
+    (country)/      # Club routes    — localhost:3000/{country}/{club-slug}
+    admin/          # Operator dashboard (Story 1.5+)
     api/            # API routes
   server/
     db.ts           # Prisma client singleton (only instantiation point)
-    auth.ts         # Auth.js config (Story 1.3+)
+    auth.ts         # Auth.js config + getAuthSession() wrapper
   lib/
-    country.ts      # Subdomain → country resolution
+    country.ts      # Country code validation (URL path param)
     schemas/        # Zod schemas per domain
   components/
     ui/             # shadcn/ui components (managed by shadcn CLI — do not edit)

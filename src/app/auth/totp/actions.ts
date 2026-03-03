@@ -9,8 +9,6 @@ import { verifyTotpCode } from '@/lib/totp'
 import { checkRateLimit, clearRateLimit } from '@/lib/rate-limit'
 import { encodeTotpVerifiedCookie } from '@/lib/setup-cookie'
 
-const POST_AUTH_REDIRECT = '/my-clubs'
-
 export type TotpChallengeResult =
   | { success: false; error: string; code: 'UNAUTHENTICATED' | 'VALIDATION_ERROR' | 'TOTP_INVALID' | 'RATE_LIMITED' | 'TOTP_NOT_CONFIGURED' }
   | { success: true }
@@ -72,5 +70,6 @@ export async function verifyTotpChallenge(input: unknown): Promise<TotpChallenge
     domain: process.env.COOKIE_DOMAIN,
   })
 
-  redirect(POST_AUTH_REDIRECT)
+  const postAuthRedirect = session.user.role === 'OPERATOR' ? '/admin' : '/my-clubs'
+  redirect(postAuthRedirect)
 }

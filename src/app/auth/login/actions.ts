@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto'
 import { cookies, headers } from 'next/headers'
 import argon2 from 'argon2'
 import { prisma } from '@/server/db'
+import { type UserRole } from '@/generated/prisma/client'
 import { loginSchema } from '@/lib/schemas/user'
 import { checkRateLimit, clearRateLimit } from '@/lib/rate-limit'
 import { SESSION_COOKIE_NAME } from '@/server/auth'
@@ -10,7 +11,7 @@ import { encodeTotpVerifiedCookie } from '@/lib/setup-cookie'
 
 export type LoginResult =
   | { success: false; error: string; code: 'VALIDATION_ERROR' | 'INVALID_CREDENTIALS' | 'RATE_LIMITED' | 'SERVER_ERROR' }
-  | { success: true; totpEnabled: boolean }
+  | { success: true; totpEnabled: boolean; role: UserRole }
 
 /**
  * Authenticates a user with email/password and creates a database session directly.
@@ -37,7 +38,7 @@ export async function loginWithCredentials(input: unknown): Promise<LoginResult>
 
   const user = await prisma.user.findUnique({
     where: { email: parsed.data.email },
-    select: { id: true, passwordHash: true, totpEnabled: true },
+    select: { id: true, role: true, passwordHash: true, totpEnabled: true },
   })
 
   if (!user || !user.passwordHash) {
@@ -85,5 +86,5 @@ export async function loginWithCredentials(input: unknown): Promise<LoginResult>
     })
   }
 
-  return { success: true, totpEnabled: user.totpEnabled }
+  return { success: true, totpEnabled: user.totpEnabled, role: user.role }
 }

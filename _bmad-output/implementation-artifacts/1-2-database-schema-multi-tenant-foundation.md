@@ -633,10 +633,10 @@ async function main() {
   // ─── Operator Account ────────────────────────────────────────────────
   const operatorPasswordHash = await argon2.hash('123456')
   const operator = await prisma.user.upsert({
-    where: { email: 'clashware.geology074@aleeas.com' },
+    where: { email: 'admin@platform-name.com' },
     update: {},
     create: {
-      email: 'clashware.geology074@aleeas.com',
+      email: 'admin@platform-name.com',
       name: 'Platform Operator',
       role: 'OPERATOR',
       passwordHash: operatorPasswordHash,

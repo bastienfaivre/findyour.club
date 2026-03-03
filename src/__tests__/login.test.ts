@@ -52,20 +52,20 @@ describe('loginWithCredentials()', () => {
   })
 
   it('returns INVALID_CREDENTIALS when user has no passwordHash', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'u1', passwordHash: null, totpEnabled: false } as never)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'u1', role: 'CLUB_ADMIN', passwordHash: null, totpEnabled: false } as never)
     const result = await loginWithCredentials({ email: 'a@b.com', password: 'pass' })
     expect(result).toMatchObject({ success: false, code: 'INVALID_CREDENTIALS' })
   })
 
   it('returns INVALID_CREDENTIALS when password does not match', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'u1', passwordHash: '$hash', totpEnabled: false } as never)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'u1', role: 'CLUB_ADMIN', passwordHash: '$hash', totpEnabled: false } as never)
     vi.mocked(argon2.verify).mockResolvedValue(false)
     const result = await loginWithCredentials({ email: 'a@b.com', password: 'wrong' })
     expect(result).toMatchObject({ success: false, code: 'INVALID_CREDENTIALS' })
   })
 
   it('returns SERVER_ERROR when DB session creation fails', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'u1', passwordHash: '$hash', totpEnabled: false } as never)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'u1', role: 'CLUB_ADMIN', passwordHash: '$hash', totpEnabled: false } as never)
     vi.mocked(argon2.verify).mockResolvedValue(true)
     vi.mocked(prisma.session.create).mockRejectedValue(new Error('DB down'))
 
@@ -73,26 +73,36 @@ describe('loginWithCredentials()', () => {
     expect(result).toMatchObject({ success: false, code: 'SERVER_ERROR' })
   })
 
-  it('creates a DB session and returns totpEnabled=false on valid login without TOTP', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'u1', passwordHash: '$hash', totpEnabled: false } as never)
+  it('returns { success: true, role: CLUB_ADMIN, totpEnabled: false } on valid CLUB_ADMIN login', async () => {
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'u1', role: 'CLUB_ADMIN', passwordHash: '$hash', totpEnabled: false } as never)
     vi.mocked(argon2.verify).mockResolvedValue(true)
     vi.mocked(prisma.session.create).mockResolvedValue({} as never)
 
     const result = await loginWithCredentials({ email: 'a@b.com', password: 'correct' })
 
-    expect(result).toMatchObject({ success: true, totpEnabled: false })
+    expect(result).toMatchObject({ success: true, role: 'CLUB_ADMIN', totpEnabled: false })
     expect(prisma.session.create).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ userId: 'u1' }) })
     )
   })
 
-  it('creates a DB session and returns totpEnabled=true when TOTP is enrolled', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'u1', passwordHash: '$hash', totpEnabled: true } as never)
+  it('returns { success: true, role: OPERATOR, totpEnabled: false } on valid OPERATOR login', async () => {
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'op1', role: 'OPERATOR', passwordHash: '$hash', totpEnabled: false } as never)
+    vi.mocked(argon2.verify).mockResolvedValue(true)
+    vi.mocked(prisma.session.create).mockResolvedValue({} as never)
+
+    const result = await loginWithCredentials({ email: 'op@platform.com', password: 'correct' })
+
+    expect(result).toMatchObject({ success: true, role: 'OPERATOR', totpEnabled: false })
+  })
+
+  it('returns { success: true, totpEnabled: true } when TOTP is enrolled', async () => {
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'u1', role: 'CLUB_ADMIN', passwordHash: '$hash', totpEnabled: true } as never)
     vi.mocked(argon2.verify).mockResolvedValue(true)
     vi.mocked(prisma.session.create).mockResolvedValue({} as never)
 
     const result = await loginWithCredentials({ email: 'a@b.com', password: 'correct' })
 
-    expect(result).toMatchObject({ success: true, totpEnabled: true })
+    expect(result).toMatchObject({ success: true, role: 'CLUB_ADMIN', totpEnabled: true })
   })
 })

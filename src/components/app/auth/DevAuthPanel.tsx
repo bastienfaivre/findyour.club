@@ -5,7 +5,6 @@ import { getAuthSession } from '@/server/auth'
 const SEEDED_EMAILS = [
   'admin@ski-club-valais.ch',
   'admin@football-club-lausanne.ch',
-  'clashware.geology074@aleeas.com',
 ]
 
 export async function DevAuthPanel() {
@@ -76,7 +75,7 @@ export async function DevAuthPanel() {
               className="block truncate rounded bg-zinc-800 px-2 py-1 text-center text-zinc-400 hover:bg-zinc-700"
               title={email}
             >
-              {email.split('@')[0]}
+              {email}
             </Link>
           ))}
         </div>
@@ -95,6 +94,14 @@ export async function DevAuthPanel() {
           </Link>
           <Link href="/my-clubs" className="block rounded bg-zinc-800 px-2 py-1 text-center text-zinc-400 hover:bg-zinc-700">
             My clubs
+          </Link>
+        </div>
+
+        {/* Admin pages */}
+        <div className="mt-2 border-t border-zinc-700 pt-2 space-y-1">
+          <p className="text-[10px] text-zinc-600 uppercase tracking-wider">Admin</p>
+          <Link href="/admin" className="block rounded bg-zinc-800 px-2 py-1 text-center text-zinc-400 hover:bg-zinc-700">
+            Operator dashboard
           </Link>
         </div>
       </div>

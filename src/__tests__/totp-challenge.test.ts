@@ -69,12 +69,12 @@ describe('verifyTotpChallenge()', () => {
     expect(result).toMatchObject({ success: false, code: 'TOTP_INVALID' })
   })
 
-  it('sets encrypted totp_verified cookie and redirects on valid code', async () => {
+  it('sets encrypted totp_verified cookie and redirects CLUB_ADMIN to /my-clubs', async () => {
     const mockCookieSet = vi.fn()
     const { cookies } = await import('next/headers')
     vi.mocked(cookies).mockResolvedValueOnce({ set: mockCookieSet, get: vi.fn() } as never)
 
-    vi.mocked(getServerSession).mockResolvedValue({ user: { id: 'u1' } } as never)
+    vi.mocked(getServerSession).mockResolvedValue({ user: { id: 'u1', role: 'CLUB_ADMIN' } } as never)
     vi.mocked(prisma.user.findUnique).mockResolvedValue({ totpSecret: 'SECRET' } as never)
     vi.mocked(verifyTotpCode).mockResolvedValue(true)
 
@@ -86,6 +86,20 @@ describe('verifyTotpChallenge()', () => {
       expect.objectContaining({ httpOnly: true })
     )
     expect(redirect).toHaveBeenCalledWith('/my-clubs')
+  })
+
+  it('redirects OPERATOR to /admin after successful TOTP verification', async () => {
+    const mockCookieSet = vi.fn()
+    const { cookies } = await import('next/headers')
+    vi.mocked(cookies).mockResolvedValueOnce({ set: mockCookieSet, get: vi.fn() } as never)
+
+    vi.mocked(getServerSession).mockResolvedValue({ user: { id: 'u1', role: 'OPERATOR' } } as never)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ totpSecret: 'SECRET' } as never)
+    vi.mocked(verifyTotpCode).mockResolvedValue(true)
+
+    await expect(verifyTotpChallenge({ code: '123456' })).rejects.toThrow('NEXT_REDIRECT:/admin')
+
+    expect(redirect).toHaveBeenCalledWith('/admin')
   })
 
   it('blocks after 5 failed attempts from same IP (rate limit)', async () => {

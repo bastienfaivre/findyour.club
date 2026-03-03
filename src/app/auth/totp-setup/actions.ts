@@ -38,7 +38,8 @@ export async function enrollTotp(input: unknown): Promise<EnrollTotpResult> {
 
   // Re-enrollment guard: if TOTP is already enrolled, the user must have verified it
   // before they can replace their secret. Blocks half-authenticated attackers.
-  if (session.user.totpEnabled && !session.user.totpVerified) {
+  // session is non-null here — userId guard above ensures session.user.id exists.
+  if (session!.user.totpEnabled && !session!.user.totpVerified) {
     return { success: false, error: 'Please complete the TOTP challenge before re-enrolling.', code: 'UNAUTHORIZED' }
   }
 

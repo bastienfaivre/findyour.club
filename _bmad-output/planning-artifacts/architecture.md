@@ -279,7 +279,7 @@ Docker Compose orchestrates Next.js + PostgreSQL + Nginx + Certbot.
 - Open redirect prevention: All redirect targets validated against allowlist
 - HTTP security headers: Configured in Nginx (`Strict-Transport-Security`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`)
 - CSP: Next.js `headers()` config; strict CSP blocking inline scripts and unknown origins
-- Admin route protection: Middleware enforces `operator` role on all `/admin/*` routes
+- Admin route protection: Admin layout (Server Component) enforces `operator` role on all `/admin/*` routes — no middleware involved
 - Dependency audit: `pnpm audit` run in GitHub Actions CI on every push
 
 ---
@@ -315,7 +315,7 @@ Docker Compose orchestrates Next.js + PostgreSQL + Nginx + Certbot.
 
 **Edit Mode State**
 - Mechanism: React Context (`EditModeContext`) wrapping the club site layout; URL param `?edit=true` as the source of truth (bookmarkable, shareable with Clashware support)
-- Auth gate: Middleware validates Club Admin session before serving the `?edit=true` param; public visitors cannot trigger edit mode
+- Auth gate: No middleware guard on `?edit=true`; the club layout reads the param and ignores it (renders read-only) if the user has no active Club Admin session — simpler and avoids unnecessary redirect overhead
 - Rationale: URL-driven state is transparent, debuggable, and survives page refreshes without localStorage complexity
 
 **Unsaved Changes Protection**
@@ -779,7 +779,7 @@ website-template/
 │   │   │
 │   │   ├── auth/
 │   │   │   ├── login/
-│   │   │   │   └── page.tsx          # FR29: Club admin login
+│   │   │   │   └── page.tsx          # FR29: Login page for both Club Admins and Operators — role-based redirect after auth
 │   │   │   ├── setup/
 │   │   │   │   └── page.tsx          # First login: set password + TOTP enroll
 │   │   │   ├── totp/
@@ -791,10 +791,9 @@ website-template/
 │   │   │   └── page.tsx              # ClubMembership list with links to each club's URL
 │   │   │
 │   │   ├── admin/                    # FR31–39: Platform operator dashboard
-│   │   │   ├── layout.tsx            # Admin layout (operator auth guard via middleware, Story 1.5)
-│   │   │   ├── page.tsx              # FR35: Platform metrics dashboard
-│   │   │   ├── login/
-│   │   │   │   └── page.tsx          # FR29: Operator login (separate entry point)
+│   │   │   ├── (protected)/
+│   │   │   │   ├── layout.tsx        # Admin layout (OPERATOR role guard — layout-level, no middleware)
+│   │   │   │   └── page.tsx          # FR35: Platform metrics dashboard
 │   │   │   ├── applications/
 │   │   │   │   ├── page.tsx          # FR31: Application queue
 │   │   │   │   └── actions.ts        # approveApplication, rejectApplication
@@ -920,7 +919,7 @@ website-template/
 │   │   ├── email.ts                  # Resend/SMTP client + email sending helpers
 │   │   └── turnstile.ts              # Cloudflare Turnstile server-side token verification
 │   │
-│   ├── proxy.ts                       # Route protection: /admin/* → operator, ?edit=true → club admin
+│   ├── proxy.ts                       # Minimal Next.js middleware stub (no route guards — auth handled at layout level)
 │   │
 │   └── styles/
 │       └── globals.css               # OKLCH color tokens + base Tailwind directives
@@ -958,7 +957,7 @@ website-template/
 **Data Boundaries**
 
 - Club data: every Prisma query scoped to `clubId` from session — no cross-club reads possible
-- Operator data: accessible only via `admin/` routes with `operator` role verified in `proxy.ts`
+- Operator data: accessible only via `admin/` routes with `operator` role verified in the admin layout guard
 - Contact submissions: encrypted at write time in Server Action; decrypted on demand in operator inbox
 - Analytics: `ip_hash` is irreversible (SHA-256 + daily salt); raw IP never persisted
 - Media files: stored in R2/MinIO under `{clubId}/{uuid}.{ext}` — no predictable URL enumeration
@@ -1029,7 +1028,7 @@ CONTACT_ENCRYPTION_KEY="dev_key_exactly_32_chars_padding!"
 
 **`prisma/seed.ts` scope**
 
-- Platform operator: `clashware.geology074@aleeas.com` / `123456` (argon2-hashed at seed time)
+- Platform operator: `admin@platform-name.com` / `123456` (argon2-hashed at seed time)
 - 2 sample clubs (`ski-club-valais`, `football-club-lausanne`) with all element types populated
 - 3 versions per page (for version history testing)
 - 3 applications (pending / approved / rejected)

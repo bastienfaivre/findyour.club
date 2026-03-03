@@ -26,8 +26,12 @@ export function LoginForm() {
         return
       }
 
-      // If TOTP enrolled → challenge required; otherwise session is already verified
-      router.push(result.totpEnabled ? '/auth/totp' : '/my-clubs')
+      // If TOTP enrolled → challenge required; otherwise redirect based on role
+      if (result.totpEnabled) {
+        router.push('/auth/totp')
+      } else {
+        router.push(result.role === 'OPERATOR' ? '/admin' : '/my-clubs')
+      }
     })
   }
 
