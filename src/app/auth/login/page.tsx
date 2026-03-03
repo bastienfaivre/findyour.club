@@ -1,6 +1,7 @@
 import { getAuthSession } from '@/server/auth'
 import { redirect } from 'next/navigation'
 import { LoginForm } from '@/components/app/auth/LoginForm'
+import { PasskeyButton } from '@/components/app/auth/PasskeyButton'
 
 export default async function LoginPage() {
   const session = await getAuthSession()
@@ -21,6 +22,15 @@ export default async function LoginPage() {
           </p>
         </div>
         <LoginForm />
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">Or</span>
+          </div>
+        </div>
+        <PasskeyButton />
       </div>
     </div>
   )

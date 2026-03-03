@@ -7,13 +7,14 @@ It covers every flow, the cookie/session state model, and the result of an adver
 
 ## Cookie & Session State Model
 
-Two HttpOnly cookies exist at runtime. Together they determine the fully authenticated state.
+Four HttpOnly cookies exist at runtime. Together they determine the fully authenticated state.
 
 | Cookie | Value | Set by | Cleared by |
 |---|---|---|---|
-| `next-auth.session-token` (dev) / `__Secure-next-auth.session-token` (prod) | random UUID | `setupPassword`, `loginWithCredentials` | `GET /auth/logout` |
-| `totp_verified` | AES-256-GCM encrypted userId | `setupPassword`, `loginWithCredentials` (no TOTP), `verifyTotpChallenge`, `enrollTotp` | `GET /auth/logout` |
+| `next-auth.session-token` (dev) / `__Secure-next-auth.session-token` (prod) | random UUID | `setupPassword`, `loginWithCredentials`, `POST /api/auth/passkey/authenticate/complete` | `GET /auth/logout` |
+| `totp_verified` | AES-256-GCM encrypted userId | `setupPassword`, `loginWithCredentials` (no TOTP), `verifyTotpChallenge`, `enrollTotp`, `POST /api/auth/passkey/authenticate/complete` | `GET /auth/logout` |
 | `setup_session` | AES-256-GCM encrypted `{ userId, exp }` | `GET /auth/magic-link` | `setupPassword` on success, `GET /auth/logout` |
+| `passkey_challenge` | AES-256-GCM encrypted challenge (base64 JSON `{ ciphertext, iv }`) | `POST /api/auth/passkey/register/begin`, `POST /api/auth/passkey/authenticate/begin` | Cleared (`maxAge=0`) immediately at the start of each complete handler (single-use) |
 
 `getAuthSession()` in `src/server/auth.ts` is the single authoritative session resolver:
 it calls `getServerSession(authOptions)`, then reads and decrypts the `totp_verified` cookie
@@ -21,6 +22,11 @@ to set `session.user.totpVerified` in real-time (since Auth.js v4 database sessi
 mutated server-side post-creation).
 
 **Fully authenticated** = valid session token in DB **AND** `totp_verified` cookie decrypts to the same userId.
+
+> **Passkey = MFA-complete:** After successful passkey authentication, `totp_verified` is set
+> unconditionally. A passkey is a phishing-resistant authenticator that proves device possession
+> (something you have + something you are/know), satisfying both authentication factors simultaneously.
+> No separate TOTP challenge is required.
 
 ---
 
@@ -218,14 +224,145 @@ flowchart TD
 
 ---
 
+## Flow 5 — Passkey Registration
+
+Passkeys are registered from **Account Settings** (`/auth/account`) by an already-authenticated user.
+Registration requires the user to be TOTP-verified (or TOTP not enrolled) — the same guard that
+protects all sensitive account mutations.
+
+The challenge cookie is AES-256-GCM encrypted and scoped to 5 minutes. It is cleared immediately
+at the start of the complete handler (before verification) to prevent replay.
+
+```mermaid
+flowchart TD
+    A([Authenticated user opens\n/auth/account]) --> B
+
+    subgraph ACCOUNT_PAGE["Page — /auth/account"]
+        B[Server: prisma.webauthnCredential.findMany\nfor userId → passkeys list]
+        B --> C[Render ManagePasskeysSection]
+        C --> D[User clicks 'Add passkey']
+        D --> E["fetch POST /api/auth/passkey/register/begin"]
+    end
+
+    subgraph BEGIN_REG["Route Handler — POST /api/auth/passkey/register/begin"]
+        E --> F{getAuthSession\nsession valid?}
+        F -- NO --> F1[401 Unauthorized]
+        F -- YES --> G{totpEnabled\nAND NOT totpVerified?}
+        G -- YES --> G1[403 TOTP verification required]
+        G -- NO --> H[prisma.webauthnCredential.findMany\nfor userId → excludeCredentials\nprevents duplicate registration]
+        H --> I[generateRegistrationOptions\nrpID, rpName, userName\nexcludeCredentials, attestation=none\nresidentKey=preferred]
+        I --> J[Set passkey_challenge cookie\nAES-256-GCM encrypted challenge\nHttpOnly SameSite=Lax 5-min TTL]
+        J --> K[200 Return options JSON]
+    end
+
+    K --> L[startRegistration optionsJSON\nBrowser WebAuthn API\nUser verifies with biometric / PIN]
+    L --> M["fetch POST /api/auth/passkey/register/complete\nbody: RegistrationResponseJSON"]
+
+    subgraph COMPLETE_REG["Route Handler — POST /api/auth/passkey/register/complete"]
+        M --> N{getAuthSession\nsession valid?}
+        N -- NO --> N1[401 Unauthorized]
+        N -- YES --> O{passkey_challenge cookie\npresent?}
+        O -- NO --> O1[400 No challenge found]
+        O -- YES --> P[decodeChallengeCookie\ndecrypt AES-256-GCM]
+        P --> Q{decodes OK?}
+        Q -- NO / tampered --> Q1[400 Invalid challenge]
+        Q -- YES --> R[Clear passkey_challenge cookie\nmaxAge=0 single-use]
+        R --> S[verifyRegistrationResponse\nrpID, origin, expectedChallenge]
+        S --> T{verified?}
+        T -- NO --> T1[400 Verification failed]
+        T -- YES --> U["prisma.webauthnCredential.create\n• userId\n• credentialId base64url\n• publicKey base64\n• counter BigInt\n• deviceType singleDevice / multiDevice\n• backedUp\n• transports"]
+        U --> V[200 — success:true]
+    end
+
+    V --> W[ManagePasskeysSection: router.refresh\nSoft refresh — re-renders Server Components\non same page to show new passkey in list]
+```
+
+---
+
+## Flow 6 — Passkey Authentication
+
+Passkey sign-in is available from the login page alongside the password form.
+It is a **public endpoint** (no session required). On success, both the session cookie and
+`totp_verified` cookie are set unconditionally — passkey authentication satisfies MFA in full.
+
+The counter update and session creation are performed atomically inside a `prisma.$transaction`
+to prevent split-brain state (counter updated but no session, or session created but counter stale).
+
+```mermaid
+flowchart TD
+    A([User navigates to /auth/login]) --> B
+
+    subgraph LOGIN_PAGE["Page — /auth/login"]
+        B{getAuthSession\ntotpVerified?}
+        B -- YES → already authenticated --> C([Redirect to /my-clubs])
+        B -- NO --> D([Render LoginForm + PasskeyButton])
+        D --> E[User clicks 'Sign in with passkey']
+        E --> F[fetch POST /api/auth/passkey/authenticate/begin\nbody: email optional]
+    end
+
+    subgraph BEGIN_AUTH["Route Handler — POST /api/auth/passkey/authenticate/begin"]
+        F --> G{email in body?}
+        G -- YES --> H[prisma.user.findUnique by email]
+        H -- not found → silent:\nno user enumeration --> I[allowCredentials = empty\ndiscoverable credential flow]
+        H -- found --> J[prisma.webauthnCredential.findMany\nfor userId → allowCredentials\ncredentialId + transports per credential]
+        G -- NO --> I
+        J --> K
+        I --> K
+        K[generateAuthenticationOptions\nrpID, allowCredentials\nuserVerification=preferred]
+        K --> L[Set passkey_challenge cookie\nAES-256-GCM encrypted challenge\nHttpOnly SameSite=Lax 5-min TTL]
+        L --> M[200 Return options JSON]
+    end
+
+    M --> N[startAuthentication optionsJSON\nBrowser WebAuthn API\nUser selects credential + verifies]
+    N --> O["fetch POST /api/auth/passkey/authenticate/complete\nbody: AuthenticationResponseJSON"]
+
+    subgraph COMPLETE_AUTH["Route Handler — POST /api/auth/passkey/authenticate/complete"]
+        O --> P{passkey_challenge cookie\npresent?}
+        P -- NO --> P1[400 No challenge]
+        P -- YES --> Q[decodeChallengeCookie\ndecrypt AES-256-GCM]
+        Q --> R{decodes OK?}
+        R -- NO / tampered --> R1[400 Invalid challenge]
+        R -- YES --> S[Clear passkey_challenge cookie\nmaxAge=0 single-use]
+        S --> T[prisma.webauthnCredential.findUnique\nby credentialId\ninclude user id, role, totpEnabled]
+        T --> U{found?}
+        U -- NO --> U1[401 Credential not found]
+        U -- YES --> V[verifyAuthenticationResponse\nrpID, origin, expectedChallenge\ncredentialId, publicKey, counter, transports]
+        V --> W{verified?}
+        W -- NO --> W1[400 Verification failed]
+        W -- YES --> X["prisma.$transaction atomic:\n• webauthnCredential.update counter = newCounter\n• session.create sessionToken + expires 30d"]
+        X --> Y{transaction OK?}
+        Y -- NO --> Y1[500 Failed to create session]
+        Y -- YES --> Z[Set next-auth.session-token cookie\nHttpOnly SameSite=Lax 30-day expiry]
+        Z --> AA[Set totp_verified cookie\nAES-256-GCM encrypted userId\nPasskey = MFA-complete unconditional]
+        AA --> AB[200 — success:true, role]
+    end
+
+    AB --> AC[PasskeyButton: window.location.href\nHard navigation — forces full page reload\nso Server Components re-render\nwith new session cookie]
+    AC --> AD{role?}
+    AD -- OPERATOR --> AE([/admin Operator dashboard])
+    AD -- CLUB_ADMIN --> AF([/my-clubs Personal homepage])
+```
+
+> **Why `window.location.href` and not `router.push`?**
+> `PasskeyButton` uses `fetch()` to set cookies, unlike `LoginForm` which uses a Server Action.
+> Server Actions automatically invalidate the Next.js router cache; `fetch()` does not.
+> Using `router.push()` would serve a stale cached render of the target page, leaving the
+> `DevAuthPanel` (and other Server Components) showing the pre-login state.
+> `window.location.href` triggers a full browser navigation, bypassing the cache entirely.
+> `ManagePasskeysSection` uses `router.refresh()` (soft) after passkey add/remove because it
+> stays on the same page — a soft refresh is sufficient and avoids a visible full reload.
+
+---
+
 ## Post-Login Routing — Personal Homepage (`/my-clubs`)
 
-After every successful authentication event (password setup, regular login, TOTP challenge), the user
-is redirected to `/my-clubs` — a personal homepage served at the platform domain.
+After every successful authentication event (password setup, regular login, TOTP challenge,
+passkey authentication), the user is redirected based on their role:
 
-> **Story 1.3 implementation note:** The `POST_AUTH_REDIRECT` constant in all action files currently
-> points to `/` (placeholder) rather than `/my-clubs`. This is an intentional deferral — `/my-clubs`
-> will be built in Story 1.4. All diagrams in this document reflect the target state (`/my-clubs`).
+| Role | Redirect |
+|---|---|
+| `CLUB_ADMIN` | `/my-clubs` |
+| `OPERATOR` | `/admin` |
 
 `/my-clubs` queries `ClubMembership.findMany({ where: { userId, status: ACTIVE }, include: { club: true } })` and applies the following routing logic:
 
@@ -270,6 +407,17 @@ using the same 5-attempt-per-10-minute default config as the challenge flow.
 
 ---
 
+### MEDIUM — Passkey Counter Update Not Atomic With Session Creation
+
+**Finding (Story 1.6):** Initial implementation updated `webauthnCredential.counter` and created the
+session in two separate Prisma calls. A crash between the two operations would leave the counter
+updated but no session created, or (less likely) a session created against a stale counter.
+
+**Fix applied:** Both operations are wrapped in `prisma.$transaction(async (tx) => { ... })`.
+If either fails, both are rolled back. A `try/catch` around the transaction returns 500 on failure.
+
+---
+
 ### LOW — TOTP Code Replay Within Same 30-Second Window
 
 **Finding:** `verifyTotpCode` wraps otplib's `verify()` with no used-token tracking. A valid
@@ -293,11 +441,21 @@ impact — the attacker gains nothing except disruption.
 
 ---
 
+### LOW — Passkey Credential Not Found Returns 401
+
+**Finding (Story 1.6):** Initial implementation returned 400 when the credential ID from the
+authentication response was not found in the database.
+
+**Fix applied:** Changed to 401 (`Unauthorized`) — 400 (`Bad Request`) implies a malformed request,
+whereas 401 correctly signals that authentication failed because the credential is unknown.
+
+---
+
 ### LOW — `CONTACT_ENCRYPTION_KEY` Shared Between Auth Cookies and Contact Encryption
 
 **Finding:** The same AES-256-GCM key (`CONTACT_ENCRYPTION_KEY`) encrypts contact form bodies,
-`setup_session` cookies, and `totp_verified` cookies. Key reuse across contexts is a security
-smell.
+`setup_session` cookies, `totp_verified` cookies, and `passkey_challenge` cookies. Key reuse
+across contexts is a security smell.
 
 **Analysis:** AES-256-GCM generates a fresh random 96-bit IV per encryption call. Ciphertexts from
 different contexts are not interchangeable (different plaintext structure, different consumers).
@@ -321,6 +479,15 @@ blocking access to protected content (after the club layout fix above).
 
 ---
 
+### INFORMATION — Passkey Registration Guarded by TOTP Status
+
+**Design note:** `POST /api/auth/passkey/register/begin` returns 403 if the user has `totpEnabled: true`
+but `totpVerified: false`. This prevents a session-hijacking scenario where an attacker with a stolen
+(not-yet-TOTP-verified) session token could register their own passkey and escalate to full access.
+A user must complete their TOTP challenge before enrolling a passkey.
+
+---
+
 ## Security Properties Summary
 
 | Property | Implementation |
@@ -337,3 +504,9 @@ blocking access to protected content (after the club layout fix above).
 | Cookie flags | `HttpOnly`, `SameSite=Lax`, `Secure` (production only) |
 | TOTP replay | Not prevented within 30-second window (deferred) |
 | Route protection | Club layout enforces `totpVerified`; full middleware in Story 1.4 |
+| WebAuthn challenge | AES-256-GCM encrypted HttpOnly cookie, 5-min TTL, single-use (cleared before verification) |
+| Passkey credential storage | `credentialId` (base64url), `publicKey` (base64), `counter` (BigInt), `transports` |
+| Passkey counter replay | Counter monotonically increasing; verified by `@simplewebauthn/server` on every authentication |
+| Passkey = MFA-complete | `totp_verified` cookie set unconditionally after passkey auth — no separate TOTP challenge required |
+| Passkey registration guard | 403 if `totpEnabled && !totpVerified` — prevents session-hijack → passkey escalation |
+| Passkey atomic session | Counter update + session creation in `prisma.$transaction` — no split-brain on failure |
