@@ -3,8 +3,8 @@ import { generateRegistrationOptions } from '@simplewebauthn/server'
 import type { AuthenticatorTransportFuture } from '@simplewebauthn/server'
 import { cookies } from 'next/headers'
 import { getAuthSession } from '@/server/auth'
-import { prisma } from '@/server/db'
 import { getWebAuthnConfig, encodeChallengeCookie, PASSKEY_CHALLENGE_COOKIE } from '@/lib/webauthn'
+import { getWebAuthnCredentialsByUser } from '@/lib/server/webauthn-queries'
 
 export async function POST() {
   const session = await getAuthSession()
@@ -17,10 +17,7 @@ export async function POST() {
 
   const { rpID, rpName } = getWebAuthnConfig()
 
-  const existingCredentials = await prisma.webauthnCredential.findMany({
-    where: { userId: session.user.id },
-    select: { credentialId: true, transports: true },
-  })
+  const existingCredentials = await getWebAuthnCredentialsByUser(session.user.id)
 
   const options = await generateRegistrationOptions({
     rpName,

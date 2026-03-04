@@ -1310,7 +1310,7 @@ An OWNER may transfer ownership to any ACTIVE member of the club, or to a newly 
 **Inviting an existing platform user** (already manages another club):
 1. OWNER submits the invitee's email.
 2. A `PENDING` `ClubMembership` is created.
-3. An invitation email is sent with a one-time accept link (token stored hashed, TTL 48h).
+3. An invitation email is sent with a one-time accept link (token stored hashed, TTL 7 days).
 4. On acceptance: `status → ACTIVE`, `joinedAt` set.
 
 **Inviting a new user** (no existing account):

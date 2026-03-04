@@ -12,6 +12,9 @@ vi.mock('@/server/db', () => ({
   prisma: {
     user: { update: vi.fn(), findUnique: vi.fn() },
     session: { create: vi.fn() },
+    clubMembership: { updateMany: vi.fn() },
+    invitation: { deleteMany: vi.fn() },
+    $transaction: vi.fn((ops: unknown[]) => Promise.all(ops)),
   },
 }))
 vi.mock('argon2', () => ({
@@ -39,8 +42,11 @@ describe('setupPassword()', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     // Default: user has no existing password (new account)
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ passwordHash: null } as never)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ passwordHash: null, email: 'user@example.com' } as never)
+    vi.mocked(prisma.user.update).mockResolvedValue({} as never)
     vi.mocked(prisma.session.create).mockResolvedValue({} as never)
+    vi.mocked(prisma.clubMembership.updateMany).mockResolvedValue({ count: 0 } as never)
+    vi.mocked(prisma.invitation.deleteMany).mockResolvedValue({ count: 0 } as never)
   })
 
   it('returns UNAUTHORIZED when setup cookie is missing or invalid', async () => {
@@ -79,7 +85,6 @@ describe('setupPassword()', () => {
 
   it('hashes password, clears magic token, creates session, and redirects to /my-clubs', async () => {
     vi.mocked(decodeSetupCookie).mockReturnValue('user-123')
-    vi.mocked(prisma.user.update).mockResolvedValue({} as never)
 
     // Mock fetch (HIBP) to return no breached passwords
     global.fetch = vi.fn(async () => ({
@@ -127,13 +132,35 @@ describe('setupPassword()', () => {
 
   it('proceeds even if HIBP API is unreachable', async () => {
     vi.mocked(decodeSetupCookie).mockReturnValue('user-123')
-    vi.mocked(prisma.user.update).mockResolvedValue({} as never)
     global.fetch = vi.fn(async () => { throw new Error('network error') }) as never
 
     await setupPassword({ password: STRONG_PASSWORD, confirmPassword: STRONG_PASSWORD })
 
     expect(prisma.user.update).toHaveBeenCalled()
     expect(prisma.session.create).toHaveBeenCalled()
+    expect(redirect).toHaveBeenCalledWith('/my-clubs')
+  })
+
+  it('activates PENDING memberships atomically in the same transaction', async () => {
+    vi.mocked(decodeSetupCookie).mockReturnValue('user-123')
+    vi.mocked(prisma.clubMembership.updateMany).mockResolvedValue({ count: 1 } as never)
+    global.fetch = vi.fn(async () => ({
+      ok: true,
+      text: async () => 'AAAAA:5\nBBBBB:3',
+    })) as never
+
+    await setupPassword({ password: STRONG_PASSWORD, confirmPassword: STRONG_PASSWORD })
+
+    expect(prisma.$transaction).toHaveBeenCalled()
+    expect(prisma.clubMembership.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ userId: 'user-123', status: 'PENDING' }),
+        data: expect.objectContaining({ status: 'ACTIVE' }),
+      })
+    )
+    expect(prisma.invitation.deleteMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ email: 'user@example.com' }) })
+    )
     expect(redirect).toHaveBeenCalledWith('/my-clubs')
   })
 })

@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
 import { isValidCountry } from '@/lib/country'
+import { getClubBySlug } from '@/lib/server/club-queries'
 import { TotpEnrollmentBanner } from '@/components/app/auth/TotpEnrollmentBanner'
 
 interface ClubLayoutProps {
@@ -22,10 +23,7 @@ export default async function ClubLayout({ children, params }: ClubLayoutProps) 
 
   if (!isValidCountry(country)) notFound()
 
-  const club = await prisma.club.findUnique({
-    where: { slug_country: { slug, country } },
-    select: { id: true },
-  })
+  const club = await getClubBySlug(slug, country)
   if (!club) notFound()
 
   const membership = await prisma.clubMembership.findFirst({

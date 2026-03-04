@@ -27,7 +27,7 @@ export async function setupPassword(input: unknown): Promise<SetupPasswordResult
   // Guard: reject if a password is already set (prevents setup_session replay after completion)
   const existingUser = await prisma.user.findUnique({
     where: { id: userId },
-    select: { passwordHash: true },
+    select: { passwordHash: true, email: true },
   })
   if (existingUser?.passwordHash) {
     return { success: false, error: 'Password already configured for this account.', code: 'ALREADY_CONFIGURED' }
@@ -71,29 +71,33 @@ export async function setupPassword(input: unknown): Promise<SetupPasswordResult
   // Hash with argon2 (default: argon2id)
   const passwordHash = await argon2.hash(password)
 
-  // Atomic update: store hash AND clear magic token in a single Prisma operation (AC2)
-  try {
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        passwordHash,
-        magicToken: null,
-        magicTokenExp: null,
-      },
-    })
-  } catch {
-    return { success: false, error: 'Failed to save password. Please try again.', code: 'SERVER_ERROR' }
-  }
-
-  // Create DB session immediately — user is now logged in.
-  // TOTP enrollment is optional and offered via the account menu and the enrollment banner (AC4).
+  // Atomic transaction: store password hash, create session, activate any PENDING memberships,
+  // and clean up any pending invitations for this email.
+  // updateMany/deleteMany are no-ops when no matching records exist.
   const sessionToken = randomUUID()
   const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
 
   try {
-    await prisma.session.create({ data: { sessionToken, userId, expires } })
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: userId },
+        data: {
+          passwordHash,
+          magicToken: null,
+          magicTokenExp: null,
+        },
+      }),
+      prisma.session.create({ data: { sessionToken, userId, expires } }),
+      prisma.clubMembership.updateMany({
+        where: { userId, status: 'PENDING' },
+        data: { status: 'ACTIVE', joinedAt: new Date() },
+      }),
+      prisma.invitation.deleteMany({
+        where: { email: existingUser?.email ?? '' },
+      }),
+    ])
   } catch {
-    return { success: false, error: 'Failed to create session. Please try again.', code: 'SERVER_ERROR' }
+    return { success: false, error: 'Failed to complete account setup. Please try again.', code: 'SERVER_ERROR' }
   }
 
   const isProduction = process.env.NODE_ENV === 'production'

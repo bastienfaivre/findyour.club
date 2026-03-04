@@ -12,6 +12,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   Verification: 'The sign-in link is no longer valid. It may have been used already or expired.',
   TokenInvalid: `This setup link is invalid or has already been used. Please contact support at ${SUPPORT_EMAIL} to receive a new one.`,
   TokenExpired: `This setup link has expired (links are valid for 1 hour). Please contact support at ${SUPPORT_EMAIL} to receive a new one.`,
+  InviteExpired: 'This invitation has expired. Please ask the club owner to send a new invitation.',
+  InviteEmailMismatch: 'This invitation was sent to a different email address. Please log out and try again, or ask the club owner to re-send.',
   Default: 'An authentication error occurred. Please try again.',
 }
 

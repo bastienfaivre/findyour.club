@@ -93,7 +93,7 @@ describe('ClubLayout membership guard', () => {
     await ClubLayout({ children: MOCK_CHILDREN, params: makeParams('ski-club-valais', 'ch') })
     expect(prisma.club.findUnique).toHaveBeenCalledWith({
       where: { slug_country: { slug: 'ski-club-valais', country: 'ch' } },
-      select: { id: true },
+      select: { id: true, name: true },
     })
   })
 

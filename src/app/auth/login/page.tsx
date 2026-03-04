@@ -3,7 +3,11 @@ import { redirect } from 'next/navigation'
 import { LoginForm } from '@/components/app/auth/LoginForm'
 import { PasskeyButton } from '@/components/app/auth/PasskeyButton'
 
-export default async function LoginPage() {
+interface LoginPageProps {
+  searchParams: Promise<{ callbackUrl?: string }>
+}
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
   const session = await getAuthSession()
 
   // Already fully authenticated → redirect to personal homepage
@@ -11,6 +15,10 @@ export default async function LoginPage() {
   if (session?.user && (!session.user.totpEnabled || session.user.totpVerified)) {
     redirect('/my-clubs')
   }
+
+  const { callbackUrl } = await searchParams
+  // Only allow relative paths to prevent open-redirect attacks
+  const safeCallbackUrl = callbackUrl?.startsWith('/') ? callbackUrl : undefined
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -21,7 +29,7 @@ export default async function LoginPage() {
             Sign in to manage your club site.
           </p>
         </div>
-        <LoginForm />
+        <LoginForm callbackUrl={safeCallbackUrl} />
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />

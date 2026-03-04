@@ -7,7 +7,11 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { loginWithCredentials } from '@/app/auth/login/actions'
 
-export function LoginForm() {
+interface LoginFormProps {
+  callbackUrl?: string
+}
+
+export function LoginForm({ callbackUrl }: LoginFormProps) {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -26,11 +30,11 @@ export function LoginForm() {
         return
       }
 
-      // If TOTP enrolled → challenge required; otherwise redirect based on role
+      // If TOTP enrolled → challenge required (callbackUrl not carried through TOTP flow)
       if (result.totpEnabled) {
         router.push('/auth/totp')
       } else {
-        router.push(result.role === 'OPERATOR' ? '/admin' : '/my-clubs')
+        router.push(callbackUrl ?? (result.role === 'OPERATOR' ? '/admin' : '/my-clubs'))
       }
     })
   }

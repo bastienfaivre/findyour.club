@@ -4,6 +4,7 @@ import type { AuthenticatorTransportFuture } from '@simplewebauthn/server'
 import { cookies } from 'next/headers'
 import { prisma } from '@/server/db'
 import { getWebAuthnConfig, encodeChallengeCookie, PASSKEY_CHALLENGE_COOKIE } from '@/lib/webauthn'
+import { getWebAuthnCredentialsByUser } from '@/lib/server/webauthn-queries'
 
 export async function POST(request: NextRequest) {
   const { rpID } = getWebAuthnConfig()
@@ -17,10 +18,7 @@ export async function POST(request: NextRequest) {
       select: { id: true },
     })
     if (user) {
-      const credentials = await prisma.webauthnCredential.findMany({
-        where: { userId: user.id },
-        select: { credentialId: true, transports: true },
-      })
+      const credentials = await getWebAuthnCredentialsByUser(user.id)
       allowCredentials = credentials.map(c => ({
         id: c.credentialId,
         transports: c.transports as AuthenticatorTransportFuture[],
