@@ -5,7 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import type { InviteEditorResult, TransferOwnershipResult, RevokeAccessResult } from '@/app/(country)/[country]/[club]/settings/actions'
+import type { InviteEditorResult, TransferOwnershipResult, RevokeAccessResult } from '@/app/[lang]/(country)/[country]/[club]/settings/actions'
+import type { Translations } from '@/lib/i18n/translations'
+
+type MembershipPanelT = Translations['club']['membership']
 
 interface Membership {
   id: string
@@ -24,9 +27,10 @@ interface MembershipPanelProps {
   inviteAction: (_prevState: InviteEditorResult | null, formData: FormData) => Promise<InviteEditorResult>
   transferOwnershipAction: (targetId: string) => Promise<TransferOwnershipResult>
   revokeAccessAction: (targetId: string) => Promise<RevokeAccessResult>
+  t: MembershipPanelT
 }
 
-export function MembershipPanel({ memberships, currentUserId, inviteAction, transferOwnershipAction, revokeAccessAction }: MembershipPanelProps) {
+export function MembershipPanel({ memberships, currentUserId, inviteAction, transferOwnershipAction, revokeAccessAction, t }: MembershipPanelProps) {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [lastInvitedEmail, setLastInvitedEmail] = useState('')
@@ -86,17 +90,17 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-medium mb-3">Members</h2>
+        <h2 className="text-lg font-medium mb-3">{t.members}</h2>
         {memberships.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No members yet.</p>
+          <p className="text-muted-foreground text-sm">{t.noMembers}</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b text-left text-muted-foreground">
-                <th className="pb-2 pr-4 font-medium">Email</th>
-                <th className="pb-2 pr-4 font-medium">Role</th>
-                <th className="pb-2 pr-4 font-medium">Status</th>
-                <th className="pb-2 font-medium">Actions</th>
+                <th className="pb-2 pr-4 font-medium">{t.email}</th>
+                <th className="pb-2 pr-4 font-medium">{t.role}</th>
+                <th className="pb-2 pr-4 font-medium">{t.status}</th>
+                <th className="pb-2 font-medium">{t.actions}</th>
               </tr>
             </thead>
             <tbody>
@@ -105,30 +109,30 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
                   <td className="py-2 pr-4">{m.user.email ?? '—'}</td>
                   <td className="py-2 pr-4">
                     {m.role === 'OWNER' ? (
-                      <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800">Owner</span>
+                      <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800">{t.owner}</span>
                     ) : (
-                      <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800">Editor</span>
+                      <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800">{t.editor}</span>
                     )}
                   </td>
                   <td className="py-2 pr-4">
                     {m.status === 'ACTIVE' ? (
-                      <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-800">Active</span>
+                      <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-800">{t.active}</span>
                     ) : (
-                      <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium border border-gray-300 text-gray-500">Pending</span>
+                      <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium border border-gray-300 text-gray-500">{t.pending}</span>
                     )}
                   </td>
                   <td className="py-2">
                     {isOwnerViewing && m.status === 'ACTIVE' && m.role === 'EDITOR' && (
                       confirmTransferId === m.id ? (
                         <span className="flex items-center gap-2 text-xs">
-                          <span className="text-muted-foreground">Transfer ownership to {m.user.email ?? '—'}? You will become an Editor.</span>
+                          <span className="text-muted-foreground">{t.transferConfirm.replace('{email}', m.user.email ?? '—')}</span>
                           <Button
                             size="xs"
                             variant="destructive"
                             disabled={isPendingTransfer}
                             onClick={() => handleTransferConfirm(m.id)}
                           >
-                            Confirm
+                            {t.confirm}
                           </Button>
                           <Button
                             size="xs"
@@ -136,19 +140,19 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
                             disabled={isPendingTransfer}
                             onClick={() => setConfirmTransferId(null)}
                           >
-                            Cancel
+                            {t.cancel}
                           </Button>
                         </span>
                       ) : confirmRevokeId === m.id ? (
                         <span className="flex items-center gap-2 text-xs">
-                          <span className="text-muted-foreground">Revoke {m.user.email ?? '—'}&apos;s access? They will immediately lose access to the club.</span>
+                          <span className="text-muted-foreground">{t.revokeConfirm.replace('{email}', m.user.email ?? '—')}</span>
                           <Button
                             size="xs"
                             variant="destructive"
                             disabled={isPendingRevoke}
                             onClick={() => handleRevokeConfirm(m.id)}
                           >
-                            Confirm
+                            {t.confirm}
                           </Button>
                           <Button
                             size="xs"
@@ -156,7 +160,7 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
                             disabled={isPendingRevoke}
                             onClick={() => setConfirmRevokeId(null)}
                           >
-                            Cancel
+                            {t.cancel}
                           </Button>
                         </span>
                       ) : (
@@ -166,14 +170,14 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
                             variant="outline"
                             onClick={() => { setConfirmRevokeId(null); setRevokeResult(null); setConfirmTransferId(m.id) }}
                           >
-                            Transfer
+                            {t.transfer}
                           </Button>
                           <Button
                             size="xs"
                             variant="outline"
                             onClick={() => { setConfirmTransferId(null); setTransferResult(null); setRevokeResult(null); setConfirmRevokeId(m.id) }}
                           >
-                            Revoke
+                            {t.revoke}
                           </Button>
                         </span>
                       )
@@ -188,7 +192,7 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
           <div className="mt-3">
             {transferResult.success ? (
               <Alert>
-                <AlertDescription>Ownership transferred successfully.</AlertDescription>
+                <AlertDescription>{t.transferSuccess}</AlertDescription>
               </Alert>
             ) : (
               <Alert variant="destructive">
@@ -201,7 +205,7 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
           <div className="mt-3">
             {revokeResult.success ? (
               <Alert>
-                <AlertDescription>Access revoked successfully.</AlertDescription>
+                <AlertDescription>{t.revokeSuccess}</AlertDescription>
               </Alert>
             ) : (
               <Alert variant="destructive">
@@ -213,10 +217,10 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
       </div>
 
       <div>
-        <h2 className="text-lg font-medium mb-3">Invite an Editor</h2>
+        <h2 className="text-lg font-medium mb-3">{t.inviteEditor}</h2>
         <form onSubmit={handleSubmit} className="flex gap-2 items-end">
           <div className="flex-1 space-y-1">
-            <Label htmlFor="invite-email">Email address</Label>
+            <Label htmlFor="invite-email">{t.emailAddress}</Label>
             <Input
               id="invite-email"
               name="email"
@@ -229,7 +233,7 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
             />
           </div>
           <Button type="submit" disabled={isPending || !email}>
-            {isPending ? 'Sending…' : 'Invite as Editor'}
+            {isPending ? t.sending : t.inviteAsEditor}
           </Button>
         </form>
 
@@ -237,7 +241,7 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
           <div className="mt-3">
             {result.success ? (
               <Alert>
-                <AlertDescription>Invitation sent to {lastInvitedEmail}!</AlertDescription>
+                <AlertDescription>{t.inviteSent.replace('{email}', lastInvitedEmail)}</AlertDescription>
               </Alert>
             ) : (
               <Alert variant="destructive">

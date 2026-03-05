@@ -398,9 +398,10 @@ Key test cases:
 // GET /admin/applications (no session cookie) → redirect to /admin/login
 // GET /admin/login (no session cookie) → NextResponse.next() (pass through)
 // GET /admin (with session cookie) → NextResponse.next() (role check in layout)
-// GET /ch/ski-club-valais?edit=true (no session cookie) → redirect to /auth/login
-// GET /ch/ski-club-valais?edit=true (with session cookie) → NextResponse.next()
-// GET /ch/ski-club-valais (no session cookie) → NextResponse.next() (public access OK)
+// GET /fr/ch/ski-club-valais?edit=true (no session cookie) → redirect to /auth/login
+// GET /fr/ch/ski-club-valais?edit=true (with session cookie) → NextResponse.next()
+// GET /fr/ch/ski-club-valais (no session cookie) → NextResponse.next() (public access OK)
+/// Note: /{lang} prefix added by Story 2.0 route restructure (Task 9)
 ```
 
 **Update `src/__tests__/totp-challenge.test.ts`:**

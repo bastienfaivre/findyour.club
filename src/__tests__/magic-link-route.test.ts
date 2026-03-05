@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server'
 vi.mock('@/server/auth', () => ({
   getAuthSession: vi.fn(),
 }))
-vi.mock('@/app/auth/magic-link/actions', () => ({
+vi.mock('@/app/[lang]/auth/magic-link/actions', () => ({
   verifyMagicLinkToken: vi.fn(),
 }))
 vi.mock('@/lib/setup-cookie', () => ({
@@ -13,8 +13,8 @@ vi.mock('@/lib/setup-cookie', () => ({
 }))
 
 import { getAuthSession } from '@/server/auth'
-import { verifyMagicLinkToken } from '@/app/auth/magic-link/actions'
-import { GET } from '@/app/auth/magic-link/route'
+import { verifyMagicLinkToken } from '@/app/[lang]/auth/magic-link/actions'
+import { GET } from '@/app/[lang]/auth/magic-link/route'
 
 const BASE = 'http://localhost'
 

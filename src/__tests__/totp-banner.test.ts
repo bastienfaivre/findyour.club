@@ -6,9 +6,15 @@ vi.mock('next/link', () => ({
 
 import { TotpEnrollmentBanner } from '@/components/app/auth/TotpEnrollmentBanner'
 
+const bannerT = {
+  pre: 'Your account is not yet protected by two-factor authentication.',
+  link: 'Set up 2FA now',
+  post: 'to secure your club site.',
+}
+
 describe('TotpEnrollmentBanner logic', () => {
   it('returns null when no session exists', () => {
-    const result = TotpEnrollmentBanner({ session: null })
+    const result = TotpEnrollmentBanner({ session: null, lang: 'en', t: bannerT })
     expect(result).toBeNull()
   })
 
@@ -18,6 +24,8 @@ describe('TotpEnrollmentBanner logic', () => {
         user: { id: 'u1', role: 'CLUB_ADMIN', totpEnabled: true, totpVerified: true, clubId: null, clubRole: null, email: '' },
         expires: '',
       } as never,
+      lang: 'en',
+      t: bannerT,
     })
     expect(result).toBeNull()
   })
@@ -28,6 +36,8 @@ describe('TotpEnrollmentBanner logic', () => {
         user: { id: 'u1', role: 'OPERATOR', totpEnabled: false, totpVerified: false, clubId: null, clubRole: null, email: '' },
         expires: '',
       } as never,
+      lang: 'en',
+      t: bannerT,
     })
     expect(result).toBeNull()
   })
@@ -38,6 +48,8 @@ describe('TotpEnrollmentBanner logic', () => {
         user: { id: 'u1', role: 'CLUB_ADMIN', totpEnabled: false, totpVerified: false, clubId: 'c1', clubRole: 'OWNER', email: '' },
         expires: '',
       } as never,
+      lang: 'en',
+      t: bannerT,
     })
     expect(result).not.toBeNull()
   })

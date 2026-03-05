@@ -269,6 +269,17 @@
     <action>Validate implementation meets ALL story acceptance criteria; enforce quantitative thresholds explicitly</action>
     <action if="regression tests fail">STOP and fix before continuing - identify breaking changes immediately</action>
     <action if="new tests fail">STOP and fix before continuing - ensure implementation correctness</action>
+
+    <!-- Safety checks: run after all tests pass -->
+    <critical>Run ALL four safety checks in sequence. Fix any failures before proceeding. Do NOT skip.</critical>
+    <action>Run `pnpm tsc --noEmit` — TypeScript must compile with zero errors</action>
+    <action if="tsc --noEmit exits with errors">STOP and fix all TypeScript errors before continuing</action>
+    <action>Run `pnpm lint` — linter must exit cleanly</action>
+    <action if="lint exits with errors">STOP and fix all lint errors before continuing</action>
+    <action>Run `pnpm audit` — flag any vulnerabilities introduced at any severity level</action>
+    <action if="audit reports any vulnerabilities">HALT and report to user — do not proceed without resolution</action>
+    <action>Run `pnpm build` — production build must succeed with zero errors</action>
+    <action if="build fails">STOP and fix all build errors before continuing</action>
   </step>
 
   <step n="8" goal="Validate and mark task complete ONLY when fully done">

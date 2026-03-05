@@ -54,8 +54,8 @@ development_status:
   epic-1-retrospective: done
 
   # ─── Epic 2: Club Application & Onboarding ───
-  epic-2: backlog
-  2-0-i18n-location-infrastructure: backlog
+  epic-2: in-progress
+  2-0-i18n-location-infrastructure: done
   2-1-club-application-form: backlog
   2-2-operator-application-review-queue: backlog
   2-3-application-approval-provisioning-acceptance-email: backlog

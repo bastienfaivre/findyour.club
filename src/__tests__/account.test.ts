@@ -20,7 +20,7 @@ vi.mock('@/server/auth', () => ({
 import argon2 from 'argon2'
 import { prisma } from '@/server/db'
 import { getAuthSession } from '@/server/auth'
-import { changePassword, removeTotp } from '@/app/auth/account/actions'
+import { changePassword, removeTotp } from '@/app/[lang]/auth/account/actions'
 
 const STRONG_PASSWORD = 'Str0ng!P@ssw0rd'
 

@@ -26,7 +26,7 @@ vi.mock('@/lib/setup-cookie', () => ({
 
 import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
-import { GET } from '@/app/auth/invite/accept/route'
+import { GET } from '@/app/[lang]/auth/invite/accept/route'
 
 const BASE = 'http://localhost'
 

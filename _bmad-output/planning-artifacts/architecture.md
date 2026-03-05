@@ -56,8 +56,10 @@ Architecture-driving NFRs:
 - **Hosting:** Swiss or EU infrastructure required (GDPR/nDSG compliance + association trust signal).
 - **Auth standards:** TOTP (authenticator app), WebAuthn/FIDO2 (passkeys) — both required; bcrypt or Argon2 for password hashing.
 - **Email:** External email relay service required (contact form relay + transactional emails for application acceptance/rejection). DPA required with provider.
-- **URL architecture:** Single domain with country and club as path segments: `platform-name.com/{country}/{club-slug}`. No per-club DNS provisioning — routing is handled at the application layer. Club slugs are generated at provisioning time, URL-safe, **unique per country** (two clubs in different countries may share the same slug — e.g., `platform-name.com/ch/ski-club` and `platform-name.com/fr/ski-club` are both valid), and treated as immutable identifiers. The DB constraint is `@@unique([slug, country])` on the `Club` model.
-- **Reserved path management:** The application routing layer must distinguish reserved root paths (directory root, /apply, /about, /support, /admin, /auth, /api, /my-clubs, etc.) from country path segments. Country codes (`ch`, `fr`, `de`, …) are reserved root paths that route to the country directory. Slug generation must exclude reserved path names; uniqueness is enforced per country.
+- **URL architecture:** Single domain with language, country, and club as separate path segments: `platform-name.com/{lang}/{country}/{club-slug}`. Language and country are orthogonal — `{lang}` is the visitor's preferred language (BCP 47 subtag: `fr`, `de`, `it`, `en`, or any); `{country}` is the geographic context determined by where the club physically is. No per-club DNS provisioning — routing is handled at the application layer. Club slugs are generated at provisioning time, URL-safe, **unique per country** (two clubs in different countries may share the same slug — e.g., `platform-name.com/fr/ch/ski-club` and `platform-name.com/fr/fr/ski-club` are both valid), and treated as immutable identifiers. The DB constraint is `@@unique([slug, country])` on the `Club` model.
+- **Reserved path management:** The application routing layer must distinguish reserved root paths (`/api`, `/admin`, `/auth`, `/my-clubs`, etc.) from the localized `/{lang}` segment. In Next.js App Router, named static folders (`api/`, `admin/`) take priority over the dynamic `[lang]/` segment — no slug collision is possible. Slug generation must exclude reserved path names; uniqueness is enforced per country.
+- **Language resolution (layered):** The `{lang}` URL segment captures the visitor's preferred language. Each content layer has its own resolution/fallback chain: (1) **Platform UI** — `resolveUILang(lang)` maps to one of `[fr, de, it, en]`, falls back to `en` for any unsupported language (e.g., `pt` → `en`); (2) **Geographic data** (swisstopo canton/location names) — same resolution as Platform UI (`en` fallback); (3) **Club content** — served in the club's `defaultLanguage` field (e.g., `fr`) when the visitor's language has no authored translation. This means `/pt/ch/ski-club-valais` shows the platform UI in English, Swiss geographic names in English, and club content in French (the club's default).
+- **Language switching:** The `LanguageSwitcher` client component navigates to `/{newLang}/{country}/{club-slug}` via `router.push()` — no cookie write, no Server Action. The country segment is preserved; only the language prefix changes. `proxy.ts` reads the `[lang]` segment from the URL and sets a `platform_lang` cookie (used exclusively to propagate the language to the root `layout.tsx` for the `<html lang>` attribute, which cannot read URL params directly).
 - **Custom domains:** Club admins can configure a custom domain. The platform maps the custom domain to the club via lookup and serves identical content. TLS provisioning for custom domains must be automated.
 - **Multi-tenancy:** Club data isolation at storage layer — one club's data cannot affect another's performance or be accessed across boundaries.
 - **Billing:** Explicitly deferred to post-MVP. No payment infrastructure in scope.
@@ -159,9 +161,10 @@ Next.js 16 with Turbopack (dev); `next build` for production. `output: 'standalo
 ```
 src/
   app/                    # Next.js App Router
-    (platform)/           # Route group: platform site (SSR)
-    (country)/[country]/  # Route group: country path segment (ch, fr, de, …)
-      [club]/             # Club site pages (SSR home + RSC inner pages)
+    [lang]/               # Language segment (fr, de, it, en — or any BCP 47 subtag)
+      (platform)/         # Route group: platform site (SSR)
+      (country)/[country]/ # Route group + country path segment (ch, fr, de, …)
+        [club]/           # Club site pages (SSR home + RSC inner pages)
     api/                  # Route Handlers (client-side data endpoints)
     admin/                # Platform operator dashboard
   components/
@@ -457,18 +460,19 @@ model PageElement {
 ```
 src/
   app/
-    (platform)/              # Platform site (SSR)
-      page.tsx               # Directory home
-      apply/
-        page.tsx
-        actions.ts           # ← Server Actions co-located here
-    (country)/[country]/
-      [club]/
-        page.tsx             # Club home (SSR)
-        actions.ts           # ← Club-scoped Server Actions
-        [page]/
+    [lang]/                  # Language segment
+      (platform)/            # Platform site (SSR)
+        page.tsx             # Directory home
+        apply/
           page.tsx
-          actions.ts
+          actions.ts         # ← Server Actions co-located here
+      (country)/[country]/
+        [club]/
+          page.tsx           # Club home (SSR)
+          actions.ts         # ← Club-scoped Server Actions
+          [page]/
+            page.tsx
+            actions.ts
     api/
       clubs/[clubId]/
         pages/
@@ -580,20 +584,21 @@ export async function savePageContent(
 
 **Club Resolution Pattern (slug → clubId)**
 
-A club is resolved from the URL **once per request** in the club layout. Both `slug` and `country` come from URL path params (`[country]` and `[club]` segments):
+A club is resolved from the URL **once per request** in the club layout. `lang`, `slug`, and `country` all come from URL path params (`[lang]`, `[country]`, and `[club]` segments):
 
 ```typescript
 // ✅ CORRECT — always resolve by (slug, country) composite key
-const { country, club: slug } = await params
+const { lang, country, club: slug } = await params
 if (!isValidCountry(country)) notFound()
+const uiLang = resolveUILang(lang)  // maps to supported lang; 'pt' → 'en'
 const club = await prisma.club.findUnique({
   where: { slug_country: { slug, country } },
-  select: { id: true },
+  select: { id: true, defaultLanguage: true },
 })
 if (!club) notFound()
 ```
 
-`country` is derived from the `[country]` URL path parameter and validated against `SUPPORTED_COUNTRIES` via `lib/country.ts` — **never from the Host header** (the host carries no country information in the path-based architecture). Never query a club by `slug` alone; two clubs in different countries may share the same slug.
+`country` is derived from the `[country]` URL path parameter and validated against `SUPPORTED_COUNTRIES` via `lib/country.ts` — **never from the Host header**. `lang` is the visitor's preferred language — resolve it with `resolveUILang(lang)` for UI strings, `club.defaultLanguage` for club content fallback. Never query a club by `slug` alone; two clubs in different countries may share the same slug.
 
 **Multi-Tenant Query Pattern (CRITICAL)**
 
@@ -719,10 +724,10 @@ const prisma = new PrismaClient() // in any file other than src/server/db.ts
 
 | FR Category | Surfaces | Primary Location |
 |---|---|---|
-| Club Site Configuration & Navigation (FR1–9) | Club site + Operator dashboard | `app/(country)/[country]/[club]/`, `app/admin/clubs/` |
-| Content Editing & Element Library (FR10–19) | Club site (edit mode) | `app/(country)/[country]/[club]/[page]/`, `components/app/page-editor/` |
-| Public Discovery & Contact (FR20–26) | Platform site | `app/(platform)/`, `components/app/directory/`, `components/app/contact/` |
-| Application & Access (FR27–30) | Platform site + Auth | `app/(platform)/apply/`, `app/auth/`, `components/app/auth/` |
+| Club Site Configuration & Navigation (FR1–9) | Club site + Operator dashboard | `app/[lang]/(country)/[country]/[club]/`, `app/admin/clubs/` |
+| Content Editing & Element Library (FR10–19) | Club site (edit mode) | `app/[lang]/(country)/[country]/[club]/[page]/`, `components/app/page-editor/` |
+| Public Discovery & Contact (FR20–26) | Platform site | `app/[lang]/(platform)/`, `components/app/directory/`, `components/app/contact/` |
+| Application & Access (FR27–30) | Platform site + Auth | `app/[lang]/(platform)/apply/`, `app/auth/`, `components/app/auth/` |
 | Platform Operations (FR31–39) | Operator dashboard | `app/admin/`, `components/app/admin/` |
 | Compliance & Data Rights (FR40–45) | Cross-cutting | `lib/seo.ts`, `lib/crypto.ts`, `app/admin/clubs/[clubId]/` |
 
@@ -752,29 +757,30 @@ website-template/
 │   │   ├── not-found.tsx             # Global 404
 │   │   ├── error.tsx                 # Global error boundary
 │   │   │
-│   │   ├── (platform)/               # Route group: platform site
-│   │   │   ├── layout.tsx            # Platform site layout (nav, footer)
-│   │   │   ├── page.tsx              # FR20–23: Directory home (SSR, filterable)
-│   │   │   ├── apply/
-│   │   │   │   ├── page.tsx          # FR28: Club application form
-│   │   │   │   └── actions.ts        # submitApplication (+ Turnstile verify)
-│   │   │   ├── about/
-│   │   │   │   └── page.tsx          # Platform about page
-│   │   │   └── support/
-│   │   │       ├── page.tsx          # FR30: Support form
-│   │   │       └── actions.ts        # submitSupportForm
-│   │   │
-│   │   ├── (country)/
-│   │   │   └── [country]/            # Country segment: ch, fr, de, ...
-│   │   │       └── [club]/           # FR1: Club slug path segment
-│   │   │           ├── layout.tsx    # Club site layout (header, nav, footer, edit toolbar)
-│   │   │           ├── page.tsx      # FR5/FR20: Club home page (SSR)
-│   │   │           ├── actions.ts    # togglePublish (FR8), submitContactForm (FR24)
-│   │   │           ├── contact/
-│   │   │           │   └── page.tsx  # FR24: Contact page (anchor, non-removable)
-│   │   │           └── [page]/       # FR3: Club inner pages (dynamic slug)
-│   │   │               ├── page.tsx
-│   │   │               └── actions.ts # savePageContent, addElement, removeElement,
+│   │   ├── [lang]/                   # Language segment: fr, de, it, en (or any BCP 47 subtag)
+│   │   │   ├── (platform)/           # Route group: platform site
+│   │   │   │   ├── layout.tsx        # Platform layout (LanguageSwitcher, nav, footer)
+│   │   │   │   ├── page.tsx          # FR20–23: Directory home (SSR, filterable)
+│   │   │   │   ├── apply/
+│   │   │   │   │   ├── page.tsx      # FR28: Club application form
+│   │   │   │   │   └── actions.ts    # submitApplication (+ Turnstile verify)
+│   │   │   │   ├── about/
+│   │   │   │   │   └── page.tsx      # Platform about page
+│   │   │   │   └── support/
+│   │   │   │       ├── page.tsx      # FR30: Support form
+│   │   │   │       └── actions.ts    # submitSupportForm
+│   │   │   │
+│   │   │   └── (country)/
+│   │   │       └── [country]/        # Country segment: ch, fr, de, ...
+│   │   │           └── [club]/       # FR1: Club slug path segment
+│   │   │               ├── layout.tsx # Club site layout (header, nav, footer, edit toolbar)
+│   │   │               ├── page.tsx  # FR5/FR20: Club home page (SSR)
+│   │   │               ├── actions.ts # togglePublish (FR8), submitContactForm (FR24)
+│   │   │               ├── contact/
+│   │   │               │   └── page.tsx # FR24: Contact page (anchor, non-removable)
+│   │   │               └── [page]/   # FR3: Club inner pages (dynamic slug)
+│   │   │                   ├── page.tsx
+│   │   │                   └── actions.ts # savePageContent, addElement, removeElement,
 │   │   │                              # reorderElements, restoreVersion (FR15–FR19)
 │   │   │
 │   │   ├── auth/
@@ -787,8 +793,8 @@ website-template/
 │   │   │   └── magic-link/
 │   │   │       └── page.tsx          # Magic link verification handler
 │   │   │
-│   │   ├── my-clubs/                 # Club admin dashboard — lists all clubs the user is a member of
-│   │   │   └── page.tsx              # ClubMembership list with links to each club's URL
+│   │   ├── my-clubs/                 # Club admin dashboard (non-localized) — lists clubs with lang-prefixed links
+│   │   │   └── page.tsx              # ClubMembership list with links to /{lang}/{country}/{slug}
 │   │   │
 │   │   ├── admin/                    # FR31–39: Platform operator dashboard
 │   │   │   ├── (protected)/
@@ -909,6 +915,11 @@ website-template/
 │   │   │   ├── contact.ts            # contactFormSchema, applyFormSchema, supportFormSchema
 │   │   │   └── analytics.ts          # pageEventSchema
 │   │   │
+│   │   ├── i18n/
+│   │   │   ├── index.ts              # SupportedLanguage, SUPPORTED_LANGUAGES, resolveUILang(), isSupportedLanguage()
+│   │   │   ├── get-language.ts       # getLanguage(): reads platform_lang cookie (set by proxy.ts) for root layout
+│   │   │   └── translations.ts       # Translations type + 4 language objects (fr/de/it/en) + getTranslations()
+│   │   │
 │   │   ├── country.ts                # isValidCountry() — validates [country] URL param against SUPPORTED_COUNTRIES
 │   │   ├── crypto.ts                 # AES-256-GCM encrypt/decrypt
 │   │   ├── totp.ts                   # otplib: generateSecret, verifyToken
@@ -919,7 +930,7 @@ website-template/
 │   │   ├── email.ts                  # Resend/SMTP client + email sending helpers
 │   │   └── turnstile.ts              # Cloudflare Turnstile server-side token verification
 │   │
-│   ├── proxy.ts                       # Minimal Next.js middleware stub (no route guards — auth handled at layout level)
+│   ├── proxy.ts                        # Language detection: reads [lang] from URL, sets platform_lang cookie; redirects / to /{lang}/ via Accept-Language
 │   │
 │   └── styles/
 │       └── globals.css               # OKLCH color tokens + base Tailwind directives
@@ -974,9 +985,44 @@ website-template/
 
 ---
 
+### Internationalisation (i18n) Architecture
+
+**URL-based language, not cookie-based.** Language is a first-class URL segment, making pages shareable with a fixed language and SEO-indexable per locale.
+
+**Language resolution — layered fallback model:**
+
+| Content layer | Resolution logic | Unsupported lang fallback |
+|---|---|---|
+| Platform UI strings | `resolveUILang(lang)` | `en` |
+| Geographic data (swisstopo names) | `resolveUILang(lang)` — swisstopo supports fr/de/it/en | `en` |
+| Club content | `club.defaultLanguage` (per-club field, e.g. `'fr'`) | Club's default |
+
+Example: `/pt/ch/ski-club-valais`
+- Platform UI → English (no Portuguese UI translation)
+- Swiss geographic names → English (swisstopo doesn't provide Portuguese)
+- Club content → French (the club's `defaultLanguage`)
+
+**Supported UI languages:** `fr`, `de`, `it`, `en` — defined in `src/lib/i18n/index.ts`.
+
+**Any BCP 47 subtag is valid in the URL.** Unsupported languages (e.g. `pt`, `ja`) are gracefully resolved to `en` at the application layer — no 404, no redirect.
+
+**`<html lang>` propagation — proxy → cookie → root layout:**
+The root `layout.tsx` cannot access `[lang]` URL params (they live in a nested segment). `proxy.ts` reads the `[lang]` path segment and writes a `platform_lang` cookie. The root layout reads this cookie via `getLanguage()` to set `<html lang={lang}>`.
+
+**Language switcher — URL navigation:**
+`LanguageSwitcher` is a `'use client'` component that calls `router.push(`/${newLang}/${country}/${rest}`)`. No Server Action, no cookie write from the component — `proxy.ts` handles the cookie side-effect automatically on the next request.
+
+**Key files:**
+- `src/lib/i18n/index.ts` — `SupportedLanguage`, `SUPPORTED_LANGUAGES`, `resolveUILang()`, `isSupportedLanguage()`
+- `src/lib/i18n/get-language.ts` — `getLanguage(): Promise<SupportedLanguage>` reads `platform_lang` cookie (for root layout only)
+- `src/lib/i18n/translations.ts` — `Translations` type + objects for `fr/de/it/en` + `getTranslations(lang)`
+- `src/proxy.ts` — sets `platform_lang` cookie from URL; redirects `/` → `/{detected-lang}/` via `Accept-Language` header
+
+---
+
 ### Local Development Infrastructure
 
-**No special subdomain routing required.** Country is a URL path segment, so local development uses plain `localhost:3000` with no `hosts` file edits or special DNS tricks. Country validation is handled via `lib/country.ts`:
+**No special subdomain routing required.** Language and country are both URL path segments, so local development uses plain `localhost:3000` with no `hosts` file edits or special DNS tricks. Country validation is handled via `lib/country.ts`:
 
 ```typescript
 // lib/country.ts
@@ -994,8 +1040,11 @@ export function isValidCountry(country: string): country is Country {
 
 | Surface | URL |
 |---|---|
-| Platform directory | `http://localhost:3000` |
-| Club site | `http://localhost:3000/ch/ski-club-valais` |
+| Platform directory | `http://localhost:3000` → redirects to `http://localhost:3000/fr/` |
+| Platform directory (French) | `http://localhost:3000/fr/` |
+| Club site (French) | `http://localhost:3000/fr/ch/ski-club-valais` |
+| Club site (German) | `http://localhost:3000/de/ch/ski-club-valais` |
+| Club site (Portuguese → EN fallback UI) | `http://localhost:3000/pt/ch/ski-club-valais` |
 | Admin dashboard | `http://localhost:3000/admin` |
 | MinIO console | `http://localhost:9001` |
 | Mailpit inbox | `http://localhost:8025` |
@@ -1056,8 +1105,9 @@ Implementation patterns are self-consistent across all domains:
 **Structure Alignment:**
 
 The project structure directly reflects architectural decisions:
-- Route group `(country)/[country]/[club]/` enforces the multi-tenant boundary at the Next.js routing level
-- Route group `(platform)/` cleanly isolates platform-side pages
+- `[lang]/` segment cleanly separates language preference from geographic context — `{lang}` and `{country}` are independent URL segments; switching language doesn't affect the club URL; switching country would change clubs
+- Route group `[lang]/(country)/[country]/[club]/` enforces the multi-tenant boundary at the Next.js routing level
+- Route group `[lang]/(platform)/` cleanly isolates platform-side pages
 - `admin/` route group separated from country-tenant routes with middleware enforcement
 - `server/` directory (db.ts, auth.ts) explicitly separates server-only singletons from shared lib utilities
 - All 45 FRs map to specific directories/files — no "homeless" requirements
@@ -1070,10 +1120,10 @@ The project structure directly reflects architectural decisions:
 
 | FR Group | FRs | Architectural Support |
 |---|---|---|
-| Club Site Config & Navigation (FR1–FR9) | 9/9 | `(country)/[country]/[club]/` routes + Prisma `clubs` + `pages` tables + `proxy.ts` |
+| Club Site Config & Navigation (FR1–FR9) | 9/9 | `[lang]/(country)/[country]/[club]/` routes + Prisma `clubs` + `pages` tables + `proxy.ts` |
 | Content Editing & Element Library (FR10–FR19) | 10/10 | `components/app/page-editor/` + `page_elements` JSONB + `page_versions` + Server Actions |
-| Public Discovery & Contact (FR20–FR26) | 7/7 | `(platform)/` directory + `(country)/[country]/[club]/` public SSR + `ContactForm.tsx` + Resend relay |
-| Application & Access (FR27–FR30) | 4/4 | `(platform)/apply/` + Auth.js (magic link, TOTP, passkeys, password) + `admin/` dashboard |
+| Public Discovery & Contact (FR20–FR26) | 7/7 | `[lang]/(platform)/` directory + `[lang]/(country)/[country]/[club]/` public SSR + `ContactForm.tsx` + Resend relay |
+| Application & Access (FR27–30) | 4/4 | `[lang]/(platform)/apply/` + Auth.js (magic link, TOTP, passkeys, password) + `admin/` dashboard |
 | Platform Operations (FR31–FR39) | 9/9 | `admin/` dashboard components + Server Actions + `api/health/route.ts` (FR35 alerting) |
 | Compliance & Data Rights (FR40–FR45) | 6/6 | GDPR export/delete Server Actions + `lib/crypto.ts` + `page_events` GDPR-safe analytics |
 

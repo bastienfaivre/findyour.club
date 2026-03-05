@@ -4,25 +4,40 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { setupPassword } from '@/app/auth/setup/actions'
+import { setupPassword } from '@/app/[lang]/auth/setup/actions'
 
-function getPasswordStrength(password: string): { label: string; color: string } {
-  if (password.length === 0) return { label: '', color: '' }
-  if (password.length < 8) return { label: 'Too short', color: 'text-red-600' }
-  const checks = [/[a-z]/, /[A-Z]/, /\d/, /[^a-zA-Z\d]/]
-  const passed = checks.filter(r => r.test(password)).length
-  if (password.length < 12 || passed < 3) return { label: 'Weak', color: 'text-orange-500' }
-  if (passed < 4) return { label: 'Fair', color: 'text-yellow-600' }
-  return { label: 'Strong', color: 'text-green-600' }
+interface SetupPasswordFormT {
+  newPassword: string
+  confirmPassword: string
+  settingPassword: string
+  setPasswordBtn: string
+  strength: string
+  strengthTooShort: string
+  strengthWeak: string
+  strengthFair: string
+  strengthStrong: string
 }
 
-export function SetupPasswordForm() {
+function getPasswordStrength(
+  password: string,
+  t: Pick<SetupPasswordFormT, 'strengthTooShort' | 'strengthWeak' | 'strengthFair' | 'strengthStrong'>,
+): { label: string; color: string } {
+  if (password.length === 0) return { label: '', color: '' }
+  if (password.length < 8) return { label: t.strengthTooShort, color: 'text-red-600' }
+  const checks = [/[a-z]/, /[A-Z]/, /\d/, /[^a-zA-Z\d]/]
+  const passed = checks.filter(r => r.test(password)).length
+  if (password.length < 12 || passed < 3) return { label: t.strengthWeak, color: 'text-orange-500' }
+  if (passed < 4) return { label: t.strengthFair, color: 'text-yellow-600' }
+  return { label: t.strengthStrong, color: 'text-green-600' }
+}
+
+export function SetupPasswordForm({ t }: { t: SetupPasswordFormT }) {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  const strength = getPasswordStrength(password)
+  const strength = getPasswordStrength(password, t)
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -45,7 +60,7 @@ export function SetupPasswordForm() {
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="password">New Password</Label>
+        <Label htmlFor="password">{t.newPassword}</Label>
         <Input
           id="password"
           type="password"
@@ -56,12 +71,12 @@ export function SetupPasswordForm() {
           autoComplete="new-password"
         />
         {password && (
-          <p className={`text-xs ${strength.color}`}>Strength: {strength.label}</p>
+          <p className={`text-xs ${strength.color}`}>{t.strength}{strength.label}</p>
         )}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Confirm Password</Label>
+        <Label htmlFor="confirmPassword">{t.confirmPassword}</Label>
         <Input
           id="confirmPassword"
           type="password"
@@ -74,7 +89,7 @@ export function SetupPasswordForm() {
       </div>
 
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? 'Setting password…' : 'Set Password'}
+        {isPending ? t.settingPassword : t.setPasswordBtn}
       </Button>
     </form>
   )

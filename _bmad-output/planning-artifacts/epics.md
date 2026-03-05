@@ -153,7 +153,7 @@ NFR27: All platform-wide configurable variables adjustable via the admin dashboa
 - Version history: full JSONB page snapshots in `content_versions` table; N-version retention configurable
 - File storage: Cloudflare R2 (S3-compatible), presigned URLs, no bytes through Next.js server
 - Analytics: custom `page_events` table with irreversible ip_hash (SHA-256 + daily salt); 12-month retention
-- URL architecture: country and club as path segments — `platform-name.com/{country}/{club-slug}` (no DNS provisioning per club)
+- URL architecture: language, country, and club as path segments — `platform-name.com/{lang}/{country}/{club-slug}` (language and country are independent; no DNS provisioning per club)
 
 **Architecture — Authentication & Security:**
 
@@ -316,7 +316,7 @@ So that the team has a consistent, fully deployable development environment from
 
 **Given** the dev environment is running,
 **When** the browser navigates to `http://localhost:3000`,
-**Then** the Next.js app loads; and `http://localhost:3000/ch/ski-club-valais` resolves to the CH country route via `lib/country.ts`.
+**Then** the Next.js app loads; and `http://localhost:3000/fr/ch/ski-club-valais` resolves to the CH country route for the French language via `lib/country.ts` and `resolveUILang()`.
 
 **Given** code is pushed to the `main` branch,
 **When** GitHub Actions runs the CI pipeline,
@@ -415,7 +415,7 @@ So that I can navigate to any of my clubs in one place and be blocked from acces
 **When** they navigate to `/my-clubs`,
 **Then** an empty-state message is displayed: "You are not a member of any club — contact the platform operator."
 
-**Given** any authenticated user visits a club edit URL (`/ch/[club]/...`),
+**Given** any authenticated user visits a club edit URL (`/[lang]/ch/[club]/...`),
 **When** the club layout renders,
 **Then** the server performs a `ClubMembership.findFirst({ where: { userId, clubSlug, status: ACTIVE } })` lookup; if no active membership exists the user is redirected to `/my-clubs`.
 
@@ -437,7 +437,7 @@ So that I can navigate to any of my clubs in one place and be blocked from acces
 
 
 As a Platform Operator,
-I want to authenticate via a dedicated login page with password and TOTP, with all `/admin/*` routes protected by middleware,
+I want to authenticate via a dedicated login page with password and TOTP, with all `/admin/*` routes protected by `proxy.ts`,
 So that I can securely access the platform admin dashboard, fully isolated from club admin sessions.
 
 **Acceptance Criteria:**
@@ -460,7 +460,7 @@ So that I can securely access the platform admin dashboard, fully isolated from 
 
 **Given** a public visitor (no session),
 **When** `?edit=true` is appended to any club URL,
-**Then** middleware redirects to the platform login page.
+**Then** `proxy.ts` redirects to the platform login page.
 
 **Given** the seeded operator account,
 **When** logging into `/admin/login` with the seeded credentials,
@@ -563,7 +563,7 @@ So that former collaborators can no longer edit my club's content.
 
 **Given** revocation is confirmed,
 **When** the `revokeMembership` Server Action executes,
-**Then** the `ClubMembership.status` is updated to `REVOKED`; on the revoked member's next request to any route under `/ch/[club]/`, the club layout membership guard detects no active membership and redirects them to `/my-clubs`.
+**Then** the `ClubMembership.status` is updated to `REVOKED`; on the revoked member's next request to any route under `/[lang]/ch/[club]/`, the club layout membership guard detects no active membership and redirects them to `/my-clubs`.
 
 **Given** a Club Owner attempts to revoke the last active `OWNER` membership for a club,
 **Then** the action is rejected: "A club must always have at least one active Owner."
@@ -729,8 +729,8 @@ So that I immediately understand the platform's purpose and can find clubs in my
 **Then** it scores ≥ 90 on Core Web Vitals (Lighthouse performance, SEO, accessibility) and includes full meta tags and Open Graph tags generated automatically.
 
 **Given** a visitor clicks a `CountryButton`,
-**When** they are redirected to the country path (e.g., `platform-name.com/ch`),
-**Then** the country directory page loads — routing is handled at the application layer via `lib/country.ts`, not DNS.
+**When** they are redirected to the country path (e.g., `platform-name.com/fr/ch`),
+**Then** the country directory page loads — routing is handled at the application layer via `lib/country.ts` and the `[lang]` segment, not DNS.
 
 **Given** the platform site,
 **Then** it includes static pages: `/about` (platform philosophy) and a `/support` placeholder page (full support form implemented in Epic 6).
@@ -745,7 +745,7 @@ So that I can discover clubs matching my activity interest and geographic region
 
 **Acceptance Criteria:**
 
-**Given** a visitor navigates to a country path (e.g., `platform-name.com/ch`),
+**Given** a visitor navigates to a country path (e.g., `platform-name.com/fr/ch`),
 **When** the page loads,
 **Then** it renders server-side with a filter bar (activity type select, region/canton select) and a grid of `ClubCard` components for all active clubs in that country.
 
@@ -772,7 +772,7 @@ So that I can quickly understand who the club is and find the information I need
 
 **Acceptance Criteria:**
 
-**Given** a visitor navigates to a club's URL path (e.g., `platform-name.com/ch/ski-club-valais`),
+**Given** a visitor navigates to a club's URL path (e.g., `platform-name.com/fr/ch/ski-club-valais`),
 **When** the page loads,
 **Then** it renders server-side with: the club's logo, name (`<h1>`), welcome text, a primary CTA button linking to the Contact page, and the `ClubSidebarNav` with all active pages listed.
 
@@ -802,7 +802,7 @@ So that I can browse the club's content without full-page reloads.
 **When** navigation occurs,
 **Then** a loading skeleton matching the expected content shape is displayed within 100ms; content loads from the Route Handler and renders within 2 seconds.
 
-**Given** a visitor directly navigates to a club inner page URL (e.g., `platform-name.com/ch/ski-club-valais/calendar`),
+**Given** a visitor directly navigates to a club inner page URL (e.g., `platform-name.com/fr/ch/ski-club-valais/calendar`),
 **When** the page loads,
 **Then** it renders correctly and is crawlable via direct URL access.
 

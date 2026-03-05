@@ -5,13 +5,22 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { loginWithCredentials } from '@/app/auth/login/actions'
+import { loginWithCredentials } from '@/app/[lang]/auth/login/actions'
+
+interface LoginFormT {
+  email: string
+  password: string
+  signingIn: string
+  signIn: string
+}
 
 interface LoginFormProps {
   callbackUrl?: string
+  lang: string
+  t: LoginFormT
 }
 
-export function LoginForm({ callbackUrl }: LoginFormProps) {
+export function LoginForm({ callbackUrl, lang, t }: LoginFormProps) {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -32,9 +41,9 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
 
       // If TOTP enrolled → challenge required (callbackUrl not carried through TOTP flow)
       if (result.totpEnabled) {
-        router.push('/auth/totp')
+        router.push(`/${lang}/auth/totp`)
       } else {
-        router.push(callbackUrl ?? (result.role === 'OPERATOR' ? '/admin' : '/my-clubs'))
+        router.push(callbackUrl ?? (result.role === 'OPERATOR' ? `/${lang}/admin` : `/${lang}/my-clubs`))
       }
     })
   }
@@ -48,7 +57,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{t.email}</Label>
         <Input
           id="email"
           type="email"
@@ -61,7 +70,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">{t.password}</Label>
         <Input
           id="password"
           type="password"
@@ -74,7 +83,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
       </div>
 
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? 'Signing in…' : 'Sign In'}
+        {isPending ? t.signingIn : t.signIn}
       </Button>
     </form>
   )

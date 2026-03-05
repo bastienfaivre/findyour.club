@@ -34,7 +34,7 @@ vi.mock('@/server/auth', () => ({
 import { prisma } from '@/server/db'
 import { decodeSetupCookie } from '@/lib/setup-cookie'
 import { redirect } from 'next/navigation'
-import { setupPassword } from '@/app/auth/setup/actions'
+import { setupPassword } from '@/app/[lang]/auth/setup/actions'
 
 const STRONG_PASSWORD = 'Str0ng!P@ssw0rd'
 

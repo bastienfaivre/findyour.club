@@ -36,7 +36,7 @@ import { prisma } from '@/server/db'
 import { verifyTotpCode } from '@/lib/totp'
 import { redirect } from 'next/navigation'
 import { getAuthSession } from '@/server/auth'
-import { enrollTotp } from '@/app/auth/totp-setup/actions'
+import { enrollTotp } from '@/app/[lang]/auth/totp-setup/actions'
 
 describe('enrollTotp()', () => {
   beforeEach(() => {

@@ -4,7 +4,12 @@ import { startAuthentication } from '@simplewebauthn/browser'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
-export function PasskeyButton() {
+interface PasskeyButtonT {
+  authenticating: string
+  signInWithPasskey: string
+}
+
+export function PasskeyButton({ t }: { t: PasskeyButtonT }) {
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -58,7 +63,7 @@ export function PasskeyButton() {
         onClick={handlePasskeyLogin}
         disabled={isPending}
       >
-        {isPending ? 'Authenticating…' : 'Sign in with passkey'}
+        {isPending ? t.authenticating : t.signInWithPasskey}
       </Button>
     </div>
   )

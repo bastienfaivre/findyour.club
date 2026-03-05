@@ -1,0 +1,129 @@
+export type Translations = {
+  nav: { home: string; apply: string; myClubs: string; login: string; logout: string }
+  common: { loading: string; error: string; save: string; cancel: string; submit: string; confirm: string }
+  language: { label: string; fr: string; de: string; it: string; en: string }
+  auth: {
+    signIn: string
+    signInSubtitle: string
+    or: string
+    setPassword: string
+    setPasswordSubtitle: string
+    twoFactor: string
+    twoFactorSubtitle: string
+    totpSetup: string
+    totpSetupSubtitle: string
+    accountSettings: string
+    signedInAs: string
+    changePassword: string
+    passkeys: string
+    errorTitle: string
+    returnToSignIn: string
+    errors: {
+      configuration: string
+      accessDenied: string
+      verification: string
+      /** Use {email} as placeholder for the support email address */
+      tokenInvalid: string
+      /** Use {email} as placeholder for the support email address */
+      tokenExpired: string
+      inviteExpired: string
+      inviteEmailMismatch: string
+      default: string
+    }
+    fields: {
+      email: string
+      password: string
+      currentPassword: string
+      newPassword: string
+      confirmPassword: string
+      /** Label for the 6-digit code field on the TOTP challenge page */
+      codeTotp: string
+      /** Label for the 6-digit code field on the TOTP setup page */
+      codeSetup: string
+    }
+    form: {
+      signingIn: string
+      signIn: string
+      updatingPassword: string
+      updatePassword: string
+      settingPassword: string
+      setPasswordBtn: string
+      verifying: string
+      verify: string
+      activate2fa: string
+      copy: string
+      copied: string
+      enrollTotp: string
+      resetTotp: string
+      removing: string
+      disable2fa: string
+      addPasskey: string
+      working: string
+      remove: string
+      signInWithPasskey: string
+      authenticating: string
+      passwordChanged: string
+      passwordHint: string
+      strength: string
+      strengthTooShort: string
+      strengthWeak: string
+      strengthFair: string
+      strengthStrong: string
+      totpEnabled: string
+      totpNotEnrolled: string
+      totpEnabledDesc: string
+      totpNotEnrolledDesc: string
+      totpConfirmDisable: string
+      noPasskeys: string
+      /** Use {date} as placeholder for the formatted date */
+      passkeyAdded: string
+      passkeyConfirmRemove: string
+      passkeyDefaultName: string
+      passkeyStartFailed: string
+      passkeyCompleteFailed: string
+      passkeyRegistrationFailed: string
+    }
+    banner: {
+      pre: string
+      link: string
+      post: string
+    }
+  }
+  myClubs: {
+    noClubs: string
+  }
+  admin: {
+    dashboardTitle: string
+  }
+  club: {
+    settings: string
+    membership: {
+      members: string
+      noMembers: string
+      email: string
+      role: string
+      status: string
+      actions: string
+      owner: string
+      editor: string
+      active: string
+      pending: string
+      transfer: string
+      revoke: string
+      confirm: string
+      cancel: string
+      /** Use {email} as placeholder */
+      transferConfirm: string
+      /** Use {email} as placeholder */
+      revokeConfirm: string
+      transferSuccess: string
+      revokeSuccess: string
+      inviteEditor: string
+      emailAddress: string
+      sending: string
+      inviteAsEditor: string
+      /** Use {email} as placeholder */
+      inviteSent: string
+    }
+  }
+}

@@ -4,9 +4,19 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { changePassword } from '@/app/auth/account/actions'
+import { changePassword } from '@/app/[lang]/auth/account/actions'
 
-export function ChangePasswordForm() {
+interface ChangePasswordFormT {
+  currentPassword: string
+  newPassword: string
+  confirmPassword: string
+  passwordHint: string
+  updatingPassword: string
+  updatePassword: string
+  passwordChanged: string
+}
+
+export function ChangePasswordForm({ t }: { t: ChangePasswordFormT }) {
   const [currentPassword, setCurrentPassword] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -41,12 +51,12 @@ export function ChangePasswordForm() {
       )}
       {success && (
         <Alert>
-          <AlertDescription>Password changed successfully.</AlertDescription>
+          <AlertDescription>{t.passwordChanged}</AlertDescription>
         </Alert>
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="currentPassword">Current password</Label>
+        <Label htmlFor="currentPassword">{t.currentPassword}</Label>
         <Input
           id="currentPassword"
           type="password"
@@ -59,7 +69,7 @@ export function ChangePasswordForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="newPassword">New password</Label>
+        <Label htmlFor="newPassword">{t.newPassword}</Label>
         <Input
           id="newPassword"
           type="password"
@@ -69,13 +79,11 @@ export function ChangePasswordForm() {
           disabled={isPending}
           autoComplete="new-password"
         />
-        <p className="text-xs text-muted-foreground">
-          Min. 12 characters with uppercase, lowercase, number, and special character.
-        </p>
+        <p className="text-xs text-muted-foreground">{t.passwordHint}</p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Confirm new password</Label>
+        <Label htmlFor="confirmPassword">{t.confirmPassword}</Label>
         <Input
           id="confirmPassword"
           type="password"
@@ -88,7 +96,7 @@ export function ChangePasswordForm() {
       </div>
 
       <Button type="submit" disabled={isPending}>
-        {isPending ? 'Updating…' : 'Update password'}
+        {isPending ? t.updatingPassword : t.updatePassword}
       </Button>
     </form>
   )

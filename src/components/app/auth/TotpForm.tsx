@@ -4,9 +4,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { verifyTotpChallenge } from '@/app/auth/totp/actions'
+import { verifyTotpChallenge } from '@/app/[lang]/auth/totp/actions'
 
-export function TotpForm() {
+interface TotpFormT {
+  codeTotp: string
+  verifying: string
+  verify: string
+}
+
+export function TotpForm({ t }: { t: TotpFormT }) {
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -33,7 +39,7 @@ export function TotpForm() {
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="code">6-digit authentication code</Label>
+        <Label htmlFor="code">{t.codeTotp}</Label>
         <Input
           id="code"
           type="text"
@@ -51,7 +57,7 @@ export function TotpForm() {
       </div>
 
       <Button type="submit" className="w-full" disabled={isPending || code.length !== 6}>
-        {isPending ? 'Verifying…' : 'Verify'}
+        {isPending ? t.verifying : t.verify}
       </Button>
     </form>
   )

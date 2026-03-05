@@ -98,13 +98,38 @@ CREATE TABLE "activity_types" (
 );
 
 -- CreateTable
+CREATE TABLE "swiss_cantons" (
+    "code" TEXT NOT NULL,
+
+    CONSTRAINT "swiss_cantons_pkey" PRIMARY KEY ("code")
+);
+
+-- CreateTable
+CREATE TABLE "swiss_canton_translations" (
+    "canton_code" TEXT NOT NULL,
+    "language" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+
+    CONSTRAINT "swiss_canton_translations_pkey" PRIMARY KEY ("canton_code","language")
+);
+
+-- CreateTable
 CREATE TABLE "swiss_locations" (
     "id" TEXT NOT NULL,
+    "swisstopo_id" TEXT NOT NULL,
     "plz" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "canton" TEXT NOT NULL,
+    "canton_code" TEXT NOT NULL,
 
     CONSTRAINT "swiss_locations_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "swiss_location_translations" (
+    "swiss_location_id" TEXT NOT NULL,
+    "language" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+
+    CONSTRAINT "swiss_location_translations_pkey" PRIMARY KEY ("swiss_location_id","language")
 );
 
 -- CreateTable
@@ -134,6 +159,7 @@ CREATE TABLE "clubs" (
     "storage_used_bytes" BIGINT NOT NULL DEFAULT 0,
     "storage_limit_bytes" BIGINT NOT NULL DEFAULT 5368709120,
     "template_version" TEXT NOT NULL DEFAULT '1.0.0',
+    "default_language" TEXT NOT NULL DEFAULT 'fr',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -409,10 +435,7 @@ CREATE UNIQUE INDEX "club_memberships_user_id_club_id_key" ON "club_memberships"
 CREATE UNIQUE INDEX "activity_types_slug_key" ON "activity_types"("slug");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "swiss_locations_plz_name_key" ON "swiss_locations"("plz", "name");
-
--- CreateIndex
-CREATE INDEX "swiss_locations_canton_idx" ON "swiss_locations"("canton");
+CREATE UNIQUE INDEX "swiss_locations_swisstopo_id_key" ON "swiss_locations"("swisstopo_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "locations_swiss_location_id_key" ON "locations"("swiss_location_id");
@@ -473,6 +496,15 @@ ALTER TABLE "club_memberships" ADD CONSTRAINT "club_memberships_invited_by_fkey"
 
 -- AddForeignKey
 ALTER TABLE "activity_types" ADD CONSTRAINT "activity_types_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "swiss_canton_translations" ADD CONSTRAINT "swiss_canton_translations_canton_code_fkey" FOREIGN KEY ("canton_code") REFERENCES "swiss_cantons"("code") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "swiss_locations" ADD CONSTRAINT "swiss_locations_canton_code_fkey" FOREIGN KEY ("canton_code") REFERENCES "swiss_cantons"("code") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "swiss_location_translations" ADD CONSTRAINT "swiss_location_translations_swiss_location_id_fkey" FOREIGN KEY ("swiss_location_id") REFERENCES "swiss_locations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "locations" ADD CONSTRAINT "locations_swiss_location_id_fkey" FOREIGN KEY ("swiss_location_id") REFERENCES "swiss_locations"("id") ON DELETE SET NULL ON UPDATE CASCADE;

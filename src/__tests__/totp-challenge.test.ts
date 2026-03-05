@@ -34,7 +34,7 @@ import { getServerSession } from 'next-auth'
 import { prisma } from '@/server/db'
 import { verifyTotpCode } from '@/lib/totp'
 import { redirect } from 'next/navigation'
-import { verifyTotpChallenge } from '@/app/auth/totp/actions'
+import { verifyTotpChallenge } from '@/app/[lang]/auth/totp/actions'
 
 describe('verifyTotpChallenge()', () => {
   beforeEach(() => {

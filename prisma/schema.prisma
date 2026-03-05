@@ -196,6 +196,7 @@ model Club {
   storageUsedBytes  BigInt      @default(0) @map("storage_used_bytes")
   storageLimitBytes BigInt      @default(5368709120) @map("storage_limit_bytes") // 5 GB default
   templateVersion   String      @default("1.0.0") @map("template_version")
+  defaultLanguage   String      @default("fr") @map("default_language") // "en" | "fr" | "de" | "it"
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
 
@@ -257,17 +258,47 @@ model Location {
   @@map("locations")
 }
 
+model SwissCanton {
+  code         String                   @id
+  translations SwissCantonTranslation[]
+  locations    SwissLocation[]
+
+  @@map("swiss_cantons")
+}
+
+model SwissCantonTranslation {
+  cantonCode String @map("canton_code")
+  language   String // "en" | "fr" | "de" | "it"
+  name       String
+
+  canton SwissCanton @relation(fields: [cantonCode], references: [code], onDelete: Cascade)
+
+  @@id([cantonCode, language])
+  @@map("swiss_canton_translations")
+}
+
 model SwissLocation {
-  id     String @id @default(cuid())
-  plz    String
-  name   String
-  canton String
+  id          String @id @default(cuid())
+  swisstopoId String @unique @map("swisstopo_id")
+  plz         String // primary postal code (display only)
+  cantonCode  String @map("canton_code")
 
-  location Location?
+  canton       SwissCanton               @relation(fields: [cantonCode], references: [code])
+  translations SwissLocationTranslation[]
+  location     Location?
 
-  @@unique([plz, name])
-  @@index([canton])
   @@map("swiss_locations")
+}
+
+model SwissLocationTranslation {
+  swissLocationId String @map("swiss_location_id")
+  language        String // "en" | "fr" | "de" | "it"
+  name            String
+
+  swissLocation SwissLocation @relation(fields: [swissLocationId], references: [id], onDelete: Cascade)
+
+  @@id([swissLocationId, language])
+  @@map("swiss_location_translations")
 }
 
 model Page {

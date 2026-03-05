@@ -7,13 +7,13 @@ interface ClubEntry {
   club: { slug: string; country: string; name: string; logoUrl: string | null; logoAlt: string | null }
 }
 
-export function MyClubsList({ memberships, host }: { memberships: ClubEntry[]; host: string }) {
+export function MyClubsList({ memberships, host, lang }: { memberships: ClubEntry[]; host: string; lang: string }) {
   return (
     <ul className="space-y-3">
       {memberships.map((m) => (
         <li key={`${m.club.country}-${m.club.slug}`}>
           <Link
-            href={buildClubAdminUrl(host, m.club.country, m.club.slug)}
+            href={buildClubAdminUrl(host, lang, m.club.country, m.club.slug)}
             className="flex items-center justify-between p-4 rounded-lg border hover:bg-accent transition-colors"
           >
             <span className="font-medium">{m.club.name}</span>

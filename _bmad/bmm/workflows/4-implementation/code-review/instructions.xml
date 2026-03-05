@@ -59,13 +59,38 @@
   <step n="3" goal="Execute adversarial review">
     <critical>VALIDATE EVERY CLAIM - Check git reality vs story claims</critical>
 
-    <!-- Lint check -->
+    <!-- Safety checks: run ALL four before any code inspection -->
+    <critical>Run ALL four safety checks first, in sequence. Record each result as a finding if it fails.</critical>
+    <action>Run `pnpm tsc --noEmit` and capture output</action>
+    <check if="tsc --noEmit exits with errors">
+      <action>Record each TypeScript error as a HIGH finding with file and line reference</action>
+    </check>
+    <check if="tsc --noEmit exits cleanly">
+      <action>Note "pnpm tsc --noEmit: PASSED" in review summary</action>
+    </check>
+
     <action>Run `pnpm lint` and capture output</action>
     <check if="lint exits with errors">
       <action>Record each lint error as a HIGH finding with file and line reference</action>
     </check>
     <check if="lint exits cleanly">
       <action>Note "pnpm lint: PASSED" in review summary</action>
+    </check>
+
+    <action>Run `pnpm audit` and capture output</action>
+    <check if="audit reports any vulnerabilities">
+      <action>Record each vulnerability as a HIGH finding</action>
+    </check>
+    <check if="audit reports no vulnerabilities">
+      <action>Note "pnpm audit: PASSED" in review summary</action>
+    </check>
+
+    <action>Run `pnpm build` and capture output</action>
+    <check if="build exits with errors">
+      <action>Record each build error as a HIGH finding with file and line reference</action>
+    </check>
+    <check if="build exits cleanly">
+      <action>Note "pnpm build: PASSED" in review summary</action>
     </check>
 
     <!-- Git vs Story Discrepancies -->

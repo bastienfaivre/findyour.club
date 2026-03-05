@@ -24,12 +24,12 @@ vi.mock('@/components/app/auth/TotpEnrollmentBanner', () => ({
 import { redirect, notFound } from 'next/navigation'
 import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
-import ClubLayout from '@/app/(country)/[country]/[club]/layout'
+import ClubLayout from '@/app/[lang]/(country)/[country]/[club]/layout'
 
 const MOCK_CHILDREN = null
 
-function makeParams(slug = 'ski-club-valais', country = 'ch') {
-  return Promise.resolve({ country, club: slug })
+function makeParams(slug = 'ski-club-valais', country = 'ch', lang = 'fr') {
+  return Promise.resolve({ lang, country, club: slug })
 }
 
 describe('ClubLayout membership guard', () => {
@@ -37,17 +37,17 @@ describe('ClubLayout membership guard', () => {
     vi.resetAllMocks()
   })
 
-  it('redirects to /auth/login when there is no session', async () => {
+  it('redirects to /{lang}/auth/login when there is no session', async () => {
     vi.mocked(getAuthSession).mockResolvedValue(null)
-    await expect(ClubLayout({ children: MOCK_CHILDREN, params: makeParams() })).rejects.toThrow('NEXT_REDIRECT:/auth/login')
-    expect(redirect).toHaveBeenCalledWith('/auth/login')
+    await expect(ClubLayout({ children: MOCK_CHILDREN, params: makeParams() })).rejects.toThrow('NEXT_REDIRECT:/fr/auth/login')
+    expect(redirect).toHaveBeenCalledWith('/fr/auth/login')
   })
 
-  it('redirects to /auth/totp when totpEnabled but not totpVerified', async () => {
+  it('redirects to /{lang}/auth/totp when totpEnabled but not totpVerified', async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'u1', totpEnabled: true, totpVerified: false } } as any)
-    await expect(ClubLayout({ children: MOCK_CHILDREN, params: makeParams() })).rejects.toThrow('NEXT_REDIRECT:/auth/totp')
-    expect(redirect).toHaveBeenCalledWith('/auth/totp')
+    await expect(ClubLayout({ children: MOCK_CHILDREN, params: makeParams() })).rejects.toThrow('NEXT_REDIRECT:/fr/auth/totp')
+    expect(redirect).toHaveBeenCalledWith('/fr/auth/totp')
   })
 
   it('calls notFound() when country path segment is not supported', async () => {
@@ -65,13 +65,13 @@ describe('ClubLayout membership guard', () => {
     expect(notFound).toHaveBeenCalled()
   })
 
-  it('redirects to /my-clubs when user has no active membership', async () => {
+  it('redirects to /{lang}/my-clubs when user has no active membership', async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'u1', totpEnabled: false, totpVerified: false } } as any)
     vi.mocked(prisma.club.findUnique).mockResolvedValue({ id: 'club-1' } as never)
     vi.mocked(prisma.clubMembership.findFirst).mockResolvedValue(null)
-    await expect(ClubLayout({ children: MOCK_CHILDREN, params: makeParams() })).rejects.toThrow('NEXT_REDIRECT:/my-clubs')
-    expect(redirect).toHaveBeenCalledWith('/my-clubs')
+    await expect(ClubLayout({ children: MOCK_CHILDREN, params: makeParams() })).rejects.toThrow('NEXT_REDIRECT:/fr/my-clubs')
+    expect(redirect).toHaveBeenCalledWith('/fr/my-clubs')
   })
 
   it('renders children when user has an active membership', async () => {

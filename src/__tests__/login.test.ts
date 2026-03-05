@@ -29,7 +29,7 @@ vi.mock('@/lib/setup-cookie', () => ({
 import argon2 from 'argon2'
 import { prisma } from '@/server/db'
 import { checkRateLimit } from '@/lib/rate-limit'
-import { loginWithCredentials } from '@/app/auth/login/actions'
+import { loginWithCredentials } from '@/app/[lang]/auth/login/actions'
 
 describe('loginWithCredentials()', () => {
   beforeEach(() => vi.clearAllMocks())

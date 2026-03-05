@@ -14,7 +14,7 @@ so that I can navigate to any of my clubs in one place and be blocked from acces
 
 2. **Given** an authenticated Club Admin has no active memberships, **When** they navigate to `/my-clubs`, **Then** an empty-state message is displayed: "You are not a member of any club — contact the platform operator."
 
-3. **Given** any authenticated user visits a club edit URL (`/ch/[club]/...`), **When** the club layout renders, **Then** the server performs a `ClubMembership.findFirst({ where: { userId, clubId, status: ACTIVE } })` lookup using the club resolved from the URL slug + country; if no active membership exists the user is redirected to `/my-clubs`.
+3. **Given** any authenticated user visits a club edit URL (`/[lang]/ch/[club]/...`), **When** the club layout renders, **Then** the server performs a `ClubMembership.findFirst({ where: { userId, clubId, status: ACTIVE } })` lookup using the club resolved from the URL slug + country; if no active membership exists the user is redirected to `/my-clubs`.
 
 4. **Given** the session object, **Then** it never includes `clubId`; the active club is always resolved from the URL path and verified via `ClubMembership` at layout render time — never from stored session data.
 
@@ -112,6 +112,8 @@ export function buildClubAdminUrl(host: string, country: string, slug: string): 
 ```
 
 **Note:** `redirect()` from `next/navigation` supports full URLs (cross-origin redirects). The `buildClubAdminUrl` utility generates these full URLs so that club links work correctly across the path-based routing structure.
+
+> ⚠️ **Updated by Story 2.0 (Task 9.5–9.6):** The URL architecture was extended to `/{lang}/{country}/{slug}` in Story 2.0. `buildClubAdminUrl` now accepts a `lang: string` second parameter. The `/my-clubs` page reads `lang` from the `platform_lang` cookie via `getLanguage()` and passes it to `MyClubsList`. The implementations here document the Story 1.4 original; see Story 2.0 for the updated shape.
 
 ### 📄 `/my-clubs` Page Pattern
 

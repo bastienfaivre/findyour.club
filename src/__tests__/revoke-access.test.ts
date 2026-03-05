@@ -18,7 +18,7 @@ vi.mock('@/server/db', () => ({
 
 import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
-import { revokeAccess } from '@/app/(country)/[country]/[club]/settings/actions'
+import { revokeAccess } from '@/app/[lang]/(country)/[country]/[club]/settings/actions'
 
 const COUNTRY = 'ch'
 const SLUG = 'test-club'

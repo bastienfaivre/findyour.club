@@ -17,7 +17,7 @@ vi.mock('@/server/auth', () => ({
 
 import { cookies } from 'next/headers'
 import { prisma } from '@/server/db'
-import { GET } from '@/app/auth/logout/route'
+import { GET } from '@/app/[lang]/auth/logout/route'
 
 const BASE = 'http://localhost'
 

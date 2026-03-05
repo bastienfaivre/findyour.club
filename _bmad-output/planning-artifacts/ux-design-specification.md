@@ -398,9 +398,9 @@ Six initial directions (D1–D6) were explored covering layout approaches, infor
 
 A composite direction built from the most effective elements of the exploration:
 
-**Platform Homepage (Surface 01):** Sober, minimal layout inspired by howmuch.tax — short declarative headline ("The worldwide activities glossary"), country selector buttons directing to country subdomains (ch.platform-name.com, fr.platform-name.com), aggregate statistics (total clubs, countries, members). No listing on the main page.
+**Platform Homepage (Surface 01):** Sober, minimal layout inspired by howmuch.tax — short declarative headline ("The worldwide activities glossary"), country selector buttons directing to country paths (e.g. `platform-name.com/{lang}/ch`), aggregate statistics (total clubs, countries, members). No listing on the main page.
 
-**Country Page (Surface 02):** Country-specific subdomain with a search form adapted to local administrative structure (Switzerland: canton as first field), followed by a filterable club grid.
+**Country Page (Surface 02):** Country-specific path (`/{lang}/{country}`) with a search form adapted to local administrative structure (Switzerland: canton as first field), followed by a filterable club grid.
 
 **Club Site Public (Surface 03):** D4-style persistent sidebar navigation combined with a D1-style centered hero section on the homepage (club logo, name, tagline, primary CTA). Inner pages use sidebar nav with content area.
 
@@ -415,7 +415,7 @@ The composite direction unifies two distinct contexts (public-facing club sites 
 ### Implementation Approach
 
 - Shared Tailwind + shadcn/ui component library across all surfaces
-- Subdomain routing per country (e.g. ch.platform-name.com) with country-specific search field schemas
+- Path-based routing: `/{lang}/{country}` (e.g. `platform-name.com/fr/ch`) with country-specific search field schemas; `{lang}` and `{country}` are independent segments
 - Single in-place edit URL per club (no /admin route); dark sidebar signals edit vs. public state
 - Admin tab gated by auth state (hidden from public, shown only in edit mode)
 - Dark sidebar as the design anchor for all authenticated and operator-facing surfaces
@@ -501,7 +501,7 @@ flowchart TD
 flowchart TD
     A([Search: 'badminton club Lausanne']) --> B{Landing surface}
     B -->|Direct club site in SERP| C[Club site: Home\nlogo · name · welcome text · CTA]
-    B -->|Platform directory in SERP| D[ch.platform-name.com\nCountry page]
+    B -->|Platform directory in SERP| D[platform-name.com/fr/ch\nCountry page]
     D --> E[Filter: Activity type + Canton]
     E --> F[Club listing]
     F --> C

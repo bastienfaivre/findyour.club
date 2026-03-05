@@ -1,14 +1,10 @@
 // Temporary dev panel — remove before production
 import Link from 'next/link'
 import { getAuthSession } from '@/server/auth'
-
-const SEEDED_EMAILS = [
-  'admin@ski-club-valais.ch',
-  'admin@football-club-lausanne.ch',
-]
+import { getLanguage } from '@/lib/i18n/get-language'
 
 export async function DevAuthPanel() {
-  const session = await getAuthSession()
+  const [session, lang] = await Promise.all([getAuthSession(), getLanguage()])
   const user = session?.user
 
   return (
@@ -43,56 +39,40 @@ export async function DevAuthPanel() {
         {user ? (
           <>
             {/* Plain <a> — forces a full page load so the Server Component re-renders with cleared cookies */}
-            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-            <a href="/auth/logout" className="block rounded bg-red-800 px-2 py-1 text-center text-white hover:bg-red-700">
+            <a href={`/${lang}/auth/logout`} className="block rounded bg-red-800 px-2 py-1 text-center text-white hover:bg-red-700">
               Logout
             </a>
-            <Link href="/auth/account" className="block rounded bg-zinc-700 px-2 py-1 text-center hover:bg-zinc-600">
+            <Link href={`/${lang}/auth/account`} className="block rounded bg-zinc-700 px-2 py-1 text-center hover:bg-zinc-600">
               Account settings
             </Link>
-            <Link href="/auth/totp-setup" className="block rounded bg-zinc-700 px-2 py-1 text-center hover:bg-zinc-600">
+            <Link href={`/${lang}/auth/totp-setup`} className="block rounded bg-zinc-700 px-2 py-1 text-center hover:bg-zinc-600">
               {user.totpEnabled ? 'Re-enroll TOTP' : 'Enroll TOTP'}
             </Link>
             {user.totpEnabled && !user.totpVerified && (
-              <Link href="/auth/totp" className="block rounded bg-zinc-700 px-2 py-1 text-center hover:bg-zinc-600">
+              <Link href={`/${lang}/auth/totp`} className="block rounded bg-zinc-700 px-2 py-1 text-center hover:bg-zinc-600">
                 TOTP Challenge
               </Link>
             )}
           </>
         ) : (
-          <Link href="/auth/login" className="block rounded bg-blue-700 px-2 py-1 text-center text-white hover:bg-blue-600">
+          <Link href={`/${lang}/auth/login`} className="block rounded bg-blue-700 px-2 py-1 text-center text-white hover:bg-blue-600">
             Login
           </Link>
         )}
 
-        {/* Magic link — first-login flow testing */}
-        <div className="mt-2 border-t border-zinc-700 pt-2 space-y-1">
-          <p className="text-[10px] text-zinc-600 uppercase tracking-wider">Magic link (first-login)</p>
-          {SEEDED_EMAILS.map(email => (
-            <Link
-              key={email}
-              href={`/dev/magic-link?email=${encodeURIComponent(email)}`}
-              className="block truncate rounded bg-zinc-800 px-2 py-1 text-center text-zinc-400 hover:bg-zinc-700"
-              title={email}
-            >
-              {email}
-            </Link>
-          ))}
-        </div>
-
         {/* Other dev pages */}
         <div className="mt-2 border-t border-zinc-700 pt-2 space-y-1">
           <p className="text-[10px] text-zinc-600 uppercase tracking-wider">Pages</p>
-          <Link href="/auth/login" className="block rounded bg-zinc-800 px-2 py-1 text-center text-zinc-400 hover:bg-zinc-700">
+          <Link href={`/${lang}/auth/login`} className="block rounded bg-zinc-800 px-2 py-1 text-center text-zinc-400 hover:bg-zinc-700">
             Login page
           </Link>
-          <Link href="/auth/setup" className="block rounded bg-zinc-800 px-2 py-1 text-center text-zinc-400 hover:bg-zinc-700">
+          <Link href={`/${lang}/auth/setup`} className="block rounded bg-zinc-800 px-2 py-1 text-center text-zinc-400 hover:bg-zinc-700">
             Password setup
           </Link>
-          <Link href="/auth/error" className="block rounded bg-zinc-800 px-2 py-1 text-center text-zinc-400 hover:bg-zinc-700">
+          <Link href={`/${lang}/auth/error`} className="block rounded bg-zinc-800 px-2 py-1 text-center text-zinc-400 hover:bg-zinc-700">
             Error page
           </Link>
-          <Link href="/my-clubs" className="block rounded bg-zinc-800 px-2 py-1 text-center text-zinc-400 hover:bg-zinc-700">
+          <Link href={`/${lang}/my-clubs`} className="block rounded bg-zinc-800 px-2 py-1 text-center text-zinc-400 hover:bg-zinc-700">
             My clubs
           </Link>
         </div>
@@ -100,7 +80,7 @@ export async function DevAuthPanel() {
         {/* Admin pages */}
         <div className="mt-2 border-t border-zinc-700 pt-2 space-y-1">
           <p className="text-[10px] text-zinc-600 uppercase tracking-wider">Admin</p>
-          <Link href="/admin" className="block rounded bg-zinc-800 px-2 py-1 text-center text-zinc-400 hover:bg-zinc-700">
+          <Link href={`/${lang}/admin`} className="block rounded bg-zinc-800 px-2 py-1 text-center text-zinc-400 hover:bg-zinc-700">
             Operator dashboard
           </Link>
         </div>

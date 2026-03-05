@@ -3,19 +3,33 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { removeTotp } from '@/app/auth/account/actions'
+import { removeTotp } from '@/app/[lang]/auth/account/actions'
+
+interface ManageTotpSectionT {
+  totpEnabled: string
+  totpNotEnrolled: string
+  totpEnabledDesc: string
+  totpNotEnrolledDesc: string
+  enrollTotp: string
+  resetTotp: string
+  removing: string
+  disable2fa: string
+  totpConfirmDisable: string
+}
 
 interface ManageTotpSectionProps {
   totpEnabled: boolean
+  lang: string
+  t: ManageTotpSectionT
 }
 
-export function ManageTotpSection({ totpEnabled }: ManageTotpSectionProps) {
+export function ManageTotpSection({ totpEnabled, lang, t }: ManageTotpSectionProps) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   function handleRemove() {
-    if (!confirm('Are you sure you want to disable two-factor authentication? Your account will be less secure.')) return
+    if (!confirm(t.totpConfirmDisable)) return
     setError(null)
 
     startTransition(async () => {
@@ -40,22 +54,20 @@ export function ManageTotpSection({ totpEnabled }: ManageTotpSectionProps) {
         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
           totpEnabled ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
         }`}>
-          {totpEnabled ? 'Enabled' : 'Not enrolled'}
+          {totpEnabled ? t.totpEnabled : t.totpNotEnrolled}
         </span>
         <span className="text-sm text-muted-foreground">
-          {totpEnabled
-            ? 'Your account is protected with TOTP 2FA.'
-            : 'Your account is not protected with 2FA.'}
+          {totpEnabled ? t.totpEnabledDesc : t.totpNotEnrolledDesc}
         </span>
       </div>
 
       <div className="flex gap-2">
         <Button
           variant="outline"
-          onClick={() => router.push('/auth/totp-setup')}
+          onClick={() => router.push(`/${lang}/auth/totp-setup`)}
           disabled={isPending}
         >
-          {totpEnabled ? 'Reset TOTP (re-enroll)' : 'Enroll TOTP'}
+          {totpEnabled ? t.resetTotp : t.enrollTotp}
         </Button>
 
         {totpEnabled && (
@@ -64,7 +76,7 @@ export function ManageTotpSection({ totpEnabled }: ManageTotpSectionProps) {
             onClick={handleRemove}
             disabled={isPending}
           >
-            {isPending ? 'Removing…' : 'Disable 2FA'}
+            {isPending ? t.removing : t.disable2fa}
           </Button>
         )}
       </div>

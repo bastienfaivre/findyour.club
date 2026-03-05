@@ -17,7 +17,7 @@ vi.mock('@/server/db', () => ({
 
 import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
-import { transferOwnership } from '@/app/(country)/[country]/[club]/settings/actions'
+import { transferOwnership } from '@/app/[lang]/(country)/[country]/[club]/settings/actions'
 
 const COUNTRY = 'ch'
 const SLUG = 'test-club'

@@ -56,6 +56,58 @@ async function main() {
     },
   })
 
+  // ─── Swiss Cantons ───────────────────────────────────────────────────
+  const cantons: Array<{ code: string; de: string; fr: string; it: string; en: string }> = [
+    { code: 'AG', de: 'Aargau', fr: 'Argovie', it: 'Argovia', en: 'Aargau' },
+    { code: 'AI', de: 'Appenzell Innerrhoden', fr: 'Appenzell Rhodes-Intérieures', it: 'Appenzello Interno', en: 'Appenzell Inner Rhodes' },
+    { code: 'AR', de: 'Appenzell Ausserrhoden', fr: 'Appenzell Rhodes-Extérieures', it: 'Appenzello Esterno', en: 'Appenzell Outer Rhodes' },
+    { code: 'BE', de: 'Bern', fr: 'Berne', it: 'Berna', en: 'Bern' },
+    { code: 'BL', de: 'Basel-Landschaft', fr: 'Bâle-Campagne', it: 'Basilea Campagna', en: 'Basel-Country' },
+    { code: 'BS', de: 'Basel-Stadt', fr: 'Bâle-Ville', it: 'Basilea Città', en: 'Basel-City' },
+    { code: 'FR', de: 'Freiburg', fr: 'Fribourg', it: 'Friburgo', en: 'Fribourg' },
+    { code: 'GE', de: 'Genf', fr: 'Genève', it: 'Ginevra', en: 'Geneva' },
+    { code: 'GL', de: 'Glarus', fr: 'Glaris', it: 'Glarona', en: 'Glarus' },
+    { code: 'GR', de: 'Graubünden', fr: 'Grisons', it: 'Grigioni', en: 'Graubünden' },
+    { code: 'JU', de: 'Jura', fr: 'Jura', it: 'Giura', en: 'Jura' },
+    { code: 'LU', de: 'Luzern', fr: 'Lucerne', it: 'Lucerna', en: 'Lucerne' },
+    { code: 'NE', de: 'Neuenburg', fr: 'Neuchâtel', it: 'Neuchâtel', en: 'Neuchâtel' },
+    { code: 'NW', de: 'Nidwalden', fr: 'Nidwald', it: 'Nidvaldo', en: 'Nidwalden' },
+    { code: 'OW', de: 'Obwalden', fr: 'Obwald', it: 'Obvaldo', en: 'Obwalden' },
+    { code: 'SG', de: 'St. Gallen', fr: 'Saint-Gall', it: 'San Gallo', en: 'St. Gallen' },
+    { code: 'SH', de: 'Schaffhausen', fr: 'Schaffhouse', it: 'Sciaffusa', en: 'Schaffhausen' },
+    { code: 'SO', de: 'Solothurn', fr: 'Soleure', it: 'Soletta', en: 'Solothurn' },
+    { code: 'SZ', de: 'Schwyz', fr: 'Schwytz', it: 'Svitto', en: 'Schwyz' },
+    { code: 'TG', de: 'Thurgau', fr: 'Thurgovie', it: 'Turgovia', en: 'Thurgau' },
+    { code: 'TI', de: 'Tessin', fr: 'Tessin', it: 'Ticino', en: 'Ticino' },
+    { code: 'UR', de: 'Uri', fr: 'Uri', it: 'Uri', en: 'Uri' },
+    { code: 'VD', de: 'Waadt', fr: 'Vaud', it: 'Vaud', en: 'Vaud' },
+    { code: 'VS', de: 'Wallis', fr: 'Valais', it: 'Vallese', en: 'Valais' },
+    { code: 'ZG', de: 'Zug', fr: 'Zoug', it: 'Zugo', en: 'Zug' },
+    { code: 'ZH', de: 'Zürich', fr: 'Zurich', it: 'Zurigo', en: 'Zurich' },
+  ]
+
+  for (const canton of cantons) {
+    await prisma.swissCanton.upsert({
+      where: { code: canton.code },
+      update: {},
+      create: {
+        code: canton.code,
+        translations: {
+          createMany: {
+            data: [
+              { language: 'de', name: canton.de },
+              { language: 'fr', name: canton.fr },
+              { language: 'it', name: canton.it },
+              { language: 'en', name: canton.en },
+            ],
+            skipDuplicates: true,
+          },
+        },
+      },
+    })
+  }
+  console.log('✓ Swiss cantons seeded (26 cantons, 4 languages each)')
+
   // ─── Activity Types ───────────────────────────────────────────────────
   const activitySkiing = await prisma.activityType.upsert({
     where: { slug: 'skiing' },
@@ -96,6 +148,7 @@ async function main() {
       email: 'contact@ski-club-valais.ch',
       welcomeText: 'Welcome to Ski Club Valais — your home for alpine skiing in the heart of the Valais region.',
       accentColor: 'blue',
+      defaultLanguage: 'fr',
       storageUsedBytes: BigInt(0),
       storageLimitBytes: BigInt(5368709120), // 5 GB
     },
@@ -113,6 +166,7 @@ async function main() {
       email: 'contact@football-club-lausanne.ch',
       welcomeText: 'Welcome to Football Club Lausanne — passion, teamwork, and community on the pitch.',
       accentColor: 'green',
+      defaultLanguage: 'fr',
       storageUsedBytes: BigInt(0),
       storageLimitBytes: BigInt(5368709120),
     },

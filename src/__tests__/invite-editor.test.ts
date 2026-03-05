@@ -19,7 +19,7 @@ vi.mock('@/lib/email', () => ({
 import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
 import { sendEmail } from '@/lib/email'
-import { inviteEditor } from '@/app/(country)/[country]/[club]/settings/actions'
+import { inviteEditor } from '@/app/[lang]/(country)/[country]/[club]/settings/actions'
 
 const COUNTRY = 'ch'
 const SLUG = 'test-club'

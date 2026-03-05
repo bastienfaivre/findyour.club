@@ -5,14 +5,23 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { enrollTotp } from '@/app/auth/totp-setup/actions'
+import { enrollTotp } from '@/app/[lang]/auth/totp-setup/actions'
+
+interface TotpSetupFormT {
+  codeSetup: string
+  verifying: string
+  activate2fa: string
+  copy: string
+  copied: string
+}
 
 interface TotpSetupFormProps {
   qrDataUrl: string
   secret: string
+  t: TotpSetupFormT
 }
 
-export function TotpSetupForm({ qrDataUrl, secret }: TotpSetupFormProps) {
+export function TotpSetupForm({ qrDataUrl, secret, t }: TotpSetupFormProps) {
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
@@ -52,7 +61,7 @@ export function TotpSetupForm({ qrDataUrl, secret }: TotpSetupFormProps) {
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <code className="bg-muted px-2 py-1 rounded font-mono break-all">{secret}</code>
           <Button type="button" variant="ghost" size="sm" onClick={copySecret}>
-            {copied ? 'Copied!' : 'Copy'}
+            {copied ? t.copied : t.copy}
           </Button>
         </div>
       </div>
@@ -65,7 +74,7 @@ export function TotpSetupForm({ qrDataUrl, secret }: TotpSetupFormProps) {
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="code">6-digit code from your authenticator app</Label>
+          <Label htmlFor="code">{t.codeSetup}</Label>
           <Input
             id="code"
             type="text"
@@ -82,7 +91,7 @@ export function TotpSetupForm({ qrDataUrl, secret }: TotpSetupFormProps) {
         </div>
 
         <Button type="submit" className="w-full" disabled={isPending || code.length !== 6}>
-          {isPending ? 'Verifying…' : 'Activate 2FA'}
+          {isPending ? t.verifying : t.activate2fa}
         </Button>
       </form>
     </div>
