@@ -8,10 +8,10 @@ CREATE TYPE "ClubMemberRole" AS ENUM ('OWNER', 'EDITOR');
 CREATE TYPE "MembershipStatus" AS ENUM ('PENDING', 'ACTIVE');
 
 -- CreateEnum
-CREATE TYPE "ApplicationStatus" AS ENUM ('pending', 'approved', 'rejected');
+CREATE TYPE "ApplicationStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
 
 -- CreateEnum
-CREATE TYPE "ClubStatus" AS ENUM ('active', 'suspended');
+CREATE TYPE "ClubStatus" AS ENUM ('ACTIVE', 'SUSPENDED');
 
 -- CreateEnum
 CREATE TYPE "ElementType" AS ENUM ('rich_text', 'image', 'gallery', 'calendar', 'documents', 'contact');
@@ -87,13 +87,45 @@ CREATE TABLE "club_memberships" (
 );
 
 -- CreateTable
+CREATE TABLE "activity_types" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_by" TEXT NOT NULL,
+
+    CONSTRAINT "activity_types_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "swiss_locations" (
+    "id" TEXT NOT NULL,
+    "plz" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "canton" TEXT NOT NULL,
+
+    CONSTRAINT "swiss_locations_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "locations" (
+    "id" TEXT NOT NULL,
+    "country" TEXT NOT NULL,
+    "swiss_location_id" TEXT,
+
+    CONSTRAINT "locations_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "clubs" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "country" TEXT NOT NULL,
-    "status" "ClubStatus" NOT NULL DEFAULT 'active',
+    "status" "ClubStatus" NOT NULL DEFAULT 'ACTIVE',
     "email" TEXT NOT NULL,
+    "activity_type_id" TEXT,
+    "location_id" TEXT,
     "logo_url" TEXT,
     "logo_alt" TEXT,
     "welcome_text" TEXT,
@@ -112,15 +144,30 @@ CREATE TABLE "clubs" (
 CREATE TABLE "applications" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "activity_type" TEXT NOT NULL,
+    "country" TEXT NOT NULL,
+    "activity_type_id" TEXT,
+    "other_description" TEXT,
+    "location_id" TEXT,
     "description" TEXT NOT NULL,
     "email" TEXT NOT NULL,
-    "status" "ApplicationStatus" NOT NULL DEFAULT 'pending',
+    "status" "ApplicationStatus" NOT NULL DEFAULT 'PENDING',
     "rejection_reason" TEXT,
     "submitted_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "reviewed_at" TIMESTAMP(3),
 
     CONSTRAINT "applications_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "invitations" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "club_id" TEXT NOT NULL,
+    "token_hash" TEXT NOT NULL,
+    "expires_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "invitations_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -334,18 +381,6 @@ CREATE TABLE "feature_flags" (
     CONSTRAINT "feature_flags_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "invitations" (
-    "id" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "club_id" TEXT NOT NULL,
-    "token_hash" TEXT NOT NULL,
-    "expires_at" TIMESTAMP(3) NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "invitations_pkey" PRIMARY KEY ("id")
-);
-
 -- CreateIndex
 CREATE UNIQUE INDEX "accounts_provider_provider_account_id_key" ON "accounts"("provider", "provider_account_id");
 
@@ -371,10 +406,31 @@ CREATE INDEX "club_memberships_club_id_idx" ON "club_memberships"("club_id");
 CREATE UNIQUE INDEX "club_memberships_user_id_club_id_key" ON "club_memberships"("user_id", "club_id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "activity_types_slug_key" ON "activity_types"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "swiss_locations_plz_name_key" ON "swiss_locations"("plz", "name");
+
+-- CreateIndex
+CREATE INDEX "swiss_locations_canton_idx" ON "swiss_locations"("canton");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "locations_swiss_location_id_key" ON "locations"("swiss_location_id");
+
+-- CreateIndex
+CREATE INDEX "locations_country_idx" ON "locations"("country");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "clubs_custom_domain_key" ON "clubs"("custom_domain");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "clubs_slug_country_key" ON "clubs"("slug", "country");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "invitations_token_hash_key" ON "invitations"("token_hash");
+
+-- CreateIndex
+CREATE INDEX "invitations_email_idx" ON "invitations"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "pages_club_id_slug_key" ON "pages"("club_id", "slug");
@@ -400,12 +456,6 @@ CREATE INDEX "support_tickets_club_id_idx" ON "support_tickets"("club_id");
 -- CreateIndex
 CREATE UNIQUE INDEX "feature_flags_key_key" ON "feature_flags"("key");
 
--- CreateIndex
-CREATE UNIQUE INDEX "invitations_token_hash_key" ON "invitations"("token_hash");
-
--- CreateIndex
-CREATE INDEX "invitations_email_idx" ON "invitations"("email");
-
 -- AddForeignKey
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -420,6 +470,27 @@ ALTER TABLE "club_memberships" ADD CONSTRAINT "club_memberships_club_id_fkey" FO
 
 -- AddForeignKey
 ALTER TABLE "club_memberships" ADD CONSTRAINT "club_memberships_invited_by_fkey" FOREIGN KEY ("invited_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "activity_types" ADD CONSTRAINT "activity_types_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "locations" ADD CONSTRAINT "locations_swiss_location_id_fkey" FOREIGN KEY ("swiss_location_id") REFERENCES "swiss_locations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "clubs" ADD CONSTRAINT "clubs_activity_type_id_fkey" FOREIGN KEY ("activity_type_id") REFERENCES "activity_types"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "clubs" ADD CONSTRAINT "clubs_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "locations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "applications" ADD CONSTRAINT "applications_activity_type_id_fkey" FOREIGN KEY ("activity_type_id") REFERENCES "activity_types"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "applications" ADD CONSTRAINT "applications_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "locations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "invitations" ADD CONSTRAINT "invitations_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "pages" ADD CONSTRAINT "pages_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -480,6 +551,3 @@ ALTER TABLE "ticket_replies" ADD CONSTRAINT "ticket_replies_operator_id_fkey" FO
 
 -- AddForeignKey
 ALTER TABLE "health_checks" ADD CONSTRAINT "health_checks_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "invitations" ADD CONSTRAINT "invitations_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;

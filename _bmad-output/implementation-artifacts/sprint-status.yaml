@@ -41,7 +41,7 @@ story_location: _bmad-output/implementation-artifacts
 
 development_status:
   # ─── Epic 1: Project Foundation & Core Infrastructure ───
-  epic-1: in-progress
+  epic-1: done
   1-1-project-scaffold-development-environment: done
   1-2-database-schema-multi-tenant-foundation: done
   1-3-club-admin-first-login-magic-link-password-setup-totp-enrollment: done
@@ -51,10 +51,11 @@ development_status:
   1-7-invite-editor: done
   1-8-transfer-ownership: done
   1-9-revoke-access: done
-  epic-1-retrospective: optional
+  epic-1-retrospective: done
 
   # ─── Epic 2: Club Application & Onboarding ───
   epic-2: backlog
+  2-0-i18n-location-infrastructure: backlog
   2-1-club-application-form: backlog
   2-2-operator-application-review-queue: backlog
   2-3-application-approval-provisioning-acceptance-email: backlog

@@ -577,6 +577,33 @@ So that former collaborators can no longer edit my club's content.
 
 Club Applicants can submit an application; the Platform Operator can review the queue and approve or reject; approved clubs are automatically provisioned with a URL path and receive a login link by email.
 
+### Story 2.0: i18n Location Infrastructure
+
+As a platform engineer,
+I want a multilingual location data model backed by the swisstopo geocoding API,
+So that Swiss cities and cantons are stored as unique normalized entities with names in all four supported languages (fr/de/it/en), enabling the apply form typeahead, directory filtering, and correct SEO `lang` attributes.
+
+**Acceptance Criteria:**
+
+**Given** the Prisma schema is migrated,
+**Then** `SwissCanton`, `SwissCantonTranslation`, updated `SwissLocation`, and `SwissLocationTranslation` models exist; `Club` has `defaultLanguage String @default("fr")`.
+
+**Given** the database is seeded,
+**Then** all 26 Swiss cantons exist with translations in all 4 languages.
+
+**Given** `GET /api/locations?country=ch&q=gen&lang=de`,
+**Then** the route returns `{ swisstopoId, plz, name, cantonCode }` objects where `name` reflects the requested language (e.g., `"Genf"` for `lang=de`).
+
+**Given** `upsertSwissLocation` is called for a new city,
+**Then** `SwissLocation` + 4 `SwissLocationTranslation` rows + a `Location` bridge record are created; the function returns `{ locationId }`.
+
+**Given** `upsertSwissLocation` is called for an existing city,
+**Then** no rows are created; the existing `locationId` is returned (idempotent).
+
+**Note:** Prerequisite for 2-1 (apply form typeahead), 2-3 (approval provisioning), and 3-2 (directory filtering).
+
+---
+
 ### Story 2.1: Club Application Form
 
 As a Club Applicant,

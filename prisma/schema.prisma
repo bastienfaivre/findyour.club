@@ -32,14 +32,14 @@ enum MembershipStatus {
 }
 
 enum ApplicationStatus {
-  pending
-  approved
-  rejected
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum ClubStatus {
-  active
-  suspended
+  ACTIVE
+  SUSPENDED
 }
 
 enum ElementType {
@@ -110,12 +110,13 @@ model User {
   magicToken          String?  @unique @map("magic_token") // SHA-256 hash of the token
   magicTokenExp       DateTime? @map("magic_token_exp")
 
-  accounts        Account[]
-  sessions        Session[]
-  memberships     ClubMembership[]    @relation("Memberships")
-  sentInvitations ClubMembership[]    @relation("SentInvitations")
-  passkeys        WebauthnCredential[]
-  ticketReplies   TicketReply[]
+  accounts          Account[]
+  sessions          Session[]
+  memberships       ClubMembership[]    @relation("Memberships")
+  sentInvitations   ClubMembership[]    @relation("SentInvitations")
+  passkeys          WebauthnCredential[]
+  ticketReplies     TicketReply[]
+  createdActivityTypes ActivityType[]
 
   @@map("users")
 }
@@ -164,24 +165,42 @@ model ClubMembership {
 
 // ─── PLATFORM MODELS ────────────────────────────────────────────────────────
 
+model ActivityType {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String   @map("created_by") // userId of operator who created this type
+
+  creator      User          @relation(fields: [createdBy], references: [id])
+  applications Application[]
+  clubs        Club[]
+
+  @@map("activity_types")
+}
+
 model Club {
-  id                String     @id @default(cuid())
+  id                String      @id @default(cuid())
   name              String
   slug              String
-  country           String // "ch" | "fr" | "de"
-  status            ClubStatus @default(active)
+  country           String      // "ch" | "fr" | "de"
+  status            ClubStatus  @default(ACTIVE)
   email             String
-  logoUrl           String?    @map("logo_url")
-  logoAlt           String?    @map("logo_alt")
-  welcomeText       String?    @map("welcome_text")
-  accentColor       String     @default("zinc") @map("accent_color")
-  customDomain      String?    @unique @map("custom_domain")
-  storageUsedBytes  BigInt     @default(0) @map("storage_used_bytes")
-  storageLimitBytes BigInt     @default(5368709120) @map("storage_limit_bytes") // 5 GB default
-  templateVersion   String     @default("1.0.0") @map("template_version")
-  createdAt         DateTime   @default(now()) @map("created_at")
-  updatedAt         DateTime   @updatedAt @map("updated_at")
+  activityTypeId    String?     @map("activity_type_id")
+  locationId        String?     @map("location_id")
+  logoUrl           String?     @map("logo_url")
+  logoAlt           String?     @map("logo_alt")
+  welcomeText       String?     @map("welcome_text")
+  accentColor       String      @default("zinc") @map("accent_color")
+  customDomain      String?     @unique @map("custom_domain")
+  storageUsedBytes  BigInt      @default(0) @map("storage_used_bytes")
+  storageLimitBytes BigInt      @default(5368709120) @map("storage_limit_bytes") // 5 GB default
+  templateVersion   String      @default("1.0.0") @map("template_version")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
 
+  activityType       ActivityType?       @relation(fields: [activityTypeId], references: [id])
+  location           Location?           @relation(fields: [locationId], references: [id])
   memberships        ClubMembership[]
   invitations        Invitation[]
   pages              Page[]
@@ -201,17 +220,54 @@ model Club {
 }
 
 model Application {
-  id              String            @id @default(cuid())
-  name            String
-  activityType    String            @map("activity_type")
-  description     String
-  email           String
-  status          ApplicationStatus @default(pending)
-  rejectionReason String?           @map("rejection_reason")
-  submittedAt     DateTime          @default(now()) @map("submitted_at")
-  reviewedAt      DateTime?         @map("reviewed_at")
+  id               String            @id @default(cuid())
+  name             String
+  country          String
+  activityTypeId   String?           @map("activity_type_id")
+  otherDescription String?           @map("other_description") // filled when no matching ActivityType
+  locationId       String?           @map("location_id")
+  description      String
+  email            String
+  status           ApplicationStatus @default(PENDING)
+  rejectionReason  String?           @map("rejection_reason")
+  submittedAt      DateTime          @default(now()) @map("submitted_at")
+  reviewedAt       DateTime?         @map("reviewed_at")
+
+  activityType ActivityType? @relation(fields: [activityTypeId], references: [id])
+  location     Location?     @relation(fields: [locationId], references: [id])
 
   @@map("applications")
+}
+
+// ─── LOCATION ARCHITECTURE ───────────────────────────────────────────────────
+// Country-agnostic bridge: Club/Application → Location → {SwissLocation, ...}
+// On-demand creation: entries are upserted only when a club is actually based there.
+// Extensible: adding France = add FrenchLocation model + frenchLocationId? on Location.
+
+model Location {
+  id              String         @id @default(cuid())
+  country         String         // "ch" | "fr" | "de" etc.
+  swissLocationId String?        @unique @map("swiss_location_id")
+
+  swissLocation SwissLocation? @relation(fields: [swissLocationId], references: [id])
+  clubs         Club[]
+  applications  Application[]
+
+  @@index([country])
+  @@map("locations")
+}
+
+model SwissLocation {
+  id     String @id @default(cuid())
+  plz    String
+  name   String
+  canton String
+
+  location Location?
+
+  @@unique([plz, name])
+  @@index([canton])
+  @@map("swiss_locations")
 }
 
 model Page {

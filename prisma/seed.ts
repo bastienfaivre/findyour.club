@@ -56,6 +56,33 @@ async function main() {
     },
   })
 
+  // ─── Activity Types ───────────────────────────────────────────────────
+  const activitySkiing = await prisma.activityType.upsert({
+    where: { slug: 'skiing' },
+    update: {},
+    create: { name: 'Skiing', slug: 'skiing', createdBy: operator.id },
+  })
+
+  const activityFootball = await prisma.activityType.upsert({
+    where: { slug: 'football' },
+    update: {},
+    create: { name: 'Football', slug: 'football', createdBy: operator.id },
+  })
+
+  const activityMountaineering = await prisma.activityType.upsert({
+    where: { slug: 'mountaineering' },
+    update: {},
+    create: { name: 'Mountaineering', slug: 'mountaineering', createdBy: operator.id },
+  })
+
+  const activityTennis = await prisma.activityType.upsert({
+    where: { slug: 'tennis' },
+    update: {},
+    create: { name: 'Tennis', slug: 'tennis', createdBy: operator.id },
+  })
+
+  console.log('✓ Activity types created')
+
   // ─── Clubs ────────────────────────────────────────────────────────────
   const clubValais = await prisma.club.upsert({
     where: { slug_country: { slug: 'ski-club-valais', country: 'ch' } },
@@ -64,7 +91,8 @@ async function main() {
       name: 'Ski Club Valais',
       slug: 'ski-club-valais',
       country: 'ch',
-      status: 'active',
+      status: 'ACTIVE',
+      activityTypeId: activitySkiing.id,
       email: 'contact@ski-club-valais.ch',
       welcomeText: 'Welcome to Ski Club Valais — your home for alpine skiing in the heart of the Valais region.',
       accentColor: 'blue',
@@ -80,7 +108,8 @@ async function main() {
       name: 'Football Club Lausanne',
       slug: 'football-club-lausanne',
       country: 'ch',
-      status: 'active',
+      status: 'ACTIVE',
+      activityTypeId: activityFootball.id,
       email: 'contact@football-club-lausanne.ch',
       welcomeText: 'Welcome to Football Club Lausanne — passion, teamwork, and community on the pitch.',
       accentColor: 'green',
@@ -517,36 +546,39 @@ async function main() {
   }
   console.log('✓ Content versions created (3 per page, both clubs)')
 
-  // ─── Applications (pending, approved, rejected) ───────────────────────
+  // ─── Applications (PENDING, APPROVED, REJECTED) ───────────────────────
   await prisma.application.createMany({
     data: [
       {
         name: 'Mountaineering Club Geneva',
-        activityType: 'mountaineering',
+        country: 'ch',
+        activityTypeId: activityMountaineering.id,
         description: 'A club dedicated to alpine mountaineering and rock climbing in the Geneva area.',
         email: 'contact@mountaineering-geneva.ch',
-        status: 'pending',
+        status: 'PENDING',
       },
       {
         name: 'Tennis Club Lausanne West',
-        activityType: 'tennis',
+        country: 'ch',
+        activityTypeId: activityTennis.id,
         description: 'Community tennis club for all skill levels in western Lausanne.',
         email: 'info@tennis-lausanne-west.ch',
-        status: 'approved',
+        status: 'APPROVED',
         reviewedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
       },
       {
         name: 'Extreme Sports Zurich',
-        activityType: 'extreme_sports',
-        description: 'Paragliding, base jumping, and wingsuit association.',
+        country: 'ch',
+        otherDescription: 'Paragliding, base jumping, and wingsuit association.',
+        description: 'Extreme sports association focused on aerial disciplines.',
         email: 'admin@extreme-zurich.ch',
-        status: 'rejected',
+        status: 'REJECTED',
         rejectionReason: 'Platform currently focuses on non-extreme sports associations.',
         reviewedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
       },
     ],
   })
-  console.log('✓ Applications created (pending, approved, rejected)')
+  console.log('✓ Applications created (PENDING, APPROVED, REJECTED)')
 
   // ─── Contact Submissions (5 encrypted) ───────────────────────────────
   const contactMessages = [
