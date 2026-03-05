@@ -127,3 +127,82 @@ export async function inviteEditor(
 
   return { success: true }
 }
+
+export type TransferOwnershipResult =
+  | { success: true }
+  | { success: false; error: string; code: 'UNAUTHORIZED' | 'FORBIDDEN' | 'NOT_FOUND' | 'PENDING_MEMBER' | 'SERVER_ERROR' }
+
+export async function transferOwnership(
+  country: string,
+  slug: string,
+  targetMembershipId: string,
+  _force?: boolean, // reserved for Epic 7 admin force-transfer
+): Promise<TransferOwnershipResult> {
+  const session = await getAuthSession()
+  if (!session?.user?.id) {
+    return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' }
+  }
+
+  const club = await getClubBySlug(slug, country)
+  if (!club) return { success: false, error: 'Club not found.', code: 'UNAUTHORIZED' }
+
+  // Verify caller is an ACTIVE OWNER — need membership id for the transaction
+  const callerMembership = await prisma.clubMembership.findFirst({
+    where: { userId: session.user.id, clubId: club.id, status: 'ACTIVE', role: 'OWNER' },
+    select: { id: true },
+  })
+  if (!callerMembership) {
+    return { success: false, error: 'Only club owners can transfer ownership.', code: 'FORBIDDEN' }
+  }
+
+  // Load target membership
+  const targetMembership = await prisma.clubMembership.findUnique({
+    where: { id: targetMembershipId },
+    select: { id: true, userId: true, clubId: true, role: true, status: true },
+  })
+  if (!targetMembership) {
+    return { success: false, error: 'Target membership not found.', code: 'NOT_FOUND' }
+  }
+
+  // Verify target belongs to same club
+  if (targetMembership.clubId !== club.id) {
+    return { success: false, error: 'Target membership does not belong to this club.', code: 'FORBIDDEN' }
+  }
+
+  // Reject self-transfer
+  if (targetMembership.userId === session.user.id) {
+    return { success: false, error: 'Cannot transfer ownership to yourself.', code: 'FORBIDDEN' }
+  }
+
+  // Target must be an active Editor
+  if (targetMembership.role !== 'EDITOR') {
+    return { success: false, error: 'Can only transfer ownership to an active Editor.', code: 'FORBIDDEN' }
+  }
+
+  // Reject PENDING targets
+  if (targetMembership.status === 'PENDING') {
+    return {
+      success: false,
+      error: 'Cannot transfer ownership to a member who has not yet accepted their invitation.',
+      code: 'PENDING_MEMBER',
+    }
+  }
+
+  // Atomic role swap — both succeed or neither does
+  try {
+    await prisma.$transaction([
+      prisma.clubMembership.update({
+        where: { id: targetMembership.id },
+        data: { role: 'OWNER' },
+      }),
+      prisma.clubMembership.update({
+        where: { id: callerMembership.id },
+        data: { role: 'EDITOR' },
+      }),
+    ])
+  } catch {
+    return { success: false, error: 'Failed to transfer ownership. Please try again.', code: 'SERVER_ERROR' }
+  }
+
+  return { success: true }
+}

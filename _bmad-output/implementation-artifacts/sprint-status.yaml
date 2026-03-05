@@ -49,7 +49,7 @@ development_status:
   1-5-platform-operator-authentication-admin-route-protection: done
   1-6-passkey-webauthn-authentication: done
   1-7-invite-editor: done
-  1-8-transfer-ownership: backlog
+  1-8-transfer-ownership: done
   1-9-revoke-access: backlog
   epic-1-retrospective: optional
 

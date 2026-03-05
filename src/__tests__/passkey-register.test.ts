@@ -38,8 +38,7 @@ describe('POST /api/auth/passkey/register/begin', () => {
   it('returns 401 when not authenticated', async () => {
     vi.mocked(getAuthSession).mockResolvedValue(null)
     const { POST } = await import('@/app/api/auth/passkey/register/begin/route')
-    const req = new Request('http://localhost/api/auth/passkey/register/begin', { method: 'POST' })
-    const res = await POST(req as never)
+    const res = await POST()
     expect(res.status).toBe(401)
     const body = await res.json()
     expect(body.error).toBeDefined()
@@ -50,8 +49,7 @@ describe('POST /api/auth/passkey/register/begin', () => {
       user: { id: 'u1', email: 'a@b.com', totpEnabled: true, totpVerified: false },
     } as never)
     const { POST } = await import('@/app/api/auth/passkey/register/begin/route')
-    const req = new Request('http://localhost/api/auth/passkey/register/begin', { method: 'POST' })
-    const res = await POST(req as never)
+    const res = await POST()
     expect(res.status).toBe(403)
     const body = await res.json()
     expect(body.error).toBeDefined()
@@ -69,8 +67,7 @@ describe('POST /api/auth/passkey/register/begin', () => {
     vi.mocked(cookies).mockResolvedValue({ get: vi.fn(), set: mockCookieSet } as never)
 
     const { POST } = await import('@/app/api/auth/passkey/register/begin/route')
-    const req = new Request('http://localhost/api/auth/passkey/register/begin', { method: 'POST' })
-    const res = await POST(req as never)
+    const res = await POST()
 
     expect(res.status).toBe(200)
     const body = await res.json()
@@ -93,8 +90,7 @@ describe('POST /api/auth/passkey/register/begin', () => {
     vi.mocked(cookies).mockResolvedValue({ get: vi.fn(), set: vi.fn() } as never)
 
     const { POST } = await import('@/app/api/auth/passkey/register/begin/route')
-    const req = new Request('http://localhost/api/auth/passkey/register/begin', { method: 'POST' })
-    await POST(req as never)
+    await POST()
 
     expect(generateRegistrationOptions).toHaveBeenCalledWith(
       expect.objectContaining({

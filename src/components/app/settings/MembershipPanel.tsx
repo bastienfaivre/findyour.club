@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import type { InviteEditorResult } from '@/app/(country)/[country]/[club]/settings/actions'
+import type { InviteEditorResult, TransferOwnershipResult } from '@/app/(country)/[country]/[club]/settings/actions'
 
 interface Membership {
   id: string
+  userId: string
   role: 'OWNER' | 'EDITOR'
   status: 'ACTIVE' | 'PENDING' | 'REVOKED'
   user: {
@@ -19,15 +20,24 @@ interface Membership {
 
 interface MembershipPanelProps {
   memberships: Membership[]
+  currentUserId: string
   inviteAction: (_prevState: InviteEditorResult | null, formData: FormData) => Promise<InviteEditorResult>
+  transferOwnershipAction: (targetId: string) => Promise<TransferOwnershipResult>
 }
 
-export function MembershipPanel({ memberships, inviteAction }: MembershipPanelProps) {
+export function MembershipPanel({ memberships, currentUserId, inviteAction, transferOwnershipAction }: MembershipPanelProps) {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [lastInvitedEmail, setLastInvitedEmail] = useState('')
   const [result, setResult] = useState<InviteEditorResult | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [confirmTransferId, setConfirmTransferId] = useState<string | null>(null)
+  const [transferResult, setTransferResult] = useState<TransferOwnershipResult | null>(null)
+  const [isPendingTransfer, startTransferTransition] = useTransition()
+
+  const isOwnerViewing = memberships.some(
+    m => m.userId === currentUserId && m.role === 'OWNER' && m.status === 'ACTIVE',
+  )
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -45,6 +55,18 @@ export function MembershipPanel({ memberships, inviteAction }: MembershipPanelPr
     })
   }
 
+  function handleTransferConfirm(targetMembershipId: string) {
+    setTransferResult(null)
+    startTransferTransition(async () => {
+      const res = await transferOwnershipAction(targetMembershipId)
+      setTransferResult(res)
+      setConfirmTransferId(null)
+      if (res.success) {
+        router.refresh()
+      }
+    })
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -57,7 +79,8 @@ export function MembershipPanel({ memberships, inviteAction }: MembershipPanelPr
               <tr className="border-b text-left text-muted-foreground">
                 <th className="pb-2 pr-4 font-medium">Email</th>
                 <th className="pb-2 pr-4 font-medium">Role</th>
-                <th className="pb-2 font-medium">Status</th>
+                <th className="pb-2 pr-4 font-medium">Status</th>
+                <th className="pb-2 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -71,17 +94,63 @@ export function MembershipPanel({ memberships, inviteAction }: MembershipPanelPr
                       <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800">Editor</span>
                     )}
                   </td>
-                  <td className="py-2">
+                  <td className="py-2 pr-4">
                     {m.status === 'ACTIVE' ? (
                       <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-800">Active</span>
                     ) : (
                       <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium border border-gray-300 text-gray-500">Pending</span>
                     )}
                   </td>
+                  <td className="py-2">
+                    {isOwnerViewing && m.status === 'ACTIVE' && m.role === 'EDITOR' && (
+                      confirmTransferId === m.id ? (
+                        <span className="flex items-center gap-2 text-xs">
+                          <span className="text-muted-foreground">Transfer ownership to {m.user.email}? You will become an Editor.</span>
+                          <Button
+                            size="xs"
+                            variant="destructive"
+                            disabled={isPendingTransfer}
+                            onClick={() => handleTransferConfirm(m.id)}
+                          >
+                            Confirm
+                          </Button>
+                          <Button
+                            size="xs"
+                            variant="ghost"
+                            disabled={isPendingTransfer}
+                            onClick={() => setConfirmTransferId(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </span>
+                      ) : (
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          onClick={() => setConfirmTransferId(m.id)}
+                        >
+                          Transfer
+                        </Button>
+                      )
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        )}
+        {transferResult && (
+          <div className="mt-3">
+            {transferResult.success ? (
+              <Alert>
+                <AlertDescription>Ownership transferred successfully.</AlertDescription>
+              </Alert>
+            ) : (
+              <Alert variant="destructive">
+                <AlertDescription>{transferResult.error}</AlertDescription>
+              </Alert>
+            )}
+          </div>
         )}
       </div>
 
