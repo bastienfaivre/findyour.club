@@ -1268,7 +1268,6 @@ enum ClubMemberRole {
 enum MembershipStatus {
   PENDING   // invited, not yet accepted
   ACTIVE
-  REVOKED
 }
 
 model ClubMembership {

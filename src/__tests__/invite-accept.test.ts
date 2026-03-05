@@ -55,6 +55,7 @@ const INVITED_USER = {
 describe('GET /auth/invite/accept', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(getAuthSession).mockResolvedValue(null)
     vi.mocked(prisma.invitation.delete).mockResolvedValue({} as never)
     vi.mocked(prisma.clubMembership.updateMany).mockResolvedValue({ count: 1 } as never)
   })
@@ -66,22 +67,43 @@ describe('GET /auth/invite/accept', () => {
     expect(response.headers.get('location')).toBe(`${BASE}/auth/error?error=InviteExpired`)
   })
 
-  it('redirects to InviteExpired when token is not found in DB', async () => {
+  it('redirects to /auth/login with callbackUrl=/my-clubs when token is not found and user is unauthenticated', async () => {
     vi.mocked(prisma.invitation.findUnique).mockResolvedValue(null)
     const response = await GET(makeRequest('unknown-token'))
     expect(response.status).toBe(307)
-    expect(response.headers.get('location')).toBe(`${BASE}/auth/error?error=InviteExpired`)
+    expect(response.headers.get('location')).toBe(`${BASE}/auth/login?callbackUrl=%2Fmy-clubs`)
     expect(prisma.invitation.delete).not.toHaveBeenCalled()
   })
 
-  it('redirects to InviteExpired and deletes the invitation when token is expired', async () => {
+  it('redirects to /auth/login with callbackUrl=/my-clubs and deletes invitation when token is expired and user is unauthenticated', async () => {
     vi.mocked(prisma.invitation.findUnique).mockResolvedValue({
       ...VALID_INVITATION,
       expiresAt: PAST_DATE,
     } as never)
     const response = await GET(makeRequest('expired-token'))
     expect(response.status).toBe(307)
-    expect(response.headers.get('location')).toBe(`${BASE}/auth/error?error=InviteExpired`)
+    expect(response.headers.get('location')).toBe(`${BASE}/auth/login?callbackUrl=%2Fmy-clubs`)
+    expect(prisma.invitation.delete).toHaveBeenCalled()
+  })
+
+  it('redirects to /my-clubs when invitation is not found but user is already authenticated (re-click after acceptance)', async () => {
+    vi.mocked(prisma.invitation.findUnique).mockResolvedValue(null)
+    vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'invited-user-id' } } as never)
+    const response = await GET(makeRequest('already-accepted-token'))
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe(`${BASE}/my-clubs`)
+    expect(prisma.invitation.delete).not.toHaveBeenCalled()
+  })
+
+  it('redirects to /my-clubs when invitation is expired but user is already authenticated', async () => {
+    vi.mocked(prisma.invitation.findUnique).mockResolvedValue({
+      ...VALID_INVITATION,
+      expiresAt: PAST_DATE,
+    } as never)
+    vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'invited-user-id' } } as never)
+    const response = await GET(makeRequest('expired-token'))
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe(`${BASE}/my-clubs`)
     expect(prisma.invitation.delete).toHaveBeenCalled()
   })
 

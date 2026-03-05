@@ -50,7 +50,7 @@ development_status:
   1-6-passkey-webauthn-authentication: done
   1-7-invite-editor: done
   1-8-transfer-ownership: done
-  1-9-revoke-access: backlog
+  1-9-revoke-access: done
   epic-1-retrospective: optional
 
   # ─── Epic 2: Club Application & Onboarding ───

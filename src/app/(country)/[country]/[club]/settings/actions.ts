@@ -206,3 +206,74 @@ export async function transferOwnership(
 
   return { success: true }
 }
+
+export type RevokeAccessResult =
+  | { success: true }
+  | { success: false; error: string; code: 'UNAUTHORIZED' | 'FORBIDDEN' | 'NOT_FOUND' | 'LAST_OWNER' | 'SERVER_ERROR' }
+
+export async function revokeAccess(
+  country: string,
+  slug: string,
+  targetMembershipId: string,
+): Promise<RevokeAccessResult> {
+  const session = await getAuthSession()
+  if (!session?.user?.id) {
+    return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' }
+  }
+
+  const club = await getClubBySlug(slug, country)
+  if (!club) return { success: false, error: 'Club not found.', code: 'UNAUTHORIZED' }
+
+  const callerIsOwner = await prisma.clubMembership.findFirst({
+    where: { userId: session.user.id, clubId: club.id, status: 'ACTIVE', role: 'OWNER' },
+    select: { id: true },
+  })
+  if (!callerIsOwner) {
+    return { success: false, error: 'Only club owners can revoke access.', code: 'FORBIDDEN' }
+  }
+
+  const targetMembership = await prisma.clubMembership.findUnique({
+    where: { id: targetMembershipId },
+    select: { id: true, userId: true, clubId: true, role: true, status: true },
+  })
+  if (!targetMembership) {
+    return { success: false, error: 'Membership not found.', code: 'NOT_FOUND' }
+  }
+
+  if (targetMembership.clubId !== club.id) {
+    return { success: false, error: 'Membership does not belong to this club.', code: 'FORBIDDEN' }
+  }
+
+  if (targetMembership.userId === session.user.id) {
+    return { success: false, error: 'Cannot revoke your own membership.', code: 'FORBIDDEN' }
+  }
+
+  if (targetMembership.status !== 'ACTIVE') {
+    return { success: false, error: 'Can only revoke active memberships.', code: 'FORBIDDEN' }
+  }
+
+  // Guard + delete are atomic: prevents race condition where two concurrent requests
+  // both pass the owner count check and both succeed, leaving 0 active owners.
+  try {
+    await prisma.$transaction(async (tx) => {
+      if (targetMembership.role === 'OWNER') {
+        const activeOwnerCount = await tx.clubMembership.count({
+          where: { clubId: club.id, status: 'ACTIVE', role: 'OWNER' },
+        })
+        if (activeOwnerCount <= 1) {
+          throw Object.assign(new Error('A club must always have at least one active Owner.'), {
+            code: 'LAST_OWNER',
+          })
+        }
+      }
+      await tx.clubMembership.delete({ where: { id: targetMembership.id } })
+    })
+  } catch (e) {
+    if (e instanceof Error && (e as Error & { code?: string }).code === 'LAST_OWNER') {
+      return { success: false, error: e.message, code: 'LAST_OWNER' }
+    }
+    return { success: false, error: 'Failed to revoke access. Please try again.', code: 'SERVER_ERROR' }
+  }
+
+  return { success: true }
+}

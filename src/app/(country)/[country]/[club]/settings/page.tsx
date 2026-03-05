@@ -3,7 +3,7 @@ import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
 import { getClubBySlug, getClubOwnership } from '@/lib/server/club-queries'
 import { MembershipPanel } from '@/components/app/settings/MembershipPanel'
-import { inviteEditor, transferOwnership } from './actions'
+import { inviteEditor, transferOwnership, revokeAccess } from './actions'
 
 export default async function ClubSettingsPage({
   params,
@@ -43,6 +43,7 @@ export default async function ClubSettingsPage({
 
   const boundInviteEditor = inviteEditor.bind(null, country, slug)
   const boundTransferOwnership = transferOwnership.bind(null, country, slug)
+  const boundRevokeAccess = revokeAccess.bind(null, country, slug)
 
   return (
     <main className="min-h-screen p-8">
@@ -53,6 +54,7 @@ export default async function ClubSettingsPage({
           currentUserId={session.user.id}
           inviteAction={boundInviteEditor}
           transferOwnershipAction={boundTransferOwnership}
+          revokeAccessAction={boundRevokeAccess}
         />
       </div>
     </main>

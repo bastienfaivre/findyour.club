@@ -16,7 +16,13 @@ export async function GET(request: NextRequest) {
   if (!invitation || invitation.expiresAt < new Date()) {
     // Delete expired invitation to keep table clean
     if (invitation) await prisma.invitation.delete({ where: { tokenHash } })
-    return NextResponse.redirect(new URL('/auth/error?error=InviteExpired', request.url))
+    // Invitation already consumed or expired — redirect to /my-clubs if authenticated,
+    // or to login with /my-clubs as callbackUrl if not (so they end up there after login).
+    const session = await getAuthSession()
+    if (session?.user?.id) {
+      return NextResponse.redirect(new URL('/my-clubs', request.url))
+    }
+    return NextResponse.redirect(new URL('/auth/login?callbackUrl=%2Fmy-clubs', request.url))
   }
 
   // Find the invited user by email

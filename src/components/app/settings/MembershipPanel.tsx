@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import type { InviteEditorResult, TransferOwnershipResult } from '@/app/(country)/[country]/[club]/settings/actions'
+import type { InviteEditorResult, TransferOwnershipResult, RevokeAccessResult } from '@/app/(country)/[country]/[club]/settings/actions'
 
 interface Membership {
   id: string
   userId: string
   role: 'OWNER' | 'EDITOR'
-  status: 'ACTIVE' | 'PENDING' | 'REVOKED'
+  status: 'ACTIVE' | 'PENDING'
   user: {
     email: string | null
     name: string | null
@@ -23,9 +23,10 @@ interface MembershipPanelProps {
   currentUserId: string
   inviteAction: (_prevState: InviteEditorResult | null, formData: FormData) => Promise<InviteEditorResult>
   transferOwnershipAction: (targetId: string) => Promise<TransferOwnershipResult>
+  revokeAccessAction: (targetId: string) => Promise<RevokeAccessResult>
 }
 
-export function MembershipPanel({ memberships, currentUserId, inviteAction, transferOwnershipAction }: MembershipPanelProps) {
+export function MembershipPanel({ memberships, currentUserId, inviteAction, transferOwnershipAction, revokeAccessAction }: MembershipPanelProps) {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [lastInvitedEmail, setLastInvitedEmail] = useState('')
@@ -34,6 +35,9 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
   const [confirmTransferId, setConfirmTransferId] = useState<string | null>(null)
   const [transferResult, setTransferResult] = useState<TransferOwnershipResult | null>(null)
   const [isPendingTransfer, startTransferTransition] = useTransition()
+  const [confirmRevokeId, setConfirmRevokeId] = useState<string | null>(null)
+  const [revokeResult, setRevokeResult] = useState<RevokeAccessResult | null>(null)
+  const [isPendingRevoke, startRevokeTransition] = useTransition()
 
   const isOwnerViewing = memberships.some(
     m => m.userId === currentUserId && m.role === 'OWNER' && m.status === 'ACTIVE',
@@ -50,6 +54,18 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
       setResult(res)
       if (res.success) {
         setEmail('')
+        router.refresh()
+      }
+    })
+  }
+
+  function handleRevokeConfirm(targetMembershipId: string) {
+    setRevokeResult(null)
+    startRevokeTransition(async () => {
+      const res = await revokeAccessAction(targetMembershipId)
+      setRevokeResult(res)
+      setConfirmRevokeId(null)
+      if (res.success) {
         router.refresh()
       }
     })
@@ -105,7 +121,7 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
                     {isOwnerViewing && m.status === 'ACTIVE' && m.role === 'EDITOR' && (
                       confirmTransferId === m.id ? (
                         <span className="flex items-center gap-2 text-xs">
-                          <span className="text-muted-foreground">Transfer ownership to {m.user.email}? You will become an Editor.</span>
+                          <span className="text-muted-foreground">Transfer ownership to {m.user.email ?? '—'}? You will become an Editor.</span>
                           <Button
                             size="xs"
                             variant="destructive"
@@ -123,14 +139,43 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
                             Cancel
                           </Button>
                         </span>
+                      ) : confirmRevokeId === m.id ? (
+                        <span className="flex items-center gap-2 text-xs">
+                          <span className="text-muted-foreground">Revoke {m.user.email ?? '—'}&apos;s access? They will immediately lose access to the club.</span>
+                          <Button
+                            size="xs"
+                            variant="destructive"
+                            disabled={isPendingRevoke}
+                            onClick={() => handleRevokeConfirm(m.id)}
+                          >
+                            Confirm
+                          </Button>
+                          <Button
+                            size="xs"
+                            variant="ghost"
+                            disabled={isPendingRevoke}
+                            onClick={() => setConfirmRevokeId(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </span>
                       ) : (
-                        <Button
-                          size="xs"
-                          variant="outline"
-                          onClick={() => setConfirmTransferId(m.id)}
-                        >
-                          Transfer
-                        </Button>
+                        <span className="flex items-center gap-2">
+                          <Button
+                            size="xs"
+                            variant="outline"
+                            onClick={() => { setConfirmRevokeId(null); setRevokeResult(null); setConfirmTransferId(m.id) }}
+                          >
+                            Transfer
+                          </Button>
+                          <Button
+                            size="xs"
+                            variant="outline"
+                            onClick={() => { setConfirmTransferId(null); setTransferResult(null); setRevokeResult(null); setConfirmRevokeId(m.id) }}
+                          >
+                            Revoke
+                          </Button>
+                        </span>
                       )
                     )}
                   </td>
@@ -148,6 +193,19 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
             ) : (
               <Alert variant="destructive">
                 <AlertDescription>{transferResult.error}</AlertDescription>
+              </Alert>
+            )}
+          </div>
+        )}
+        {revokeResult && (
+          <div className="mt-3">
+            {revokeResult.success ? (
+              <Alert>
+                <AlertDescription>Access revoked successfully.</AlertDescription>
+              </Alert>
+            ) : (
+              <Alert variant="destructive">
+                <AlertDescription>{revokeResult.error}</AlertDescription>
               </Alert>
             )}
           </div>

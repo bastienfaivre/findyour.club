@@ -5,7 +5,7 @@ CREATE TYPE "UserRole" AS ENUM ('CLUB_ADMIN', 'OPERATOR');
 CREATE TYPE "ClubMemberRole" AS ENUM ('OWNER', 'EDITOR');
 
 -- CreateEnum
-CREATE TYPE "MembershipStatus" AS ENUM ('PENDING', 'ACTIVE', 'REVOKED');
+CREATE TYPE "MembershipStatus" AS ENUM ('PENDING', 'ACTIVE');
 
 -- CreateEnum
 CREATE TYPE "ApplicationStatus" AS ENUM ('pending', 'approved', 'rejected');
@@ -334,6 +334,18 @@ CREATE TABLE "feature_flags" (
     CONSTRAINT "feature_flags_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "invitations" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "club_id" TEXT NOT NULL,
+    "token_hash" TEXT NOT NULL,
+    "expires_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "invitations_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "accounts_provider_provider_account_id_key" ON "accounts"("provider", "provider_account_id");
 
@@ -387,6 +399,12 @@ CREATE INDEX "support_tickets_club_id_idx" ON "support_tickets"("club_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "feature_flags_key_key" ON "feature_flags"("key");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "invitations_token_hash_key" ON "invitations"("token_hash");
+
+-- CreateIndex
+CREATE INDEX "invitations_email_idx" ON "invitations"("email");
 
 -- AddForeignKey
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -462,3 +480,6 @@ ALTER TABLE "ticket_replies" ADD CONSTRAINT "ticket_replies_operator_id_fkey" FO
 
 -- AddForeignKey
 ALTER TABLE "health_checks" ADD CONSTRAINT "health_checks_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "invitations" ADD CONSTRAINT "invitations_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;

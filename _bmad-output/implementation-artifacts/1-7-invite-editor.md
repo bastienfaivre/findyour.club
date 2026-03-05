@@ -47,7 +47,7 @@ so that I can delegate content editing without sharing my credentials.
 - [x] Task 4: Accept link route handler (AC: #2, #3, #4)
   - [x] 4.1 Create `src/app/auth/invite/accept/route.ts` (GET handler)
   - [x] 4.2 Read `token` query param; hash with SHA-256; look up `Invitation` where `tokenHash = hash`
-  - [x] 4.3 If not found or `expiresAt < now`: redirect to `/auth/error?error=InviteExpired`
+  - [x] 4.3 If not found or `expiresAt < now`: check `getAuthSession()` — if authenticated redirect to `/my-clubs`; if not, redirect to `/auth/login?callbackUrl=%2Fmy-clubs` so they land on `/my-clubs` after login
   - [x] 4.4 Find the `ClubMembership` record in `PENDING` status for `(userId matching invitation.email, clubId = invitation.clubId)`
   - [x] 4.5 **Authenticated existing user path**: if `getAuthSession()` returns a session → update `ClubMembership.status` to `ACTIVE`, set `joinedAt = now()`, delete `Invitation` record — all in `prisma.$transaction` → redirect to `/my-clubs`
   - [x] 4.6 **Unauthenticated path (existing user with password)**: redirect to `/auth/login?callbackUrl=/auth/invite/accept?token=<token>` — invitation stays intact; user logs in and clicks the link again to activate.
@@ -69,7 +69,7 @@ so that I can delegate content editing without sharing my credentials.
 
 - [x] Task 7: Tests (AC: all)
   - [x] 7.1 Create `src/__tests__/invite-editor.test.ts` — test `inviteEditor` action: unauthenticated → UNAUTHORIZED; non-OWNER → FORBIDDEN; email validation failure → VALIDATION_ERROR; already active member → ALREADY_MEMBER; new user path → user created + membership created + invitation created + email sent; existing user path → membership created + invitation created + email sent
-  - [x] 7.2 Create `src/__tests__/invite-accept.test.ts` — test accept route: no token → error redirect; expired/invalid token → InviteExpired redirect; authenticated user → membership activated + invitation deleted + redirect to /my-clubs; unauthenticated existing user (has password) → redirect to `/auth/login` with `callbackUrl`, invitation NOT deleted; unauthenticated new user (no password) → setup cookie set, invitation NOT deleted, redirect to /auth/setup
+  - [x] 7.2 Create `src/__tests__/invite-accept.test.ts` — test accept route: no token → error redirect; expired/invalid token (unauthenticated) → `/auth/login?callbackUrl=%2Fmy-clubs` redirect; expired/invalid token (authenticated) → `/my-clubs` redirect; authenticated user → membership activated + invitation deleted + redirect to /my-clubs; unauthenticated existing user (has password) → redirect to `/auth/login` with `callbackUrl`, invitation NOT deleted; unauthenticated new user (no password) → setup cookie set, invitation NOT deleted, redirect to /auth/setup
   - [x] 7.3 Extend `src/__tests__/setup-password.test.ts` — add test: user with PENDING membership completing setup → membership activated atomically (no regression to existing cases)
   - [x] 7.4 Run `pnpm test` — all tests pass, no regressions from 146 baseline (now 166 passing)
 
@@ -311,7 +311,13 @@ export async function GET(request: NextRequest) {
   if (!invitation || invitation.expiresAt < new Date()) {
     // Delete expired invitation to keep table clean
     if (invitation) await prisma.invitation.delete({ where: { tokenHash } })
-    return NextResponse.redirect(new URL('/auth/error?error=InviteExpired', request.url))
+    // Invitation already consumed or expired — authenticated users go to /my-clubs directly;
+    // unauthenticated users go to login with /my-clubs as callbackUrl.
+    const session = await getAuthSession()
+    if (session?.user?.id) {
+      return NextResponse.redirect(new URL('/my-clubs', request.url))
+    }
+    return NextResponse.redirect(new URL('/auth/login?callbackUrl=%2Fmy-clubs', request.url))
   }
 
   // Find PENDING membership for this invitation
@@ -549,8 +555,10 @@ vi.mock('@/lib/email', () => ({ sendEmail: vi.fn().mockResolvedValue(undefined) 
 
 **Key test cases for `invite-accept.test.ts`:**
 - No token → InviteExpired redirect
-- Token not found in DB → InviteExpired redirect
-- Token expired (`expiresAt` in past) → InviteExpired redirect
+- Token not found in DB (unauthenticated) → `/auth/login?callbackUrl=%2Fmy-clubs` redirect
+- Token not found in DB (authenticated) → `/my-clubs` redirect (already accepted)
+- Token expired (unauthenticated) → `/auth/login?callbackUrl=%2Fmy-clubs` redirect
+- Token expired (authenticated) → `/my-clubs` redirect
 - Authenticated as correct user → membership activated, invitation deleted, redirect to /my-clubs
 - Authenticated as different user → InviteEmailMismatch redirect
 - Unauthenticated → invitation deleted, setup cookie set, redirect to /auth/setup
