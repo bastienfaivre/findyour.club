@@ -119,6 +119,8 @@ export type Translations = {
       /** Use {email} as placeholder for the applicant email */
       approvedWithEmail: string
       rejected: string
+      /** Use {email} as placeholder for the applicant email */
+      rejectedWithEmail: string
       confirmApprove: string
       confirmReject: string
       keepReviewing: string

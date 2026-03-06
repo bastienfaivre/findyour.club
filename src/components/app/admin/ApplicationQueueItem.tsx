@@ -105,7 +105,7 @@ export function ApplicationQueueItem({ application, translations: t, locale, onR
     startTransition(async () => {
       const result = await rejectApplication(application.id, rejectReason || undefined)
       if (result.success) {
-        toast.success(t.admin.applications.rejected)
+        toast.success(t.admin.applications.rejectedWithEmail.replace('{email}', application.email))
         setFadingOut(true)
         setTimeout(() => {
           onRemove(application.id)

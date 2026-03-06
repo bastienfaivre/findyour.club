@@ -42,7 +42,46 @@ export function buildAcceptanceEmailHtml({ clubName, clubUrl, magicLinkUrl }: Ac
 </html>`
 }
 
-function escapeHtml(str: string): string {
+interface RejectionEmailParams {
+  clubName: string
+  rejectionReason?: string
+}
+
+export function buildRejectionEmailHtml({ clubName, rejectionReason }: RejectionEmailParams): string {
+  const explanation = rejectionReason
+    ? escapeHtml(rejectionReason)
+    : 'After careful review, we were unable to approve your application at this time. Our platform focuses on non-profit associations engaged in real-world community activities.'
+
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background-color:#f4f4f5;color:#18181b;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 20px;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;padding:40px;">
+        <tr><td>
+          <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Regarding your application</h1>
+          <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#3f3f46;">
+            Thank you for your interest in joining our platform with <strong>${escapeHtml(clubName)}</strong>.
+          </p>
+          <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#3f3f46;">
+            ${explanation}
+          </p>
+          <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#3f3f46;">
+            If your circumstances change or you believe this decision was made in error, you are welcome to submit a new application.
+          </p>
+          <p style="margin:0;font-size:13px;color:#71717a;line-height:1.5;">
+            Best regards,<br>The Platform Team
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+}
+
+export function escapeHtml(str: string): string {
   return str
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')

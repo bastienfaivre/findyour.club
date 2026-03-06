@@ -269,14 +269,20 @@ describe('rejectApplication()', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(getAuthSession).mockResolvedValue(OPERATOR_SESSION as never)
+    vi.mocked(prisma.application.findUnique).mockResolvedValue(PENDING_APPLICATION as never)
+    vi.mocked(prisma.application.updateMany).mockResolvedValue({ count: 1 } as never)
+    vi.mocked(sendEmail).mockResolvedValue(undefined)
   })
 
-  it('rejects a pending application with reason (happy path)', async () => {
-    vi.mocked(prisma.application.updateMany).mockResolvedValue({ count: 1 } as never)
-
+  it('sends rejection email with reason and updates status (happy path)', async () => {
     const result = await rejectApplication('app-1', 'Not a real club')
 
     expect(result).toEqual({ success: true })
+    expect(sendEmail).toHaveBeenCalledWith({
+      to: 'admin@skiclub.ch',
+      subject: 'Regarding your application for Ski Club Valais',
+      html: expect.stringContaining('Not a real club'),
+    })
     expect(prisma.application.updateMany).toHaveBeenCalledWith({
       where: { id: 'app-1', status: 'PENDING' },
       data: {
@@ -287,12 +293,15 @@ describe('rejectApplication()', () => {
     })
   })
 
-  it('rejects a pending application without reason', async () => {
-    vi.mocked(prisma.application.updateMany).mockResolvedValue({ count: 1 } as never)
-
+  it('sends rejection email with default text when no reason provided', async () => {
     const result = await rejectApplication('app-1')
 
     expect(result).toEqual({ success: true })
+    expect(sendEmail).toHaveBeenCalledWith({
+      to: 'admin@skiclub.ch',
+      subject: 'Regarding your application for Ski Club Valais',
+      html: expect.stringContaining('non-profit associations'),
+    })
     expect(prisma.application.updateMany).toHaveBeenCalledWith({
       where: { id: 'app-1', status: 'PENDING' },
       data: {
@@ -303,22 +312,42 @@ describe('rejectApplication()', () => {
     })
   })
 
+  it('returns EMAIL_FAILED and does NOT update status when email fails', async () => {
+    vi.mocked(sendEmail).mockRejectedValue(new Error('Resend error'))
+
+    const result = await rejectApplication('app-1', 'Not a real club')
+
+    expect(result).toMatchObject({ success: false, code: 'EMAIL_FAILED' })
+    expect(prisma.application.updateMany).not.toHaveBeenCalled()
+  })
+
+  it('calls sendEmail with correct to, subject, and html args', async () => {
+    await rejectApplication('app-1', 'Duplicate application')
+
+    expect(sendEmail).toHaveBeenCalledTimes(1)
+    expect(sendEmail).toHaveBeenCalledWith({
+      to: 'admin@skiclub.ch',
+      subject: 'Regarding your application for Ski Club Valais',
+      html: expect.any(String),
+    })
+  })
+
   it('returns NOT_FOUND when application does not exist', async () => {
-    vi.mocked(prisma.application.updateMany).mockResolvedValue({ count: 0 } as never)
     vi.mocked(prisma.application.findUnique).mockResolvedValue(null)
 
     const result = await rejectApplication('nonexistent')
 
     expect(result).toMatchObject({ success: false, code: 'NOT_FOUND' })
+    expect(sendEmail).not.toHaveBeenCalled()
   })
 
   it('returns ALREADY_REVIEWED when application already rejected', async () => {
-    vi.mocked(prisma.application.updateMany).mockResolvedValue({ count: 0 } as never)
-    vi.mocked(prisma.application.findUnique).mockResolvedValue({ id: 'app-1' } as never)
+    vi.mocked(prisma.application.findUnique).mockResolvedValue({ ...PENDING_APPLICATION, status: 'REJECTED' } as never)
 
     const result = await rejectApplication('app-1')
 
     expect(result).toMatchObject({ success: false, code: 'ALREADY_REVIEWED' })
+    expect(sendEmail).not.toHaveBeenCalled()
   })
 
   it('returns UNAUTHORIZED for non-OPERATOR user', async () => {
@@ -327,14 +356,34 @@ describe('rejectApplication()', () => {
     const result = await rejectApplication('app-1')
 
     expect(result).toMatchObject({ success: false, code: 'UNAUTHORIZED' })
+    expect(sendEmail).not.toHaveBeenCalled()
   })
 
-  it('returns SERVER_ERROR when database update fails', async () => {
-    vi.mocked(prisma.application.updateMany).mockRejectedValue(new Error('DB error'))
+  it('returns SERVER_ERROR when database query fails', async () => {
+    vi.mocked(prisma.application.findUnique).mockRejectedValue(new Error('DB error'))
 
     const result = await rejectApplication('app-1')
 
     expect(result).toMatchObject({ success: false, code: 'SERVER_ERROR' })
+  })
+
+  it('returns ALREADY_REVIEWED on race condition (concurrent rejection)', async () => {
+    vi.mocked(prisma.application.updateMany).mockResolvedValue({ count: 0 } as never)
+
+    const result = await rejectApplication('app-1', 'Too late')
+
+    expect(result).toMatchObject({ success: false, code: 'ALREADY_REVIEWED' })
+    // Email was still sent (can't un-send), but DB update failed due to race
+    expect(sendEmail).toHaveBeenCalledTimes(1)
+  })
+
+  it('returns UNAUTHORIZED when not authenticated', async () => {
+    vi.mocked(getAuthSession).mockResolvedValue(null)
+
+    const result = await rejectApplication('app-1')
+
+    expect(result).toMatchObject({ success: false, code: 'UNAUTHORIZED' })
+    expect(sendEmail).not.toHaveBeenCalled()
   })
 })
 
@@ -434,6 +483,55 @@ describe('buildAcceptanceEmailHtml()', () => {
     })
 
     expect(html).toContain('Club d&#39;Art')
+  })
+})
+
+describe('buildRejectionEmailHtml()', () => {
+  it('includes club name and rejection reason', async () => {
+    const { buildRejectionEmailHtml } = await import('@/lib/email-templates')
+    const html = buildRejectionEmailHtml({
+      clubName: 'Ski Club Valais',
+      rejectionReason: 'Not a registered association',
+    })
+
+    expect(html).toContain('Ski Club Valais')
+    expect(html).toContain('Not a registered association')
+  })
+
+  it('uses default explanation when no reason provided', async () => {
+    const { buildRejectionEmailHtml } = await import('@/lib/email-templates')
+    const html = buildRejectionEmailHtml({ clubName: 'Test Club' })
+
+    expect(html).toContain('non-profit associations')
+    expect(html).toContain('real-world community activities')
+  })
+
+  it('escapes HTML in club name to prevent XSS', async () => {
+    const { buildRejectionEmailHtml } = await import('@/lib/email-templates')
+    const html = buildRejectionEmailHtml({
+      clubName: '<script>alert(1)</script>',
+    })
+
+    expect(html).not.toContain('<script>')
+    expect(html).toContain('&lt;script&gt;')
+  })
+
+  it('escapes HTML in rejection reason to prevent XSS', async () => {
+    const { buildRejectionEmailHtml } = await import('@/lib/email-templates')
+    const html = buildRejectionEmailHtml({
+      clubName: 'Test Club',
+      rejectionReason: '<img onerror="alert(1)" src="x">',
+    })
+
+    expect(html).not.toContain('<img')
+    expect(html).toContain('&lt;img')
+  })
+
+  it('includes encouragement to reapply', async () => {
+    const { buildRejectionEmailHtml } = await import('@/lib/email-templates')
+    const html = buildRejectionEmailHtml({ clubName: 'Test Club' })
+
+    expect(html).toContain('welcome to submit a new application')
   })
 })
 

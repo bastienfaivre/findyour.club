@@ -8,7 +8,7 @@ import { slugRegex } from '@/lib/schemas/application'
 import { isReservedSlug } from '@/lib/slug'
 import { inferDefaultLanguage } from '@/lib/country'
 import { sendEmail } from '@/lib/email'
-import { buildAcceptanceEmailHtml } from '@/lib/email-templates'
+import { buildAcceptanceEmailHtml, buildRejectionEmailHtml } from '@/lib/email-templates'
 
 export type ApplicationActionResult =
   | { success: true }
@@ -204,6 +204,34 @@ export async function rejectApplication(applicationId: string, reason?: string):
       return { success: false, error: 'Unauthorized.', code: 'UNAUTHORIZED' }
     }
 
+    const application = await prisma.application.findUnique({
+      where: { id: applicationId },
+      select: { id: true, status: true, email: true, name: true },
+    })
+
+    if (!application) {
+      return { success: false, error: 'Application not found.', code: 'NOT_FOUND' }
+    }
+    if (application.status !== 'PENDING') {
+      return { success: false, error: 'Application already reviewed.', code: 'ALREADY_REVIEWED' }
+    }
+
+    // Send rejection email BEFORE updating status — if email fails, status stays PENDING
+    try {
+      const html = buildRejectionEmailHtml({
+        clubName: application.name,
+        rejectionReason: reason,
+      })
+
+      await sendEmail({
+        to: application.email,
+        subject: `Regarding your application for ${application.name}`,
+        html,
+      })
+    } catch {
+      return { success: false, error: 'Email delivery failed', code: 'EMAIL_FAILED' }
+    }
+
     const result = await prisma.application.updateMany({
       where: { id: applicationId, status: 'PENDING' },
       data: {
@@ -214,13 +242,9 @@ export async function rejectApplication(applicationId: string, reason?: string):
     })
 
     if (result.count === 0) {
-      const exists = await prisma.application.findUnique({
-        where: { id: applicationId },
-        select: { id: true },
-      })
-      return exists
-        ? { success: false, error: 'Application already reviewed.', code: 'ALREADY_REVIEWED' }
-        : { success: false, error: 'Application not found.', code: 'NOT_FOUND' }
+      // Race condition: another operator already reviewed this application
+      // between our findUnique and updateMany. Email was already sent (can't un-send).
+      return { success: false, error: 'Application already reviewed.', code: 'ALREADY_REVIEWED' }
     }
 
     return { success: true }
