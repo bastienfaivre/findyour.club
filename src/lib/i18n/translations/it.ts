@@ -1,7 +1,7 @@
 import type { Translations } from './types'
 
 export const it: Translations = {
-  nav:      { home: 'Home', apply: 'Candidatura', myClubs: 'I miei club', login: 'Accedi', logout: 'Esci' },
+  nav:      { home: 'Home', apply: 'Candidatura', myClubs: 'I miei club', login: 'Accedi', logout: 'Esci', about: 'Chi siamo', support: 'Sostegno' },
   common:   { loading: 'Caricamento…', error: 'Errore', save: 'Salva', cancel: 'Annulla', submit: 'Invia', confirm: 'Conferma' },
   language: { label: 'Lingua', fr: 'Francese', de: 'Tedesco', it: 'Italiano', en: 'Inglese' },
   auth: {
@@ -195,6 +195,32 @@ export const it: Translations = {
       sending: 'Invio…',
       inviteAsEditor: 'Invita come editor',
       inviteSent: 'Invito inviato a {email}!',
+    },
+  },
+  platform: {
+    headline: 'Trova il tuo club',
+    philosophy: 'Crediamo nel potere delle comunità locali. Il nostro repertorio connette le persone con club e attività sociali vicino a loro, favorendo incontri reali e passioni condivise.',
+    stats: {
+      clubs: '{count} club',
+      countries: '{count} paesi',
+    },
+    exploreCountry: 'Esplora i club in {country}',
+    availableNow: 'Disponibile ora',
+    comingSoon: 'Prossimamente',
+    associations: 'Associazioni',
+    countriesLabel: 'Paesi',
+    activityTypes: 'Tipi di attività',
+    marketingSpend: 'Spese di marketing',
+    marketingSpendValue: 'CHF 0',
+    about: {
+      title: 'Chi siamo',
+      content: "Abbiamo creato questa piattaforma perché crediamo che ogni comunità meriti visibilità. Troppi club e associazioni locali restano nascosti, raggiungibili solo tramite passaparola. Il nostro repertorio offre loro una casa sul web — semplice, bella e lontana dal rumore dei social media. La nostra visione è un mondo in cui trovare un club locale sia facile come cercare un ristorante. Che tu faccia sci, escursionismo, pallavolo o yoga, la tua prossima comunità è a portata di clic.",
+    },
+    support: {
+      title: 'Sostegno',
+      donationHeadline: 'Aiutaci a mantenere questa piattaforma',
+      donationText: "Questa piattaforma è gestita da un piccolo team e finanziata interamente da contributi volontari. Se trovi valore in ciò che facciamo, sostienici con una donazione. Ogni contributo — per quanto piccolo — ci aiuta a continuare e a migliorare l'esperienza per club e visitatori. Per effettuare una donazione, contattaci a support@clashware.com per i dati bancari.",
+      supportFormPlaceholder: 'Un modulo di contatto arriverà presto. Nel frattempo, contattaci a support@clashware.com.',
     },
   },
   activityTypes: {

@@ -1,5 +1,5 @@
 export type Translations = {
-  nav: { home: string; apply: string; myClubs: string; login: string; logout: string }
+  nav: { home: string; apply: string; myClubs: string; login: string; logout: string; about: string; support: string }
   common: { loading: string; error: string; save: string; cancel: string; submit: string; confirm: string }
   language: { label: string; fr: string; de: string; it: string; en: string }
   auth: {
@@ -204,6 +204,36 @@ export type Translations = {
       inviteAsEditor: string
       /** Use {email} as placeholder */
       inviteSent: string
+    }
+  }
+  platform: {
+    headline: string
+    philosophy: string
+    stats: {
+      /** Use {count} as placeholder */
+      clubs: string
+      /** Use {count} as placeholder */
+      countries: string
+    }
+    /** Use {country} as placeholder */
+    exploreCountry: string
+    availableNow: string
+    comingSoon: string
+    associations: string
+    /** Label for the countries stat (standalone, not a template) */
+    countriesLabel: string
+    activityTypes: string
+    marketingSpend: string
+    marketingSpendValue: string
+    about: {
+      title: string
+      content: string
+    }
+    support: {
+      title: string
+      donationHeadline: string
+      donationText: string
+      supportFormPlaceholder: string
     }
   }
   activityTypes: Record<string, string>

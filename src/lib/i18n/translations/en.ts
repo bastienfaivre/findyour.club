@@ -1,7 +1,7 @@
 import type { Translations } from './types'
 
 export const en: Translations = {
-  nav:      { home: 'Home', apply: 'Apply', myClubs: 'My Clubs', login: 'Login', logout: 'Logout' },
+  nav:      { home: 'Home', apply: 'Apply', myClubs: 'My Clubs', login: 'Login', logout: 'Logout', about: 'About', support: 'Support' },
   common:   { loading: 'Loading…', error: 'Error', save: 'Save', cancel: 'Cancel', submit: 'Submit', confirm: 'Confirm' },
   language: { label: 'Language', fr: 'French', de: 'German', it: 'Italian', en: 'English' },
   auth: {
@@ -195,6 +195,32 @@ export const en: Translations = {
       sending: 'Sending…',
       inviteAsEditor: 'Invite as Editor',
       inviteSent: 'Invitation sent to {email}!',
+    },
+  },
+  platform: {
+    headline: 'Find your club',
+    philosophy: 'We believe in the power of local communities. Our directory connects people with clubs and social activities near them, fostering real-world connections and shared passions.',
+    stats: {
+      clubs: '{count} clubs',
+      countries: '{count} countries',
+    },
+    exploreCountry: 'Explore clubs in {country}',
+    availableNow: 'Available now',
+    comingSoon: 'Coming soon',
+    associations: 'Associations',
+    countriesLabel: 'Countries',
+    activityTypes: 'Activity types',
+    marketingSpend: 'Marketing spend',
+    marketingSpendValue: 'CHF 0',
+    about: {
+      title: 'About',
+      content: 'We created this platform because we believe every community deserves visibility. Too many local clubs and associations remain hidden, reachable only by word of mouth. Our directory gives them a home on the web — simple, beautiful, and free from the noise of social media. Our vision is a world where finding a local club is as easy as searching for a restaurant. Whether you ski, hike, play volleyball, or practice yoga, your next community is just a click away.',
+    },
+    support: {
+      title: 'Support',
+      donationHeadline: 'Help us keep this platform running',
+      donationText: 'This platform is maintained by a small team and funded entirely by voluntary contributions. If you find value in what we do, consider supporting us with a donation. Every contribution — no matter how small — helps us keep the lights on and continue improving the experience for clubs and visitors alike. To make a donation, please contact us at support@clashware.com for bank transfer details.',
+      supportFormPlaceholder: 'A contact form is coming soon. In the meantime, reach out to us at support@clashware.com.',
     },
   },
   activityTypes: {

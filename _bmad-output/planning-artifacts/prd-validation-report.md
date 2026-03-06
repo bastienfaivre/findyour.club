@@ -1,6 +1,6 @@
 ---
 validationTarget: '_bmad-output/planning-artifacts/prd.md'
-validationDate: '2026-02-25'
+validationDate: '2026-03-06'
 inputDocuments:
   - _bmad-output/brainstorming/brainstorming-session-2026-02-23.md
 validationStepsCompleted:
@@ -17,15 +17,15 @@ validationStepsCompleted:
   - step-v-11-holistic-quality-validation
   - step-v-12-completeness-validation
 validationStatus: COMPLETE
-holisticQualityRating: '5/5 - Excellent'
-overallStatus: Pass
-warningsResolved: 3
+holisticQualityRating: '4.2/5 - Good'
+overallStatus: Pass with warnings
+warningsResolved: 0
 ---
 
 # PRD Validation Report
 
 **PRD Being Validated:** _bmad-output/planning-artifacts/prd.md
-**Validation Date:** 2026-02-25
+**Validation Date:** 2026-03-06
 
 ## Input Documents
 
@@ -82,7 +82,7 @@ warningsResolved: 3
 
 ### Functional Requirements
 
-**Total FRs Analyzed:** 45
+**Total FRs Analyzed:** 50
 
 **Format Violations:** 0
 
@@ -90,60 +90,65 @@ warningsResolved: 3
 
 **Vague Quantifiers Found:** 0
 
-**Implementation Leakage:** 0
+**Implementation Leakage:** 1
 
-**FR Violations Total:** 0
+1. ⚠️ **Warning — FR46:** "OKLCH CSS token" is implementation leakage — names a specific CSS color space. Should use implementation-neutral language like "configurable color token system."
+
+**Duplicate FR Found:** 1
+
+1. ⚠️ **Warning — FR49** is a duplicate of FR21. Both state: "Public Visitor can filter the directory by country, activity type, and location." FR49 should be removed or differentiated (e.g., specify that profile-only clubs appear with equal weight in filter results).
+
+**FR Violations Total:** 2
 
 ### Non-Functional Requirements
 
 **Total NFRs Analyzed:** 18 (across 6 categories)
 
-**Missing Metrics / Vague Language:** 3 occurrences
+**Missing Metrics / Vague Language:** 6 occurrences
 
-1. ⚠️ **Warning — Performance NFR:** "collects comprehensive analytics... retained with sufficient history for operational insight"
-   - `comprehensive` is a subjective adjective (data points enumerated in FR45 but no retention period defined)
-   - `sufficient history` is vague — no retention period specified (e.g., "retained for a minimum of 12 months")
-   - Suggested fix: Specify retention period; cross-reference FR45 for data point enumeration
+1. ⚠️ **Warning — Performance NFR:** "standard broadband connection" — no bandwidth specified (e.g., "10 Mbps downstream")
 
-2. ⚠️ **Warning — Reliability NFR:** "failures trigger an operator alert within a defined window"
-   - Alerting window unspecified — `defined window` is a placeholder, not a metric
-   - Suggested fix: Replace with concrete value, e.g., "within 15 minutes of failure detection"
+2. ℹ️ **Informational — Performance NFR:** "loading skeleton displayed within 100ms" — good metric but no measurement conditions (device class, network)
 
-3. ℹ️ **Informational — Security NFR:** "2FA strongly recommended and surfaced prominently to all Club Admins at login"
-   - `prominently` is unmeasurable without a behavioral specification
-   - Suggested fix: e.g., "displayed as a mandatory prompt on first login and on each subsequent login until 2FA is enabled"
+3. ⚠️ **Warning — Scalability NFR:** "tens of thousands of clubs" — vague quantifier. Should specify a concrete target (e.g., "50,000 clubs")
 
-**NFR Violations Total:** 3
+4. ⚠️ **Warning — Scalability NFR:** "horizontally scalable" — unmeasurable claim without throughput targets
+
+5. ⚠️ **Warning — Scalability NFR:** "one club's growth does not degrade another's performance" — no measurable threshold for "degrade"
+
+6. ℹ️ **Informational — Maintainability NFR:** "single token variable change" — implies CSS custom property architecture (minor implementation leakage)
+
+**NFR Violations Total:** 6
 
 ### Overall Assessment
 
-**Total Requirements:** 63 (45 FRs + 18 NFRs)
-**Total Violations:** 3
+**Total Requirements:** 68 (50 FRs + 18 NFRs)
+**Total Violations:** 8
 
-**Severity:** Pass (< 5 violations)
+**Severity:** Warning (5-10 violations)
 
-**Recommendation:** Requirements demonstrate good measurability overall. Three NFR refinements recommended — two Warning-level (analytics retention period, alerting window) and one Informational (2FA prominence specification). These do not block downstream work but should be addressed before architecture to avoid ambiguity in system design.
+**Recommendation:** Requirements are generally strong. The Scalability NFR section needs the most attention — replace vague language with concrete targets. The duplicate FR49 should be removed. The OKLCH reference in FR46 should be made implementation-neutral.
 
 ## Traceability Validation
 
 ### Chain Validation
 
 **Executive Summary → Success Criteria:** Intact ✓
-Vision themes (civic infrastructure, visibility problem, word-of-mouth growth, minimal pricing) are fully reflected across User, Business, and Technical Success sections.
+Vision themes (directory/hub, inclusive model, free/donation funding, zero maintenance, civic infrastructure, geographic expansion) are fully reflected across User, Business, and Technical Success sections.
 
 **Success Criteria → User Journeys:** Intact ✓
-All success criteria are supported by at least one user journey. GDPR/silent migration criteria are platform obligations documented in Domain and NFR sections — not journey-dependent by nature.
+All success criteria are supported by at least one user journey. "National recognition" is a business outcome not directly journey-testable — acceptable.
 
 **User Journeys → Functional Requirements:** Intact ✓
-All 4 journeys' revealed requirements map directly to one or more FRs. No journey requirement is left uncovered.
+All 5 journeys' revealed requirements map directly to one or more FRs. Journey 3b (profile-only) maps to FR27, FR47, FR48. No journey requirement is left uncovered.
 
-**Scope → FR Alignment:** Intact ✓
-All 5 MVP capability areas in Project Scope map directly to FR groups: Club Webapp (FR1–FR19), Platform Site (FR20–FR27, FR43), Platform Admin Dashboard (FR31–FR38), Compliance/Data Rights (FR40–FR44), Analytics (FR45).
+**Scope → FR Alignment:** Partial ⚠️
+All MVP scope items map to FRs except one gap: the "Support/Donate" platform page is listed in scope but no FR explicitly covers the donation page content or mechanism.
 
 ### Orphan Elements
 
-**Orphan Functional Requirements:** 0
-All 45 FRs traced to: user journeys (primary), product scope, success criteria, or domain requirements.
+**Orphan Functional Requirements:** 1
+FR49 is a duplicate of FR21 — should be removed or differentiated.
 
 **Unsupported Success Criteria:** 0
 
@@ -153,41 +158,40 @@ All 45 FRs traced to: user journeys (primary), product scope, success criteria, 
 
 | Source | FR Coverage |
 |---|---|
-| Journey 1 (Club Admin — Setup) | FR1, FR2, FR8, FR9, FR12, FR17, FR18, FR19, FR23, FR24, FR28, FR30 |
-| Journey 2 (Public Visitor) | FR20, FR21, FR22, FR25, FR26, FR43 |
+| Journey 1 (Club Admin — Setup) | FR1, FR2, FR9, FR12, FR17, FR18, FR19, FR20, FR22, FR23, FR24, FR28, FR30 |
+| Journey 2 (Public Visitor) | FR20, FR21, FR22, FR23, FR43 |
 | Journey 3 (Club Applicant) | FR27, FR31, FR32, FR33 |
+| Journey 3b (Profile-Only Club) | FR27, FR47, FR48, FR50 |
 | Journey 4 (Platform Operator) | FR29, FR31–FR38, FR45 |
-| Product Scope / Success Criteria | FR3–FR7, FR10–FR16, FR39, FR44 |
+| Product Scope / Success Criteria | FR3–FR7, FR10–FR16, FR25, FR26, FR39, FR44, FR46 |
 | Domain Requirements (GDPR/nDSG) | FR40, FR41, FR42 |
 
-**Total Traceability Issues:** 0
+**Total Traceability Issues:** 2 (1 duplicate FR, 1 missing FR for donation page)
 
-**Severity:** Pass
-
-**Recommendation:** Traceability chain is fully intact. All 45 FRs trace back to documented user needs or business objectives. The chain Vision → Success → Journeys → FRs is unbroken.
+**Severity:** Pass with warnings
 
 ## Implementation Leakage Validation
 
 ### Leakage by Category
 
-**Frontend Frameworks:** 0 violations
+**Frontend Frameworks:** 0 violations (framework names in Technical Architecture section are illustrative examples, not requirements)
 **Backend Frameworks:** 0 violations
 **Databases:** 0 violations
 **Cloud Platforms:** 0 violations
 **Infrastructure:** 0 violations
 **Libraries:** 0 violations
-**Other Implementation Details:** 0 violations
+**Other Implementation Details:** 1 violation (OKLCH CSS token in FR46)
 
 **Note on Protocol/Standard Terms in Security NFRs:**
-`TLS 1.2+`, `TOTP`, `WebAuthn / FIDO2`, `bcrypt or Argon2` found in Security NFRs only. Classified as intentional security minimum specifications — industry-standard practice for security requirements. These constrain architectural choice appropriately without dictating implementation. Not counted as violations.
+`TLS 1.2+`, `TOTP`, `WebAuthn / FIDO2`, `bcrypt or Argon2` found in Security NFRs only. Classified as intentional security minimum specifications — industry-standard practice for security requirements. Not counted as violations.
 
 ### Summary
 
-**Total Implementation Leakage Violations:** 0
+**Total Implementation Leakage Violations:** 1
 
 **Severity:** Pass
 
-**Recommendation:** No implementation leakage in FRs or NFRs. All requirements correctly specify WHAT without dictating HOW. Security protocol/algorithm specifications are intentional and appropriate for the security NFR context.
+**Recommendation:** Replace "OKLCH CSS token" in FR46 and MVP scope with implementation-neutral language like "configurable color token system."
 
 ## Domain Compliance Validation
 
@@ -195,7 +199,7 @@ All 45 FRs traced to: user journeys (primary), product scope, success criteria, 
 **Complexity:** Low (general/standard)
 **Assessment:** N/A — No mandatory special domain compliance requirements
 
-**Positive Note:** Despite the low-complexity classification, the PRD proactively documents GDPR + Swiss nDSG compliance (Domain-Specific Requirements section), data subject rights (FR40–FR42), cookie consent, and DPAs with sub-processors. This is appropriate given the Swiss jurisdiction and European user base — and will prevent expensive compliance rework. This exceeds what the general domain classification requires.
+**Positive Note:** Despite the low-complexity classification, the PRD proactively documents GDPR + Swiss nDSG compliance, data subject rights (FR40–FR42), cookie consent, DPAs with sub-processors, and hosting jurisdiction preference. The updated funding model (free + donations) is clearly documented. This exceeds what the general domain classification requires.
 
 ## Project-Type Compliance Validation
 
@@ -207,9 +211,9 @@ All 45 FRs traced to: user journeys (primary), product scope, success criteria, 
 
 **responsive_design:** Present ✓ (Full feature parity desktop/mobile; mobile admin mode; touch targets; no horizontal scrolling)
 
-**performance_targets:** Present ✓ (FCP < 2s; Core Web Vitals ≥ 90; loading skeletons; no regression on migration)
+**performance_targets:** Present ✓ (FCP < 2s; Core Web Vitals >= 90; loading skeletons; no regression on migration)
 
-**seo_strategy:** Present ✓ (Server-rendered MPA for club home pages and directory; meta/OG/JSON-LD; sitemap; filterable without JS)
+**seo_strategy:** Present ✓ (Server-rendered MPA for club home pages, profile pages, and directory; meta/OG/JSON-LD; sitemap; filterable without JS; platform directory is primary SEO surface)
 
 **accessibility_level:** Present ✓ (WCAG 2.1 AA binding; best-effort AAA; keyboard navigation; ARIA; alt text enforced)
 
@@ -227,31 +231,35 @@ All 45 FRs traced to: user journeys (primary), product scope, success criteria, 
 
 **Severity:** Pass
 
-**Recommendation:** All required web_app sections are present and well-documented. No excluded sections found. PRD is fully compliant with web_app project-type requirements.
-
 ## SMART Requirements Validation
 
-**Total Functional Requirements:** 45
+**Total Functional Requirements:** 50
 
-### Scoring Summary
+### Scoring Summary (10 representative FRs)
 
-**All scores ≥ 3:** 100% (45/45)
-**All scores ≥ 4:** 91% (41/45)
-**Overall Average Score:** 4.9/5.0
+| FR | S | M | A | R | T | Avg |
+|---|---|---|---|---|---|---|
+| FR1 | 5 | 4 | 5 | 5 | 5 | 4.8 |
+| FR7 | 5 | 5 | 5 | 5 | 5 | 5.0 |
+| FR12 | 4 | 4 | 5 | 5 | 5 | 4.6 |
+| FR18 | 5 | 5 | 5 | 5 | 5 | 5.0 |
+| FR21 | 4 | 4 | 5 | 5 | 5 | 4.6 |
+| FR24 | 5 | 5 | 5 | 5 | 5 | 5.0 |
+| FR32 | 5 | 5 | 5 | 5 | 5 | 5.0 |
+| FR39 | 4 | 3 | 4 | 5 | 5 | 4.2 |
+| FR43 | 4 | 4 | 5 | 5 | 5 | 4.6 |
+| FR47 | 5 | 4 | 5 | 5 | 5 | 4.8 |
+
+**All scores >= 3:** 100% (10/10)
+**All scores >= 4:** 90% (9/10)
+**Overall Average Score:** 4.8/5.0
 **FRs Flagged (any score < 3):** 0
-
-### Notes on 4-Scored Dimensions (Not Flagged)
-
-- **FR3** (S:4): "optional pages" is intentionally broad at PRD level — appropriate altitude
-- **FR35** (S:4, M:4): "site health status" is somewhat general but adequately defined in Reliability NFRs
-- **FR40** (S:4): "portable standard format" is intentionally implementation-agnostic — correct PRD practice
-- **FR42** (S:4): "where applicable" is intentionally flexible for cookie law variation across jurisdictions
 
 ### Overall Assessment
 
 **Severity:** Pass (0% flagged FRs)
 
-**Recommendation:** Functional Requirements demonstrate excellent SMART quality. No FRs require revision. The four FRs with a single dimension scored at 4 reflect intentional design decisions (appropriate PRD altitude, jurisdiction flexibility) rather than quality deficiencies.
+**Recommendation:** Functional Requirements demonstrate excellent SMART quality. FR39 (template versioning) scores lowest on Measurability (3) — "automatically without downtime" could be more precise but is acceptable at PRD level.
 
 ## Holistic Quality Assessment
 
@@ -260,14 +268,14 @@ All 45 FRs traced to: user journeys (primary), product scope, success criteria, 
 **Assessment:** Excellent
 
 **Strengths:**
-- Strong narrative arc: vision → strategy → journeys → requirements → delivery plan
-- "What Makes This Special" subsection primes reader mental model before encountering any requirements
-- User journeys are narratively rich and make abstract product philosophy concrete
-- Traceability signal at end of each journey ("this journey reveals requirements for...") is excellent structural technique
-- Innovation section reinforces Executive Summary positioning without repeating it
+- Strong narrative arc: vision -> strategy -> journeys -> requirements -> delivery plan
+- The pivot from "website builder" to "directory/hub" is consistently reflected throughout — no stale language from the previous vision
+- Journey 3b (profile-only club) integrates naturally alongside existing journeys
+- Innovation section clearly distinguishes from competitors (Meetup, Eventbrite, Facebook Groups)
+- "Yellow Pages for social activities" framing is memorable and differentiating
 
 **Areas for Improvement:**
-- None structural. The Web Application Specific Requirements section is technically dense (excellent for LLMs) and could benefit from a brief orientation sentence for non-technical readers — minor.
+- The "What Makes This Special" subsection could more explicitly call out the inclusive model (clubs with/without websites) as the primary innovation — it's mentioned but could be stronger
 
 ### Dual Audience Effectiveness
 
@@ -280,8 +288,8 @@ All 45 FRs traced to: user journeys (primary), product scope, success criteria, 
 **For LLMs:**
 - Machine-readable structure: Excellent — ## Level 2 headers, numbered FRs, NFR categories, tables throughout
 - UX readiness: Very Good — Journeys + FRs + accessibility requirements give full design brief
-- Architecture readiness: Good — MPA/SPA strategy, security specs, performance targets actionable; hosting/DB intentionally deferred
-- Epic/Story readiness: Very Good — 6 FR capability areas map naturally to epics; traceability matrix enables acceptance criteria
+- Architecture readiness: Good — MPA/SPA strategy, security specs, performance targets actionable; profile-only page rendering context added
+- Epic/Story readiness: Very Good — FR capability areas map naturally to epics; traceability matrix enables acceptance criteria
 
 **Dual Audience Score:** 5/5
 
@@ -290,114 +298,83 @@ All 45 FRs traced to: user journeys (primary), product scope, success criteria, 
 | Principle | Status | Notes |
 |---|---|---|
 | Information Density | Met ✓ | 0 anti-patterns found |
-| Measurability | Partial ⚠️ | 3 minor NFR gaps (retention period, alerting window, 2FA prominence) |
-| Traceability | Met ✓ | 0 orphan FRs, full chain intact |
-| Domain Awareness | Met ✓ | GDPR + Swiss nDSG proactively documented beyond classification requirement |
+| Measurability | Partial ⚠️ | 6 NFR gaps (scalability vagueness); 1 duplicate FR |
+| Traceability | Partial ⚠️ | 1 duplicate FR; 1 missing FR for donation page |
+| Domain Awareness | Met ✓ | GDPR + Swiss nDSG proactively documented |
 | Zero Anti-Patterns | Met ✓ | 0 filler or wordy phrases |
 | Dual Audience | Met ✓ | Excellent for both human and LLM consumers |
 | Markdown Format | Met ✓ | 6/6 BMAD core sections, consistent ## Level 2 headers |
 
-**Principles Met:** 6.5/7
+**Principles Met:** 5.5/7
 
 ### Overall Quality Rating
 
-**Rating:** 4/5 — Good
+**Rating:** 4.2/5 — Good
 
-Strong document with minor NFR measurability improvements needed. The 3 NFR gaps do not block downstream work but should be addressed before architecture to eliminate system design ambiguity.
+Strong document with the vision pivot consistently applied. The main gaps are in Scalability NFR measurability and two minor FR issues (duplicate + missing donation page FR).
 
 ### Top 3 Improvements
 
-1. **Specify analytics retention period in Performance NFR** — Replace "sufficient history for operational insight" with a concrete period (e.g., "retained for a minimum of 12 months") to make the requirement auditable.
+1. **Remove duplicate FR49** — it is identical to FR21. Either delete FR49 or differentiate it (e.g., specify that profile-only clubs appear with equal weight in directory filter results).
 
-2. **Define email relay alerting window in Reliability NFR** — Replace "within a defined window" with a concrete SLA (e.g., "within 15 minutes of failure detection").
+2. **Quantify Scalability NFRs** — replace "tens of thousands of clubs" with a concrete target (e.g., "50,000 clubs"). Add measurable throughput targets (e.g., "directory page loads in < 3s with 10,000 listed clubs"). Replace "horizontally scalable" with specific scaling criteria.
 
-3. **Specify 2FA prompt behavior in Security NFR** — Replace "surfaced prominently" with: "displayed as a mandatory prompt on first login and on each subsequent login until 2FA is enabled."
+3. **Add FR for donation/support page** — the MVP scope lists "Support/Donate" as a platform page, but no FR explicitly covers the donation page content or mechanism.
 
 ### Summary
 
-**This PRD is:** A high-quality, production-ready product specification that demonstrates excellent structure, traceability, and dual-audience readiness — with three actionable NFR refinements recommended before architecture handoff.
+**This PRD is:** A high-quality, consistently updated product specification that successfully reflects the vision pivot from website builder to worldwide club directory/hub. The inclusive model (profile-only + hosted sites) is well-integrated across all sections.
 
-**To make it great:** Focus on the top 3 improvements above (all in NFRs, all involving quantification of vague qualifiers).
+**To make it great:** Fix the 3 items above — remove the duplicate FR, quantify scalability, and add the missing donation page FR.
 
 ## Completeness Validation
 
 ### Template Completeness
 
-**Template Variables Found:** 0
+**Template Variables Found:** 1
 
-No template variables remaining ✓
-
-*Note:* `[Platform name TBD]` in Executive Summary is intentional — the platform name decision is deferred to the commercialization phase. This is a product decision, not a template artifact.
+`[Platform name TBD]` in Executive Summary — intentional deferral of platform naming decision. Should be resolved before development begins.
 
 ### Content Completeness by Section
 
-**Executive Summary:** Complete ✓
-- Vision statement present, What Makes This Special subsection, strategic positioning
-
+**Executive Summary:** Complete ✓ — Updated with hub/directory vision
 **Project Classification:** Complete ✓
-- Domain, project type, complexity, communication language, tech tier all specified
-
-**Success Criteria:** Complete ✓
-- Three quality bars (functional, UX, business) with measurable outcomes table (8 KPIs with targets)
-
-**Product Scope:** Complete ✓
-- Three-phase plan with explicit in-scope / deferred / excluded breakdown
-
-**User Journeys:** Complete ✓
-- Four journeys covering all user types; each ends with requirements traceability signal
-
-**Domain-Specific Requirements:** Complete ✓
-- GDPR, Swiss nDSG, legal notices, accessible design documented
-
-**Innovation & Novel Patterns:** Complete ✓
-- Five novel patterns identified with implementation guidance
-
-**Web Application Specific Requirements:** Complete ✓
-- Browser matrix, responsive design, performance targets, SEO strategy, accessibility level all present
-
-**Functional Requirements:** Complete ✓
-- 45 FRs across 6 capability areas; all numbered and formatted correctly
-
-**Non-Functional Requirements:** Complete ✓
-- 6 NFR categories (Performance, Reliability, Security, Scalability, Maintainability, Compliance); each with specific criteria
-
-### Section-Specific Completeness
-
-**Success Criteria Measurability:** All measurable
-- All 8 Measurable Outcomes have numeric targets with baseline comparisons
-
-**User Journeys Coverage:** Yes — covers all user types
-- Journey 1: First-time visitor (anonymous)
-- Journey 2: Returning visitor / brand evaluation
-- Journey 3: Client (inquiry → relationship)
-- Journey 4: Operator (content management)
-
-**FRs Cover MVP Scope:** Yes
-- All Phase 1 (MVP) scope items have corresponding FRs; Phase 2/3 items correctly deferred
-
-**NFRs Have Specific Criteria:** All have specific criteria
-- Minor caveat: 3 NFRs have partially vague qualifiers (see Top 3 Improvements in Holistic Quality Assessment)
+**Success Criteria:** Complete ✓ — Updated with profile-only and directory metrics
+**Product Scope:** Complete ✓ — Updated with profile-only path and custom domain deferral
+**User Journeys:** Complete ✓ — 5 journeys (including new Journey 3b)
+**Domain-Specific Requirements:** Complete ✓ — Updated funding model
+**Innovation & Novel Patterns:** Complete ✓ — 6 patterns reflecting new vision
+**Web Application Specific Requirements:** Complete ✓ — Profile page rendering added
+**Functional Requirements:** Complete ✓ — 50 FRs (FR47-50 added for profile-only)
+**Non-Functional Requirements:** Complete ✓ — Scalability updated to worldwide
 
 ### Frontmatter Completeness
 
-**stepsCompleted:** Present ✓
+**stepsCompleted:** Present ✓ (15 steps including edit steps)
 **classification:** Present ✓ (domain, projectType, complexity all populated)
 **inputDocuments:** Present ✓
-**date:** Present ✓ (in document body; not in YAML frontmatter — trivial)
+**lastEdited:** Present ✓ (2026-03-06)
+**editHistory:** Present ✓ (1 entry documenting vision pivot)
 
-**Frontmatter Completeness:** 4/4
+**Frontmatter Completeness:** 5/5
 
 ### Completeness Summary
 
-**Overall Completeness:** 98% (10/10 sections complete)
+**Overall Completeness:** 96%
 
 **Critical Gaps:** 0
-**Minor Gaps:** 1 (date is in document body rather than YAML frontmatter — cosmetic only)
+**Minor Gaps:** 2 (duplicate FR49; missing donation page FR)
+**Cosmetic:** 1 (platform name TBD)
 
 **Severity:** Pass
 
-**Recommendation:** PRD is complete with all required sections and content present. No template variables remain. All sections have required content. The single minor gap (date placement) does not affect usability.
+## Action Items Summary
 
-### Summary
-
-**This PRD is:** A well-structured, philosophically coherent, and technically complete requirements document ready for downstream architecture, UX design, and epic breakdown — with three minor NFR measurability gaps to resolve before architecture begins.
+| Priority | Item | Section |
+|---|---|---|
+| 1 | Remove or differentiate FR49 (duplicate of FR21) | Functional Requirements |
+| 2 | Add FR for donation/support page | Functional Requirements |
+| 3 | Quantify Scalability NFRs with concrete targets | Non-Functional Requirements |
+| 4 | Replace "OKLCH CSS token" with implementation-neutral language | FR46 + MVP Scope |
+| 5 | Resolve `[Platform name TBD]` before development | Executive Summary |
+| 6 | Specify "standard broadband connection" bandwidth | Performance NFR |

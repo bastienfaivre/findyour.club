@@ -8,6 +8,15 @@ workflowType: 'architecture'
 lastStep: 8
 status: 'complete'
 completedAt: '2026-02-27'
+lastEdited: '2026-03-06'
+editHistory:
+  - date: '2026-03-06'
+    changes: 'PRD vision pivot sync: FR count 45→50 (FR47-50 added). Custom domain (FR8) deferred
+      to post-MVP. Scalability targets quantified (50K clubs, directory <3s at 10K). Profile-only
+      clarified as user behavior, not technical distinction — no separate model. Club model gains
+      optional externalWebsiteUrl and howToJoin fields. FR50 (donation) covered by existing support
+      page. Nginx config simplified (no custom domain passthrough at MVP). All validation sections
+      updated.'
 project_name: 'website-template'
 user_name: 'Clashware'
 date: '2026-02-26'
@@ -23,15 +32,20 @@ _This document builds collaboratively through step-by-step discovery. Sections a
 
 **Functional Requirements:**
 
-45 FRs across 6 capability areas:
-- **Club Site Configuration & Navigation** (FR1–FR9): URL path provisioning per club (slug-based), page management (max 5, configurable), custom domain, anchor pages (Home, Contact non-removable), edit/public toggle
+50 FRs across 8 capability areas:
+- **Club Site Configuration & Navigation** (FR1–FR9): URL path provisioning per club (slug-based), page management (max 5, configurable), ~~custom domain (deferred to post-MVP)~~, anchor pages (Home, Contact non-removable), edit/public toggle
 - **Content Editing & Element Library** (FR10–FR19): element picker, Calendar, Gallery, Documents library, Rich Text, inline image, explicit save, N-version history, inline constraint display
 - **Public Discovery & Contact** (FR20–FR26): directory with activity type + region filter, public club site browsing, contact form with reply-to relay, mandatory "Powered by" footer
 - **Application & Access** (FR27–FR30): Apply form, club admin auth via platform site, operator auth via dedicated admin interface, support form
-- **Platform Operations** (FR31–FR39): application queue (approve/reject), automated URL provisioning + acceptance email, platform-wide metrics, site health monitoring, operator nudge, support inbox, configurable platform variables, silent template migration
-- **Compliance & Data Rights** (FR40–FR45): club data export, club data deletion, cookie consent, automated SEO metadata, contact form submission storage, per-club analytics
+- **Platform Operations** (FR31–FR39): application queue (approve/reject), automated URL provisioning + acceptance email, platform-wide metrics (hosted vs profile-only breakdown), site health monitoring, operator nudge, support inbox, configurable platform variables, silent template migration
+- **Compliance & Data Rights** (FR40–FR46): club data export, club data deletion, cookie consent, automated SEO metadata, contact form submission storage, per-club analytics, accent color picker
+- **Club Profile — Profile-Only Presence** (FR47–FR49): profile page with optional external website link; public viewing without auth. Note: "profile-only" is a **user behavior**, not a technical distinction — every club gets identical capabilities; some simply choose to use only the profile fields and link out to their own website
+- **Platform Funding** (FR50): donation/support page on the platform site (covered by the existing `/support` route)
 
 The platform requires **three distinct authenticated roles**: Club Admin (per-club, content-only), Platform Operator (platform-wide, full access), and Public Visitor (unauthenticated).
+
+**Profile-Only vs Hosted — User Behavior, Not Technical Distinction:**
+All clubs share the same data model and capabilities. "Profile-only" describes clubs that choose to fill in only the minimal profile fields (name, logo, description, activity type, location, external website link) without creating pages or using the content editor. The platform makes no technical distinction — every club is provisioned identically. This means FR47–FR49 are satisfied by the existing `Club` model with optional fields, not by a separate entity or rendering path.
 
 **Non-Functional Requirements:**
 
@@ -39,7 +53,7 @@ Architecture-driving NFRs:
 - **Performance:** FCP < 2s on club home pages; Core Web Vitals ≥ 90 on all public surfaces; loading skeleton visible within 100ms on SPA transitions; no regression post-migration; 12-month analytics retention
 - **Security:** TLS 1.2+; TOTP 2FA (mandatory prompt until enabled); WebAuthn/FIDO2 passkeys; bcrypt or Argon2 for credential hashing; multi-tenant data isolation at storage layer; contact form submissions encrypted at rest; no sensitive data in client-side code or public API responses
 - **Reliability:** 99.9% uptime; zero-downtime template migrations; email relay failure alert within 15 minutes; version history restore completes within 30 seconds
-- **Scalability:** Architecture must support ~10 clubs (MVP) to thousands (EU scale) without re-architecture; horizontal scaling; per-club storage isolation
+- **Scalability:** Architecture must support ~10 clubs (MVP) to 50,000 clubs (worldwide scale) without re-architecture; directory page loads in < 3s with 10,000 listed clubs; 10x current load via horizontal capacity addition; per-club storage isolation; no club experiences > 10% performance degradation due to another club's activity
 - **Accessibility:** WCAG 2.1 AA binding on all surfaces; best-effort AAA; full keyboard navigation; ARIA roles throughout
 - **Maintainability:** Silent template migration (no club admin action); single token color update propagates platform-wide; all platform variables configurable via admin dashboard without deployment
 
@@ -60,7 +74,7 @@ Architecture-driving NFRs:
 - **Reserved path management:** The application routing layer must distinguish reserved root paths (`/api`, `/admin`, `/auth`, `/my-clubs`, etc.) from the localized `/{lang}` segment. In Next.js App Router, named static folders (`api/`, `admin/`) take priority over the dynamic `[lang]/` segment — no slug collision is possible. Slug generation must exclude reserved path names; uniqueness is enforced per country.
 - **Language resolution (layered):** The `{lang}` URL segment captures the visitor's preferred language. Each content layer has its own resolution/fallback chain: (1) **Platform UI** — `resolveUILang(lang)` maps to one of `[fr, de, it, en]`, falls back to `en` for any unsupported language (e.g., `pt` → `en`); (2) **Geographic data** (swisstopo canton/location names) — same resolution as Platform UI (`en` fallback); (3) **Club content** — served in the club's `defaultLanguage` field (e.g., `fr`) when the visitor's language has no authored translation. This means `/pt/ch/ski-club-valais` shows the platform UI in English, Swiss geographic names in English, and club content in French (the club's default).
 - **Language switching:** The `LanguageSwitcher` client component navigates to `/{newLang}/{country}/{club-slug}` via `router.push()` — no cookie write, no Server Action. The country segment is preserved; only the language prefix changes. `proxy.ts` reads the `[lang]` segment from the URL and sets a `platform_lang` cookie (used exclusively to propagate the language to the root `layout.tsx` for the `<html lang>` attribute, which cannot read URL params directly).
-- **Custom domains:** Club admins can configure a custom domain. The platform maps the custom domain to the club via lookup and serves identical content. TLS provisioning for custom domains must be automated.
+- **Custom domains:** ~~Deferred to post-MVP (FR8).~~ No custom domain routing, TLS provisioning, or Nginx passthrough required at MVP. When reintroduced post-MVP: the platform maps the custom domain to the club via lookup and serves identical content; TLS provisioning automated via Certbot sidecar.
 - **Multi-tenancy:** Club data isolation at storage layer — one club's data cannot affect another's performance or be accessed across boundaries.
 - **Billing:** Explicitly deferred to post-MVP. No payment infrastructure in scope.
 
@@ -184,9 +198,9 @@ prisma/
 ```
 
 **Self-Hosting:**
-`next.config.ts` sets `output: 'standalone'`. Nginx acts as the reverse proxy: single-domain routing and custom domain passthrough to the Next.js server. TLS is handled by Certbot (Let's Encrypt):
+`next.config.ts` sets `output: 'standalone'`. Nginx acts as the reverse proxy: single-domain routing to the Next.js server. TLS is handled by Certbot (Let's Encrypt):
 - Single certificate for `platform-name.com` via HTTP-01 challenge (no DNS provider API access required)
-- Per-domain certificates for club custom domains, provisioned and renewed via Certbot HTTP-01 challenge
+- Custom domain TLS deferred to post-MVP (FR8)
 
 Docker Compose orchestrates Next.js + PostgreSQL + Nginx + Certbot.
 
@@ -212,6 +226,7 @@ Docker Compose orchestrates Next.js + PostgreSQL + Nginx + Certbot.
 - Analytics implementation
 
 **Deferred Decisions (Post-MVP):**
+- Custom domain support for club sites (FR8 — deferred; no Nginx custom domain passthrough or automated TLS provisioning at MVP)
 - Redis for rate limiting (in-memory sufficient for MVP)
 - Cloudflare proxy for maintenance failover (manual runbook sufficient for MVP)
 - Uptime Kuma self-hosted monitoring (UptimeRobot free tier sufficient for MVP)
@@ -248,6 +263,10 @@ Docker Compose orchestrates Next.js + PostgreSQL + Nginx + Certbot.
 - Access pattern: Presigned URLs generated server-side via AWS SDK (`@aws-sdk/client-s3`); client uploads directly to R2; no file bytes transit the Next.js server
 - Per-club limits: `storage_limit_bytes` and `storage_used_bytes` fields on the `clubs` table; enforced at Server Action level before accepting upload
 - Rationale: Zero egress fees (critical for gallery-heavy club sites with moderate traffic); 10 GB free tier; S3 SDK compatibility means trivial future migration via env var change
+
+**Club Profile Fields (FR47–FR48)**
+- The `clubs` table includes optional profile fields: `external_website_url` (nullable string — link to the club's own website), `how_to_join` (nullable text — free-form description of how to join). These are standard optional columns on the existing `Club` model, not a separate entity.
+- All clubs are provisioned identically. Clubs that only fill in profile fields and set `external_website_url` are "profile-only" by behavior — the platform imposes no technical distinction.
 
 **Database Hosting Path**
 - MVP: PostgreSQL in Docker on the same Infomaniak VPS (Docker Compose service); simplest operational baseline
@@ -375,7 +394,7 @@ Docker Compose orchestrates Next.js + PostgreSQL + Nginx + Certbot.
 3. Prisma schema (core models: `clubs`, `club_memberships`, `pages`, `page_elements`, `content_versions`, `users`, `sessions`, `page_events`)
 4. Auth.js configuration (database sessions + magic link + TOTP + passkeys)
 5. Multi-tenant Prisma middleware (clubId enforcement)
-6. Nginx configuration (single-domain routing, custom domain passthrough, maintenance page)
+6. Nginx configuration (single-domain routing, maintenance page)
 7. Cloudflare R2 integration (presigned URLs, storage accounting)
 8. Core Server Actions with Zod validation and `{ success, error, code }` contract
 9. Resend email integration + Cloudflare Turnstile integration
@@ -729,7 +748,9 @@ const prisma = new PrismaClient() // in any file other than src/server/db.ts
 | Public Discovery & Contact (FR20–26) | Platform site | `app/[lang]/(platform)/`, `components/app/directory/`, `components/app/contact/` |
 | Application & Access (FR27–30) | Platform site + Auth | `app/[lang]/(platform)/apply/`, `app/auth/`, `components/app/auth/` |
 | Platform Operations (FR31–39) | Operator dashboard | `app/admin/`, `components/app/admin/` |
-| Compliance & Data Rights (FR40–45) | Cross-cutting | `lib/seo.ts`, `lib/crypto.ts`, `app/admin/clubs/[clubId]/` |
+| Compliance & Data Rights (FR40–46) | Cross-cutting | `lib/seo.ts`, `lib/crypto.ts`, `app/admin/clubs/[clubId]/` |
+| Club Profile — Profile-Only Presence (FR47–49) | Club site (same route) | `app/[lang]/(country)/[country]/[club]/page.tsx` + optional fields on `clubs` table |
+| Platform Funding (FR50) | Platform site | `app/[lang]/(platform)/support/page.tsx` (donation section) |
 
 ---
 
@@ -741,7 +762,7 @@ website-template/
 │   └── workflows/
 │       └── ci.yml                    # lint → typecheck → pnpm audit → build
 ├── nginx/
-│   ├── nginx.conf                    # Single-domain + custom domain routing
+│   ├── nginx.conf                    # Single-domain routing (custom domain deferred post-MVP)
 │   ├── maintenance.html              # Static maintenance page (served on 502/503)
 │   └── ssl/                          # Certbot-managed certs (gitignored)
 ├── prisma/
@@ -1110,22 +1131,24 @@ The project structure directly reflects architectural decisions:
 - Route group `[lang]/(platform)/` cleanly isolates platform-side pages
 - `admin/` route group separated from country-tenant routes with middleware enforcement
 - `server/` directory (db.ts, auth.ts) explicitly separates server-only singletons from shared lib utilities
-- All 45 FRs map to specific directories/files — no "homeless" requirements
+- All 50 FRs map to specific directories/files — no "homeless" requirements
 
 ---
 
 ### Requirements Coverage Validation ✅
 
-**Functional Requirements Coverage — 45/45 FRs:**
+**Functional Requirements Coverage — 50/50 FRs:**
 
 | FR Group | FRs | Architectural Support |
 |---|---|---|
-| Club Site Config & Navigation (FR1–FR9) | 9/9 | `[lang]/(country)/[country]/[club]/` routes + Prisma `clubs` + `pages` tables + `proxy.ts` |
+| Club Site Config & Navigation (FR1–FR9) | 9/9 | `[lang]/(country)/[country]/[club]/` routes + Prisma `clubs` + `pages` tables + `proxy.ts`. FR8 (custom domain) deferred to post-MVP |
 | Content Editing & Element Library (FR10–FR19) | 10/10 | `components/app/page-editor/` + `page_elements` JSONB + `page_versions` + Server Actions |
 | Public Discovery & Contact (FR20–FR26) | 7/7 | `[lang]/(platform)/` directory + `[lang]/(country)/[country]/[club]/` public SSR + `ContactForm.tsx` + Resend relay |
 | Application & Access (FR27–30) | 4/4 | `[lang]/(platform)/apply/` + Auth.js (magic link, TOTP, passkeys, password) + `admin/` dashboard |
 | Platform Operations (FR31–FR39) | 9/9 | `admin/` dashboard components + Server Actions + `api/health/route.ts` (FR35 alerting) |
-| Compliance & Data Rights (FR40–FR45) | 6/6 | GDPR export/delete Server Actions + `lib/crypto.ts` + `page_events` GDPR-safe analytics |
+| Compliance & Data Rights (FR40–FR46) | 7/7 | GDPR export/delete Server Actions + `lib/crypto.ts` + `page_events` GDPR-safe analytics + accent color picker |
+| Club Profile — Profile-Only Presence (FR47–FR49) | 3/3 | Optional `external_website_url` and `how_to_join` fields on `clubs` table. No separate model — profile-only is user behavior. FR49 duplicates FR21 (directory filtering covers profile-only clubs identically) |
+| Platform Funding (FR50) | 1/1 | Covered by existing `[lang]/(platform)/support/` route (donation section within support page) |
 
 **Non-Functional Requirements Coverage:**
 
@@ -1152,7 +1175,7 @@ All critical decisions are documented with exact versions:
 **Structure Completeness:**
 
 - Complete directory tree defined with 100+ named files
-- All 45 FRs mapped to specific files/directories in a requirements-to-structure table
+- All 50 FRs mapped to specific files/directories in a requirements-to-structure table
 - `api/health/route.ts` added to resolve the email relay alerting gap (gap #1)
 - Component boundaries explicit: `components/ui/` (shadcn, do not edit) vs `components/app/` (product code)
 - Integration points fully specified: R2 presigned URL flow, Turnstile siteverify, Auth.js adapter, Prisma middleware
@@ -1182,10 +1205,10 @@ Six gaps identified during validation — all resolved:
 - Solution: SSR architecture inherently resolves this — deploying updated Next.js code applies template changes to all clubs' rendered HTML with zero admin action and zero database migration
 - Documented in validation only (no code change needed; architectural property)
 
-**Gap 3 — Custom domain TLS provisioning (was: Important gap)** → RESOLVED ✅
-- MVP decision: operator provisions TLS certificates manually via Certbot commands on VPS
-- Post-MVP: sidecar poller monitors `pending_domain_certs` table and calls Certbot programmatically
-- Acceptable for MVP given the low initial club volume and operator involvement in onboarding
+**Gap 3 — Custom domain support (was: Important gap)** → RESOLVED ✅
+- FR8 deferred to post-MVP entirely — no custom domain routing, TLS provisioning, or Nginx passthrough at MVP
+- Post-MVP: sidecar poller monitors `pending_domain_certs` table and calls Certbot programmatically; Nginx config handles custom domain passthrough
+- No architecture or infrastructure impact at MVP
 
 **Gap 4 — Reserved slug enforcement (was: Nice-to-have → elevated to Important)** → RESOLVED ✅
 - Risk: club slug could collide with platform routes (`/api`, `/auth`, `/admin`, etc.)
@@ -1215,7 +1238,7 @@ No blocking issues found. All 6 gaps resolved collaboratively during validation.
 
 **✅ Requirements Analysis**
 
-- [x] Project context thoroughly analyzed (45 FRs across 6 domains, 6 NFRs)
+- [x] Project context thoroughly analyzed (50 FRs across 8 domains, 6 NFRs)
 - [x] Scale and complexity assessed (MVP: single-VPS, 10s of clubs; post-MVP: managed DB, horizontal scale)
 - [x] Technical constraints identified (argon2 native bindings, TipTap SSR, multi-tenant isolation)
 - [x] Cross-cutting concerns mapped (GDPR, auth, rate limiting, encryption, analytics)
@@ -1226,7 +1249,7 @@ No blocking issues found. All 6 gaps resolved collaboratively during validation.
 - [x] Technology stack fully specified (all packages named with rationale)
 - [x] Integration patterns defined (R2 presigned URL, Turnstile siteverify, Resend relay, Auth.js adapter)
 - [x] Performance considerations addressed (SSR hybrid, TipTap dynamic import, JSONB for element data)
-- [x] Deferred decisions documented (custom domain TLS post-MVP, managed DB post-MVP, CDN integration)
+- [x] Deferred decisions documented (custom domain support FR8, custom domain TLS, managed DB post-MVP, CDN integration)
 
 **✅ Implementation Patterns**
 
@@ -1241,7 +1264,7 @@ No blocking issues found. All 6 gaps resolved collaboratively during validation.
 - [x] Complete directory structure defined (100+ named files across all route groups and feature areas)
 - [x] Component boundaries established (ui/ vs app/, server/ vs lib/)
 - [x] Integration points mapped (5 external services with dedicated integration files)
-- [x] Requirements to structure mapping complete (45/45 FRs mapped to specific files/directories)
+- [x] Requirements to structure mapping complete (50/50 FRs mapped to specific files/directories)
 
 ---
 
@@ -1249,7 +1272,7 @@ No blocking issues found. All 6 gaps resolved collaboratively during validation.
 
 **Overall Status:** READY FOR IMPLEMENTATION
 
-**Confidence Level:** High — all 45 FRs have explicit architectural support, all 6 gaps are resolved, no contradictions or missing integration points identified.
+**Confidence Level:** High — all 50 FRs have explicit architectural support, all 6 gaps are resolved, no contradictions or missing integration points identified.
 
 **Key Strengths:**
 

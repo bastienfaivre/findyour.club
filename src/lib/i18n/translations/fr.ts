@@ -1,7 +1,7 @@
 import type { Translations } from './types'
 
 export const fr: Translations = {
-  nav:      { home: 'Accueil', apply: 'Candidature', myClubs: 'Mes clubs', login: 'Connexion', logout: 'Déconnexion' },
+  nav:      { home: 'Accueil', apply: 'Candidature', myClubs: 'Mes clubs', login: 'Connexion', logout: 'Déconnexion', about: 'A propos', support: 'Soutien' },
   common:   { loading: 'Chargement…', error: 'Erreur', save: 'Enregistrer', cancel: 'Annuler', submit: 'Envoyer', confirm: 'Confirmer' },
   language: { label: 'Langue', fr: 'Français', de: 'Allemand', it: 'Italien', en: 'Anglais' },
   auth: {
@@ -195,6 +195,32 @@ export const fr: Translations = {
       sending: 'Envoi…',
       inviteAsEditor: 'Inviter comme éditeur',
       inviteSent: 'Invitation envoyée à {email} !',
+    },
+  },
+  platform: {
+    headline: 'Trouvez votre club',
+    philosophy: 'Nous croyons en la force des communautés locales. Notre annuaire connecte les gens avec les clubs et activités sociales près de chez eux, favorisant les rencontres réelles et les passions partagées.',
+    stats: {
+      clubs: '{count} clubs',
+      countries: '{count} pays',
+    },
+    exploreCountry: 'Explorer les clubs en {country}',
+    availableNow: 'Disponible maintenant',
+    comingSoon: 'Bientôt disponible',
+    associations: 'Associations',
+    countriesLabel: 'Pays',
+    activityTypes: 'Types d\'activité',
+    marketingSpend: 'Budget marketing',
+    marketingSpendValue: 'CHF 0',
+    about: {
+      title: 'A propos',
+      content: "Nous avons créé cette plateforme car nous croyons que chaque communauté mérite d'être visible. Trop de clubs et associations locaux restent cachés, accessibles uniquement par le bouche-à-oreille. Notre annuaire leur offre une place sur le web — simple, élégante et sans le bruit des réseaux sociaux. Notre vision est un monde où trouver un club local est aussi facile que chercher un restaurant. Que vous fassiez du ski, de la randonnée, du volleyball ou du yoga, votre prochaine communauté est à portée de clic.",
+    },
+    support: {
+      title: 'Soutien',
+      donationHeadline: 'Aidez-nous à maintenir cette plateforme',
+      donationText: "Cette plateforme est maintenue par une petite équipe et financée entièrement par des contributions volontaires. Si vous trouvez de la valeur dans ce que nous faisons, soutenez-nous par un don. Chaque contribution — aussi petite soit-elle — nous aide à poursuivre notre mission et à améliorer l'expérience pour les clubs et les visiteurs. Pour faire un don, contactez-nous à support@clashware.com pour les coordonnées bancaires.",
+      supportFormPlaceholder: 'Un formulaire de contact arrive bientôt. En attendant, contactez-nous à support@clashware.com.',
     },
   },
   activityTypes: {

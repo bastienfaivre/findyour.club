@@ -8,6 +8,9 @@ import type { SupportedLanguage } from '@/lib/i18n'
 export const SUPPORTED_COUNTRIES = ['ch'] as const
 export type Country = (typeof SUPPORTED_COUNTRIES)[number]
 
+export const COMING_SOON_COUNTRIES = ['fr', 'de', 'at', 'it'] as const
+export type ComingSoonCountry = (typeof COMING_SOON_COUNTRIES)[number]
+
 export function isValidCountry(country: string): country is Country {
   return (SUPPORTED_COUNTRIES as readonly string[]).includes(country)
 }
@@ -17,6 +20,17 @@ export const COUNTRY_NAMES: Record<SupportedLanguage, Record<Country, string>> =
   fr: { ch: 'Suisse' },
   de: { ch: 'Schweiz' },
   it: { ch: 'Svizzera' },
+}
+
+export const COMING_SOON_COUNTRY_NAMES: Record<SupportedLanguage, Record<ComingSoonCountry, string>> = {
+  en: { fr: 'France', de: 'Germany', at: 'Austria', it: 'Italy' },
+  fr: { fr: 'France', de: 'Allemagne', at: 'Autriche', it: 'Italie' },
+  de: { fr: 'Frankreich', de: 'Deutschland', at: 'Österreich', it: 'Italien' },
+  it: { fr: 'Francia', de: 'Germania', at: 'Austria', it: 'Italia' },
+}
+
+export function getComingSoonCountryName(country: ComingSoonCountry, lang: string): string {
+  return (COMING_SOON_COUNTRY_NAMES as Record<string, Record<ComingSoonCountry, string>>)[lang]?.[country] ?? COMING_SOON_COUNTRY_NAMES.en[country]
 }
 
 export function getCountryName(country: Country, lang: string): string {

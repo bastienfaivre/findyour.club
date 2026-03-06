@@ -1,7 +1,7 @@
 import type { Translations } from './types'
 
 export const de: Translations = {
-  nav:      { home: 'Startseite', apply: 'Bewerbung', myClubs: 'Meine Vereine', login: 'Anmelden', logout: 'Abmelden' },
+  nav:      { home: 'Startseite', apply: 'Bewerbung', myClubs: 'Meine Vereine', login: 'Anmelden', logout: 'Abmelden', about: 'Über uns', support: 'Unterstützung' },
   common:   { loading: 'Laden…', error: 'Fehler', save: 'Speichern', cancel: 'Abbrechen', submit: 'Absenden', confirm: 'Bestätigen' },
   language: { label: 'Sprache', fr: 'Französisch', de: 'Deutsch', it: 'Italienisch', en: 'Englisch' },
   auth: {
@@ -195,6 +195,32 @@ export const de: Translations = {
       sending: 'Wird gesendet…',
       inviteAsEditor: 'Als Bearbeiter einladen',
       inviteSent: 'Einladung an {email} gesendet!',
+    },
+  },
+  platform: {
+    headline: 'Finden Sie Ihren Verein',
+    philosophy: 'Wir glauben an die Kraft lokaler Gemeinschaften. Unser Verzeichnis verbindet Menschen mit Vereinen und sozialen Aktivitäten in ihrer Nähe und fördert echte Begegnungen und gemeinsame Leidenschaften.',
+    stats: {
+      clubs: '{count} Vereine',
+      countries: '{count} Länder',
+    },
+    exploreCountry: 'Vereine in {country} entdecken',
+    availableNow: 'Jetzt verfügbar',
+    comingSoon: 'Demnächst',
+    associations: 'Vereine',
+    countriesLabel: 'Länder',
+    activityTypes: 'Aktivitätstypen',
+    marketingSpend: 'Marketingausgaben',
+    marketingSpendValue: 'CHF 0',
+    about: {
+      title: 'Über uns',
+      content: 'Wir haben diese Plattform geschaffen, weil wir glauben, dass jede Gemeinschaft Sichtbarkeit verdient. Zu viele lokale Vereine und Verbände bleiben verborgen, nur durch Mundpropaganda erreichbar. Unser Verzeichnis gibt ihnen ein Zuhause im Web — einfach, schön und frei vom Lärm der sozialen Medien. Unsere Vision ist eine Welt, in der es so einfach ist, einen lokalen Verein zu finden wie ein Restaurant zu suchen. Ob Skifahren, Wandern, Volleyball oder Yoga — Ihre nächste Gemeinschaft ist nur einen Klick entfernt.',
+    },
+    support: {
+      title: 'Unterstützung',
+      donationHeadline: 'Helfen Sie uns, diese Plattform am Laufen zu halten',
+      donationText: 'Diese Plattform wird von einem kleinen Team betrieben und ausschließlich durch freiwillige Beiträge finanziert. Wenn Sie Wert in dem finden, was wir tun, unterstützen Sie uns mit einer Spende. Jeder Beitrag — egal wie klein — hilft uns, weiterzumachen und das Erlebnis für Vereine und Besucher zu verbessern. Kontaktieren Sie uns für eine Spende unter support@clashware.com für die Bankverbindung.',
+      supportFormPlaceholder: 'Ein Kontaktformular kommt bald. In der Zwischenzeit erreichen Sie uns unter support@clashware.com.',
     },
   },
   activityTypes: {

@@ -54,17 +54,17 @@ development_status:
   epic-1-retrospective: done
 
   # ─── Epic 2: Club Application & Onboarding ───
-  epic-2: in-progress
+  epic-2: done
   2-0-i18n-location-infrastructure: done
   2-1-club-application-form: done
   2-2-operator-application-review-queue: done
   2-3-application-approval-provisioning-acceptance-email: done
   2-4-application-rejection-rejection-email: done
-  epic-2-retrospective: optional
+  epic-2-retrospective: done
 
   # ─── Epic 3: Public Platform Site & Discovery ───
-  epic-3: backlog
-  3-1-platform-homepage-country-navigation: backlog
+  epic-3: in-progress
+  3-1-platform-homepage-country-navigation: done
   3-2-country-directory-with-filtering: backlog
   3-3-club-public-site-server-rendered-home-page: backlog
   3-4-club-public-site-inner-page-navigation-spa: backlog

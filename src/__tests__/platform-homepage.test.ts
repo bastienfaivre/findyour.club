@@ -1,0 +1,232 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+vi.mock('next/navigation', () => ({
+  redirect: vi.fn((url: string) => { throw new Error(`NEXT_REDIRECT:${url}`) }),
+}))
+vi.mock('next/headers', () => ({
+  headers: vi.fn(async () => ({ get: vi.fn(() => 'localhost:3000') })),
+  cookies: vi.fn(async () => ({ get: vi.fn(() => undefined) })),
+}))
+vi.mock('@/server/db', () => ({
+  prisma: {
+    club: {
+      groupBy: vi.fn(),
+    },
+  },
+}))
+
+import { prisma } from '@/server/db'
+import HomePage from '@/app/[lang]/(platform)/page'
+import AboutPage from '@/app/[lang]/(platform)/about/page'
+import SupportPage from '@/app/[lang]/(platform)/support/page'
+import { generatePlatformMetadata, generateDirectoryMetadata } from '@/components/app/seo/metadata'
+import { CountryButton } from '@/components/app/directory/CountryButton'
+
+function makeParams(lang = 'en') {
+  return Promise.resolve({ lang })
+}
+
+function findText(node: unknown): string {
+  if (node === null || node === undefined) return ''
+  if (typeof node === 'string' || typeof node === 'number') return String(node)
+  if (Array.isArray(node)) return node.map(findText).join('')
+  if (typeof node === 'object' && 'props' in (node as Record<string, unknown>)) {
+    const el = node as { props: { children?: unknown } }
+    return findText(el.props.children)
+  }
+  return ''
+}
+
+describe('generatePlatformMetadata', () => {
+  it('returns correct meta tags with title, description, OG, canonical, and robots', () => {
+    const meta = generatePlatformMetadata({
+      title: 'Test Title',
+      description: 'Test Description',
+      path: '/en',
+      lang: 'en',
+    })
+
+    expect(meta.title).toBe('Test Title')
+    expect(meta.description).toBe('Test Description')
+    expect(meta.robots).toBe('index, follow')
+    expect(meta.openGraph).toEqual(
+      expect.objectContaining({
+        title: 'Test Title',
+        description: 'Test Description',
+        type: 'website',
+        locale: 'en',
+      })
+    )
+    expect(meta.alternates?.canonical).toContain('/en')
+  })
+
+  it('uses NEXT_PUBLIC_BASE_URL for canonical URL', () => {
+    const meta = generatePlatformMetadata({
+      title: 'T',
+      description: 'D',
+      path: '/fr',
+      lang: 'fr',
+    })
+    expect((meta.alternates?.canonical as string).endsWith('/fr')).toBe(true)
+  })
+})
+
+describe('generateDirectoryMetadata', () => {
+  it('returns correct meta tags for country directory', () => {
+    const meta = generateDirectoryMetadata({
+      title: 'Switzerland',
+      description: 'Clubs in Switzerland',
+      path: '/en/ch',
+      lang: 'en',
+      country: 'ch',
+    })
+
+    expect(meta.title).toBe('Switzerland')
+    expect(meta.robots).toBe('index, follow')
+    expect(meta.openGraph).toEqual(
+      expect.objectContaining({
+        title: 'Switzerland',
+        type: 'website',
+      })
+    )
+  })
+})
+
+describe('CountryButton', () => {
+  it('renders with correct link href and translated aria-label', () => {
+    const result = CountryButton({
+      country: 'ch',
+      countryName: 'Switzerland',
+      clubCountLabel: '5 clubs',
+      ariaLabel: 'Explore clubs in Switzerland',
+      lang: 'en',
+    })
+
+    expect(result.props.href).toBe('/en/ch')
+    expect(result.props['aria-label']).toBe('Explore clubs in Switzerland')
+  })
+
+  it('displays translated country name and club count label', () => {
+    const result = CountryButton({
+      country: 'ch',
+      countryName: 'Suisse',
+      clubCountLabel: '12 clubs',
+      ariaLabel: 'Explorer les clubs en Suisse',
+      lang: 'fr',
+    })
+
+    expect(result.props.href).toBe('/fr/ch')
+    expect(result.props['aria-label']).toBe('Explorer les clubs en Suisse')
+    const text = findText(result)
+    expect(text).toContain('Suisse')
+    expect(text).toContain('12 clubs')
+  })
+
+  it('renders coming soon country as span without link', () => {
+    const result = CountryButton({
+      country: 'fr',
+      countryName: 'France',
+      clubCountLabel: 'Coming soon',
+      ariaLabel: 'France',
+      lang: 'en',
+      comingSoon: true,
+    })
+
+    // Should be a span, not a Link — no href, no aria-label on non-interactive element
+    expect(result.props.href).toBeUndefined()
+    expect(result.props['aria-label']).toBeUndefined()
+    expect(result.props.className).toContain('opacity-45')
+    const text = findText(result)
+    expect(text).toContain('France')
+    expect(text).toContain('Coming soon')
+  })
+})
+
+describe('HomePage', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  function setupGroupByMock(countryData: Array<{ country: string; _count: { id: number } }>) {
+    let callCount = 0
+    vi.mocked(prisma.club.groupBy).mockImplementation((() => {
+      callCount++
+      if (callCount === 1) {
+        return Promise.resolve(countryData)
+      }
+      // Second call: activityTypeId groupBy
+      return Promise.resolve([
+        { activityTypeId: 'skiing', _count: { id: 2 } },
+        { activityTypeId: 'football', _count: { id: 1 } },
+      ])
+    }) as never)
+  }
+
+  it('renders with headline, stats bar, country buttons, and coming soon section', async () => {
+    setupGroupByMock([{ country: 'ch', _count: { id: 3 } }])
+
+    const result = await HomePage({ params: makeParams() })
+    expect(result).toBeTruthy()
+
+    const text = findText(result)
+    expect(text).toContain('Find your club')
+
+    // Stats bar shows raw number + label
+    expect(text).toContain('3')
+    expect(text).toContain('Associations')
+    expect(text).toContain('Activity types')
+    expect(text).toContain('CHF 0')
+
+    // Section labels
+    expect(text).toContain('Available now')
+    expect(text).toContain('Coming soon')
+  })
+
+  it('handles zero clubs gracefully', async () => {
+    setupGroupByMock([])
+
+    const result = await HomePage({ params: makeParams() })
+    const text = findText(result)
+    expect(text).toContain('Find your club')
+    // Stats bar shows "0" for both associations and countries counts
+    expect(text).toContain('0Associations')
+    expect(text).toContain('0Countries')
+  })
+
+  it('resolves unsupported language to English fallback', async () => {
+    setupGroupByMock([])
+
+    const result = await HomePage({ params: makeParams('pt') })
+    const text = findText(result)
+    expect(text).toContain('Find your club')
+  })
+})
+
+describe('AboutPage', () => {
+  it('renders about page with title and philosophy content', async () => {
+    const result = await AboutPage({ params: makeParams() })
+    const text = findText(result)
+    expect(text).toContain('About')
+    expect(text).toContain('every community deserves visibility')
+  })
+
+  it('renders in French with translated content', async () => {
+    const result = await AboutPage({ params: makeParams('fr') })
+    const text = findText(result)
+    expect(text).toContain('A propos')
+  })
+})
+
+describe('SupportPage', () => {
+  it('renders support page with donation section and placeholder', async () => {
+    const result = await SupportPage({ params: makeParams() })
+    const text = findText(result)
+    expect(text).toContain('Support')
+    expect(text).toContain('Help us keep this platform running')
+    expect(text).toContain('contact form is coming soon')
+  })
+
+  it('renders in German with translated content', async () => {
+    const result = await SupportPage({ params: makeParams('de') })
+    const text = findText(result)
+    expect(text).toContain('Unterstützung')
+  })
+})

@@ -25,9 +25,10 @@ FR4: Club Admin can create custom pages with user-defined navigation labels
 FR5: Club Admin can configure one level of sub-pages within their site's navigation
 FR6: System prevents Club Admin from removing anchor pages (Home and Contact)
 FR7: System enforces a configurable maximum page count per club site
-FR8: Club Admin can set up and manage a custom domain for their site
+FR8: ~~Deferred to post-MVP~~ Club Admin can set up and manage a custom domain for their site
 FR9: System provisions a URL path for each approved club immediately upon acceptance
 FR46: Club Admin can select an accent color for their site from a curated palette of 8 presets
+FR47: Club Admin can configure an external website link on their club site that directs visitors to the club's own website
 
 **Content Editing & Element Library**
 
@@ -45,16 +46,16 @@ FR19: System displays file constraints (size limits, accepted formats) inline at
 **Public Discovery & Contact**
 
 FR20: Public Visitor can browse a directory of all member associations on the platform site
-FR21: Public Visitor can filter the directory by activity type and geographic region
+FR21: Public Visitor can filter the directory by country, activity type, and location
 FR22: Public Visitor can view any club's public website without authentication
 FR23: Public Visitor can submit a contact message through a club's contact form
 FR24: System delivers contact form submissions to the club's registered email address with reply-to set to the sender's address
-FR25: Public Visitor can navigate from any club site to the platform directory via the footer attribution link
-FR26: System displays a mandatory, non-removable platform attribution link in the footer of every club site
+FR25: Public Visitor can navigate from any club site to the platform directory via a footer link
+FR26: System displays a platform attribution link in the footer of every hosted club site
 
 **Application & Access**
 
-FR27: Club Applicant can submit an application to join the platform providing association name, activity type, and description
+FR27: Club Applicant can submit an application to join the platform providing association name, activity type, description, and optionally their existing website URL
 FR28: Club Admin can authenticate and access their site's edit mode via the platform site login
 FR29: Platform Operator can authenticate via a dedicated platform-level admin interface separate from club sites
 FR30: Club Admin can submit a support request to the platform team from the platform site
@@ -64,7 +65,7 @@ FR30: Club Admin can submit a support request to the platform team from the plat
 FR31: Platform Operator can view and manage a queue of pending club applications
 FR32: Platform Operator can approve an application, triggering automatic URL path provisioning and an acceptance email to the applicant
 FR33: Platform Operator can reject an application with an explanatory email to the applicant
-FR34: Platform Operator can view platform-wide metrics (clubs live, custom domains, uptime, performance scores, storage)
+FR34: Platform Operator can view platform-wide metrics (clubs live, uptime, performance scores, storage)
 FR35: Platform Operator can monitor site health status across all hosted club sites
 FR36: Platform Operator can send a notification to a club admin regarding a detected site issue
 FR37: Platform Operator can view and respond to club admin support requests
@@ -79,6 +80,10 @@ FR42: System presents a cookie consent mechanism to users on the platform site a
 FR43: System automatically generates and maintains SEO metadata for all club site pages without requiring any admin configuration
 FR44: Club Admin can view stored contact form submissions received for their site
 FR45: Platform Operator can view detailed per-club analytics (traffic, page views, edit events, login events, contact form submission counts)
+
+**Platform Funding**
+
+FR50: Public Visitor can access a donation/support page on the platform site to contribute to the platform's funding through voluntary donations
 
 ### NonFunctional Requirements
 
@@ -139,8 +144,8 @@ NFR27: All platform-wide configurable variables adjustable via the admin dashboa
 **Architecture — Infrastructure & Deployment:**
 
 - Docker Compose setup: Next.js + PostgreSQL + Nginx + Certbot (self-hosted on Infomaniak VPS, Swiss/EU)
-- Nginx for single-domain routing and custom domain passthrough
-- Certbot/Let's Encrypt for automated TLS (single domain via HTTP-01, per-club custom domains via HTTP-01)
+- Nginx for single-domain routing (custom domain passthrough deferred to post-MVP)
+- Certbot/Let's Encrypt for automated TLS (single domain via HTTP-01)
 - GitHub Actions CI/CD pipeline: lint → typecheck → pnpm audit → build → SSH deploy
 - `next.config.ts` output: 'standalone' for minimal Docker image
 
@@ -215,7 +220,7 @@ NFR27: All platform-wide configurable variables adjustable via the admin dashboa
 | FR5 | Epic 4 | Sub-page configuration |
 | FR6 | Epic 4 | Anchor page protection |
 | FR7 | Epic 4 | Configurable page limit enforcement |
-| FR8 | Epic 8 | Custom domain management |
+| FR8 | Post-MVP | Custom domain management (deferred) |
 | FR9 | Epic 2 | Subdomain provisioning on acceptance |
 | FR46 | Epic 4 | Accent color picker (MVP) |
 | FR10 | Epic 5 | Element picker for custom pages |
@@ -233,8 +238,8 @@ NFR27: All platform-wide configurable variables adjustable via the admin dashboa
 | FR22 | Epic 3 | Public club site access (no auth) |
 | FR23 | Epic 6 | Contact form submission |
 | FR24 | Epic 6 | Contact form email relay |
-| FR25 | Epic 3 | "Powered by" footer → platform directory |
-| FR26 | Epic 3 | Mandatory footer attribution |
+| FR25 | Epic 3 | Footer link → platform directory |
+| FR26 | Epic 3 | Platform attribution footer |
 | FR27 | Epic 2 | Club application form |
 | FR28 | Epic 1 | Club Admin authentication |
 | FR29 | Epic 1 | Platform Operator authentication |
@@ -254,6 +259,8 @@ NFR27: All platform-wide configurable variables adjustable via the admin dashboa
 | FR43 | Epic 3 | Automated SEO metadata |
 | FR44 | Epic 6 | Contact submission storage & view |
 | FR45 | Epic 7 | Per-club analytics view |
+| FR47 | Epic 4 | External website link configuration |
+| FR50 | Epic 3 | Donation/support page |
 
 ## Epic List
 
@@ -267,13 +274,13 @@ Club Applicants can submit an application to join the platform; the Platform Ope
 **FRs covered:** FR9, FR27, FR31, FR32, FR33
 
 ### Epic 3: Public Platform Site & Discovery
-Public Visitors can browse the platform homepage, filter the country directory by activity type and region, and navigate to individual club public sites. Every club site carries a mandatory "Powered by" footer with automatic SEO metadata — no configuration required.
-**FRs covered:** FR20, FR21, FR22, FR25, FR26, FR43
+The platform directory is the core product surface. Public Visitors can browse the homepage, filter the country directory by activity type and location, and navigate to individual club sites. Every club site has automatic SEO and a platform attribution footer. The donation page is part of the platform site.
+**FRs covered:** FR20, FR21, FR22, FR25, FR26, FR43, FR50
 **NFRs addressed:** NFR1, NFR2, NFR3, NFR21–24
 
 ### Epic 4: Club Site Identity & Navigation
-Club Admins can configure their site's core identity (name, logo, welcome text, accent color), manage pages (activate, deactivate, create, enforce limit), toggle between edit and public view directly on their own URL, explicitly save changes, and restore any previous version from version history.
-**FRs covered:** FR1, FR2, FR3, FR4, FR5, FR6, FR7, FR17, FR18, FR46
+Club Admins can configure their site's core identity (name, logo, welcome text, accent color, external website link), manage pages (activate, deactivate, create, enforce limit), toggle between edit and public view directly on their own URL, explicitly save changes, and restore any previous version from version history.
+**FRs covered:** FR1, FR2, FR3, FR4, FR5, FR6, FR7, FR17, FR18, FR46, FR47
 **NFRs addressed:** NFR4, NFR17
 
 ### Epic 5: Club Content Elements
@@ -291,10 +298,10 @@ The Platform Operator can view platform-wide metrics, monitor club site health, 
 **FRs covered:** FR34, FR35, FR36, FR37, FR38, FR39, FR45
 **NFRs addressed:** NFR4, NFR5, NFR15, NFR16, NFR25, NFR27
 
-### Epic 8: Custom Domains & Data Compliance
-Club Admins can set up a custom domain for their site with automated TLS. All GDPR/nDSG data rights are available: clubs can export their data and request deletion. A cookie consent mechanism is presented where legally required.
-**FRs covered:** FR8, FR40, FR41, FR42
-**NFRs addressed:** NFR6 (custom domain TLS)
+### Epic 8: Data Compliance
+All GDPR/nDSG data rights are available: clubs can export their data and request deletion. A cookie consent mechanism is presented where legally required. Data retention policies are enforced automatically. Custom domain support (FR8) is deferred to post-MVP.
+**FRs covered:** FR40, FR41, FR42
+**NFRs addressed:** NFR6 (TLS encryption)
 
 ---
 
@@ -711,19 +718,19 @@ So that applicants understand the platform's curation criteria and feel respecte
 
 ## Epic 3: Public Platform Site & Discovery
 
-Public Visitors can browse the platform homepage, filter the country directory, and navigate to club public sites. Every club site has automatic SEO and a mandatory "Powered by" footer.
+The platform directory is the core product surface — the starting point for anyone looking to find and join a club or social activity group. Public Visitors can browse the directory, filter by country, activity type, and location, navigate to club sites, and support the platform via donations. Every club site has automatic SEO and a platform attribution footer.
 
-### Story 3.1: Platform Homepage & Country Navigation
+### Story 3.1: Platform Homepage, Country Navigation & Donation Page
 
 As a Public Visitor,
-I want to land on a clear, fast-loading platform homepage that presents the philosophy and lets me navigate to my country's directory,
-So that I immediately understand the platform's purpose and can find clubs in my region.
+I want to land on a clear, fast-loading platform homepage that presents the directory as the primary product and lets me navigate to my country's directory,
+So that I immediately understand this is where I find clubs and social activities.
 
 **Acceptance Criteria:**
 
 **Given** a visitor navigates to the root platform domain,
 **When** the page loads,
-**Then** it renders server-side with: a short declarative headline, the platform philosophy, `CountryButton` components for each active country (showing country name, flag icon, and club count), and aggregate platform statistics.
+**Then** it renders server-side with: a short declarative headline positioning the platform as the directory for clubs and social activities, a brief philosophy statement, `CountryButton` components for each active country (showing country name, flag icon, and club count), and aggregate platform statistics (total clubs, total countries).
 
 **Given** the platform homepage,
 **Then** it scores ≥ 90 on Core Web Vitals (Lighthouse performance, SEO, accessibility) and includes full meta tags and Open Graph tags generated automatically.
@@ -733,23 +740,23 @@ So that I immediately understand the platform's purpose and can find clubs in my
 **Then** the country directory page loads — routing is handled at the application layer via `lib/country.ts` and the `[lang]` segment, not DNS.
 
 **Given** the platform site,
-**Then** it includes static pages: `/about` (platform philosophy) and a `/support` placeholder page (full support form implemented in Epic 6).
+**Then** it includes static pages: `/about` (platform philosophy — why the directory exists, the vision for social connection), and `/support` (donation page where visitors can contribute to the platform's funding through voluntary donations, plus a support form placeholder — full support form implemented in Epic 6) (FR50).
 
 ---
 
-### Story 3.2: Country Directory with Filtering
+### Story 3.2: Country Directory with Rich Filtering
 
 As a Public Visitor,
-I want to browse a filterable directory of member associations on the country page,
-So that I can discover clubs matching my activity interest and geographic region.
+I want to browse a filterable directory of clubs on the country page with filters for activity type and location,
+So that I can discover clubs matching my interests near me — this is the core discovery experience.
 
 **Acceptance Criteria:**
 
 **Given** a visitor navigates to a country path (e.g., `platform-name.com/fr/ch`),
 **When** the page loads,
-**Then** it renders server-side with a filter bar (activity type select, region/canton select) and a grid of `ClubCard` components for all active clubs in that country.
+**Then** it renders server-side with a filter bar (activity type select, location/region select) and a grid of `ClubCard` components for all active clubs in that country. Each `ClubCard` shows: club name, logo (or monogram), activity type, location, and — if configured — an external website link icon (FR21).
 
-**Given** the visitor changes an activity type or region filter,
+**Given** the visitor changes an activity type or location filter,
 **When** the filter value changes,
 **Then** the club grid updates with a loading skeleton visible within 100ms; only matching clubs are shown — no full page reload required.
 
@@ -757,10 +764,10 @@ So that I can discover clubs matching my activity interest and geographic region
 **Then** an inline empty state is shown: "No clubs match these filters" with a "Reset filters" link — never a dead end.
 
 **Given** active filter values,
-**Then** they are reflected in the URL as query parameters (e.g., `?activity=ski&region=valais`) so the filtered view is shareable and bookmarkable.
+**Then** they are reflected in the URL as query parameters (e.g., `?activity=ski&location=valais`) so the filtered view is shareable and bookmarkable.
 
 **Given** the directory page,
-**Then** it is server-rendered for SEO with structured data for each club entry; the filter UI degrades gracefully without JavaScript.
+**Then** it is server-rendered for SEO with structured data for each club entry; the filter UI degrades gracefully without JavaScript. The directory is the primary SEO surface for the platform — optimized for search queries like "badminton club Lausanne."
 
 ---
 
@@ -781,6 +788,9 @@ So that I can quickly understand who the club is and find the information I need
 
 **Given** a club with no logo uploaded,
 **Then** a monogram avatar (club name initial) is displayed as the logo placeholder.
+
+**Given** a club has configured an external website link,
+**Then** the club home page displays a visible "Visit our website" link pointing to the external URL — opening in a new tab (FR47).
 
 **Given** the club home page,
 **Then** it includes full JSON-LD structured data, Open Graph tags, and a canonical meta tag — all generated automatically from club data via `lib/seo.ts` with zero admin configuration required (FR43).
@@ -814,18 +824,18 @@ So that I can browse the club's content without full-page reloads.
 
 ---
 
-### Story 3.5: Mandatory "Powered By" Footer & Platform Sitemap
+### Story 3.5: Platform Attribution Footer & Platform Sitemap
 
 As a Public Visitor,
-I want every club site to have a "Powered by" footer link back to the platform,
-So that I can discover the platform and other clubs from any club site I visit.
+I want every club site to have a platform attribution footer link and the platform to maintain a comprehensive sitemap,
+So that club sites are connected to the platform directory and all clubs are discoverable by search engines.
 
 **Acceptance Criteria:**
 
 **Given** any public club site page (home or inner),
-**Then** the `PoweredByBanner` component renders in the footer with a link to the platform homepage; it is non-removable by club admins and present on every page (FR26).
+**Then** the `PoweredByBanner` component renders in the footer with a link to the platform homepage; it is present on every page (FR26).
 
-**Given** a visitor clicks the "Powered by" footer link,
+**Given** a visitor clicks the attribution footer link,
 **When** they arrive on the platform homepage,
 **Then** the platform homepage loads as per Story 3.1 (FR25).
 
@@ -883,7 +893,7 @@ So that my club's public home page reflects our identity from the very first sav
 
 **Given** the Club Admin is in edit mode on the club home page,
 **When** they hover over the identity section,
-**Then** an `EditFieldCard` appears with fields for: club name (text input), logo (`ImageUploadField` with "Max 5 MB · JPG, PNG, WebP" constraint displayed permanently), and welcome text (textarea); the amber dot is absent until a field is changed.
+**Then** an `EditFieldCard` appears with fields for: club name (text input), logo (`ImageUploadField` with "Max 5 MB · JPG, PNG, WebP" constraint displayed permanently), welcome text (textarea), and external website link (optional URL field — for clubs that have their own website) (FR47); the amber dot is absent until a field is changed.
 
 **Given** the Club Admin changes any field value,
 **When** a change is made,
@@ -1340,7 +1350,7 @@ So that I can oversee the platform's club population and take administrative act
 
 **Given** the operator clicks on a club,
 **When** the detail view opens,
-**Then** the operator sees full club metadata: name, logo, contact email, plan details, page count, custom domain (if any), and a list of admin actions.
+**Then** the operator sees full club metadata: name, logo, contact email, page count, external website link (if configured), and a list of admin actions.
 
 **Given** the operator triggers a "Suspend" action on a club,
 **When** confirmed,
@@ -1351,7 +1361,7 @@ So that I can oversee the platform's club population and take administrative act
 
 **Given** the operator navigates to `/admin/dashboard`,
 **When** the page loads,
-**Then** an aggregate platform metrics panel is shown with: total clubs live, number with custom domains configured, platform-wide uptime % for the last 30 days, and percentage of club sites with all Lighthouse scores ≥ 90 — all displayed as summary statistics without requiring drill-down into individual clubs (FR34).
+**Then** an aggregate platform metrics panel is shown with: total clubs live, number with external website links configured, platform-wide uptime % for the last 30 days, and percentage of club sites with all Lighthouse scores ≥ 90 — all displayed as summary statistics without requiring drill-down into individual clubs (FR34).
 
 ---
 
@@ -1565,37 +1575,11 @@ So that all clubs benefit from improvements and fixes without any action require
 
 ---
 
-## Epic 8: Custom Domains & Data Compliance
+## Epic 8: Data Compliance
 
-Club Admins can connect a custom domain to their site, export their data (GDPR portability), and request account deletion (GDPR right-to-erasure). A cookie consent mechanism is presented where legally required. Data retention policies are applied automatically.
+Club Admins can export their data (GDPR portability) and request account deletion (GDPR right-to-erasure). A cookie consent mechanism is presented where legally required. Data retention policies are applied automatically.
 
-### Story 8.1: Custom Domain Setup & DNS Verification
-
-As a Club Admin,
-I want to configure a custom domain for my club's website,
-So that visitors can reach my club at my own branded URL instead of the platform path.
-
-**Acceptance Criteria:**
-
-**Given** the Club Admin navigates to domain settings in their admin panel,
-**When** they enter a custom domain (e.g., `www.my-ski-club.ch`) and submit,
-**Then** the system stores the requested domain and generates a DNS verification token; the UI displays the required DNS record: `CNAME www → platform-hostname` and a `TXT` record for ownership verification (FR8).
-
-**Given** the Club Admin has added the required DNS records at their registrar,
-**When** they click "Verify Domain",
-**Then** the system performs a DNS lookup to confirm both the `CNAME` and `TXT` records are present; on success the domain `status` is set to `verified`; on failure a specific error is shown explaining which record is missing or incorrect.
-
-**Given** the domain is verified,
-**When** a visitor accesses the club at the custom domain,
-**Then** Nginx routes the request to the Next.js app using the custom domain; the club is resolved from the `clubs` table by `customDomain` field; the correct club site is rendered — the platform path URL continues to work in parallel.
-
-**Given** the Club Admin removes their custom domain,
-**When** confirmed,
-**Then** the `customDomain` field is cleared; Nginx routing falls back to the platform path URL within one deployment cycle; the removed domain record is deleted.
-
----
-
-### Story 8.2: GDPR Right-to-Erasure — Club Data Deletion
+### Story 8.1: GDPR Right-to-Erasure — Club Data Deletion
 
 As a Club Admin,
 I want to request deletion of my club's data from the platform,
@@ -1614,12 +1598,12 @@ So that my association can exercise its right to erasure under GDPR.
 **Given** the deletion job completes,
 **Then** the club admin's session is invalidated immediately; any subsequent request using their credentials returns HTTP 401; the platform path URL for the club returns HTTP 404.
 
-**Given** the Club Admin has a custom domain configured at time of deletion,
-**Then** the custom domain record is also cleared; if the deletion fails mid-way, the operation rolls back fully (Prisma transaction) — no partial deletion state is possible.
+**Given** the deletion fails mid-way,
+**Then** the operation rolls back fully (Prisma transaction) — no partial deletion state is possible.
 
 ---
 
-### Story 8.3: GDPR Visitor Data Requests & Automated Retention
+### Story 8.2: GDPR Visitor Data Requests & Automated Retention
 
 As a Platform Operator,
 I want automated data retention enforcement and a process for handling visitor data requests,
@@ -1644,7 +1628,7 @@ So that the platform is compliant with GDPR data minimisation and right-to-acces
 
 ---
 
-### Story 8.4: Club Admin — Data Export (GDPR Portability)
+### Story 8.3: Club Admin — Data Export (GDPR Portability)
 
 As a Club Admin,
 I want to export all my club's content data in a portable, machine-readable format,
@@ -1654,7 +1638,7 @@ So that I can exercise my right to data portability and migrate my content if ne
 
 **Given** the Club Admin is in edit mode and opens the Admin sidebar tab,
 **When** they view the Admin section,
-**Then** an "Export data" option is available alongside Version History, Account, and Custom Domain (FR40).
+**Then** an "Export data" option is available alongside Version History and Account (FR40).
 
 **Given** the Club Admin clicks "Export data",
 **When** the dialog opens,
@@ -1673,7 +1657,7 @@ So that I can exercise my right to data portability and migrate my content if ne
 
 ---
 
-### Story 8.5: Cookie Consent Mechanism
+### Story 8.4: Cookie Consent Mechanism
 
 As a visitor on the platform site or any club site,
 I want to be informed about cookie usage and give or decline consent before any non-essential cookies are set,
@@ -1706,3 +1690,33 @@ So that my privacy choices are respected and the platform meets its GDPR/nDSG ob
 
 **Given** the consent banner and preferences modal,
 **Then** they meet WCAG 2.1 AA: fully keyboard-accessible, screen-reader compatible, minimum 44px touch targets on all interactive elements.
+
+---
+
+## Post-MVP: Deferred Features
+
+The following stories are deferred to post-MVP and will be prioritized after the core platform is validated with real clubs.
+
+### Post-MVP Story: Custom Domain Setup & DNS Verification (FR8)
+
+As a Club Admin,
+I want to configure a custom domain for my club's website,
+So that visitors can reach my club at my own branded URL instead of the platform path.
+
+**Acceptance Criteria:**
+
+**Given** the Club Admin navigates to domain settings in their admin panel,
+**When** they enter a custom domain (e.g., `www.my-ski-club.ch`) and submit,
+**Then** the system stores the requested domain and generates a DNS verification token; the UI displays the required DNS record: `CNAME www → platform-hostname` and a `TXT` record for ownership verification (FR8).
+
+**Given** the Club Admin has added the required DNS records at their registrar,
+**When** they click "Verify Domain",
+**Then** the system performs a DNS lookup to confirm both the `CNAME` and `TXT` records are present; on success the domain `status` is set to `verified`; on failure a specific error is shown explaining which record is missing or incorrect.
+
+**Given** the domain is verified,
+**When** a visitor accesses the club at the custom domain,
+**Then** Nginx routes the request to the Next.js app using the custom domain; the club is resolved from the `clubs` table by `customDomain` field; the correct club site is rendered — the platform path URL continues to work in parallel.
+
+**Given** the Club Admin removes their custom domain,
+**When** confirmed,
+**Then** the `customDomain` field is cleared; Nginx routing falls back to the platform path URL within one deployment cycle; the removed domain record is deleted.
