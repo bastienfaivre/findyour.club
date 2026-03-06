@@ -92,6 +92,46 @@ export const fr: Translations = {
   admin: {
     dashboardTitle: "Tableau de bord de l'opérateur",
   },
+  apply: {
+    title: 'Candidature',
+    subtitle: 'Soumettez la candidature de votre association pour rejoindre notre plateforme.',
+    fields: {
+      name: "Nom de l'association",
+      email: 'E-mail',
+      country: 'Pays',
+      activityType: "Type d'activité",
+      location: 'Localité',
+      description: 'Description',
+      desiredSlug: 'Slug URL souhaité',
+    },
+    placeholders: {
+      name: 'ex. Ski Club du Valais',
+      email: 'contact@votre-association.ch',
+      activityType: "Sélectionner un type d'activité…",
+      location: 'Rechercher votre commune…',
+      description: 'Décrivez brièvement votre association et ses activités…',
+      desiredSlug: 'ex. ski-club-valais',
+    },
+    requiredLegend: 'Obligatoire',
+    validation: {
+      nameRequired: "Le nom de l'association est requis.",
+      emailInvalid: 'Veuillez saisir une adresse e-mail valide.',
+      activityTypeRequired: "Veuillez sélectionner un type d'activité.",
+      locationRequired: 'Veuillez sélectionner une localité.',
+      descriptionRequired: 'La description est requise.',
+      descriptionMaxLength: 'La description ne doit pas dépasser 1000 caractères.',
+      desiredSlugRequired: 'Un slug URL souhaité est requis.',
+      desiredSlugInvalid: 'Utilisez uniquement des lettres minuscules, chiffres et tirets. Ne doit pas commencer ni finir par un tiret.',
+    },
+    desiredSlugHint: "Le slug final sera décidé par l'opérateur de la plateforme et pourra être modifié à tout moment.",
+    success: 'Votre candidature a été soumise avec succès ! Nous l\'examinerons et reviendrons vers vous.',
+    errors: {
+      rateLimited: 'Trop de soumissions. Veuillez réessayer plus tard.',
+      turnstileFailed: 'La vérification anti-bot a échoué. Veuillez réessayer.',
+      serverError: 'Une erreur inattendue est survenue. Veuillez réessayer.',
+    },
+    submitting: 'Envoi…',
+  },
   club: {
     settings: 'Paramètres',
     membership: {
@@ -119,5 +159,11 @@ export const fr: Translations = {
       inviteAsEditor: 'Inviter comme éditeur',
       inviteSent: 'Invitation envoyée à {email} !',
     },
+  },
+  activityTypes: {
+    skiing: 'Ski',
+    football: 'Football',
+    mountaineering: 'Alpinisme',
+    tennis: 'Tennis',
   },
 }

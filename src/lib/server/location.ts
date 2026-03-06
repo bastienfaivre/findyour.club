@@ -5,7 +5,7 @@ export type UpsertSwissLocationInput = {
   swisstopoId: string
   plz: string
   cantonCode: string
-  nameFr: string // French name used as canonical search reference
+  displayName: string // localized name used as swisstopo search reference
 }
 
 export async function upsertSwissLocation(
@@ -34,11 +34,11 @@ export async function upsertSwissLocation(
 
   for (const lang of languages) {
     try {
-      const name = await resolveNameForLanguage(input.swisstopoId, input.nameFr, lang)
+      const name = await resolveNameForLanguage(input.swisstopoId, input.displayName, lang)
       translations.push({ language: lang, name })
     } catch {
-      // Graceful fallback: use French name if API fails for this language
-      translations.push({ language: lang, name: input.nameFr })
+      // Graceful fallback: use display name if API fails for this language
+      translations.push({ language: lang, name: input.displayName })
     }
   }
 
@@ -62,11 +62,11 @@ export async function upsertSwissLocation(
 
 async function resolveNameForLanguage(
   swisstopoId: string,
-  nameFr: string,
+  displayName: string,
   lang: string,
 ): Promise<string> {
   const url = new URL(SWISSTOPO_SEARCH_API)
-  url.searchParams.set('searchText', nameFr)
+  url.searchParams.set('searchText', displayName)
   url.searchParams.set('type', 'locations')
   url.searchParams.set('lang', lang)
   url.searchParams.set('sr', '4326')

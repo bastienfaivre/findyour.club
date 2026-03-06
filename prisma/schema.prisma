@@ -229,6 +229,7 @@ model Application {
   locationId       String?           @map("location_id")
   description      String
   email            String
+  desiredSlug      String?           @map("desired_slug")
   status           ApplicationStatus @default(PENDING)
   rejectionReason  String?           @map("rejection_reason")
   submittedAt      DateTime          @default(now()) @map("submitted_at")

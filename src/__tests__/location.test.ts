@@ -4,6 +4,9 @@ import { upsertSwissLocation } from '@/lib/server/location'
 import { GET } from '@/app/api/locations/route'
 import { type NextRequest } from 'next/server'
 
+vi.mock('@/lib/rate-limit', () => ({
+  checkRateLimit: vi.fn().mockReturnValue(false),
+}))
 vi.mock('@/server/db', () => ({
   prisma: {
     swissLocation: { findUnique: vi.fn(), create: vi.fn() },
@@ -18,7 +21,7 @@ const VALID_INPUT = {
   swisstopoId: '2117',
   plz: '1200',
   cantonCode: 'GE',
-  nameFr: 'Genève',
+  displayName: 'Genève',
 }
 
 // Build a minimal swisstopo response for a given language name
@@ -37,7 +40,7 @@ function makeSwisstopoResponse(id: string, name: string) {
 function makeRequest(params: Record<string, string>): NextRequest {
   const url = new URL('http://localhost/api/locations')
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v)
-  return { nextUrl: url } as NextRequest
+  return { nextUrl: url, headers: new Headers({ 'x-forwarded-for': '127.0.0.1' }) } as NextRequest
 }
 
 beforeEach(() => {
@@ -121,7 +124,7 @@ describe('upsertSwissLocation', () => {
     })
   })
 
-  it('falls back to nameFr when swisstopo API returns no match for a language', async () => {
+  it('falls back to displayName when swisstopo API returns no match for a language', async () => {
     vi.mocked(global.fetch)
       .mockResolvedValueOnce(makeSwisstopoResponse('2117', 'Genève'))  // fr — match
       .mockResolvedValueOnce({                                          // de — no match
@@ -137,10 +140,10 @@ describe('upsertSwissLocation', () => {
     const createCall = vi.mocked(prisma.swissLocation.create).mock.calls[0][0]
     const translations = createCall.data.translations!.createMany!.data as Array<{ language: string; name: string }>
     const deTrans = translations.find(t => t.language === 'de')
-    expect(deTrans?.name).toBe('Genève') // fallback to nameFr
+    expect(deTrans?.name).toBe('Genève') // fallback to displayName
   })
 
-  it('falls back to nameFr when fetch throws for a language', async () => {
+  it('falls back to displayName when fetch throws for a language', async () => {
     vi.mocked(global.fetch)
       .mockResolvedValueOnce(makeSwisstopoResponse('2117', 'Genève'))  // fr — ok
       .mockRejectedValueOnce(new Error('network error'))               // de — throws
@@ -153,7 +156,7 @@ describe('upsertSwissLocation', () => {
     const createCall = vi.mocked(prisma.swissLocation.create).mock.calls[0][0]
     const translations = createCall.data.translations!.createMany!.data as Array<{ language: string; name: string }>
     const deTrans = translations.find(t => t.language === 'de')
-    expect(deTrans?.name).toBe('Genève') // fallback to nameFr
+    expect(deTrans?.name).toBe('Genève') // fallback to displayName
   })
 })
 

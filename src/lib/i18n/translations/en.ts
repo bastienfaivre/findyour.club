@@ -92,6 +92,46 @@ export const en: Translations = {
   admin: {
     dashboardTitle: 'Platform Operator Dashboard',
   },
+  apply: {
+    title: 'Apply to Join',
+    subtitle: 'Submit your association\'s application to join our platform.',
+    fields: {
+      name: 'Association Name',
+      email: 'Email',
+      country: 'Country',
+      activityType: 'Activity Type',
+      location: 'Location',
+      description: 'Description',
+      desiredSlug: 'Desired URL Slug',
+    },
+    placeholders: {
+      name: 'e.g. Ski Club Valais',
+      email: 'contact@your-association.ch',
+      activityType: 'Select an activity type…',
+      location: 'Search for your municipality…',
+      description: 'Briefly describe your association and its activities…',
+      desiredSlug: 'e.g. ski-club-valais',
+    },
+    requiredLegend: 'Required',
+    validation: {
+      nameRequired: 'Association name is required.',
+      emailInvalid: 'Please enter a valid email address.',
+      activityTypeRequired: 'Please select an activity type.',
+      locationRequired: 'Please select a location.',
+      descriptionRequired: 'Description is required.',
+      descriptionMaxLength: 'Description must be 1000 characters or less.',
+      desiredSlugRequired: 'A desired URL slug is required.',
+      desiredSlugInvalid: 'Use only lowercase letters, numbers, and hyphens. Must not start or end with a hyphen.',
+    },
+    desiredSlugHint: 'The final slug will be decided by the platform operator and can be changed at any time.',
+    success: 'Your application has been submitted successfully! We will review it and get back to you.',
+    errors: {
+      rateLimited: 'Too many submissions. Please try again later.',
+      turnstileFailed: 'Bot protection verification failed. Please try again.',
+      serverError: 'An unexpected error occurred. Please try again.',
+    },
+    submitting: 'Submitting…',
+  },
   club: {
     settings: 'Settings',
     membership: {
@@ -119,5 +159,11 @@ export const en: Translations = {
       inviteAsEditor: 'Invite as Editor',
       inviteSent: 'Invitation sent to {email}!',
     },
+  },
+  activityTypes: {
+    skiing: 'Skiing',
+    football: 'Football',
+    mountaineering: 'Mountaineering',
+    tennis: 'Tennis',
   },
 }

@@ -92,6 +92,46 @@ export const de: Translations = {
   admin: {
     dashboardTitle: 'Betreiber-Dashboard',
   },
+  apply: {
+    title: 'Bewerbung',
+    subtitle: 'Reichen Sie die Bewerbung Ihres Vereins ein, um unserer Plattform beizutreten.',
+    fields: {
+      name: 'Vereinsname',
+      email: 'E-Mail',
+      country: 'Land',
+      activityType: 'Aktivitätstyp',
+      location: 'Standort',
+      description: 'Beschreibung',
+      desiredSlug: 'Gewünschter URL-Slug',
+    },
+    placeholders: {
+      name: 'z. B. Skiclub Wallis',
+      email: 'kontakt@ihr-verein.ch',
+      activityType: 'Aktivitätstyp auswählen…',
+      location: 'Ihre Gemeinde suchen…',
+      description: 'Beschreiben Sie kurz Ihren Verein und seine Aktivitäten…',
+      desiredSlug: 'z. B. skiclub-wallis',
+    },
+    requiredLegend: 'Erforderlich',
+    validation: {
+      nameRequired: 'Der Vereinsname ist erforderlich.',
+      emailInvalid: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.',
+      activityTypeRequired: 'Bitte wählen Sie einen Aktivitätstyp aus.',
+      locationRequired: 'Bitte wählen Sie einen Standort aus.',
+      descriptionRequired: 'Die Beschreibung ist erforderlich.',
+      descriptionMaxLength: 'Die Beschreibung darf maximal 1000 Zeichen lang sein.',
+      desiredSlugRequired: 'Ein gewünschter URL-Slug ist erforderlich.',
+      desiredSlugInvalid: 'Nur Kleinbuchstaben, Zahlen und Bindestriche erlaubt. Darf nicht mit einem Bindestrich beginnen oder enden.',
+    },
+    desiredSlugHint: 'Der endgültige Slug wird vom Plattformbetreiber festgelegt und kann jederzeit geändert werden.',
+    success: 'Ihre Bewerbung wurde erfolgreich eingereicht! Wir werden sie prüfen und uns bei Ihnen melden.',
+    errors: {
+      rateLimited: 'Zu viele Einreichungen. Bitte versuchen Sie es später erneut.',
+      turnstileFailed: 'Bot-Schutz-Überprüfung fehlgeschlagen. Bitte versuchen Sie es erneut.',
+      serverError: 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
+    },
+    submitting: 'Wird gesendet…',
+  },
   club: {
     settings: 'Einstellungen',
     membership: {
@@ -119,5 +159,11 @@ export const de: Translations = {
       inviteAsEditor: 'Als Bearbeiter einladen',
       inviteSent: 'Einladung an {email} gesendet!',
     },
+  },
+  activityTypes: {
+    skiing: 'Skifahren',
+    football: 'Fussball',
+    mountaineering: 'Bergsteigen',
+    tennis: 'Tennis',
   },
 }

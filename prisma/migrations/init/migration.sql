@@ -176,6 +176,7 @@ CREATE TABLE "applications" (
     "location_id" TEXT,
     "description" TEXT NOT NULL,
     "email" TEXT NOT NULL,
+    "desired_slug" TEXT,
     "status" "ApplicationStatus" NOT NULL DEFAULT 'PENDING',
     "rejection_reason" TEXT,
     "submitted_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

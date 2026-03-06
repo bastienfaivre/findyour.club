@@ -92,6 +92,46 @@ export const it: Translations = {
   admin: {
     dashboardTitle: 'Dashboard operatore',
   },
+  apply: {
+    title: 'Candidatura',
+    subtitle: "Invia la candidatura della tua associazione per unirti alla nostra piattaforma.",
+    fields: {
+      name: "Nome dell'associazione",
+      email: 'E-mail',
+      country: 'Paese',
+      activityType: 'Tipo di attività',
+      location: 'Località',
+      description: 'Descrizione',
+      desiredSlug: 'Slug URL desiderato',
+    },
+    placeholders: {
+      name: 'es. Sci Club Vallese',
+      email: 'contatto@tua-associazione.ch',
+      activityType: 'Seleziona un tipo di attività…',
+      location: 'Cerca il tuo comune…',
+      description: 'Descrivi brevemente la tua associazione e le sue attività…',
+      desiredSlug: 'es. sci-club-vallese',
+    },
+    requiredLegend: 'Obbligatorio',
+    validation: {
+      nameRequired: "Il nome dell'associazione è obbligatorio.",
+      emailInvalid: 'Inserisci un indirizzo e-mail valido.',
+      activityTypeRequired: "Seleziona un tipo di attività.",
+      locationRequired: 'Seleziona una località.',
+      descriptionRequired: 'La descrizione è obbligatoria.',
+      descriptionMaxLength: 'La descrizione non deve superare i 1000 caratteri.',
+      desiredSlugRequired: 'Uno slug URL desiderato è obbligatorio.',
+      desiredSlugInvalid: 'Usa solo lettere minuscole, numeri e trattini. Non deve iniziare né finire con un trattino.',
+    },
+    desiredSlugHint: "Lo slug finale sarà deciso dall'operatore della piattaforma e potrà essere modificato in qualsiasi momento.",
+    success: 'La tua candidatura è stata inviata con successo! La esamineremo e ti contatteremo.',
+    errors: {
+      rateLimited: 'Troppi invii. Riprova più tardi.',
+      turnstileFailed: 'Verifica anti-bot fallita. Riprova.',
+      serverError: 'Si è verificato un errore imprevisto. Riprova.',
+    },
+    submitting: 'Invio…',
+  },
   club: {
     settings: 'Impostazioni',
     membership: {
@@ -119,5 +159,11 @@ export const it: Translations = {
       inviteAsEditor: 'Invita come editor',
       inviteSent: 'Invito inviato a {email}!',
     },
+  },
+  activityTypes: {
+    skiing: 'Sci',
+    football: 'Calcio',
+    mountaineering: 'Alpinismo',
+    tennis: 'Tennis',
   },
 }

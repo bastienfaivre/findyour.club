@@ -95,6 +95,46 @@ export type Translations = {
   admin: {
     dashboardTitle: string
   }
+  apply: {
+    title: string
+    subtitle: string
+    fields: {
+      name: string
+      email: string
+      country: string
+      activityType: string
+      location: string
+      description: string
+      desiredSlug: string
+    }
+    placeholders: {
+      name: string
+      email: string
+      activityType: string
+      location: string
+      description: string
+      desiredSlug: string
+    }
+    requiredLegend: string
+    validation: {
+      nameRequired: string
+      emailInvalid: string
+      activityTypeRequired: string
+      locationRequired: string
+      descriptionRequired: string
+      descriptionMaxLength: string
+      desiredSlugRequired: string
+      desiredSlugInvalid: string
+    }
+    desiredSlugHint: string
+    success: string
+    errors: {
+      rateLimited: string
+      turnstileFailed: string
+      serverError: string
+    }
+    submitting: string
+  }
   club: {
     settings: string
     membership: {
@@ -126,4 +166,5 @@ export type Translations = {
       inviteSent: string
     }
   }
+  activityTypes: Record<string, string>
 }
