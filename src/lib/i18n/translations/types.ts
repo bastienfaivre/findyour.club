@@ -253,5 +253,14 @@ export type Translations = {
     /** Use {name}, {activity}, {location} as placeholders */
     clubAriaLabel: string
   }
+  clubSite: {
+    contactCta: string
+    visitWebsite: string
+    home: string
+    contact: string
+    editSite: string
+    menu: string
+    navigation: string
+  }
   activityTypes: Record<string, string>
 }

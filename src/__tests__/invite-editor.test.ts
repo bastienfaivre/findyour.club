@@ -5,7 +5,7 @@ vi.mock('@/server/auth', () => ({
 }))
 vi.mock('@/server/db', () => ({
   prisma: {
-    club: { findUnique: vi.fn() },
+    club: { findFirst: vi.fn() },
     clubMembership: { findFirst: vi.fn(), create: vi.fn(), deleteMany: vi.fn() },
     user: { findUnique: vi.fn(), create: vi.fn() },
     invitation: { findFirst: vi.fn(), create: vi.fn(), deleteMany: vi.fn() },
@@ -40,7 +40,7 @@ const OWNER_MEMBERSHIP = { id: 'mem-1', role: 'OWNER', status: 'ACTIVE' }
 describe('inviteEditor()', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(prisma.club.findUnique).mockResolvedValue(CLUB as never)
+    vi.mocked(prisma.club.findFirst).mockResolvedValue(CLUB as never)
     vi.mocked(prisma.clubMembership.findFirst).mockResolvedValue(OWNER_MEMBERSHIP as never)
     vi.mocked(prisma.clubMembership.create).mockResolvedValue({} as never)
     vi.mocked(prisma.clubMembership.deleteMany).mockResolvedValue({ count: 0 } as never)
@@ -57,7 +57,7 @@ describe('inviteEditor()', () => {
 
   it('returns UNAUTHORIZED when club is not found', async () => {
     vi.mocked(getAuthSession).mockResolvedValue(OWNER_SESSION)
-    vi.mocked(prisma.club.findUnique).mockResolvedValue(null)
+    vi.mocked(prisma.club.findFirst).mockResolvedValue(null)
     const result = await inviteEditor(COUNTRY, SLUG, null, makeFormData('editor@example.com'))
     expect(result).toMatchObject({ success: false, code: 'UNAUTHORIZED' })
   })

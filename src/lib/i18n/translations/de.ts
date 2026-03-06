@@ -236,6 +236,15 @@ export const de: Translations = {
     clubCount: '{count} Vereine',
     clubAriaLabel: '{name} — {activity} in {location}',
   },
+  clubSite: {
+    contactCta: 'Kontaktieren Sie uns',
+    visitWebsite: 'Unsere Website besuchen',
+    home: 'Startseite',
+    contact: 'Kontakt',
+    editSite: 'Seite bearbeiten',
+    menu: 'Menü',
+    navigation: 'Vereinsnavigation',
+  },
   activityTypes: {
     skiing: 'Skifahren',
     football: 'Fussball',

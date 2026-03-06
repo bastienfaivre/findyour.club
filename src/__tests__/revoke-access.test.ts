@@ -5,7 +5,7 @@ vi.mock('@/server/auth', () => ({
 }))
 vi.mock('@/server/db', () => ({
   prisma: {
-    club: { findUnique: vi.fn() },
+    club: { findFirst: vi.fn() },
     clubMembership: {
       findFirst: vi.fn(),
       findUnique: vi.fn(),
@@ -41,7 +41,7 @@ describe('revokeAccess()', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(getAuthSession).mockResolvedValue(OWNER_SESSION)
-    vi.mocked(prisma.club.findUnique).mockResolvedValue(CLUB as never)
+    vi.mocked(prisma.club.findFirst).mockResolvedValue(CLUB as never)
     vi.mocked(prisma.clubMembership.findFirst).mockResolvedValue(CALLER_MEMBERSHIP as never)
     vi.mocked(prisma.clubMembership.findUnique).mockResolvedValue(TARGET_MEMBERSHIP as never)
     vi.mocked(prisma.clubMembership.delete).mockResolvedValue({} as never)
@@ -59,7 +59,7 @@ describe('revokeAccess()', () => {
   })
 
   it('returns UNAUTHORIZED when club is not found', async () => {
-    vi.mocked(prisma.club.findUnique).mockResolvedValue(null)
+    vi.mocked(prisma.club.findFirst).mockResolvedValue(null)
     const result = await revokeAccess(COUNTRY, SLUG, TARGET_MEMBERSHIP.id)
     expect(result).toMatchObject({ success: false, code: 'UNAUTHORIZED' })
   })

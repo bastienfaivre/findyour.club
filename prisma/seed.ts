@@ -56,6 +56,18 @@ async function main() {
     },
   })
 
+  const adminZurich = await prisma.user.upsert({
+    where: { email: 'admin@bergclub-zurich.ch' },
+    update: { passwordHash: adminPasswordHash },
+    create: {
+      email: 'admin@bergclub-zurich.ch',
+      name: 'Bergclub Zürich Admin',
+      role: 'CLUB_ADMIN',
+      passwordHash: adminPasswordHash,
+      totpEnabled: false,
+    },
+  })
+
   // ─── Swiss Cantons ───────────────────────────────────────────────────
   const cantons: Array<{ code: string; de: string; fr: string; it: string; en: string }> = [
     { code: 'AG', de: 'Aargau', fr: 'Argovie', it: 'Argovia', en: 'Aargau' },
@@ -195,16 +207,101 @@ async function main() {
 
   console.log('✓ Activity types created')
 
+  // ─── Locations (SwissLocation → Location) ─────────────────────────────
+  // Sion (VS) for Ski Club Valais
+  const sionSwissLoc = await prisma.swissLocation.upsert({
+    where: { swisstopoId: '6266' },
+    update: {},
+    create: {
+      swisstopoId: '6266',
+      plz: '1950',
+      cantonCode: 'VS',
+      translations: {
+        createMany: {
+          data: [
+            { language: 'fr', name: 'Sion' },
+            { language: 'de', name: 'Sitten' },
+            { language: 'it', name: 'Sion' },
+            { language: 'en', name: 'Sion' },
+          ],
+          skipDuplicates: true,
+        },
+      },
+    },
+  })
+  const locationSion = await prisma.location.upsert({
+    where: { swissLocationId: sionSwissLoc.id },
+    update: {},
+    create: { country: 'ch', swissLocationId: sionSwissLoc.id },
+  })
+
+  // Lausanne (VD) for Football Club Lausanne
+  const lausanneSwissLoc = await prisma.swissLocation.upsert({
+    where: { swisstopoId: '5586' },
+    update: {},
+    create: {
+      swisstopoId: '5586',
+      plz: '1000',
+      cantonCode: 'VD',
+      translations: {
+        createMany: {
+          data: [
+            { language: 'fr', name: 'Lausanne' },
+            { language: 'de', name: 'Lausanne' },
+            { language: 'it', name: 'Losanna' },
+            { language: 'en', name: 'Lausanne' },
+          ],
+          skipDuplicates: true,
+        },
+      },
+    },
+  })
+  const locationLausanne = await prisma.location.upsert({
+    where: { swissLocationId: lausanneSwissLoc.id },
+    update: {},
+    create: { country: 'ch', swissLocationId: lausanneSwissLoc.id },
+  })
+
+  // Zürich (ZH) for Bergclub Zürich
+  const zurichSwissLoc = await prisma.swissLocation.upsert({
+    where: { swisstopoId: '261' },
+    update: {},
+    create: {
+      swisstopoId: '261',
+      plz: '8001',
+      cantonCode: 'ZH',
+      translations: {
+        createMany: {
+          data: [
+            { language: 'fr', name: 'Zurich' },
+            { language: 'de', name: 'Zürich' },
+            { language: 'it', name: 'Zurigo' },
+            { language: 'en', name: 'Zurich' },
+          ],
+          skipDuplicates: true,
+        },
+      },
+    },
+  })
+  const locationZurich = await prisma.location.upsert({
+    where: { swissLocationId: zurichSwissLoc.id },
+    update: {},
+    create: { country: 'ch', swissLocationId: zurichSwissLoc.id },
+  })
+
+  console.log('✓ Locations created (Sion/VS, Lausanne/VD, Zürich/ZH)')
+
   // ─── Clubs ────────────────────────────────────────────────────────────
   const clubValais = await prisma.club.upsert({
     where: { slug_country: { slug: 'ski-club-valais', country: 'ch' } },
-    update: {},
+    update: { locationId: locationSion.id },
     create: {
       name: 'Ski Club Valais',
       slug: 'ski-club-valais',
       country: 'ch',
       status: 'ACTIVE',
       activityTypeId: activitySkiing.id,
+      locationId: locationSion.id,
       email: 'contact@ski-club-valais.ch',
       welcomeText: 'Welcome to Ski Club Valais — your home for alpine skiing in the heart of the Valais region.',
       accentColor: 'blue',
@@ -216,17 +313,37 @@ async function main() {
 
   const clubLausanne = await prisma.club.upsert({
     where: { slug_country: { slug: 'football-club-lausanne', country: 'ch' } },
-    update: {},
+    update: { locationId: locationLausanne.id },
     create: {
       name: 'Football Club Lausanne',
       slug: 'football-club-lausanne',
       country: 'ch',
       status: 'ACTIVE',
       activityTypeId: activityFootball.id,
+      locationId: locationLausanne.id,
       email: 'contact@football-club-lausanne.ch',
       welcomeText: 'Welcome to Football Club Lausanne — passion, teamwork, and community on the pitch.',
       accentColor: 'green',
       defaultLanguage: 'fr',
+      storageUsedBytes: BigInt(0),
+      storageLimitBytes: BigInt(5368709120),
+    },
+  })
+
+  const clubZurich = await prisma.club.upsert({
+    where: { slug_country: { slug: 'bergclub-zurich', country: 'ch' } },
+    update: { locationId: locationZurich.id },
+    create: {
+      name: 'Bergclub Zürich',
+      slug: 'bergclub-zurich',
+      country: 'ch',
+      status: 'ACTIVE',
+      activityTypeId: activityMountaineering.id,
+      locationId: locationZurich.id,
+      email: 'contact@bergclub-zurich.ch',
+      welcomeText: 'Willkommen beim Bergclub Zürich — Bergsteigen, Klettern und Wandern in und um Zürich.',
+      accentColor: 'violet',
+      defaultLanguage: 'de',
       storageUsedBytes: BigInt(0),
       storageLimitBytes: BigInt(5368709120),
     },
@@ -243,8 +360,13 @@ async function main() {
     update: {},
     create: { userId: adminLausanne.id, clubId: clubLausanne.id, role: 'OWNER', status: 'ACTIVE', invitedBy: null, joinedAt: new Date() },
   })
+  await prisma.clubMembership.upsert({
+    where: { userId_clubId: { userId: adminZurich.id, clubId: clubZurich.id } },
+    update: {},
+    create: { userId: adminZurich.id, clubId: clubZurich.id, role: 'OWNER', status: 'ACTIVE', invitedBy: null, joinedAt: new Date() },
+  })
 
-  console.log('✓ Clubs created:', clubValais.slug, clubLausanne.slug)
+  console.log('✓ Clubs created:', clubValais.slug, clubLausanne.slug, clubZurich.slug)
 
   // ─── Pages for Ski Club Valais ────────────────────────────────────────
   const homePage = await prisma.page.upsert({
@@ -620,7 +742,65 @@ async function main() {
 
   console.log('✓ Page elements created for Football Club Lausanne (all 6 element types)')
 
-  // ─── Content Versions (3 per page, both clubs) ───────────────────────
+  // ─── Pages for Bergclub Zürich ──────────────────────────────────────
+  const zurichHomePage = await prisma.page.upsert({
+    where: { clubId_slug: { clubId: clubZurich.id, slug: 'home' } },
+    update: {},
+    create: { clubId: clubZurich.id, slug: 'home', label: 'Home', isActive: true, isAnchor: true, position: 0 },
+  })
+
+  await prisma.page.upsert({
+    where: { clubId_slug: { clubId: clubZurich.id, slug: 'touren' } },
+    update: {},
+    create: { clubId: clubZurich.id, slug: 'touren', label: 'Touren', isActive: true, position: 1 },
+  })
+
+  await prisma.page.upsert({
+    where: { clubId_slug: { clubId: clubZurich.id, slug: 'gallery' } },
+    update: {},
+    create: { clubId: clubZurich.id, slug: 'gallery', label: 'Galerie', isActive: true, position: 2 },
+  })
+
+  const zurichContactPage = await prisma.page.upsert({
+    where: { clubId_slug: { clubId: clubZurich.id, slug: 'contact' } },
+    update: {},
+    create: { clubId: clubZurich.id, slug: 'contact', label: 'Kontakt', isActive: true, isAnchor: true, position: 3 },
+  })
+
+  await prisma.pageElement.upsert({
+    where: { id: 'zurich-richtext-home' },
+    update: {},
+    create: {
+      id: 'zurich-richtext-home',
+      pageId: zurichHomePage.id,
+      clubId: clubZurich.id,
+      position: 0,
+      type: 'rich_text',
+      data: {
+        html: '<h2>Über uns</h2><p>Der Bergclub Zürich wurde 1968 gegründet und organisiert Bergtouren, Kletterausflüge und Wanderungen in den Schweizer Alpen und im Zürcher Oberland.</p>',
+      },
+    },
+  })
+
+  await prisma.pageElement.upsert({
+    where: { id: 'zurich-contact-contact' },
+    update: {},
+    create: {
+      id: 'zurich-contact-contact',
+      pageId: zurichContactPage.id,
+      clubId: clubZurich.id,
+      position: 0,
+      type: 'contact',
+      data: {
+        recipientEmail: 'contact@bergclub-zurich.ch',
+        fields: ['name', 'email', 'subject', 'message'],
+      },
+    },
+  })
+
+  console.log('✓ Pages and elements created for Bergclub Zürich')
+
+  // ─── Content Versions (3 per page, all clubs) ──────────────────────
   const valaisPages = [homePage, calendarPage, galleryPage, docsPage, contactPage]
   for (const page of valaisPages) {
     for (let v = 1; v <= 3; v++) {
@@ -658,7 +838,26 @@ async function main() {
       })
     }
   }
-  console.log('✓ Content versions created (3 per page, both clubs)')
+
+  const zurichPages = [zurichHomePage, zurichContactPage]
+  for (const page of zurichPages) {
+    for (let v = 1; v <= 3; v++) {
+      await prisma.contentVersion.create({
+        data: {
+          pageId: page.id,
+          clubId: clubZurich.id,
+          createdBy: adminZurich.id,
+          snapshot: {
+            version: v,
+            page: { id: page.id, slug: page.slug, label: page.label },
+            elements: [],
+            savedAt: new Date(Date.now() - (4 - v) * 7 * 24 * 60 * 60 * 1000).toISOString(),
+          },
+        },
+      })
+    }
+  }
+  console.log('✓ Content versions created (3 per page, all clubs)')
 
   // ─── Applications (PENDING, APPROVED, REJECTED) ───────────────────────
   await prisma.application.createMany({

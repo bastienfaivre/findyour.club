@@ -66,7 +66,7 @@ development_status:
   epic-3: in-progress
   3-1-platform-homepage-country-navigation: done
   3-2-country-directory-with-filtering: done
-  3-3-club-public-site-server-rendered-home-page: backlog
+  3-3-club-public-site-server-rendered-home-page: done
   3-4-club-public-site-inner-page-navigation-spa: backlog
   3-5-mandatory-powered-by-footer-platform-sitemap: backlog
   epic-3-retrospective: optional
