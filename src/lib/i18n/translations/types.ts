@@ -236,5 +236,22 @@ export type Translations = {
       supportFormPlaceholder: string
     }
   }
+  directory: {
+    /** Use {country} as placeholder */
+    title: string
+    /** Use {country} as placeholder */
+    description: string
+    filterCanton: string
+    filterActivity: string
+    allCantons: string
+    allActivities: string
+    noResults: string
+    noResultsHint: string
+    resetFilters: string
+    /** Use {count} as placeholder */
+    clubCount: string
+    /** Use {name}, {activity}, {location} as placeholders */
+    clubAriaLabel: string
+  }
   activityTypes: Record<string, string>
 }
