@@ -133,6 +133,66 @@ async function main() {
     create: { name: 'Tennis', slug: 'tennis', createdBy: operator.id },
   })
 
+  await prisma.activityType.upsert({
+    where: { slug: 'hiking' },
+    update: {},
+    create: { name: 'Hiking', slug: 'hiking', createdBy: operator.id },
+  })
+
+  await prisma.activityType.upsert({
+    where: { slug: 'cycling' },
+    update: {},
+    create: { name: 'Cycling', slug: 'cycling', createdBy: operator.id },
+  })
+
+  await prisma.activityType.upsert({
+    where: { slug: 'swimming' },
+    update: {},
+    create: { name: 'Swimming', slug: 'swimming', createdBy: operator.id },
+  })
+
+  await prisma.activityType.upsert({
+    where: { slug: 'volleyball' },
+    update: {},
+    create: { name: 'Volleyball', slug: 'volleyball', createdBy: operator.id },
+  })
+
+  await prisma.activityType.upsert({
+    where: { slug: 'basketball' },
+    update: {},
+    create: { name: 'Basketball', slug: 'basketball', createdBy: operator.id },
+  })
+
+  await prisma.activityType.upsert({
+    where: { slug: 'ice-hockey' },
+    update: {},
+    create: { name: 'Ice Hockey', slug: 'ice-hockey', createdBy: operator.id },
+  })
+
+  await prisma.activityType.upsert({
+    where: { slug: 'climbing' },
+    update: {},
+    create: { name: 'Climbing', slug: 'climbing', createdBy: operator.id },
+  })
+
+  await prisma.activityType.upsert({
+    where: { slug: 'yoga' },
+    update: {},
+    create: { name: 'Yoga', slug: 'yoga', createdBy: operator.id },
+  })
+
+  await prisma.activityType.upsert({
+    where: { slug: 'running' },
+    update: {},
+    create: { name: 'Running', slug: 'running', createdBy: operator.id },
+  })
+
+  await prisma.activityType.upsert({
+    where: { slug: 'badminton' },
+    update: {},
+    create: { name: 'Badminton', slug: 'badminton', createdBy: operator.id },
+  })
+
   console.log('✓ Activity types created')
 
   // ─── Clubs ────────────────────────────────────────────────────────────

@@ -94,6 +94,41 @@ export type Translations = {
   }
   admin: {
     dashboardTitle: string
+    applications: {
+      title: string
+      empty: string
+      name: string
+      activityType: string
+      description: string
+      submittedAt: string
+      email: string
+      desiredSlug: string
+      location: string
+      country: string
+      showMore: string
+      showLess: string
+      approve: string
+      reject: string
+      /** Use {name} as placeholder for the club name */
+      approveConfirm: string
+      rejectTitle: string
+      rejectDescription: string
+      rejectReason: string
+      rejectReasonPlaceholder: string
+      approved: string
+      rejected: string
+      confirmApprove: string
+      confirmReject: string
+      keepReviewing: string
+      errors: {
+        notFound: string
+        alreadyReviewed: string
+        unauthorized: string
+        slugRequired: string
+        slugInvalid: string
+        slugConflict: string
+      }
+    }
   }
   apply: {
     title: string
