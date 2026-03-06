@@ -41,6 +41,7 @@ const ERROR_CODE_MAP: Record<string, keyof Translations['admin']['applications']
   SLUG_REQUIRED: 'slugRequired',
   SLUG_INVALID: 'slugInvalid',
   SLUG_CONFLICT: 'slugConflict',
+  EMAIL_FAILED: 'emailFailed',
 }
 
 function resolveErrorMessage(t: Translations, code: string, fallback: string): string {
@@ -84,7 +85,7 @@ export function ApplicationQueueItem({ application, translations: t, locale, onR
     startTransition(async () => {
       const result = await approveApplication(application.id, slug)
       if (result.success) {
-        toast.success(t.admin.applications.approved)
+        toast.success(t.admin.applications.approvedWithEmail.replace('{email}', application.email))
         setFadingOut(true)
         setTimeout(() => {
           onRemove(application.id)

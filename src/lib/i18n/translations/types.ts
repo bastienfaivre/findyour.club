@@ -116,6 +116,8 @@ export type Translations = {
       rejectReason: string
       rejectReasonPlaceholder: string
       approved: string
+      /** Use {email} as placeholder for the applicant email */
+      approvedWithEmail: string
       rejected: string
       confirmApprove: string
       confirmReject: string
@@ -127,6 +129,7 @@ export type Translations = {
         slugRequired: string
         slugInvalid: string
         slugConflict: string
+        emailFailed: string
       }
     }
   }

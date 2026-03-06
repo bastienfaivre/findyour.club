@@ -1,12 +1,18 @@
 'use server'
 
+import { randomBytes, createHash } from 'crypto'
+import { headers } from 'next/headers'
 import { prisma } from '@/server/db'
 import { getAuthSession } from '@/server/auth'
 import { slugRegex } from '@/lib/schemas/application'
+import { isReservedSlug } from '@/lib/slug'
+import { inferDefaultLanguage } from '@/lib/country'
+import { sendEmail } from '@/lib/email'
+import { buildAcceptanceEmailHtml } from '@/lib/email-templates'
 
 export type ApplicationActionResult =
   | { success: true }
-  | { success: false; error: string; code: 'NOT_FOUND' | 'ALREADY_REVIEWED' | 'UNAUTHORIZED' | 'SLUG_REQUIRED' | 'SLUG_INVALID' | 'SLUG_CONFLICT' | 'SERVER_ERROR' }
+  | { success: false; error: string; code: 'NOT_FOUND' | 'ALREADY_REVIEWED' | 'UNAUTHORIZED' | 'SLUG_REQUIRED' | 'SLUG_INVALID' | 'SLUG_CONFLICT' | 'EMAIL_FAILED' | 'SERVER_ERROR' }
 
 export async function approveApplication(applicationId: string, slug: string): Promise<ApplicationActionResult> {
   try {
@@ -22,11 +28,17 @@ export async function approveApplication(applicationId: string, slug: string): P
     if (!slugRegex.test(trimmedSlug)) {
       return { success: false, error: 'Only lowercase letters, numbers, and hyphens allowed.', code: 'SLUG_INVALID' }
     }
+    if (isReservedSlug(trimmedSlug)) {
+      return { success: false, error: 'This slug is reserved and cannot be used.', code: 'SLUG_CONFLICT' }
+    }
 
-    // Fetch the application to get its country for slug conflict check
+    // Fetch the full application for provisioning
     const application = await prisma.application.findUnique({
       where: { id: applicationId },
-      select: { id: true, status: true, country: true },
+      select: {
+        id: true, status: true, country: true, name: true,
+        email: true, activityTypeId: true, locationId: true,
+      },
     })
 
     if (!application) {
@@ -36,8 +48,9 @@ export async function approveApplication(applicationId: string, slug: string): P
       return { success: false, error: 'Application already reviewed.', code: 'ALREADY_REVIEWED' }
     }
 
-    // Slug conflict check + approval in a serializable transaction to prevent race conditions
+    // Provisioning transaction: slug check, approval, club + user + membership creation
     const result = await prisma.$transaction(async (tx) => {
+      // Check operator-provided slug for conflicts
       const [clubConflict, appConflict] = await Promise.all([
         tx.club.findUnique({
           where: { slug_country: { slug: trimmedSlug, country: application.country } },
@@ -55,22 +68,127 @@ export async function approveApplication(applicationId: string, slug: string): P
       ])
 
       if (clubConflict || appConflict) {
-        return 'SLUG_CONFLICT' as const
+        return { status: 'SLUG_CONFLICT' as const }
       }
 
+      // Approve the application
       const updated = await tx.application.updateMany({
         where: { id: applicationId, status: 'PENDING' },
         data: { status: 'APPROVED', reviewedAt: new Date(), desiredSlug: trimmedSlug },
       })
 
-      return updated.count === 0 ? 'ALREADY_REVIEWED' as const : 'SUCCESS' as const
+      if (updated.count === 0) {
+        return { status: 'ALREADY_REVIEWED' as const }
+      }
+
+      const defaultLanguage = inferDefaultLanguage(application.country)
+
+      // Create club record
+      const club = await tx.club.create({
+        data: {
+          name: application.name,
+          slug: trimmedSlug,
+          country: application.country,
+          status: 'ACTIVE',
+          email: application.email,
+          activityTypeId: application.activityTypeId,
+          locationId: application.locationId,
+          defaultLanguage,
+        },
+      })
+
+      // Find or create user
+      let user = await tx.user.findUnique({
+        where: { email: application.email },
+        select: { id: true },
+      })
+
+      if (!user) {
+        user = await tx.user.create({
+          data: {
+            email: application.email,
+            role: 'CLUB_ADMIN',
+          },
+          select: { id: true },
+        })
+      }
+
+      // Generate magic-link token
+      const rawToken = randomBytes(32).toString('hex')
+      const tokenHash = createHash('sha256').update(rawToken).digest('hex')
+
+      await tx.user.update({
+        where: { id: user.id },
+        data: {
+          magicToken: tokenHash,
+          magicTokenExp: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
+        },
+      })
+
+      // Create club membership
+      await tx.clubMembership.create({
+        data: {
+          userId: user.id,
+          clubId: club.id,
+          role: 'OWNER',
+          status: 'ACTIVE',
+        },
+      })
+
+      return {
+        status: 'SUCCESS' as const,
+        club: { id: club.id, name: club.name, slug: club.slug, country: club.country, defaultLanguage: club.defaultLanguage },
+        userId: user.id,
+        rawToken,
+      }
     })
 
-    if (result === 'SLUG_CONFLICT') {
+    if (result.status === 'SLUG_CONFLICT') {
       return { success: false, error: 'This slug is already taken.', code: 'SLUG_CONFLICT' }
     }
-    if (result === 'ALREADY_REVIEWED') {
+    if (result.status === 'ALREADY_REVIEWED') {
       return { success: false, error: 'Application already reviewed.', code: 'ALREADY_REVIEWED' }
+    }
+
+    // Send acceptance email (outside transaction — compensate on failure)
+    try {
+      const headersList = await headers()
+      const host = headersList.get('host') ?? 'localhost:3000'
+      const protocol = host.startsWith('localhost') ? 'http' : 'https'
+
+      const clubUrl = `${protocol}://${host}/${result.club.defaultLanguage}/${result.club.country}/${result.club.slug}`
+      const magicLinkUrl = `${protocol}://${host}/${result.club.defaultLanguage}/auth/magic-link?token=${result.rawToken}`
+
+      const html = buildAcceptanceEmailHtml({
+        clubName: result.club.name,
+        clubUrl,
+        magicLinkUrl,
+      })
+
+      await sendEmail({
+        to: application.email,
+        subject: 'Your club site is ready — set up your account',
+        html,
+      })
+    } catch {
+      // Compensating action: roll back provisioned records
+      try {
+        await prisma.$transaction(async (tx) => {
+          await tx.clubMembership.deleteMany({ where: { clubId: result.club.id } })
+          await tx.club.delete({ where: { id: result.club.id } })
+          await tx.user.update({
+            where: { id: result.userId },
+            data: { magicToken: null, magicTokenExp: null },
+          })
+          await tx.application.updateMany({
+            where: { id: applicationId },
+            data: { status: 'PENDING', reviewedAt: null, desiredSlug: null },
+          })
+        })
+      } catch {
+        return { success: false, error: 'Email delivery failed and rollback also failed. Manual cleanup required.', code: 'EMAIL_FAILED' }
+      }
+      return { success: false, error: 'Email delivery failed', code: 'EMAIL_FAILED' }
     }
 
     return { success: true }

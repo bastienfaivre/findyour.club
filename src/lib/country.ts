@@ -22,3 +22,14 @@ export const COUNTRY_NAMES: Record<SupportedLanguage, Record<Country, string>> =
 export function getCountryName(country: Country, lang: string): string {
   return (COUNTRY_NAMES as Record<string, Record<Country, string>>)[lang]?.[country] ?? COUNTRY_NAMES.en[country]
 }
+
+const COUNTRY_DEFAULT_LANGUAGE: Record<string, string> = {
+  ch: 'fr',
+  fr: 'fr',
+  de: 'de',
+  it: 'it',
+}
+
+export function inferDefaultLanguage(country: string): string {
+  return COUNTRY_DEFAULT_LANGUAGE[country] ?? 'en'
+}
