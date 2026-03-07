@@ -24,6 +24,17 @@ export const getClubOwnership = cache(async (userId: string, clubId: string) =>
 )
 
 /**
+ * Returns the ACTIVE membership (OWNER or EDITOR) for a user in a club, or null.
+ * Used by the admin dashboard to verify membership regardless of role.
+ */
+export const getClubActiveMembership = cache(async (userId: string, clubId: string) =>
+  prisma.clubMembership.findFirst({
+    where: { userId, clubId, status: 'ACTIVE' },
+    select: { id: true, role: true },
+  }),
+)
+
+/**
  * Full club data needed for the public-facing club site.
  * Separate from getClubBySlug to avoid changing its cached select shape.
  */

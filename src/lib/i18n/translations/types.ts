@@ -203,6 +203,24 @@ export type Translations = {
   }
   club: {
     settings: string
+    admin: {
+      sidebar: {
+        clubProfile: string
+        settings: string
+        viewPublicPage: string
+      }
+      clubProfile: {
+        title: string
+        placeholder: string
+      }
+      settings: {
+        title: string
+        placeholder: string
+      }
+      navigation: string
+      openMenu: string
+      skipToContent: string
+    }
     membership: {
       members: string
       noMembers: string

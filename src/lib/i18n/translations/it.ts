@@ -197,6 +197,24 @@ export const it: Translations = {
   },
   club: {
     settings: 'Impostazioni',
+    admin: {
+      sidebar: {
+        clubProfile: 'Profilo del club',
+        settings: 'Impostazioni',
+        viewPublicPage: 'Vedi pagina pubblica',
+      },
+      clubProfile: {
+        title: 'Profilo del club',
+        placeholder: 'La modifica del profilo arriverà presto.',
+      },
+      settings: {
+        title: 'Impostazioni',
+        placeholder: 'Le impostazioni arriveranno presto.',
+      },
+      navigation: 'Navigazione admin',
+      openMenu: 'Apri menu',
+      skipToContent: 'Vai al contenuto principale',
+    },
     membership: {
       members: 'Membri',
       noMembers: 'Nessun membro per ora.',
