@@ -2,26 +2,28 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
-import { isValidCountry, getCountryName } from '@/lib/country'
+import { isValidCountry } from '@/lib/country'
 import { getAuthSession } from '@/server/auth'
 import { getClubPublicData, getClubOwnership } from '@/lib/server/club-queries'
-import { generateClubMetadata, generateClubJsonLd } from '@/components/app/seo/metadata'
-import { ClubHeroSection } from '@/components/app/club-site/ClubHeroSection'
+import { getPageBySlug } from '@/lib/server/page-queries'
+import { generateClubMetadata } from '@/components/app/seo/metadata'
 import { ClubSidebarNav } from '@/components/app/club-site/ClubSidebarNav'
 import { ElementRenderer } from '@/components/app/club-site/ElementRenderer'
 import { ACCENT_COLORS } from '@/components/app/club-site/accent-colors'
-import { getHomePageElements } from '@/lib/server/page-queries'
 
 type Props = {
-  params: Promise<{ lang: string; country: string; club: string }>
+  params: Promise<{ lang: string; country: string; club: string; page: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { lang, country, club: slug } = await params
+  const { lang, country, club: slug, page: pageSlug } = await params
   if (!isValidCountry(country)) return {}
 
   const club = await getClubPublicData(slug, country)
   if (!club) return {}
+
+  const page = await getPageBySlug(pageSlug, club.id)
+  if (!page) return {}
 
   const uiLang = resolveUILang(lang)
   const t = getTranslations(uiLang)
@@ -31,22 +33,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return generateClubMetadata({
     clubName: club.name,
-    clubDescription: club.welcomeText ?? club.name,
+    clubDescription: club.welcomeText ?? page.label,
     clubLogoUrl: club.logoUrl,
     clubSlug: club.slug,
     country,
     lang,
     activityTypeLabel,
+    pageTitle: page.label,
+    pageSlug: page.slug,
   })
 }
 
-export default async function ClubPage({ params }: Props) {
-  const { lang, country, club: slug } = await params
+export default async function InnerPage({ params }: Props) {
+  const { lang, country, club: slug, page: pageSlug } = await params
 
   if (!isValidCountry(country)) notFound()
 
   const club = await getClubPublicData(slug, country)
   if (!club) notFound()
+
+  const page = await getPageBySlug(pageSlug, club.id)
+  if (!page) notFound()
 
   const uiLang = resolveUILang(lang)
   const t = getTranslations(uiLang)
@@ -64,21 +71,6 @@ export default async function ClubPage({ params }: Props) {
     ?? null
   const locationLabel = [cityName, swissLoc?.cantonCode].filter(Boolean).join(', ') || null
   const accentColor = ACCENT_COLORS[club.accentColor] ?? ACCENT_COLORS.zinc
-  const activityTypeLabel = club.activityType
-    ? t.activityTypes[club.activityType.slug] ?? null
-    : null
-  const jsonLd = generateClubJsonLd({
-    clubName: club.name,
-    clubDescription: club.welcomeText ?? club.name,
-    clubLogoUrl: club.logoUrl,
-    clubSlug: club.slug,
-    country,
-    lang,
-    countryName: getCountryName(country, uiLang),
-    activityTypeLabel,
-  })
-
-  const homeElements = await getHomePageElements(club.id)
 
   return (
     <div
@@ -88,10 +80,6 @@ export default async function ClubPage({ params }: Props) {
         '--primary-foreground': accentColor.primaryForeground,
       } as React.CSSProperties}
     >
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
-      />
       <ClubSidebarNav
         club={{
           name: club.name,
@@ -102,30 +90,21 @@ export default async function ClubPage({ params }: Props) {
         location={locationLabel}
         pages={club.pages.filter(p => !p.isAnchor)}
         clubBase={clubBase}
-        currentPath={clubBase}
+        currentPath={`${clubBase}/${pageSlug}`}
         isAdmin={isAdmin}
         t={t.clubSite}
       />
 
       <main className="flex-1 flex items-start justify-center pt-16 md:pt-0">
-        <div className="max-w-4xl w-full">
-          <ClubHeroSection
-            club={{
-              name: club.name,
-              logoUrl: club.logoUrl,
-              logoAlt: club.logoAlt,
-              welcomeText: club.welcomeText,
-            }}
-            ctaLabel={t.clubSite.contactCta}
-            ctaHref={`${clubBase}/contact`}
-          />
-          {homeElements.length > 0 && (
-            <div className="flex flex-col gap-4 px-4 py-8">
-              {homeElements.map(element => (
+        <div className="max-w-4xl w-full px-4 py-8">
+          <h1 className="text-2xl font-bold mb-6">{page.label}</h1>
+          {page.elements.length > 0 ? (
+            <div className="flex flex-col gap-4">
+              {page.elements.map(element => (
                 <ElementRenderer key={element.id} element={element} />
               ))}
             </div>
-          )}
+          ) : null}
         </div>
       </main>
     </div>

@@ -53,7 +53,7 @@ export const getClubPublicData = cache(async (slug: string, country: string) =>
       },
       pages: {
         where: { isActive: true },
-        select: { id: true, slug: true, label: true, isAnchor: true, position: true },
+        select: { id: true, slug: true, label: true, isAnchor: true, position: true, parentId: true },
         orderBy: { position: 'asc' },
       },
     },

@@ -11,6 +11,7 @@ vi.mock('@/server/db', () => ({
   prisma: {
     club: { findFirst: vi.fn() },
     clubMembership: { findFirst: vi.fn() },
+    page: { findFirst: vi.fn() },
   },
 }))
 vi.mock('@/lib/country', () => ({
@@ -89,7 +90,7 @@ const mockClub = {
     },
   } as { swissLocation: { cantonCode: string; translations: { language: string; name: string }[] } } | null,
   pages: [
-    { id: 'p1', slug: 'about', label: 'About', isAnchor: false, position: 1 },
+    { id: 'p1', slug: 'about', label: 'About', isAnchor: false, position: 1, parentId: null },
   ],
 }
 
@@ -156,7 +157,7 @@ describe('ClubPage', () => {
     const { ClubSidebarNav } = await import('@/components/app/club-site/ClubSidebarNav')
     const navProps = findProps(result, ClubSidebarNav)
     expect(navProps).not.toBeNull()
-    expect(navProps!.pages).toEqual([{ id: 'p1', slug: 'about', label: 'About', isAnchor: false, position: 1 }])
+    expect(navProps!.pages).toEqual([{ id: 'p1', slug: 'about', label: 'About', isAnchor: false, position: 1, parentId: null }])
     expect(navProps!.clubBase).toBe('/en/ch/ski-club-valais')
     expect(navProps!.location).toBe('Sion, VS')
   })

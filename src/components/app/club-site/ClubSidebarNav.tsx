@@ -14,6 +14,7 @@ type PageLink = {
   label: string
   isAnchor: boolean
   position: number
+  parentId: string | null
 }
 
 export type ClubSidebarNavProps = {
@@ -54,16 +55,35 @@ function ClubLogo({ name, logoUrl, logoAlt, size }: { name: string; logoUrl: str
   )
 }
 
+type NavItem = {
+  href: string
+  label: string
+  isCurrent: boolean
+  children?: NavItem[]
+}
+
 function NavLinks({ club, location, pages, clubBase, currentPath, isAdmin, t, onNavigate }: ClubSidebarNavProps & { onNavigate?: () => void }) {
   const isHomeCurrent = currentPath === clubBase || currentPath === `${clubBase}/`
 
-  const navItems = [
+  const topLevelPages = pages.filter(p => p.parentId === null)
+  const childPages = pages.filter(p => p.parentId !== null)
+
+  const pageItems: NavItem[] = topLevelPages.map(page => ({
+    href: `${clubBase}/${page.slug}`,
+    label: page.label,
+    isCurrent: currentPath === `${clubBase}/${page.slug}`,
+    children: childPages
+      .filter(c => c.parentId === page.id)
+      .map(child => ({
+        href: `${clubBase}/${child.slug}`,
+        label: child.label,
+        isCurrent: currentPath === `${clubBase}/${child.slug}`,
+      })),
+  }))
+
+  const navItems: NavItem[] = [
     { href: clubBase, label: t.home, isCurrent: isHomeCurrent },
-    ...pages.map(page => ({
-      href: `${clubBase}/${page.slug}`,
-      label: page.label,
-      isCurrent: currentPath === `${clubBase}/${page.slug}`,
-    })),
+    ...pageItems,
     { href: `${clubBase}/contact`, label: t.contact, isCurrent: currentPath === `${clubBase}/contact` },
   ]
 
@@ -84,21 +104,41 @@ function NavLinks({ club, location, pages, clubBase, currentPath, isAdmin, t, on
       </Link>
 
       <nav aria-label={t.navigation}>
-        <ul className="flex flex-col gap-0.5">
+        <ul className="flex flex-col gap-1">
           {navItems.map(item => (
             <li key={item.href}>
               <Link
                 href={item.href}
                 aria-current={item.isCurrent ? 'page' : undefined}
-                className={`block px-3 py-2 rounded-md text-sm min-h-[44px] flex items-center transition-colors hover:bg-accent ${
+                className={`block px-3 py-2 rounded-md text-sm min-h-[44px] flex items-center transition-colors border ${
                   item.isCurrent
-                    ? 'font-medium border-l-2 border-primary'
-                    : 'text-muted-foreground'
+                    ? 'bg-primary text-primary-foreground font-medium shadow-sm border-black'
+                    : 'border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                 }`}
                 onClick={onNavigate}
               >
                 {item.label}
               </Link>
+              {item.children && item.children.length > 0 && (
+                <ul className="flex flex-col gap-1 pl-4 mt-1">
+                  {item.children.map(child => (
+                    <li key={child.href}>
+                      <Link
+                        href={child.href}
+                        aria-current={child.isCurrent ? 'page' : undefined}
+                        className={`block px-3 py-2 rounded-md text-sm min-h-[44px] flex items-center transition-colors border ${
+                          child.isCurrent
+                            ? 'bg-primary text-primary-foreground font-medium shadow-sm border-black'
+                            : 'border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                        }`}
+                        onClick={onNavigate}
+                      >
+                        {child.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </li>
           ))}
         </ul>

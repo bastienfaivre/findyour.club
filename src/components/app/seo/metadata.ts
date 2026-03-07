@@ -75,6 +75,8 @@ type ClubMetadataOptions = {
   country: string
   lang: string
   activityTypeLabel?: string | null
+  pageTitle?: string | null
+  pageSlug?: string | null
 }
 
 type ClubJsonLdOptions = ClubMetadataOptions & {
@@ -89,14 +91,18 @@ export function generateClubMetadata({
   country,
   lang,
   activityTypeLabel,
+  pageTitle,
+  pageSlug,
 }: ClubMetadataOptions): Metadata {
-  const title = activityTypeLabel
+  const baseTitle = activityTypeLabel
     ? `${clubName} — ${activityTypeLabel}`
     : clubName
+  const title = pageTitle ? `${pageTitle} — ${clubName}` : baseTitle
   const description = clubDescription.length > 160
     ? clubDescription.slice(0, 157) + '...'
     : clubDescription
-  const url = `${BASE_URL}/${lang}/${country}/${clubSlug}`
+  const clubUrl = `${BASE_URL}/${lang}/${country}/${clubSlug}`
+  const url = pageSlug ? `${clubUrl}/${pageSlug}` : clubUrl
 
   return {
     title,
