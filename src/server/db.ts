@@ -17,7 +17,8 @@ const CLUB_SCOPED_READ_MODELS = new Set([
   'document',
   'pageEvent',
   'contactSubmission',
-  'operatorNudge',
+  'clubPhoto',
+  'operatorMessage',
   'supportTicket',
   'healthCheck',
 ])

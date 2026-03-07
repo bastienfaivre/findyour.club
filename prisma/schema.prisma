@@ -190,7 +190,14 @@ model Club {
   locationId        String?     @map("location_id")
   logoUrl           String?     @map("logo_url")
   logoAlt           String?     @map("logo_alt")
-  welcomeText       String?     @map("welcome_text")
+  description       String?
+  schedule          String?
+  howToJoin         String?     @map("how_to_join")
+  contactPhone      String?     @map("contact_phone")
+  contactAddress    String?     @map("contact_address")
+  externalWebsiteUrl String?    @map("external_website_url")
+  isPublished       Boolean     @default(false) @map("is_published")
+  forceOffline      Boolean     @default(false) @map("force_offline")
   accentColor       String      @default("zinc") @map("accent_color")
   customDomain      String?     @unique @map("custom_domain")
   storageUsedBytes  BigInt      @default(0) @map("storage_used_bytes")
@@ -209,7 +216,8 @@ model Club {
   contentVersions    ContentVersion[]
   pageEvents         PageEvent[]
   contactSubmissions ContactSubmission[]
-  operatorNudges     OperatorNudge[]
+  photos             ClubPhoto[]
+  operatorMessages   OperatorMessage[]
   supportTickets     SupportTicket[]
   events             Event[]
   galleryItems       GalleryItem[]
@@ -229,6 +237,11 @@ model Application {
   locationId       String?           @map("location_id")
   description      String
   email            String
+  schedule         String?
+  contactPhone     String?           @map("contact_phone")
+  contactAddress   String?           @map("contact_address")
+  howToJoin        String?           @map("how_to_join")
+  externalWebsiteUrl String?         @map("external_website_url")
   desiredSlug      String?           @map("desired_slug")
   status           ApplicationStatus @default(PENDING)
   rejectionReason  String?           @map("rejection_reason")
@@ -477,17 +490,31 @@ model AuditLog {
   @@map("audit_logs")
 }
 
-model OperatorNudge {
-  id          String   @id @default(cuid())
-  clubId      String   @map("club_id")
-  operatorId  String   @map("operator_id")
-  subject     String
-  messageBody String   @map("message_body")
-  sentAt      DateTime @default(now()) @map("sent_at")
+model ClubPhoto {
+  id        String   @id @default(cuid())
+  clubId    String   @map("club_id")
+  url       String
+  alt       String   @default("")
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
 
   club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
-  @@map("operator_nudges")
+  @@index([clubId])
+  @@map("club_photos")
+}
+
+model OperatorMessage {
+  id        String    @id @default(cuid())
+  clubId    String    @map("club_id")
+  message   String
+  createdAt DateTime  @default(now()) @map("created_at")
+  readAt    DateTime? @map("read_at")
+
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@index([clubId])
+  @@map("operator_messages")
 }
 
 model SupportTicket {

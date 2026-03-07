@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return generateClubMetadata({
     clubName: club.name,
-    clubDescription: club.welcomeText ?? page.label,
+    clubDescription: club.description ?? page.label,
     clubLogoUrl: club.logoUrl,
     clubSlug: club.slug,
     country,

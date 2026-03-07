@@ -75,8 +75,8 @@ development_status:
   epic-3-retrospective: done
 
   # ─── Epic 4: Club Profile Setup & Moderation ───
-  epic-4: backlog
-  4-1-schema-migration-profile-visibility-clubphoto-operatormessage: backlog
+  epic-4: in-progress
+  4-1-schema-migration-profile-visibility-clubphoto-operatormessage: done
   4-2-application-form-profile-fields: backlog
   4-3-approval-flow-profile-seeding-operator-message: backlog
   4-4-club-admin-dashboard-shell: backlog

@@ -7,7 +7,7 @@ export type ClubHeroSectionProps = {
     name: string
     logoUrl: string | null
     logoAlt: string | null
-    welcomeText: string | null
+    description: string | null
   }
   ctaLabel: string
   ctaHref: string
@@ -32,9 +32,9 @@ export function ClubHeroSection({ club, ctaLabel, ctaHref }: ClubHeroSectionProp
 
       <h1 className="text-2xl sm:text-4xl font-bold">{club.name}</h1>
 
-      {club.welcomeText && (
+      {club.description && (
         <p className="text-base text-muted-foreground max-w-[600px]">
-          {club.welcomeText}
+          {club.description}
         </p>
       )}
 

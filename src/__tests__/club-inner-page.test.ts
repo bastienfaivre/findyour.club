@@ -85,7 +85,7 @@ const mockClub = {
   country: 'ch',
   logoUrl: null as string | null,
   logoAlt: null as string | null,
-  welcomeText: 'Welcome to our ski club!',
+  description: 'Welcome to our ski club!',
   accentColor: 'blue',
   defaultLanguage: 'fr',
   activityType: { slug: 'skiing' },

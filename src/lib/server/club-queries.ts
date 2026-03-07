@@ -37,7 +37,7 @@ export const getClubPublicData = cache(async (slug: string, country: string) =>
       country: true,
       logoUrl: true,
       logoAlt: true,
-      welcomeText: true,
+      description: true,
       accentColor: true,
       defaultLanguage: true,
       activityType: { select: { slug: true } },

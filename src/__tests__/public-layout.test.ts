@@ -125,7 +125,7 @@ vi.mock('@/lib/server/club-queries', () => ({
     country: 'ch',
     logoUrl: null,
     logoAlt: null,
-    welcomeText: null,
+    description: null,
     accentColor: null,
     defaultLanguage: 'fr',
     activityType: { slug: 'skiing' },

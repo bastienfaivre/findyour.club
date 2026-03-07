@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return generateClubMetadata({
     clubName: club.name,
-    clubDescription: club.welcomeText ?? club.name,
+    clubDescription: club.description ?? club.name,
     clubLogoUrl: club.logoUrl,
     clubSlug: club.slug,
     country,
@@ -56,7 +56,7 @@ export default async function ClubPage({ params }: Props) {
     : null
   const jsonLd = generateClubJsonLd({
     clubName: club.name,
-    clubDescription: club.welcomeText ?? club.name,
+    clubDescription: club.description ?? club.name,
     clubLogoUrl: club.logoUrl,
     clubSlug: club.slug,
     country,
@@ -84,7 +84,7 @@ export default async function ClubPage({ params }: Props) {
           name: club.name,
           logoUrl: club.logoUrl,
           logoAlt: club.logoAlt,
-          welcomeText: club.welcomeText,
+          description: club.description,
         }}
         ctaLabel={t.clubSite.contactCta}
         ctaHref={`${clubBase}/contact`}
