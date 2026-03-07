@@ -16,6 +16,8 @@ vi.mock('next/navigation', () => ({
   notFound: vi.fn(() => {
     throw new Error('NEXT_NOT_FOUND')
   }),
+  usePathname: vi.fn(() => '/fr/ch/ski-club-valais'),
+  useRouter: vi.fn(() => ({ push: vi.fn() })),
 }))
 
 vi.mock('@/lib/server/club-queries', () => ({
@@ -25,6 +27,20 @@ vi.mock('@/lib/server/club-queries', () => ({
     slug: 'ski-club-valais',
     country: 'ch',
     defaultLanguage: 'fr',
+  })),
+  getClubPublicData: vi.fn(async () => ({
+    id: 'club-1',
+    name: 'Ski Club Valais',
+    slug: 'ski-club-valais',
+    country: 'ch',
+    logoUrl: null,
+    logoAlt: null,
+    welcomeText: null,
+    accentColor: null,
+    defaultLanguage: 'fr',
+    activityType: { slug: 'skiing' },
+    location: null,
+    pages: [],
   })),
 }))
 
@@ -37,6 +53,16 @@ vi.mock('@/lib/i18n', () => ({
   resolveUILang: vi.fn((lang: string) => lang === 'fr' ? 'fr' : 'en'),
 }))
 
+vi.mock('@/components/layout/mobile-nav-menu', () => ({
+  MobileNavMenu: vi.fn(() => null),
+}))
+vi.mock('@/components/app/LanguageSwitcher', () => ({
+  LanguageSwitcher: vi.fn(() => null),
+}))
+vi.mock('@/components/ui/theme-toggle', () => ({
+  ThemeToggle: vi.fn(() => null),
+}))
+
 vi.mock('@/lib/i18n/translations', () => ({
   getTranslations: vi.fn((lang: string) => ({
     clubSite: {
@@ -44,8 +70,24 @@ vi.mock('@/lib/i18n/translations', () => ({
       poweredByAriaLabel: lang === 'fr'
         ? "Propulsé par Clashware — visiter la page d'accueil"
         : 'Powered by Clashware — visit platform homepage',
+      home: 'Accueil',
+      contact: 'Contact',
+      contactCta: 'Nous contacter',
     },
     auth: { banner: {} },
+    layout: {
+      skipToContent: 'Skip',
+      mainNavigation: 'Main navigation',
+      openMenu: 'Open menu',
+
+      copyright: '© {year} Clashware',
+      platformLinks: 'Platform',
+      legalLinks: 'Legal',
+      privacy: 'Privacy',
+      terms: 'Terms',
+    },
+    nav: { about: 'About', support: 'Support', apply: 'Apply' },
+    theme: { toggleTheme: 'Toggle theme', light: 'Light', dark: 'Dark', system: 'System' },
   })),
 }))
 
@@ -142,29 +184,28 @@ describe('PoweredByBanner', () => {
   })
 })
 
-describe('Club layout renders PoweredByBanner', () => {
+describe('Club layout renders PoweredByBanner via PublicLayout', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('renders PoweredByBanner after children', async () => {
+  it('passes showPoweredBy: true to PublicLayout footerProps', async () => {
     const { default: ClubLayout } = await import(
       '@/app/[lang]/(country)/[country]/[club]/layout'
     )
-    const { PoweredByBanner } = await import(
-      '@/components/app/club-site/PoweredByBanner'
-    )
+    const { PublicLayout } = await import('@/components/layout/public-layout')
 
     const result = await ClubLayout({
       children: 'main-content',
       params: makeParams('fr', 'ch', 'ski-club-valais'),
     })
 
-    const banners = findByType(result, PoweredByBanner)
-    expect(banners.length).toBeGreaterThanOrEqual(1)
+    const layouts = findByType(result, PublicLayout)
+    expect(layouts.length).toBeGreaterThanOrEqual(1)
 
-    const banner = banners[0] as { props: { lang: string } }
-    expect(banner.props.lang).toBe('fr')
+    const layout = layouts[0] as { props: { footerProps: { showPoweredBy: boolean; lang: string } } }
+    expect(layout.props.footerProps.showPoweredBy).toBe(true)
+    expect(layout.props.footerProps.lang).toBe('fr')
   })
 })
 

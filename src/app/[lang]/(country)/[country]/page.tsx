@@ -7,6 +7,7 @@ import { isValidCountry, getCountryName } from '@/lib/country'
 import { generateDirectoryMetadata } from '@/components/app/seo/metadata'
 import { ClubCard, ClubCardSkeleton } from '@/components/app/directory/ClubCard'
 import { DirectoryFilters } from '@/components/app/directory/DirectoryFilters'
+import { PublicLayout } from '@/components/layout/public-layout'
 import { prisma } from '@/server/db'
 
 type Props = {
@@ -103,7 +104,25 @@ export default async function CountryDirectoryPage({ params, searchParams }: Pro
     name: t.activityTypes[a.slug] ?? a.slug,
   }))
 
+  const countryBase = `/${lang}/${country}`
+
   return (
+    <PublicLayout
+      skipToContentLabel={t.layout.skipToContent}
+      navbarProps={{
+        title: countryName,
+        titleHref: countryBase,
+        navItems: [],
+        ctaLabel: t.nav.apply,
+        ctaHref: `/${lang}/apply`,
+        lang,
+        translations: t.layout,
+      }}
+      footerProps={{
+        lang,
+        showPoweredBy: false,
+      }}
+    >
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <h1 className="text-2xl font-bold mb-6">
         {t.directory.title.replace('{country}', countryName)}
@@ -191,5 +210,6 @@ export default async function CountryDirectoryPage({ params, searchParams }: Pro
         </Suspense>
       )}
     </div>
+    </PublicLayout>
   )
 }

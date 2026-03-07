@@ -264,6 +264,16 @@ export type Translations = {
     poweredBy: string
     poweredByAriaLabel: string
   }
+  layout: {
+    skipToContent: string
+    mainNavigation: string
+    openMenu: string
+    copyright: string
+    platformLinks: string
+    legalLinks: string
+    privacy: string
+    terms: string
+  }
   theme: { toggleTheme: string; light: string; dark: string; system: string }
   activityTypes: Record<string, string>
 }

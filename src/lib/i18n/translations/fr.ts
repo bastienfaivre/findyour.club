@@ -247,6 +247,17 @@ export const fr: Translations = {
     poweredBy: 'Propulsé par Clashware',
     poweredByAriaLabel: "Propulsé par Clashware — visiter la page d'accueil",
   },
+  layout: {
+    skipToContent: 'Aller au contenu principal',
+    mainNavigation: 'Navigation principale',
+    openMenu: 'Ouvrir le menu',
+
+    copyright: '© {year} Clashware',
+    platformLinks: 'Plateforme',
+    legalLinks: 'Mentions légales',
+    privacy: 'Confidentialité',
+    terms: 'Conditions',
+  },
   theme: { toggleTheme: 'Changer le thème', light: 'Clair', dark: 'Sombre', system: 'Système' },
   activityTypes: {
     skiing: 'Ski',

@@ -10,7 +10,7 @@ export function PoweredByBanner({ lang }: PoweredByBannerProps) {
   const t = getTranslations(resolveUILang(lang))
 
   return (
-    <footer className="border-t py-4 text-center">
+    <div className="border-t py-4 text-center">
       <Link
         href={`/${lang}/`}
         className="text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
@@ -18,6 +18,6 @@ export function PoweredByBanner({ lang }: PoweredByBannerProps) {
       >
         {t.clubSite.poweredBy}
       </Link>
-    </footer>
+    </div>
   )
 }

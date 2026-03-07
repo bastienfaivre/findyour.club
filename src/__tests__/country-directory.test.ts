@@ -9,6 +9,15 @@ vi.mock('next/headers', () => ({
   headers: vi.fn(async () => ({ get: vi.fn(() => 'localhost:3000') })),
   cookies: vi.fn(async () => ({ get: vi.fn(() => undefined) })),
 }))
+vi.mock('@/components/layout/public-layout', () => ({
+  PublicLayout: vi.fn(({ children }: { children: unknown }) => children),
+}))
+vi.mock('@/components/layout/public-navbar', () => ({
+  PublicNavbar: vi.fn(() => null),
+}))
+vi.mock('@/components/layout/public-footer', () => ({
+  PublicFooter: vi.fn(() => null),
+}))
 vi.mock('@/server/db', () => ({
   prisma: {
     club: { findMany: vi.fn() },
@@ -35,10 +44,31 @@ function findText(node: unknown): string {
   if (typeof node === 'string' || typeof node === 'number') return String(node)
   if (Array.isArray(node)) return node.map(findText).join('')
   if (typeof node === 'object' && 'props' in (node as Record<string, unknown>)) {
-    const el = node as { props: { children?: unknown } }
-    return findText(el.props.children)
+    const el = node as { props: Record<string, unknown> }
+    // Traverse all prop values that could contain children (children, fallback, etc.)
+    return Object.values(el.props).map(findText).join('')
   }
   return ''
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function findInTree(node: unknown, predicate: (n: any) => boolean): any[] {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const results: any[] = []
+  if (node === null || node === undefined || typeof node !== 'object') return results
+  if (predicate(node)) results.push(node)
+  if (Array.isArray(node)) {
+    for (const child of node) results.push(...findInTree(child, predicate))
+  } else {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const el = node as { props?: Record<string, any> }
+    if (el.props) {
+      for (const val of Object.values(el.props)) {
+        results.push(...findInTree(val, predicate))
+      }
+    }
+  }
+  return results
 }
 
 const mockClub = {
@@ -185,12 +215,8 @@ describe('CountryDirectoryPage', () => {
     expect(text).toContain('Clubs in Switzerland')
     expect(text).toContain('1 clubs')
 
-    // findText can't traverse into function component elements (ClubCard),
-    // so verify the ClubCard props directly via the rendered tree.
-    // The grid div is wrapped in Suspense: children → Suspense → div → ClubCards
-    const children = result.props.children as unknown[]
-    const suspense = children[children.length - 1] as { props: { children: { props: { children: Array<{ props: Record<string, unknown> }> } } } }
-    const clubCards = suspense.props.children.props.children
+    // Find ClubCard elements in the tree by matching the mock function reference
+    const clubCards = findInTree(result, (n: { type?: unknown }) => n.type === ClubCard)
     expect(clubCards).toHaveLength(1)
     expect(clubCards[0].props.name).toBe('Ski Club Valais')
     expect(clubCards[0].props.slug).toBe('ski-club-valais')

@@ -69,8 +69,8 @@ development_status:
   3-3-club-public-site-server-rendered-home-page: done
   3-4-club-public-site-inner-page-navigation-spa: done
   3-5-mandatory-powered-by-footer-platform-sitemap: done
-  3-6-design-system-foundation-dark-light-mode: in-progress
-  3-7-public-layout-shell-top-navbar-centered-container-footer: backlog
+  3-6-design-system-foundation-dark-light-mode: done
+  3-7-public-layout-shell-top-navbar-centered-container-footer: done
   3-8-refactor-existing-public-pages-to-new-layout: backlog
   epic-3-retrospective: optional
 
