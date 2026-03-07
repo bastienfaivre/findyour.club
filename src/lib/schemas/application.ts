@@ -20,6 +20,11 @@ export const applicationSchema = z.object({
   activityTypeId: z.string().cuid(),
   location: locationSchema,
   description: z.string().trim().min(1, 'Description is required').max(1000, 'Description must be 1000 characters or less'),
+  schedule: z.string().max(500).optional(),
+  contactPhone: z.string().max(30).optional(),
+  contactAddress: z.string().max(500).optional(),
+  howToJoin: z.string().trim().min(1, 'How to join is required').max(1000),
+  externalWebsiteUrl: z.union([z.string().url(), z.literal('')]).optional(),
   desiredSlug: z.string().trim().min(1, 'Desired URL slug is required').max(60).regex(slugRegex, 'Only lowercase letters, numbers, and hyphens allowed'),
   turnstileToken: z.string().min(1, 'Bot protection is required'),
 })

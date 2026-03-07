@@ -452,6 +452,101 @@ export function ApplyForm({ lang, t, activityTypes, countries }: Props) {
         )}
       </div>
 
+      {/* Profile Details */}
+      <h3 className="text-lg font-semibold pt-2">{t.apply.fields.profileDetails}</h3>
+
+      {/* How to Join */}
+      <div className="space-y-2">
+        <Label htmlFor="howToJoin">{t.apply.fields.howToJoin}<RequiredMark /></Label>
+        <Textarea
+          id="howToJoin"
+          {...register('howToJoin')}
+          placeholder={t.apply.placeholders.howToJoin}
+          maxLength={1000}
+          aria-required="true"
+          aria-describedby={errors.howToJoin ? 'howToJoin-error' : undefined}
+          aria-invalid={!!errors.howToJoin}
+        />
+        {errors.howToJoin && (
+          <p id="howToJoin-error" className="text-sm text-destructive">
+            {t.apply.validation.howToJoinRequired}
+          </p>
+        )}
+      </div>
+
+      {/* Schedule */}
+      <div className="space-y-2">
+        <Label htmlFor="schedule">{t.apply.fields.schedule}</Label>
+        <Textarea
+          id="schedule"
+          {...register('schedule')}
+          placeholder={t.apply.placeholders.schedule}
+          maxLength={500}
+          aria-describedby={errors.schedule ? 'schedule-error' : undefined}
+          aria-invalid={!!errors.schedule}
+        />
+        {errors.schedule && (
+          <p id="schedule-error" className="text-sm text-destructive">
+            {t.apply.validation.scheduleMaxLength}
+          </p>
+        )}
+      </div>
+
+      {/* Contact Phone */}
+      <div className="space-y-2">
+        <Label htmlFor="contactPhone">{t.apply.fields.contactPhone}</Label>
+        <Input
+          id="contactPhone"
+          type="tel"
+          {...register('contactPhone')}
+          placeholder={t.apply.placeholders.contactPhone}
+          maxLength={30}
+          aria-describedby={errors.contactPhone ? 'contactPhone-error' : undefined}
+          aria-invalid={!!errors.contactPhone}
+        />
+        {errors.contactPhone && (
+          <p id="contactPhone-error" className="text-sm text-destructive">
+            {t.apply.validation.contactPhoneMaxLength}
+          </p>
+        )}
+      </div>
+
+      {/* Contact Address */}
+      <div className="space-y-2">
+        <Label htmlFor="contactAddress">{t.apply.fields.contactAddress}</Label>
+        <Textarea
+          id="contactAddress"
+          {...register('contactAddress')}
+          placeholder={t.apply.placeholders.contactAddress}
+          maxLength={500}
+          aria-describedby={errors.contactAddress ? 'contactAddress-error' : undefined}
+          aria-invalid={!!errors.contactAddress}
+        />
+        {errors.contactAddress && (
+          <p id="contactAddress-error" className="text-sm text-destructive">
+            {t.apply.validation.contactAddressMaxLength}
+          </p>
+        )}
+      </div>
+
+      {/* External Website URL */}
+      <div className="space-y-2">
+        <Label htmlFor="externalWebsiteUrl">{t.apply.fields.externalWebsiteUrl}</Label>
+        <Input
+          id="externalWebsiteUrl"
+          type="url"
+          {...register('externalWebsiteUrl')}
+          placeholder="https://..."
+          aria-describedby={errors.externalWebsiteUrl ? 'externalWebsiteUrl-error' : undefined}
+          aria-invalid={!!errors.externalWebsiteUrl}
+        />
+        {errors.externalWebsiteUrl && (
+          <p id="externalWebsiteUrl-error" className="text-sm text-destructive">
+            {t.apply.validation.externalWebsiteUrlInvalid}
+          </p>
+        )}
+      </div>
+
       {/* Desired URL Slug */}
       <SlugField
         register={register}

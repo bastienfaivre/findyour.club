@@ -39,6 +39,11 @@ const VALID_INPUT = {
     name: 'Sion',
   },
   description: 'A ski club in Valais.',
+  howToJoin: 'Send us an email or come to any session.',
+  schedule: 'Tuesdays 19h-21h',
+  contactPhone: '+41 27 123 45 67',
+  contactAddress: 'Rue de la Gare 1, 1950 Sion',
+  externalWebsiteUrl: 'https://skiclub-valais.ch',
   desiredSlug: 'ski-club-valais',
   turnstileToken: 'test-token',
 }
@@ -72,6 +77,11 @@ describe('submitApplication()', () => {
         activityTypeId: 'clxxxxxxxxxxxxxxxxxxxxxxxxx',
         locationId: 'loc-1',
         description: 'A ski club in Valais.',
+        schedule: 'Tuesdays 19h-21h',
+        contactPhone: '+41 27 123 45 67',
+        contactAddress: 'Rue de la Gare 1, 1950 Sion',
+        howToJoin: 'Send us an email or come to any session.',
+        externalWebsiteUrl: 'https://skiclub-valais.ch',
         desiredSlug: 'ski-club-valais',
       },
     })
@@ -164,5 +174,56 @@ describe('submitApplication()', () => {
     await submitApplication(VALID_INPUT)
 
     expect(checkRateLimit).toHaveBeenCalledWith('apply:10.0.0.1', expect.any(Object))
+  })
+
+  it('returns VALIDATION_ERROR when howToJoin is missing', async () => {
+    const { howToJoin: _, ...input } = VALID_INPUT
+    const result = await submitApplication(input)
+
+    expect(result).toMatchObject({ success: false, code: 'VALIDATION_ERROR' })
+    expect(verifyTurnstileToken).not.toHaveBeenCalled()
+  })
+
+  it('returns VALIDATION_ERROR when howToJoin is whitespace-only', async () => {
+    const result = await submitApplication({ ...VALID_INPUT, howToJoin: '   ' })
+
+    expect(result).toMatchObject({ success: false, code: 'VALIDATION_ERROR' })
+    expect(verifyTurnstileToken).not.toHaveBeenCalled()
+  })
+
+  it('returns VALIDATION_ERROR for invalid externalWebsiteUrl', async () => {
+    const result = await submitApplication({ ...VALID_INPUT, externalWebsiteUrl: 'not-a-url' })
+
+    expect(result).toMatchObject({ success: false, code: 'VALIDATION_ERROR' })
+    expect(verifyTurnstileToken).not.toHaveBeenCalled()
+  })
+
+  it('accepts submission when optional profile fields are omitted', async () => {
+    const { schedule: _s, contactPhone: _cp, contactAddress: _ca, externalWebsiteUrl: _ewu, ...input } = VALID_INPUT
+    const result = await submitApplication(input)
+
+    expect(result).toEqual({ success: true })
+    expect(prisma.application.create).toHaveBeenCalled()
+  })
+
+  it('stores all new profile fields in the database', async () => {
+    await submitApplication(VALID_INPUT)
+
+    const createCall = vi.mocked(prisma.application.create).mock.calls[0][0]
+    expect(createCall.data).toMatchObject({
+      schedule: 'Tuesdays 19h-21h',
+      contactPhone: '+41 27 123 45 67',
+      contactAddress: 'Rue de la Gare 1, 1950 Sion',
+      howToJoin: 'Send us an email or come to any session.',
+      externalWebsiteUrl: 'https://skiclub-valais.ch',
+    })
+  })
+
+  it('stores null for empty externalWebsiteUrl', async () => {
+    const result = await submitApplication({ ...VALID_INPUT, externalWebsiteUrl: '' })
+
+    expect(result).toEqual({ success: true })
+    const createCall = vi.mocked(prisma.application.create).mock.calls[0][0]
+    expect(createCall.data.externalWebsiteUrl).toBeNull()
   })
 })

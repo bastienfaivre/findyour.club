@@ -145,6 +145,12 @@ export type Translations = {
       activityType: string
       location: string
       description: string
+      profileDetails: string
+      howToJoin: string
+      schedule: string
+      contactPhone: string
+      contactAddress: string
+      externalWebsiteUrl: string
       desiredSlug: string
     }
     placeholders: {
@@ -153,6 +159,10 @@ export type Translations = {
       activityType: string
       location: string
       description: string
+      howToJoin: string
+      schedule: string
+      contactPhone: string
+      contactAddress: string
       desiredSlug: string
     }
     requiredLegend: string
@@ -163,6 +173,11 @@ export type Translations = {
       locationRequired: string
       descriptionRequired: string
       descriptionMaxLength: string
+      howToJoinRequired: string
+      scheduleMaxLength: string
+      contactPhoneMaxLength: string
+      contactAddressMaxLength: string
+      externalWebsiteUrlInvalid: string
       desiredSlugRequired: string
       desiredSlugInvalid: string
     }
