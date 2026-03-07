@@ -3,11 +3,9 @@ import { notFound } from 'next/navigation'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { isValidCountry, getCountryName } from '@/lib/country'
-import { getAuthSession } from '@/server/auth'
-import { getClubPublicData, getClubOwnership } from '@/lib/server/club-queries'
+import { getClubPublicData } from '@/lib/server/club-queries'
 import { generateClubMetadata, generateClubJsonLd } from '@/components/app/seo/metadata'
 import { ClubHeroSection } from '@/components/app/club-site/ClubHeroSection'
-import { ClubSidebarNav } from '@/components/app/club-site/ClubSidebarNav'
 import { ElementRenderer } from '@/components/app/club-site/ElementRenderer'
 import { ACCENT_COLORS } from '@/components/app/club-site/accent-colors'
 import { getHomePageElements } from '@/lib/server/page-queries'
@@ -51,18 +49,7 @@ export default async function ClubPage({ params }: Props) {
   const uiLang = resolveUILang(lang)
   const t = getTranslations(uiLang)
 
-  const session = await getAuthSession()
-  let isAdmin = false
-  if (session?.user?.id) {
-    isAdmin = !!(await getClubOwnership(session.user.id, club.id))
-  }
-
   const clubBase = `/${lang}/${country}/${club.slug}`
-  const swissLoc = club.location?.swissLocation
-  const cityName = swissLoc?.translations.find(tr => tr.language === uiLang)?.name
-    ?? swissLoc?.translations[0]?.name
-    ?? null
-  const locationLabel = [cityName, swissLoc?.cantonCode].filter(Boolean).join(', ') || null
   const accentColor = ACCENT_COLORS[club.accentColor] ?? ACCENT_COLORS.zinc
   const activityTypeLabel = club.activityType
     ? t.activityTypes[club.activityType.slug] ?? null
@@ -82,7 +69,7 @@ export default async function ClubPage({ params }: Props) {
 
   return (
     <div
-      className="flex min-h-screen"
+      className=""
       style={{
         '--primary': accentColor.primary,
         '--primary-foreground': accentColor.primaryForeground,
@@ -92,42 +79,23 @@ export default async function ClubPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
-      <ClubSidebarNav
+      <ClubHeroSection
         club={{
           name: club.name,
-          slug: club.slug,
           logoUrl: club.logoUrl,
           logoAlt: club.logoAlt,
+          welcomeText: club.welcomeText,
         }}
-        location={locationLabel}
-        pages={club.pages.filter(p => !p.isAnchor)}
-        clubBase={clubBase}
-        currentPath={clubBase}
-        isAdmin={isAdmin}
-        t={t.clubSite}
+        ctaLabel={t.clubSite.contactCta}
+        ctaHref={`${clubBase}/contact`}
       />
-
-      <main className="flex-1 flex items-start justify-center pt-16 md:pt-0">
-        <div className="max-w-4xl w-full">
-          <ClubHeroSection
-            club={{
-              name: club.name,
-              logoUrl: club.logoUrl,
-              logoAlt: club.logoAlt,
-              welcomeText: club.welcomeText,
-            }}
-            ctaLabel={t.clubSite.contactCta}
-            ctaHref={`${clubBase}/contact`}
-          />
-          {homeElements.length > 0 && (
-            <div className="flex flex-col gap-4 px-4 py-8">
-              {homeElements.map(element => (
-                <ElementRenderer key={element.id} element={element} />
-              ))}
-            </div>
-          )}
+      {homeElements.length > 0 && (
+        <div className="flex flex-col gap-4 py-8">
+          {homeElements.map(element => (
+            <ElementRenderer key={element.id} element={element} />
+          ))}
         </div>
-      </main>
+      )}
     </div>
   )
 }

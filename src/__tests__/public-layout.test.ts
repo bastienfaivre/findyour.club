@@ -296,14 +296,12 @@ describe('PublicFooter', () => {
     vi.clearAllMocks()
   })
 
-  it('renders <footer> with platform links, legal links, and copyright', async () => {
+  it('renders <footer> with privacy, terms, copyright, and theme toggle', async () => {
     const { PublicFooter } = await import('@/components/layout/public-footer')
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = PublicFooter({ lang: 'en' }) as any
     expect(result.type).toBe('footer')
     const text = findText(result)
-    expect(text).toContain('About')
-    expect(text).toContain('Support')
     expect(text).toContain('Privacy')
     expect(text).toContain('Terms')
     expect(text).toContain(`© ${new Date().getFullYear()} Clashware`)
@@ -315,22 +313,6 @@ describe('PublicFooter', () => {
     const result = PublicFooter({ lang: 'en' })
     const toggles = findByMockRef(result, ThemeToggle)
     expect(toggles.length).toBeGreaterThanOrEqual(1)
-  })
-
-  it('renders PoweredByBanner when showPoweredBy is true', async () => {
-    const { PublicFooter } = await import('@/components/layout/public-footer')
-    const { PoweredByBanner } = await import('@/components/app/club-site/PoweredByBanner')
-    const result = PublicFooter({ lang: 'en', showPoweredBy: true })
-    const banners = findByMockRef(result, PoweredByBanner)
-    expect(banners.length).toBeGreaterThanOrEqual(1)
-  })
-
-  it('does not render PoweredByBanner when showPoweredBy is false', async () => {
-    const { PublicFooter } = await import('@/components/layout/public-footer')
-    const { PoweredByBanner } = await import('@/components/app/club-site/PoweredByBanner')
-    const result = PublicFooter({ lang: 'en', showPoweredBy: false })
-    const banners = findByMockRef(result, PoweredByBanner)
-    expect(banners).toHaveLength(0)
   })
 })
 
@@ -406,7 +388,7 @@ describe('Club layout uses PublicLayout', () => {
     vi.clearAllMocks()
   })
 
-  it('renders PublicLayout with showPoweredBy: true', async () => {
+  it('renders PublicLayout with footer', async () => {
     const { default: ClubLayout } = await import('@/app/[lang]/(country)/[country]/[club]/layout')
     const { PublicLayout } = await import('@/components/layout/public-layout')
     const child = { type: 'div', props: { children: 'Club page' }, key: null }
@@ -420,7 +402,7 @@ describe('Club layout uses PublicLayout', () => {
     expect(layouts.length).toBeGreaterThanOrEqual(1)
 
     const layout = layouts[0]
-    expect(layout.props.footerProps.showPoweredBy).toBe(true)
+    expect(layout.props.footerProps.lang).toBe('en')
 
     const text = findText(result)
     expect(text).toContain('Club page')

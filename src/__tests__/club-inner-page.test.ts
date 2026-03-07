@@ -4,13 +4,9 @@ vi.mock('next/navigation', () => ({
   redirect: vi.fn((url: string) => { throw new Error(`NEXT_REDIRECT:${url}`) }),
   notFound: vi.fn(() => { throw new Error('NEXT_NOT_FOUND') }),
 }))
-vi.mock('@/server/auth', () => ({
-  getAuthSession: vi.fn(async () => null),
-}))
 vi.mock('@/server/db', () => ({
   prisma: {
     club: { findFirst: vi.fn() },
-    clubMembership: { findFirst: vi.fn() },
     page: { findFirst: vi.fn() },
   },
 }))
@@ -68,13 +64,6 @@ function findByType(node: unknown, type: string | Function): unknown[] {
     const el = n as { type?: unknown }
     return el.type === type || (typeof el.type === 'function' && (el.type as { name?: string }).name === (type as { name?: string }).name)
   })
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-function findProps(node: unknown, type: string | Function): Record<string, unknown> | null {
-  const found = findByType(node, type)
-  if (found.length === 0) return null
-  return (found[0] as { props: Record<string, unknown> }).props
 }
 
 function findText(node: unknown): string {
@@ -199,34 +188,6 @@ describe('ElementRenderer', () => {
   it('returns null for unknown element type', () => {
     const result = ElementRenderer({ element: { id: '1', type: 'unknown_type' as never, position: 1, data: {} } })
     expect(result).toBeNull()
-  })
-})
-
-describe('ClubSidebarNav sub-pages', () => {
-  beforeEach(() => {
-    vi.resetAllMocks()
-  })
-
-  it('renders sub-pages nested under parent with correct indentation', async () => {
-    setupMocks()
-    const result = await InnerPage({ params: makeParams() })
-    const { ClubSidebarNav } = await import('@/components/app/club-site/ClubSidebarNav')
-    const navProps = findProps(result, ClubSidebarNav)
-    expect(navProps).not.toBeNull()
-    // Pages should include child pages with parentId
-    const pages = navProps!.pages as { id: string; parentId: string | null }[]
-    const childPages = pages.filter(p => p.parentId !== null)
-    expect(childPages.length).toBeGreaterThan(0)
-    expect(childPages[0].parentId).toBe('p2')
-  })
-
-  it('highlights active inner page with aria-current="page"', async () => {
-    setupMocks()
-    const result = await InnerPage({ params: makeParams() })
-    const { ClubSidebarNav } = await import('@/components/app/club-site/ClubSidebarNav')
-    const navProps = findProps(result, ClubSidebarNav)
-    expect(navProps).not.toBeNull()
-    expect(navProps!.currentPath).toBe('/en/ch/ski-club-valais/calendar')
   })
 })
 

@@ -25,13 +25,15 @@ export default async function AboutPage({ params }: Props) {
   const t = getTranslations(uiLang)
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-        {t.platform.about.title}
-      </h1>
-      <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
-        {t.platform.about.content}
-      </p>
+    <div className="py-16 lg:py-24">
+      <div className="max-w-3xl">
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          {t.platform.about.title}
+        </h1>
+        <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
+          {t.platform.about.content}
+        </p>
+      </div>
     </div>
   )
 }

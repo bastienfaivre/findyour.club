@@ -28,10 +28,7 @@ export default async function PlatformLayout({
         lang,
         translations: t.layout,
       }}
-      footerProps={{
-        lang,
-        showPoweredBy: false,
-      }}
+      footerProps={{ lang }}
     >
       {children}
     </PublicLayout>

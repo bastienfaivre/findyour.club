@@ -37,6 +37,14 @@ export function getCountryName(country: Country, lang: string): string {
   return (COUNTRY_NAMES as Record<string, Record<Country, string>>)[lang]?.[country] ?? COUNTRY_NAMES.en[country]
 }
 
+export function countryCodeToFlag(code: string): string {
+  return code
+    .toUpperCase()
+    .split('')
+    .map((char) => String.fromCodePoint(0x1f1e6 + char.charCodeAt(0) - 65))
+    .join('')
+}
+
 const COUNTRY_DEFAULT_LANGUAGE: Record<string, string> = {
   ch: 'fr',
   fr: 'fr',

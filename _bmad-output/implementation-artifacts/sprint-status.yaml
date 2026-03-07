@@ -71,7 +71,7 @@ development_status:
   3-5-mandatory-powered-by-footer-platform-sitemap: done
   3-6-design-system-foundation-dark-light-mode: done
   3-7-public-layout-shell-top-navbar-centered-container-footer: done
-  3-8-refactor-existing-public-pages-to-new-layout: backlog
+  3-8-refactor-existing-public-pages-to-new-layout: done
   epic-3-retrospective: optional
 
   # ─── Epic 4: Club Site Identity & Navigation ───

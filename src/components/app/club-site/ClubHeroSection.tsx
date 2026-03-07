@@ -15,7 +15,7 @@ export type ClubHeroSectionProps = {
 
 export function ClubHeroSection({ club, ctaLabel, ctaHref }: ClubHeroSectionProps) {
   return (
-    <section className="flex flex-col items-center text-center gap-6 py-16 px-4">
+    <section className="flex flex-col items-center text-center gap-6 py-16">
       {club.logoUrl ? (
         <Image
           src={club.logoUrl}

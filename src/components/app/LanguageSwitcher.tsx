@@ -98,7 +98,7 @@ export function LanguageSwitcher({ currentLang }: { currentLang: string }) {
           if (!open) setFocusIndex(0)
         }}
         onKeyDown={handleTriggerKeyDown}
-        className={`flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground${isPending ? ' opacity-60' : ''}`}
+        className={`flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground${isPending ? ' opacity-60' : ''}`}
         aria-expanded={open}
         aria-haspopup="listbox"
       >

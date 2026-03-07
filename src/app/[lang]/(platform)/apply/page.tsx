@@ -25,19 +25,21 @@ export default async function ApplyPage({
     .sort((a, b) => a.name.localeCompare(b.name, uiLang))
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="text-2xl font-semibold">{t.apply.title}</h1>
-      <p className="mt-2 text-muted-foreground">{t.apply.subtitle}</p>
-      <div className="mt-8">
-        <ApplyForm
-          lang={uiLang}
-          t={t}
-          activityTypes={activityTypes}
-          countries={SUPPORTED_COUNTRIES.map((code) => ({
-            code,
-            label: getCountryName(code, uiLang),
-          }))}
-        />
+    <div className="py-16 lg:py-24">
+      <div className="max-w-2xl">
+        <h1 className="text-2xl font-semibold">{t.apply.title}</h1>
+        <p className="mt-2 text-muted-foreground">{t.apply.subtitle}</p>
+        <div className="mt-8">
+          <ApplyForm
+            lang={uiLang}
+            t={t}
+            activityTypes={activityTypes}
+            countries={SUPPORTED_COUNTRIES.map((code) => ({
+              code,
+              label: getCountryName(code, uiLang),
+            }))}
+          />
+        </div>
       </div>
     </div>
   )

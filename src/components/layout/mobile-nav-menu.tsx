@@ -63,7 +63,7 @@ export function MobileNavMenu({
             <SheetClose asChild>
               <Link
                 href={ctaHref}
-                className="rounded-md bg-primary px-4 py-2 text-center text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                className="rounded-lg bg-foreground px-4 py-2 text-center text-sm font-medium text-background transition-opacity hover:opacity-80"
               >
                 {ctaLabel}
               </Link>

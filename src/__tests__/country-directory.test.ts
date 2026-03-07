@@ -151,7 +151,7 @@ describe('ClubCardSkeleton', () => {
   it('renders without error', () => {
     const result = ClubCardSkeleton()
     expect(result).toBeTruthy()
-    expect(result.props.className).toContain('rounded-xl')
+    expect(result.props.className).toContain('rounded-[10px]')
   })
 })
 
@@ -254,17 +254,6 @@ describe('CountryDirectoryPage', () => {
         location: { swissLocation: { cantonCode: 'VS' } },
       })
     )
-  })
-
-  it('redirects to platform homepage for invalid country', async () => {
-    setupMocks()
-
-    await expect(
-      CountryDirectoryPage({
-        params: makeParams('en', 'xx'),
-        searchParams: makeSearchParams(),
-      })
-    ).rejects.toThrow('NEXT_REDIRECT:/en')
   })
 
   it('resolves unsupported language to English fallback', async () => {

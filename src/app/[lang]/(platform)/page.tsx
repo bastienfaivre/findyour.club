@@ -65,17 +65,19 @@ export default async function HomePage({ params }: Props) {
   return (
     <>
       {/* Hero */}
-      <section className="mx-auto max-w-[560px] px-10 pb-10 pt-16 text-center">
-        <h1 className="text-[28px] font-extrabold leading-tight tracking-tight">
-          {t.platform.headline}
-        </h1>
-        <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
-          {t.platform.philosophy}
-        </p>
+      <section className="py-16 lg:py-24 text-center">
+        <div className="mx-auto max-w-xl">
+          <h1 className="text-[28px] font-extrabold leading-tight tracking-tight">
+            {t.platform.headline}
+          </h1>
+          <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
+            {t.platform.philosophy}
+          </p>
+        </div>
       </section>
 
       {/* Stats bar */}
-      <section className="mx-10 flex border-y">
+      <section className="flex border-y">
         <div className="flex-1 py-5 text-center">
           <div className="text-2xl font-extrabold">{totalClubs}</div>
           <div className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">
@@ -103,12 +105,12 @@ export default async function HomePage({ params }: Props) {
       </section>
 
       {/* Countries */}
-      <section className="px-10 pb-10 pt-8">
+      <section className="py-16 lg:py-24 text-center">
         {/* Available now */}
         <h2 className="mb-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           {t.platform.availableNow}
         </h2>
-        <div className="mb-8 flex flex-wrap gap-[10px]">
+        <div className="mb-8 flex flex-wrap justify-center gap-[10px]">
           {countries.map((c) => (
             <CountryButton
               key={c.code}
@@ -125,7 +127,7 @@ export default async function HomePage({ params }: Props) {
         <h2 className="mb-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           {t.platform.comingSoon}
         </h2>
-        <div className="flex flex-wrap gap-[10px]">
+        <div className="flex flex-wrap justify-center gap-[10px]">
           {comingSoonCountries.map((c) => (
             <CountryButton
               key={c.code}

@@ -4,13 +4,9 @@ vi.mock('next/navigation', () => ({
   redirect: vi.fn((url: string) => { throw new Error(`NEXT_REDIRECT:${url}`) }),
   notFound: vi.fn(() => { throw new Error('NEXT_NOT_FOUND') }),
 }))
-vi.mock('@/server/auth', () => ({
-  getAuthSession: vi.fn(async () => null),
-}))
 vi.mock('@/server/db', () => ({
   prisma: {
     club: { findFirst: vi.fn() },
-    clubMembership: { findFirst: vi.fn() },
     page: { findFirst: vi.fn() },
   },
 }))
@@ -29,7 +25,6 @@ vi.mock('next/link', () => ({
 }))
 
 import { notFound } from 'next/navigation'
-import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
 import ClubPage from '@/app/[lang]/(country)/[country]/[club]/page'
 import { generateClubMetadata, generateClubJsonLd } from '@/components/app/seo/metadata'
@@ -101,7 +96,6 @@ function setupClubMock(club = mockClub) {
 describe('ClubPage', () => {
   beforeEach(() => {
     vi.resetAllMocks()
-    vi.mocked(getAuthSession).mockResolvedValue(null)
   })
 
   it('calls notFound() for non-existent club slug', async () => {
@@ -151,38 +145,7 @@ describe('ClubPage', () => {
     expect((heroProps!.club as { logoUrl: unknown }).logoUrl).toBe('https://example.com/logo.png')
   })
 
-  it('renders ClubSidebarNav with navigation links (active non-anchor pages)', async () => {
-    setupClubMock()
-    const result = await ClubPage({ params: makeParams() })
-    const { ClubSidebarNav } = await import('@/components/app/club-site/ClubSidebarNav')
-    const navProps = findProps(result, ClubSidebarNav)
-    expect(navProps).not.toBeNull()
-    expect(navProps!.pages).toEqual([{ id: 'p1', slug: 'about', label: 'About', isAnchor: false, position: 1, parentId: null }])
-    expect(navProps!.clubBase).toBe('/en/ch/ski-club-valais')
-    expect(navProps!.location).toBe('Sion, VS')
-  })
-
-  it('passes null location to ClubSidebarNav when club has no location', async () => {
-    const clubNoLocation = { ...mockClub, location: null }
-    setupClubMock(clubNoLocation)
-    const result = await ClubPage({ params: makeParams() })
-    const { ClubSidebarNav } = await import('@/components/app/club-site/ClubSidebarNav')
-    const navProps = findProps(result, ClubSidebarNav)
-    expect(navProps).not.toBeNull()
-    expect(navProps!.location).toBeNull()
-  })
-
-  it('marks active page with aria-current="page" via currentPath', async () => {
-    setupClubMock()
-    const result = await ClubPage({ params: makeParams() })
-    const { ClubSidebarNav } = await import('@/components/app/club-site/ClubSidebarNav')
-    const navProps = findProps(result, ClubSidebarNav)
-    expect(navProps).not.toBeNull()
-    expect(navProps!.currentPath).toBe('/en/ch/ski-club-valais')
-  })
-
   it('is publicly accessible without authentication', async () => {
-    vi.mocked(getAuthSession).mockResolvedValue(null)
     setupClubMock()
     const result = await ClubPage({ params: makeParams() })
     expect(result).toBeTruthy()

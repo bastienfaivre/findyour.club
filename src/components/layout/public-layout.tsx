@@ -23,7 +23,7 @@ export function PublicLayout({
         {skipToContentLabel}
       </a>
       <PublicNavbar {...navbarProps} />
-      <main id="main-content" className="flex-1 px-6 lg:px-8">
+      <main id="main-content" className="mx-auto w-full max-w-[1000px] flex-1 px-6 lg:px-8">
         {children}
       </main>
       <PublicFooter {...footerProps} />

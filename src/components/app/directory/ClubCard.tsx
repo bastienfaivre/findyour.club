@@ -41,7 +41,7 @@ export function ClubCard({
     <Link
       href={`/${lang}/${country}/${slug}`}
       aria-label={ariaLabel}
-      className="flex items-center gap-3 rounded-xl border bg-card p-4 text-card-foreground shadow-sm transition-all hover:border-primary/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring min-h-[44px]"
+      className="flex items-center gap-3 rounded-[10px] border p-4 text-card-foreground transition-all hover:border-muted-foreground hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring min-h-[44px]"
     >
       {logoUrl ? (
         <Image
@@ -71,7 +71,7 @@ export function ClubCard({
 
 export function ClubCardSkeleton() {
   return (
-    <div className="flex items-center gap-3 rounded-xl border bg-card p-4 shadow-sm">
+    <div className="flex items-center gap-3 rounded-[10px] border p-4">
       <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
       <div className="flex flex-col gap-2 flex-1">
         <div className="h-4 w-32 rounded bg-muted animate-pulse" />

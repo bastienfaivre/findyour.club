@@ -24,11 +24,12 @@ export default async function ClubLayout({ children, params }: ClubLayoutProps) 
   const clubBase = `/${lang}/${country}/${slug}`
 
   const navItems = [
-    { label: t.clubSite.home, href: clubBase },
-    ...club.pages.map((page) => ({
-      label: page.label,
-      href: `${clubBase}/${page.slug}`,
-    })),
+    ...club.pages
+      .filter((page) => page.slug !== 'contact')
+      .map((page) => ({
+        label: page.label,
+        href: page.slug === 'home' ? clubBase : `${clubBase}/${page.slug}`,
+      })),
     { label: t.clubSite.contact, href: `${clubBase}/contact` },
   ]
 
@@ -48,10 +49,7 @@ export default async function ClubLayout({ children, params }: ClubLayoutProps) 
           lang,
           translations: t.layout,
         }}
-        footerProps={{
-          lang,
-          showPoweredBy: true,
-        }}
+        footerProps={{ lang }}
       >
         {children}
       </PublicLayout>

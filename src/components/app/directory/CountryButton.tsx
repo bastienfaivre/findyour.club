@@ -1,12 +1,5 @@
 import Link from 'next/link'
-
-function countryCodeToFlag(code: string): string {
-  return code
-    .toUpperCase()
-    .split('')
-    .map((char) => String.fromCodePoint(0x1f1e6 + char.charCodeAt(0) - 65))
-    .join('')
-}
+import { countryCodeToFlag } from '@/lib/country'
 
 type CountryButtonProps = {
   country: string
@@ -28,7 +21,7 @@ export function CountryButton({
   const flag = countryCodeToFlag(country)
 
   const className =
-    'flex items-center gap-2 rounded-[10px] border px-4 py-[10px] text-card-foreground transition-all' +
+    'flex min-w-[180px] items-center gap-3 rounded-[10px] border px-4 py-[10px] text-left text-card-foreground transition-all' +
     (comingSoon
       ? ' opacity-45 cursor-default'
       : ' hover:border-muted-foreground hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring')
@@ -36,7 +29,7 @@ export function CountryButton({
   if (comingSoon) {
     return (
       <span className={className}>
-        <span aria-hidden="true" className="text-xl leading-none">
+        <span aria-hidden="true" className="flex w-6 shrink-0 items-center justify-center text-xl leading-none">
           {flag}
         </span>
         <div className="flex flex-col gap-px">
@@ -55,7 +48,7 @@ export function CountryButton({
       aria-label={ariaLabel}
       className={className}
     >
-      <span aria-hidden="true" className="text-xl leading-none">
+      <span aria-hidden="true" className="flex w-6 shrink-0 items-center justify-center text-xl leading-none">
         {flag}
       </span>
       <div className="flex flex-col gap-px">

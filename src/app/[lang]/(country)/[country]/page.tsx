@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
-import { isValidCountry, getCountryName } from '@/lib/country'
+import type { Country } from '@/lib/country'
+import { isValidCountry, getCountryName, countryCodeToFlag } from '@/lib/country'
 import { generateDirectoryMetadata } from '@/components/app/seo/metadata'
 import { ClubCard, ClubCardSkeleton } from '@/components/app/directory/ClubCard'
 import { DirectoryFilters } from '@/components/app/directory/DirectoryFilters'
@@ -32,14 +32,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CountryDirectoryPage({ params, searchParams }: Props) {
   const { lang, country } = await params
-  if (!isValidCountry(country)) {
-    redirect(`/${lang}`)
-  }
 
   const { activity, canton } = await searchParams
   const uiLang = resolveUILang(lang)
   const t = getTranslations(uiLang)
-  const countryName = getCountryName(country, uiLang)
+  const validCountry = country as Country
+  const countryName = getCountryName(validCountry, uiLang)
 
   const [clubs, cantons, activityTypes] = await Promise.all([
     prisma.club.findMany({
@@ -104,26 +102,21 @@ export default async function CountryDirectoryPage({ params, searchParams }: Pro
     name: t.activityTypes[a.slug] ?? a.slug,
   }))
 
-  const countryBase = `/${lang}/${country}`
-
   return (
     <PublicLayout
       skipToContentLabel={t.layout.skipToContent}
       navbarProps={{
-        title: countryName,
-        titleHref: countryBase,
+        title: `${countryCodeToFlag(validCountry)} ${countryName}`,
+        titleHref: `/${lang}/${country}`,
         navItems: [],
         ctaLabel: t.nav.apply,
         ctaHref: `/${lang}/apply`,
         lang,
         translations: t.layout,
       }}
-      footerProps={{
-        lang,
-        showPoweredBy: false,
-      }}
+      footerProps={{ lang }}
     >
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="py-16 lg:py-24">
       <h1 className="text-2xl font-bold mb-6">
         {t.directory.title.replace('{country}', countryName)}
       </h1>
