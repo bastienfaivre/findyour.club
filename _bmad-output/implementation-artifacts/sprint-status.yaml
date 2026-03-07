@@ -69,11 +69,14 @@ development_status:
   3-3-club-public-site-server-rendered-home-page: done
   3-4-club-public-site-inner-page-navigation-spa: done
   3-5-mandatory-powered-by-footer-platform-sitemap: done
+  3-6-design-system-foundation-dark-light-mode: in-progress
+  3-7-public-layout-shell-top-navbar-centered-container-footer: backlog
+  3-8-refactor-existing-public-pages-to-new-layout: backlog
   epic-3-retrospective: optional
 
   # ─── Epic 4: Club Site Identity & Navigation ───
   epic-4: backlog
-  4-1-edit-mode-toggle-visual-mode-signal: backlog
+  4-1-club-admin-dashboard-shell-navigation: backlog
   4-2-club-identity-configuration-name-logo-welcome-text: backlog
   4-3-page-management-activate-deactivate-create-pages: backlog
   4-4-page-navigation-labels-sub-pages: backlog

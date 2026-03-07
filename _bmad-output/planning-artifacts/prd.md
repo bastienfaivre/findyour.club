@@ -16,8 +16,16 @@ classification:
   domain: general
   complexity: low
   projectContext: greenfield
-lastEdited: '2026-03-06'
+lastEdited: '2026-03-07'
 editHistory:
+  - date: '2026-03-07'
+    changes: 'Design direction pivot: Public pages adopt Dub.co-inspired centered layout
+      (~1200px max-width, sticky top navbar, standard footer). Club edit mode becomes a
+      standard shadcn dashboard (sidebar + content area) replacing in-place editing on
+      the live URL. Dark/light mode follows system preference by default (next-themes).
+      Admin dashboard unchanged (already shadcn dashboard pattern). In-place editing
+      paradigm (EditFieldCard, LivePreviewPanel, ?edit=true URL param) removed in favor
+      of conventional /admin route.'
   - date: '2026-03-06'
     changes: 'Vision pivot: website builder → worldwide club directory/hub. Free for all clubs
       (donation-funded). Inclusive model (clubs with existing websites welcome).
@@ -433,7 +441,7 @@ different requirements, handled by a single framework supporting hybrid renderin
 |---|---|---|
 | Club site — home page | Server-rendered (MPA) | SEO-critical — contains name, logo, welcome text, structured data |
 | Club site — inner pages (navbar tabs) | SPA-style | Client-side navigation, content fetched from backend, loading skeleton while fetching |
-| Club site — edit mode | SPA-style | Rich interactive editing on same URL surface as public site |
+| Club site — admin dashboard | SPA-style | Standard shadcn dashboard with sidebar navigation; edit forms for each page/section |
 | Platform site (directory, apply, home, about, support) | Server-rendered (MPA) | SEO-critical — directory is the primary product surface, must be indexed |
 | Platform admin dashboard | SPA-style | Internal tool, no SEO requirement, needs rich interactivity |
 
@@ -520,8 +528,9 @@ and configurable from the platform admin dashboard — adjustable without a depl
   building: Rich text, inline image
 - Hybrid MPA/SPA rendering: home page server-rendered, inner pages SPA-style with loading
   skeletons
-- Edit mode: toggled on club's own site, card-style affordances, explicit save, N-version
-  history, defensive UX, inline constraint display
+- Admin dashboard: standard shadcn dashboard layout (sidebar + content area) at a dedicated
+  admin route; edit forms for each page/section; explicit save, N-version history, defensive
+  UX, inline constraint display
 - Per-club accent color picker: 8 curated presets (Zinc, Blue, Green, Red, Violet, Orange,
   Rose, Yellow) applied via OKLCH CSS token
 - Single admin account per club; login entry from platform site
@@ -586,7 +595,7 @@ and configurable from the platform admin dashboard — adjustable without a depl
 ### Club Site Configuration & Navigation
 
 - **FR1:** Club Admin can configure their site's core identity elements (name, logo, welcome text)
-- **FR2:** Club Admin can toggle between public view and edit mode directly on their club website
+- **FR2:** Club Admin can access a dedicated admin dashboard to manage their club site content, with a link to preview the public view
 - **FR3:** Club Admin can activate and deactivate optional pages in their site's navigation
 - **FR4:** Club Admin can create custom pages with user-defined navigation labels
 - **FR5:** Club Admin can configure one level of sub-pages within their site's navigation

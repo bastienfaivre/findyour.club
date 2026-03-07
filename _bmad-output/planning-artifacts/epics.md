@@ -19,7 +19,7 @@ This document provides the complete epic and story breakdown for website-templat
 **Club Site Configuration & Navigation**
 
 FR1: Club Admin can configure their site's core identity elements (name, logo, welcome text)
-FR2: Club Admin can toggle between public view and edit mode directly on their club website
+FR2: Club Admin can access a dedicated admin dashboard to manage their club site content, with a link to preview the public view
 FR3: Club Admin can activate and deactivate optional pages in their site's navigation
 FR4: Club Admin can create custom pages with user-defined navigation labels
 FR5: Club Admin can configure one level of sub-pages within their site's navigation
@@ -179,7 +179,7 @@ NFR27: All platform-wide configurable variables adjustable via the admin dashboa
 **Architecture — Frontend Patterns:**
 
 - TipTap (MIT) for rich text editing — imported via `dynamic(..., { ssr: false })` (CRITICAL: never at module level)
-- React Context for EditModeContext and AuthContext; URL param `?edit=true` as source of truth for edit mode
+- React Context for AuthContext; admin dashboard at dedicated route (`/{lang}/{country}/{club}/admin`)
 - Zod schemas as single source of truth for Server Actions, Route Handlers, and react-hook-form validation
 - API response contract: `{ success: true; data: T }` or `{ success: false; error: string; code?: string }`
 - All Server Actions begin with 3-step auth guard: session → role check → clubId from URL params (verified by ClubMembership in layout)
@@ -194,9 +194,9 @@ NFR27: All platform-wide configurable variables adjustable via the admin dashboa
 
 **UX — Edit Mode:**
 
-- Dark sidebar = edit mode; no sidebar = public view — visual mode signal via sidebar presence/styling
-- Edit affordances via card-based EditFieldCard component; LivePreviewPanel below for live feedback
-- Mobile: hamburger drawer for sidebar; EditFieldCard full-width stacked above LivePreviewPanel
+- Public pages: Dub.co-inspired centered layout with sticky top PublicNavbar and PublicFooter
+- Admin dashboard: standard shadcn dashboard layout (AdminSidebar + content area) at dedicated admin route
+- Mobile: hamburger drawer for both PublicNavbar and AdminSidebar
 - Validate on blur, not on keystroke; inline error messages linked via aria-describedby
 - Skeleton loading within 100ms on all SPA-style transitions
 
@@ -274,12 +274,12 @@ Club Applicants can submit an application to join the platform; the Platform Ope
 **FRs covered:** FR9, FR27, FR31, FR32, FR33
 
 ### Epic 3: Public Platform Site & Discovery
-The platform directory is the core product surface. Public Visitors can browse the homepage, filter the country directory by activity type and location, and navigate to individual club sites. Every club site has automatic SEO and a platform attribution footer. The donation page is part of the platform site.
+The platform directory is the core product surface. Public Visitors can browse the homepage, filter the country directory by activity type and location, and navigate to individual club sites. Every club site has automatic SEO and a platform attribution footer. The donation page is part of the platform site. Additionally, this epic establishes the design system foundation: dark/light mode theming (system-following via next-themes), the public layout shell (Dub.co-inspired centered layout with sticky top navbar and standard footer), and refactoring all existing public pages to the new consistent layout.
 **FRs covered:** FR20, FR21, FR22, FR25, FR26, FR43, FR50
-**NFRs addressed:** NFR1, NFR2, NFR3, NFR21–24
+**NFRs addressed:** NFR1, NFR2, NFR3, NFR21–24, NFR26
 
 ### Epic 4: Club Site Identity & Navigation
-Club Admins can configure their site's core identity (name, logo, welcome text, accent color, external website link), manage pages (activate, deactivate, create, enforce limit), toggle between edit and public view directly on their own URL, explicitly save changes, and restore any previous version from version history.
+Club Admins can configure their site's core identity (name, logo, welcome text, accent color, external website link), manage pages (activate, deactivate, create, enforce limit), explicitly save changes, and restore any previous version from version history — all through a dedicated admin dashboard (shadcn sidebar + content area) at a separate admin route.
 **FRs covered:** FR1, FR2, FR3, FR4, FR5, FR6, FR7, FR17, FR18, FR46, FR47
 **NFRs addressed:** NFR4, NFR17
 
@@ -466,7 +466,7 @@ So that I can securely access the platform admin dashboard, fully isolated from 
 **Then** the club layout membership guard blocks access — no active `ClubMembership` exists for Club B — and redirects to `/my-clubs`.
 
 **Given** a public visitor (no session),
-**When** `?edit=true` is appended to any club URL,
+**When** they attempt to access a club's admin URL (`/{lang}/{country}/{club}/admin`),
 **Then** `proxy.ts` redirects to the platform login page.
 
 **Given** the seeded operator account,
@@ -781,7 +781,7 @@ So that I can quickly understand who the club is and find the information I need
 
 **Given** a visitor navigates to a club's URL path (e.g., `platform-name.com/fr/ch/ski-club-valais`),
 **When** the page loads,
-**Then** it renders server-side with: the club's logo, name (`<h1>`), welcome text, a primary CTA button linking to the Contact page, and the `ClubSidebarNav` with all active pages listed.
+**Then** it renders server-side with: the club's logo, name (`<h1>`), welcome text, a primary CTA button linking to the Contact page, and the `PublicNavbar` with the club name as title and all active pages as navigation links.
 
 **Given** the club home page,
 **Then** it achieves Time to First Contentful Paint < 2 seconds on a standard broadband connection and scores ≥ 90 on Core Web Vitals.
@@ -808,7 +808,7 @@ So that I can browse the club's content without full-page reloads.
 
 **Acceptance Criteria:**
 
-**Given** a visitor clicks a navigation link in the `ClubSidebarNav`,
+**Given** a visitor clicks a navigation link in the `PublicNavbar`,
 **When** navigation occurs,
 **Then** a loading skeleton matching the expected content shape is displayed within 100ms; content loads from the Route Handler and renders within 2 seconds.
 
@@ -816,8 +816,8 @@ So that I can browse the club's content without full-page reloads.
 **When** the page loads,
 **Then** it renders correctly and is crawlable via direct URL access.
 
-**Given** the `ClubSidebarNav`,
-**Then** the active page is highlighted with `aria-current="page"` and a left border in the club's accent color; on mobile the nav collapses to a hamburger that opens a full-height `Sheet` drawer.
+**Given** the `PublicNavbar`,
+**Then** the active page is highlighted with `aria-current="page"` and an accent underline; on mobile the nav collapses to a hamburger that opens a `Sheet` drawer.
 
 **Given** a club has sub-pages configured,
 **Then** the sidebar nav renders them nested under their parent page, one level deep.
@@ -850,54 +850,161 @@ So that club sites are connected to the platform directory and all clubs are dis
 
 ---
 
-## Epic 4: Club Site Identity & Navigation
+### Story 3.6: Design System Foundation — Dark/Light Mode & Theme Provider
 
-Club Admins can configure their site's core identity, manage pages, toggle edit mode on their own URL, explicitly save changes, and restore previous versions.
-
-### Story 4.1: Edit Mode Toggle & Visual Mode Signal
-
-As a Club Admin,
-I want to toggle between public view and edit mode directly on my club's URL with a clear visual signal,
-So that I always know which mode is active and visitors are never exposed to admin chrome.
+As a Public Visitor or Club Admin,
+I want the platform to respect my system's light/dark mode preference and dynamically follow changes,
+So that the interface is comfortable to use in any lighting condition without manual configuration.
 
 **Acceptance Criteria:**
 
-**Given** an authenticated Club Admin visiting their club's public URL,
+**Given** a visitor navigates to any page on the platform (public or admin),
 **When** the page loads,
-**Then** a subtle "Edit site" ghost button with a pencil icon is visible in the `ClubSidebarNav` footer — completely absent for public visitors (server-side auth check).
+**Then** the color scheme matches the visitor's OS `prefers-color-scheme` setting — light mode for light OS, dark mode for dark OS. This is powered by `next-themes` with `defaultTheme="system"` and `enableSystem`.
 
-**Given** the Club Admin clicks "Edit site",
-**When** edit mode activates,
-**Then** the URL gains `?edit=true`; the sidebar background switches to dark (edit mode styling); no page reload occurs; the mode change is instant.
+**Given** the visitor's OS switches from light to dark mode (or vice versa) while the page is open,
+**When** the system preference changes,
+**Then** the page theme updates dynamically in real time — no page reload required.
 
-**Given** `?edit=true` is in the URL,
-**When** a public visitor (no session) attempts to access the URL,
-**Then** `proxy.ts` redirects them to the platform login page — the edit chrome is never served.
+**Given** any page footer,
+**Then** a subtle theme toggle icon button is present allowing manual override (light / dark / system). The override is persisted in `localStorage`. Choosing "system" clears the override and returns to OS-following behavior.
 
-**Given** edit mode is active,
-**When** the Club Admin clicks "View site" (public view toggle),
-**Then** `?edit=true` is removed from the URL; the sidebar returns to its neutral public styling; all edit affordances disappear.
+**Given** the theme provider,
+**Then** it wraps the root layout and applies the theme via a `class` attribute on `<html>` (`next-themes` `attribute="class"` strategy). All existing CSS custom property tokens (OKLCH zinc base, accent presets) already define both `:root` (light) and `.dark` (dark) variants — no token changes needed.
 
-**Given** the edit mode state,
-**Then** it is driven exclusively by the `?edit=true` URL param (bookmarkable, survives page refresh) via `EditModeContext`; it is never stored in `localStorage`.
+**Given** the theme toggle,
+**Then** it meets WCAG 2.1 AA: `aria-label="Toggle theme"`, keyboard-accessible, sufficient contrast in both modes. The toggle uses a sun/moon icon pair.
+
+**Technical notes:**
+- Install `next-themes` via pnpm
+- `ThemeProvider` wraps `{children}` in root `layout.tsx` with `attribute="class"` `defaultTheme="system"` `enableSystem`
+- Theme toggle component: `src/components/ui/theme-toggle.tsx` using shadcn `Button` (ghost variant) + `DropdownMenu` with Light / Dark / System options
+- Suppress hydration mismatch: `suppressHydrationWarning` on `<html>` element (standard `next-themes` pattern)
+
+---
+
+### Story 3.7: Public Layout Shell — Top Navbar, Centered Container & Footer
+
+As a Public Visitor,
+I want all public pages to share a consistent layout with a sticky top navbar, centered content, and a standard footer,
+So that the platform feels cohesive and professionally designed across every public surface.
+
+**Acceptance Criteria:**
+
+**Given** any public page (platform homepage, country directory, club public site),
+**When** the page loads,
+**Then** it renders within a shared `PublicLayout` component that provides: a sticky top `PublicNavbar`, a centered content container (`max-w-[1200px] mx-auto px-6 lg:px-8`), and a `PublicFooter`.
+
+**Given** the `PublicNavbar`,
+**Then** it renders with: a contextual title on the left (platform name on platform pages, country name on country pages, club name on club pages — passed as a prop), navigation links centered, and a primary CTA button on the right. The navbar is sticky (`sticky top-0 z-50`) and becomes opaque/blurred on scroll.
+
+**Given** the `PublicNavbar` on a mobile viewport (< `lg` breakpoint),
+**Then** the navigation links collapse into a hamburger menu that opens a `Sheet` drawer from the right. The hamburger button has `aria-expanded` and `aria-controls` attributes.
+
+**Given** the `PublicFooter`,
+**Then** it renders a multi-column layout with: platform links (About, Support/Donate), legal links (Privacy, Terms), the theme toggle from Story 3.6, and a copyright line. On club pages, a "Powered by [Platform]" attribution link is included.
+
+**Given** the centered content container,
+**Then** content never touches the viewport edges on desktop — generous horizontal margins (`px-6` base, `lg:px-8` on large screens) ensure the Dub.co-inspired breathable layout. Vertical spacing between major sections uses `py-16 lg:py-24` for generous separation.
+
+**Given** the `PublicLayout`,
+**Then** it is accessible: `<nav>` landmark on the navbar, `<main>` landmark on the content area, `<footer>` landmark on the footer. Skip link ("Skip to main content") is the first focusable element.
+
+**Technical notes:**
+- `PublicLayout` component: `src/components/layout/public-layout.tsx`
+- `PublicNavbar` component: `src/components/layout/public-navbar.tsx` — accepts `title`, `navItems`, `ctaLabel`, `ctaHref` props
+- `PublicFooter` component: `src/components/layout/public-footer.tsx`
+- Used by all public route groups: `src/app/[lang]/(platform)/layout.tsx` and `src/app/[lang]/(country)/[country]/layout.tsx`
+
+---
+
+### Story 3.8: Refactor Existing Public Pages to New Layout
+
+As a Public Visitor,
+I want the platform homepage, country directory, and club public site to use the new consistent layout,
+So that the design is cohesive across all public surfaces with proper centering, navbar, and footer.
+
+**Acceptance Criteria:**
+
+**Given** the platform homepage (Story 3.1),
+**When** it renders,
+**Then** it uses the `PublicLayout` with: `PublicNavbar` showing platform name as the title, "About" and "Support" as nav links, and "Apply" as the CTA. Content (headline, country buttons, stats) renders within the centered container. The existing `PoweredByBanner` footer from Story 3.5 is replaced by the `PublicFooter`.
+
+**Given** the country directory page (Story 3.2),
+**When** it renders,
+**Then** it uses the `PublicLayout` with: `PublicNavbar` showing the country name as the title, a "Back to all countries" nav link, and "Apply" as the CTA. The filter bar and club grid render within the centered container.
+
+**Given** the club public home page (Story 3.3),
+**When** it renders,
+**Then** it uses the `PublicLayout` with: `PublicNavbar` showing the club name (and logo if available) as the title, the club's active page names as nav links, and "Contact" as the CTA. The `ClubHeroSection` and page content render within the centered container.
+
+**Given** the club inner pages (Story 3.4),
+**When** navigating between pages,
+**Then** the `PublicNavbar` persists with the active page highlighted (`aria-current="page"`); content transitions use SPA-style loading skeletons within the centered container — no full page reload.
+
+**Given** the club public site footer,
+**Then** the `PublicFooter` includes the "Powered by [Platform]" attribution link (FR26) in addition to the standard footer content. The standalone `PoweredByBanner` component from Story 3.5 is no longer needed as a separate component.
+
+**Given** all refactored pages,
+**Then** they score >= 90 on Core Web Vitals (Lighthouse performance, SEO, accessibility); the new layout does not regress performance. All pages render correctly in both light and dark mode.
+
+**Given** all refactored pages on mobile,
+**Then** the `PublicNavbar` collapses to hamburger; content is single-column within the centered container; the `PublicFooter` stacks to a single column. Full feature parity with desktop.
+
+**Technical notes:**
+- Remove the `ClubSidebarNav` from club public routes — navigation moves to `PublicNavbar`
+- The club layout at `src/app/[lang]/(country)/[country]/[club]/layout.tsx` passes club name and active pages to `PublicLayout`
+- Platform layout at `src/app/[lang]/(platform)/layout.tsx` passes platform name and platform nav items to `PublicLayout`
+- Existing `PoweredByBanner` component can be simplified or removed — its content moves into `PublicFooter`
+
+---
+
+## Epic 4: Club Site Identity & Navigation
+
+Club Admins can configure their site's core identity, manage pages, explicitly save changes, and restore previous versions — all through a dedicated admin dashboard (shadcn sidebar + content area) at a separate admin route.
+
+### Story 4.1: Club Admin Dashboard Shell & Navigation
+
+As a Club Admin,
+I want a dedicated admin dashboard with sidebar navigation to manage my club site,
+So that I have a familiar, organized interface for all content management tasks.
+
+**Acceptance Criteria:**
+
+**Given** an authenticated Club Admin navigates to their club's admin URL (`/{lang}/{country}/{club}/admin`),
+**When** the page loads,
+**Then** a standard shadcn dashboard layout renders with: an `AdminSidebar` (persistent left sidebar with club name/logo at top, navigation items for editable sections, and a "View public site" link in the footer that opens the public club URL in a new tab).
+
+**Given** the admin dashboard,
+**Then** the sidebar navigation items include: Home (identity), Pages, Contact, Settings (accent color, version history, account). Additional items (Calendar, Gallery, Documents) appear only when those page types are active on the club site.
+
+**Given** the admin URL,
+**When** an unauthenticated visitor or a user who is not a member of the club attempts to access it,
+**Then** `proxy.ts` redirects them to the platform login page — the admin dashboard is never served to unauthorized users.
+
+**Given** the admin dashboard on a mobile viewport,
+**Then** the sidebar collapses to a hamburger menu that opens as a `Sheet` drawer from the left; all navigation items remain accessible.
+
+**Given** a Club Admin who is authenticated and visits their club's public URL,
+**Then** the public site renders normally with no admin chrome — complete separation between public and admin views. The admin accesses the dashboard via direct URL or via the post-login redirect.
 
 ---
 
 ### Story 4.2: Club Identity Configuration (Name, Logo, Welcome Text)
 
 As a Club Admin,
-I want to configure my club's name, logo, and welcome text in edit mode,
+I want to configure my club's name, logo, and welcome text through the admin dashboard,
 So that my club's public home page reflects our identity from the very first save.
 
 **Acceptance Criteria:**
 
-**Given** the Club Admin is in edit mode on the club home page,
-**When** they hover over the identity section,
-**Then** an `EditFieldCard` appears with fields for: club name (text input), logo (`ImageUploadField` with "Max 5 MB · JPG, PNG, WebP" constraint displayed permanently), welcome text (textarea), and external website link (optional URL field — for clubs that have their own website) (FR47); the amber dot is absent until a field is changed.
+**Given** the Club Admin selects "Home" in the admin dashboard sidebar,
+**When** the content area loads,
+**Then** an edit form appears with fields for: club name (text input), logo (`ImageUploadField` with "Max 5 MB · JPG, PNG, WebP" constraint displayed permanently), welcome text (textarea), and external website link (optional URL field — for clubs that have their own website) (FR47); the amber dot is absent until a field is changed.
 
 **Given** the Club Admin changes any field value,
 **When** a change is made,
-**Then** the amber unsaved-changes dot appears on the `EditFieldCard` and is mirrored on the `ClubSidebarNav`; the `LivePreviewPanel` below the card reflects the change in real time.
+**Then** the amber unsaved-changes dot appears on the Save button area and is mirrored on the active sidebar item.
 
 **Given** the Club Admin uploads a logo image meeting the constraints,
 **When** the upload completes,
@@ -909,6 +1016,9 @@ So that my club's public home page reflects our identity from the very first sav
 **Given** the Club Admin clicks Save,
 **When** the `saveClubIdentity` Server Action executes,
 **Then** `clubId` is resolved from URL params (verified by the club layout membership check — never from client input or stored session data); the club record is updated; `revalidatePath` invalidates the club home page SSR cache; a "Saved" toast appears; the amber dot clears.
+
+**Given** the Club Admin clicks "View public site" in the sidebar footer after saving,
+**Then** a new tab opens showing the club's public home page with the updated identity.
 
 > **Dev note:** The amber dot, Save button, and dirty-state management shown here are partial implementations. The complete explicit-save protection pattern (beforeunload guard, discard confirmation, full dirty-state lifecycle) is formally defined in Story 4.5 and must be implemented holistically across the epic — not story by story. Implement Story 4.5 as the save framework before finalising 4.2 and 4.3.
 
@@ -922,9 +1032,9 @@ So that I can control which sections are publicly visible and grow my site's con
 
 **Acceptance Criteria:**
 
-**Given** the Club Admin is in edit mode,
-**When** they view the Admin sidebar tab,
-**Then** a "Pages" section shows all pages with their active/inactive status and an "Add page" button.
+**Given** the Club Admin selects "Pages" in the admin dashboard sidebar,
+**When** the content area loads,
+**Then** a page management view shows all pages with their active/inactive status and an "Add page" button.
 
 **Given** the Club Admin toggles a custom page to inactive,
 **When** the toggle is confirmed,
@@ -959,7 +1069,7 @@ So that my site's structure is clearly labelled and organized for visitors.
 
 **Given** the Club Admin selects a parent page and clicks "Add sub-page",
 **When** they provide a sub-page label,
-**Then** a new page is created as a child of the selected parent; it appears nested in the `ClubSidebarNav` one level below the parent (FR5).
+**Then** a new page is created as a child of the selected parent; it appears nested in the `PublicNavbar` dropdown and in the `AdminSidebar` one level below the parent (FR5).
 
 **Given** a page has sub-pages,
 **When** a public visitor views the nav,
@@ -978,13 +1088,13 @@ So that I never accidentally publish unfinished content or lose work unexpectedl
 
 **Acceptance Criteria:**
 
-**Given** any edit has been made in edit mode,
+**Given** any edit has been made in the admin dashboard,
 **When** the change occurs,
-**Then** the amber unsaved-changes dot appears on the `EditFieldCard` and is mirrored in the `ClubSidebarNav`; the Save button becomes active (FR17).
+**Then** the amber unsaved-changes dot appears on the Save button area and is mirrored on the active `AdminSidebar` item; the Save button becomes active (FR17).
 
-**Given** the Club Admin attempts to navigate away (close tab, browser back) with unsaved changes,
-**When** the `beforeunload` event fires,
-**Then** the browser's native "Leave site?" dialog appears — triggered by `isDirty: true` in `EditModeContext`.
+**Given** the Club Admin attempts to navigate away (close tab, browser back, or click another sidebar item) with unsaved changes,
+**When** the navigation is attempted,
+**Then** a "You have unsaved changes" confirmation dialog appears — triggered by `isDirty` state in the dashboard context. For tab/browser close, the browser's native `beforeunload` dialog appears.
 
 **Given** the Club Admin clicks Save,
 **When** the save Server Action completes successfully,
@@ -1007,13 +1117,13 @@ So that I can recover from unwanted changes with confidence, knowing my work is 
 
 **Acceptance Criteria:**
 
-**Given** the Club Admin opens the Admin sidebar tab and navigates to "Version History",
-**When** the panel opens,
+**Given** the Club Admin selects "Settings" in the admin dashboard sidebar and opens "Version History",
+**When** the section loads,
 **Then** a list of saved versions for the current page is displayed, each showing: version number, save timestamp, and a "Restore" button; an empty state is shown if no saves exist yet (FR18).
 
 **Given** the Club Admin clicks "Restore" on a version and confirms the dialog,
 **When** the `restoreVersion` Server Action executes,
-**Then** the page content is replaced with the JSONB snapshot from `content_versions`; edit mode remains active with the restored content; the amber unsaved dot appears (restore does not auto-save).
+**Then** the page content is replaced with the JSONB snapshot from `content_versions`; the admin dashboard form is populated with the restored content; the amber unsaved dot appears (restore does not auto-save).
 
 **Given** a restore action,
 **When** it completes,
@@ -1036,13 +1146,13 @@ So that my site reflects my association's visual identity and feels distinctly o
 
 **Acceptance Criteria:**
 
-**Given** the Club Admin is in edit mode and opens the Admin sidebar tab,
-**When** they view the Identity section,
+**Given** the Club Admin selects "Settings" in the admin dashboard sidebar,
+**When** the settings section loads,
 **Then** an `AccentColorPicker` is displayed showing 8 color swatches with labels: Zinc, Blue, Green, Red, Violet, Orange, Rose, Yellow; the currently active accent is visually indicated with a checkmark ring (FR46).
 
 **Given** the Club Admin selects a different accent color,
 **When** the selection is made,
-**Then** the site's OKLCH accent token updates in real time in the `LivePreviewPanel` — the accent is immediately visible on the active nav indicator border, CTA button, and link colors without a page reload; the amber unsaved-changes dot appears.
+**Then** the accent previews immediately within the dashboard UI (accent color on buttons, active states); the amber unsaved-changes dot appears.
 
 **Given** the Club Admin saves,
 **When** the `saveClubIdentity` Server Action executes,
@@ -1082,7 +1192,7 @@ So that I can build structured page content without writing code or making layou
 
 **Given** the Club Admin reorders elements via drag-and-drop,
 **When** the order is changed,
-**Then** the `position` integer on each affected `page_element` record is updated; the amber dot appears; the `LivePreviewPanel` reflects the new order immediately.
+**Then** the `position` integer on each affected `page_element` record is updated; the amber dot appears; the element list in the dashboard reflects the new order immediately.
 
 **Given** a page element is deleted and the Club Admin confirms the dialog,
 **Then** the element record is removed from `page_elements`; the amber dot appears; the public page reflects the deletion only after the next explicit Save.
@@ -1103,7 +1213,7 @@ So that I can write formatted articles and illustrated content for my club's vis
 
 **Given** the Club Admin types content in the editor,
 **When** content is entered,
-**Then** changes appear in the `LivePreviewPanel` in real time; the amber dot appears.
+**Then** changes are reflected in the form state; the amber dot appears.
 
 **Given** the Club Admin inserts an inline image via the toolbar,
 **When** they upload an image (max 5 MB, JPG/PNG/WebP — constraint shown permanently before upload),
@@ -1205,7 +1315,7 @@ So that visitors have multiple ways to reach my club, all configured to my assoc
 
 **Given** the Club Admin is in edit mode on the Contact page,
 **When** they view the page,
-**Then** an `EditFieldCard` is shown for each available sub-block: Contact Form, Map, Phone Number, Email Address, and Predefined Message Subjects — each independently togglable (FR11).
+**Then** an edit form is shown for each available sub-block: Contact Form, Map, Phone Number, Email Address, and Predefined Message Subjects — each independently togglable (FR11).
 
 **Given** the Club Admin enables the Contact Form sub-block and saves,
 **Then** the contact form appears on the public Contact page; the club's registered email is automatically used as the recipient — no additional configuration required.

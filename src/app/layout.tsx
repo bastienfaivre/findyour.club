@@ -3,6 +3,7 @@ import "./globals.css";
 import { DevAuthPanel } from "@/components/app/auth/DevAuthPanel";
 import { getLanguage } from "@/lib/i18n/get-language";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 
 export const metadata: Metadata = {
   title: "Clashware",
@@ -16,11 +17,13 @@ export default async function RootLayout({
 }>) {
   const lang = await getLanguage()
   return (
-    <html lang={lang}>
+    <html lang={lang} suppressHydrationWarning>
       <body className="antialiased" suppressHydrationWarning>
-        {children}
-        <Toaster position="bottom-right" duration={3000} />
-        {process.env.NODE_ENV === 'development' && <DevAuthPanel />}
+        <ThemeProvider>
+          {children}
+          <Toaster position="bottom-right" duration={3000} />
+          {process.env.NODE_ENV === 'development' && <DevAuthPanel />}
+        </ThemeProvider>
       </body>
     </html>
   );

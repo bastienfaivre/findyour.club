@@ -247,6 +247,7 @@ export const de: Translations = {
     poweredBy: 'Betrieben von Clashware',
     poweredByAriaLabel: 'Betrieben von Clashware — zur Plattform-Startseite',
   },
+  theme: { toggleTheme: 'Design wechseln', light: 'Hell', dark: 'Dunkel', system: 'System' },
   activityTypes: {
     skiing: 'Skifahren',
     football: 'Fussball',

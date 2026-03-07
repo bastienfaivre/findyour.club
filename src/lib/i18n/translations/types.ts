@@ -264,5 +264,6 @@ export type Translations = {
     poweredBy: string
     poweredByAriaLabel: string
   }
+  theme: { toggleTheme: string; light: string; dark: string; system: string }
   activityTypes: Record<string, string>
 }

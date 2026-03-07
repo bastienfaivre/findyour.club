@@ -52,21 +52,22 @@ A hosted website builder for non-profit community associations — ski clubs, sp
 
 ### Defining Experience
 
-The core interaction is in-place editing: the Club Admin toggles into edit mode directly on their club's live site — same URL, same visual context as public visitors. The product's entire value proposition is proven or disproven in this single interaction. If a non-technical admin can set up their site in one session without help and then stop thinking about it, the product works.
+The core interaction is form-based editing in a dedicated admin dashboard: the Club Admin logs in, opens the dashboard, fills in content for each section, and saves. The public site renders the result. The product's entire value proposition is proven or disproven by how quickly a non-technical admin gets from first login to "this looks like a real website." If they can set up their site in one session without help and stop thinking about it, the product works.
 
 ### Platform Strategy
 
-Web-first with no native apps. Mouse/keyboard primary for desktop (initial setup); full touch parity for mobile (edit mode fully functional). No offline requirement — platform reliability is a product promise, not a user concern. Standard browser APIs only; no device-specific dependencies.
+Web-first with no native apps. Mouse/keyboard primary for desktop (initial setup); full touch parity for mobile (admin dashboard fully functional). No offline requirement — platform reliability is a product promise, not a user concern. Standard browser APIs only; no device-specific dependencies.
 
 ### Effortless Interactions
 
-- **Edit mode toggle** — one affordance, instant, no page reload
+- **Admin dashboard** — familiar sidebar + content area; each section is a form to fill in
 - **Logo/image upload** — drag or click; inline constraints shown before failure, never after
-- **Page management** — activate, deactivate, rename pages directly from nav, no settings screen
+- **Page management** — activate, deactivate, rename pages from the dashboard Pages section
 - **Explicit save** — one action; unsaved-changes state always visible; no autosave surprises
 - **Contact form routing** — zero admin configuration; reply-to wired automatically from day one
+- **View public site** — one click from the dashboard opens the live site in a new tab
 
-Eliminated entirely vs. competitors: separate admin panels, theme editors, hosting dashboards, plugin management, SSL configuration, sitemap submission, template selection.
+Eliminated entirely vs. competitors: theme editors, hosting dashboards, plugin management, SSL configuration, sitemap submission, template selection.
 
 ### Critical Success Moments
 
@@ -133,22 +134,28 @@ Eliminated entirely vs. competitors: separate admin panels, theme editors, hosti
 
 ### Inspiring Products Analysis
 
-**Notion (primary reference):** In-context editing with block-based content model. The UI edits exactly what will be seen — no separate admin panel. Minimal chrome, contextual toolbars, clean empty states that invite action rather than intimidate. The block metaphor (each content unit is self-contained with its own affordances) directly informs our element library design.
+**Dub.co (primary reference — public pages):** Clean, centered layout with generous margins and a sticky top navbar. Breathable spacing, minimal ornamentation, content-first hierarchy. Sets the standard for our public page layout: platform homepage, country directory, and club public sites all follow this pattern.
+
+**shadcn/ui Dashboard (primary reference — admin):** The canonical shadcn dashboard example (ui.shadcn.com/examples/dashboard) is the direct reference for both the club admin dashboard and the platform operator dashboard. Sidebar navigation, form-based content management, clean data display.
 
 **Squarespace (reference for visual standard):** Sets the bar for visual credibility out of the box — a site with only a name and a paragraph looks professional. This is the minimum acceptable standard for our platform-controlled template, but we reject everything else: template pickers, color editors, font selectors, and pricing tiers.
 
-**Linear (reference for admin UI feel):** Minimalist, fast, keyboard-accessible. Status states are clear and calm. Working interfaces have minimal chrome. The platform admin dashboard and edit mode target this level of responsiveness and clarity.
+**Linear (reference for admin UI feel):** Minimalist, fast, keyboard-accessible. Status states are clear and calm. Working interfaces have minimal chrome. The admin dashboards target this level of responsiveness and clarity.
 
 ### Transferable UX Patterns
 
+**Layout Patterns:**
+- **Dub.co's centered layout** → All public pages: `max-w-[1200px]` centered container, generous side margins, sticky top navbar, content breathes
+- **Dub.co's top navbar** → Contextual title left, nav links center, CTA right — consistent structure across all public pages
+- **shadcn dashboard sidebar** → Club admin and operator dashboards: persistent sidebar with section navigation
+
 **Editing Patterns:**
-- **Notion's in-context editing** → Club site edit mode: toggle directly on the live site URL, editing exactly what visitors see, no separate /admin route
-- **Notion's block/element model** → Element library: each element (Calendar, Gallery, Rich Text, Contact sub-block) is a self-contained card with its own edit affordances, constrained to the page structure
-- **Notion's contextual element picker** → Adapted as a minimal element picker (5–6 types only), appearing when a page section is empty or when adding a new element
+- **Standard form-based editing** → Club admin dashboard: each sidebar item opens an edit form for that section — familiar from any CMS or settings panel
+- **Element picker** → Adapted as a minimal element picker (5–6 types only) within the dashboard page management section
 
 **Status & Feedback Patterns:**
 - **Linear's calm status clarity** → Explicit save button: one persistent affordance, clearly indicates unsaved vs. saved state, no ambiguity, no autosave surprises
-- **Linear's instant responsiveness** → All edit interactions respond immediately; no full-page reloads within edit mode; skeleton loaders for any async content
+- **Linear's instant responsiveness** → All interactions respond immediately; skeleton loaders for any async content
 
 **Visual Credibility Patterns:**
 - **Squarespace's out-of-the-box quality** → Platform template must look professionally credible with only club name, logo, and a welcome paragraph — zero admin style decisions required
@@ -157,28 +164,28 @@ Eliminated entirely vs. competitors: separate admin panels, theme editors, hosti
 
 - **Blank page / blank canvas** (Wix, Google Sites) — our sites arrive pre-structured; admins fill in content, not structure
 - **Drag-anything-anywhere layout editing** (Wix) — too much freedom creates paralysis and ugly results for non-technical users
-- **Separate admin panel URL** (WordPress) — breaks the "editing what visitors see" contract; all editing happens on the club's own URL
 - **Template picker at first login** (Squarespace, Wix) — one template, always; no choice required or offered
 - **Plugin / extension ecosystem** (WordPress) — no extensions, no marketplace, no optional capabilities that require decisions
 - **Autosave without version history** — creates anxiety ("did it save? what did it save?"); our explicit save + N-version history is intentionally different
 - **"It works but looks bad"** (Google Sites, basic CMS tools) — violates the pride principle; the public result must always look credibly professional
+- **Over-complicated admin** (WordPress admin panel) — our dashboard has ~8 sidebar items, not 50; simplicity is the feature
 
 ### Design Inspiration Strategy
 
 **Adopt directly:**
-- Notion's in-context editing paradigm for the edit mode interaction model
-- Notion's block/card metaphor for the element library
+- Dub.co's centered, breathable layout for all public pages
+- shadcn dashboard pattern for club admin and operator dashboards
 - Linear's responsiveness and minimal chrome standard for the admin dashboard
 
 **Adapt for our constraints:**
-- Notion's element picker → narrowed to 5–6 element types only; no open-ended content types
-- Notion's editing model → paired with explicit save (not autosave) and version history
+- Dub.co's navbar → contextual title changes per page (platform name / country / club name)
+- shadcn dashboard → narrowed to ~8 sidebar items; no settings bloat
 - Squarespace's visual standard → achieved through platform-controlled template, not through admin style choices
 
 **Avoid entirely:**
-- Any pattern that introduces style decisions for the admin (template pickers, color editors, font selectors)
-- Any pattern that separates editing from viewing (separate admin dashboards, /admin routes)
+- Any pattern that introduces style decisions for the admin (template pickers, color editors beyond 8 presets, font selectors)
 - Any pattern that creates blank-canvas paralysis (empty starting states, free-form layout editors)
+- Over-engineering the admin experience — conventional is better than novel for non-technical users
 
 ## Design System Foundation
 
@@ -212,60 +219,61 @@ Eliminated entirely vs. competitors: separate admin panels, theme editors, hosti
 
 ### Defining Experience
 
-**"Click Edit on your club's website and change it — right there, directly on the page."**
+**"Log in, open your dashboard, fill in the fields, save. Your site is live."**
 
-The Club Admin never leaves their club's URL to manage it. The same page visitors browse is the page the admin edits. There is no dashboard, no admin panel, no context switch. The edit affordance appears only to authenticated admins; visitors see nothing of it. One click activates edit mode; one click saves.
+The Club Admin manages their club through a dedicated admin dashboard — a clean, familiar interface with a sidebar listing every section of their site. Each sidebar item opens an edit form. The admin fills in content, saves, and clicks "View public site" to see the result. No novel interaction patterns, no mode confusion, no learning curve.
 
-If a first-time admin can describe this to a friend as "it's like editing a Facebook post, but it IS the website" — the experience has succeeded.
+If a first-time admin can describe this to a friend as "it's like filling in a profile, but the result is a website" — the experience has succeeded.
 
 ### User Mental Model
 
 Club Admins arrive with two co-existing mental models:
 
 1. **"Websites are technical"** — prior experience with WordPress, developers, or neglected CMS tools. This belief must be disproved in the first 60 seconds of the first session.
-2. **"I post directly on social media"** — the familiar pattern of Facebook, Instagram, WhatsApp. This is the model to reinforce: direct, contextual, immediate.
+2. **"I fill in forms on the internet"** — the familiar pattern of profile pages, settings panels, admin tools. This is the model to reinforce: structured, guided, predictable.
 
-The one ambiguity to resolve through design: admins must clearly understand that visitors cannot see edit chrome, and that changes only go live on explicit save. This must be taught visually — not with instructions.
+The dashboard pattern leverages existing mental models — admins already know how forms work. The only thing to communicate: changes go live on explicit save, and you can preview the result at any time.
 
 ### Success Criteria
 
-- First-time admin completes full setup (name, logo, welcome text, first save, public view) in under 30 minutes with zero external help or documentation
-- Every edit action produces immediate visual feedback — changes appear as the admin types
+- First-time admin completes full setup (name, logo, welcome text, first save, public preview) in under 30 minutes with zero external help or documentation
 - Save state is always legible: "Unsaved changes" and "Saved" states are unambiguous at all times
-- No admin action damages the public-facing site until explicit save — all edits are preview-only until committed
-- After the first save, the admin views the public site and perceives it as "a real website"
+- No admin action damages the public-facing site until explicit save
+- After the first save, the admin clicks "View public site" and perceives it as "a real website"
+- The admin dashboard feels familiar from the first interaction — no novel patterns to learn
 
 ### Novel UX Patterns
 
-The defining experience combines **familiar patterns innovatively** — no genuinely novel interaction paradigm is required:
+No genuinely novel interaction paradigm is required — and that is intentional:
 
-- Familiar elements: edit button, text fields, image upload, save button, WYSIWYG editing
-- **Innovative combination**: all interactions occur on the public-facing URL — no /admin route, no context switch, no separate dashboard
-- Teaching requirement is minimal: each micro-interaction is already understood; only the "you're editing the live page" framing requires communication — handled visually, not textually
+- Familiar elements: sidebar navigation, form fields, image upload, save button
+- **Deliberate simplicity**: standard shadcn dashboard pattern that any web user has encountered before
+- Teaching requirement is near-zero: each interaction is already understood from other tools
+- The "innovation" is in what's absent — no theme pickers, no layout editors, no plugin management, no complexity
 
 ### Experience Mechanics
 
 **Initiation:**
-- Admin visits their club URL (authenticated via persistent session)
-- A subtle "Edit" affordance is visible only to authenticated admins (floating button or minimal top bar) — completely absent for public visitors
-- Single click activates edit mode with no page reload
+- Admin receives acceptance email with a link to their club's admin dashboard
+- Dashboard loads with sidebar navigation listing all editable sections
+- First-time state: sections show clear prompts to fill in content ("Add your club name and logo")
 
 **Interaction:**
-- Page transitions to edit mode: unmistakable visual indicator (edit bar, page border, or background treatment) communicates the mode clearly
-- Editable content areas reveal card affordances on hover — each element becomes visually "touchable"
-- Non-editable elements (layout, typography, colors, footer attribution) show no hover affordance — the content/style boundary is felt, not explained
-- Inline editing begins on click: text cursor in place for text fields, upload trigger for images, element picker for empty page sections
+- Admin clicks a sidebar item (e.g., "Home") → content area shows the edit form for that section
+- Form fields are standard: text inputs, textareas, image upload zones, selects
+- Inline constraints displayed permanently (e.g., "Max 5 MB · JPG, PNG, WebP")
+- Amber unsaved-changes dot appears when any field is modified
 
 **Feedback:**
-- Changes appear instantly as admin edits — live preview in place
 - Persistent save indicator shows "Unsaved changes" clearly whenever pending changes exist
-- Inline constraints (file size, accepted formats) displayed at the moment of upload interaction, before any failure
-- Element-level confirmations for structured elements (e.g. calendar event saved, gallery image uploaded)
+- Inline constraints and errors displayed at the point of interaction, before failure
+- Save confirmation via toast; amber dot clears
+- "View public site" link in sidebar footer opens the public view in a new tab
 
 **Completion:**
-- Single "Save" action commits all pending changes
-- Brief "Saved" confirmation with timestamp, then quiet return to edit-active state
-- Admin can toggle to public view at any time to see exactly what visitors see
+- Single "Save" action commits all pending changes for the current section
+- Brief "Saved" confirmation with timestamp
+- Admin clicks "View public site" to verify — public site renders the saved content
 - Each save creates a named restore point in version history
 
 ## Visual Design Foundation
@@ -342,8 +350,10 @@ All presets sourced from shadcn/ui theme palette; all pass WCAG 2.1 AA on both l
 **Edit mode accent (both modes):** `amber-500` — the single additional warm signal, used exclusively for the "Unsaved changes" indicator. Not part of the configurable accent system.
 
 **Theme switching (light/dark):**
-- Default: `prefers-color-scheme` OS setting
-- User-toggleable via UI control, persisted in `localStorage`
+- Default: `prefers-color-scheme` OS setting — dynamically follows system changes in real time
+- Implementation: `next-themes` with `attribute="class"`, `defaultTheme="system"`, `enableSystem`
+- Subtle toggle in page footer as an override — not prominent in the UI
+- Override persisted in `localStorage`; cleared = returns to system-following
 - Applies to club sites, platform site, and admin dashboard
 
 ### Typography System
@@ -370,10 +380,14 @@ Tailwind's default `font-sans`. Instant render on all OS and device types; no ne
 ### Spacing & Layout Foundation
 
 - **Base unit:** 4px (Tailwind default spacing scale)
-- **Grid:** 8-column for content pages; 12-column for admin/dashboard layouts
-- **Max widths:** `max-w-3xl` (48rem) for reading-optimized content; `max-w-7xl` (80rem) for directory and dashboard layouts
+- **Grid:** Single-column centered for public pages; 12-column for admin/dashboard layouts
+- **Max widths:**
+  - `max-w-[1200px]` (~75rem): public page content container (Dub.co-inspired centered layout)
+  - `max-w-3xl` (48rem): reading-optimized content within pages (club About text, rich text)
+  - Dashboard layouts: full width within sidebar offset (no max-width cap)
+- **Horizontal margins:** `mx-auto px-6 lg:px-8` on the public content container — content never touches viewport edges
 - **Component padding:** `p-4` (16px) standard; `p-6` (24px) for cards; `p-8` (32px) for page sections
-- **Philosophy:** generous whitespace signals calm and trust — space is intentional, not wasted
+- **Philosophy:** generous whitespace signals calm and trust — space is intentional, not wasted. The Dub.co approach: fewer elements, more breathing room, centered content with empty margins as a deliberate design choice
 
 ### Accessibility Considerations
 
@@ -392,34 +406,55 @@ Tailwind's default `font-sans`. Instant render on all OS and device types; no ne
 
 ### Design Directions Explored
 
-Six initial directions (D1–D6) were explored covering layout approaches, information hierarchy, navigation patterns, and visual weight variations across four surfaces: club site public view, edit mode, platform directory, and admin dashboard.
+Six initial directions (D1–D6) were explored covering layout approaches, information hierarchy, navigation patterns, and visual weight variations. After implementing Epic 3, a design consistency review led to a pivot toward two clear reference models:
+
+- **Public pages** (platform, country, club): Dub.co-inspired centered layout
+- **Admin/edit pages** (club dashboard, platform operator): Standard shadcn dashboard
 
 ### Chosen Direction
 
-A composite direction built from the most effective elements of the exploration:
+**All Public Pages (Platform Homepage, Country Directory, Club Public Site):**
 
-**Platform Homepage (Surface 01):** Sober, minimal layout inspired by howmuch.tax — short declarative headline ("The worldwide activities glossary"), country selector buttons directing to country paths (e.g. `platform-name.com/{lang}/ch`), aggregate statistics (total clubs, countries, members). No listing on the main page.
+Dub.co-inspired layout — clean, breathable, centered. All public surfaces share the same layout shell:
 
-**Country Page (Surface 02):** Country-specific path (`/{lang}/{country}`) with a search form adapted to local administrative structure (Switzerland: canton as first field), followed by a filterable club grid.
+- **Sticky top navbar:** Contextual title on the left (platform name / country name / club name depending on page), navigation links centered, primary CTA on the right. Consistent structure across all public pages — only the title changes.
+- **Centered content area:** `max-w-[1200px]` (~75rem) with generous horizontal margins (`mx-auto px-6 lg:px-8`). Content breathes — never touches viewport edges on desktop.
+- **Standard multi-column footer:** Platform links, legal links, "Powered by" attribution (on club pages), and a subtle dark/light mode toggle.
+- **Airy visual weight:** Generous vertical spacing between sections. Minimal ornamentation. Content-first hierarchy.
 
-**Club Site Public (Surface 03):** D4-style persistent sidebar navigation combined with a D1-style centered hero section on the homepage (club logo, name, tagline, primary CTA). Inner pages use sidebar nav with content area.
+The platform homepage shows the declarative headline, country buttons, and aggregate stats. The country page shows filters and the club grid. The club public site shows the hero section (logo, name, welcome text, CTA) on the home page and content on inner pages — all within the same centered shell.
 
-**Club Site Edit Mode (Surface 04):** Same D4 dark sidebar, extended with an Admin tab (visible only in edit mode) containing: accent color picker, account settings, version history, custom domain, export. Edit fields card with live preview rendered below it. Amber-500 unsaved-changes indicator.
+**Club Admin Dashboard (Surface 04):**
 
-**Platform Admin Dashboard (Surface 05):** D4-style dark sidebar (consistent with club edit mode) combined with D6-style content area: key metrics, application queue with approve/reject actions, club health indicators.
+Standard shadcn dashboard layout (reference: ui.shadcn.com/examples/dashboard):
+
+- **Persistent left sidebar:** Club name/logo at top, navigation items for each editable section (Home, Pages, Calendar, Gallery, Documents, Contact, Settings), footer with "View public site" link (opens in new tab).
+- **Content area:** Edit forms for the selected section. Standard form layouts with explicit save.
+- **Dedicated admin route:** `/{lang}/{country}/{club}/admin/...` — completely separate from the public URL. No `?edit=true` URL param, no in-place editing overlay.
+- **Amber-500 unsaved-changes indicator** in sidebar and on save button when dirty.
+
+**Platform Operator Dashboard (Surface 05):**
+
+Same shadcn dashboard pattern as the club admin — persistent sidebar with operator-specific navigation (Applications, Clubs, Metrics, Support, Settings). Content area shows queue, metrics, and management views.
 
 ### Design Rationale
 
-The composite direction unifies two distinct contexts (public-facing club sites and platform-internal surfaces) under a single visual language: D4's persistent dark sidebar. This creates an immediate and unmistakable mode signal — the sidebar is dark in edit and admin contexts, absent in the public view. The platform homepage deliberately avoids a directory-on-landing-page pattern to stay neutral across countries and to lead with the value proposition before geography. Country subdomains (ch.platform-name.com, fr.platform-name.com) allow country-specific search schemas (canton field for Switzerland) without complicating the global entry point.
+Two distinct visual languages for two distinct contexts:
+
+1. **Public = Dub.co:** Centered, breathable, premium. The top navbar provides consistent navigation without the visual weight of a sidebar. Generous margins signal quality and calm. This applies uniformly to all public surfaces — platform, country, and club — creating a cohesive visitor experience.
+
+2. **Admin = shadcn dashboard:** Functional, familiar, dense. The sidebar provides efficient navigation between admin sections. Club admins (non-technical volunteers) encounter a conventional dashboard they've seen in other tools — no novel interaction patterns to learn. The separation from the public view eliminates mode confusion entirely.
+
+The previous in-place editing paradigm (editing directly on the live URL, Notion-style) was conceptually elegant but introduced complexity: mode signals, EditFieldCard overlays, LivePreviewPanel, dirty-state management on the live page, `?edit=true` URL param. The dashboard approach is simpler to build, simpler to use, and clearer in its separation of concerns.
 
 ### Implementation Approach
 
 - Shared Tailwind + shadcn/ui component library across all surfaces
 - Path-based routing: `/{lang}/{country}` (e.g. `platform-name.com/fr/ch`) with country-specific search field schemas; `{lang}` and `{country}` are independent segments
-- Single in-place edit URL per club (no /admin route); dark sidebar signals edit vs. public state
-- Admin tab gated by auth state (hidden from public, shown only in edit mode)
-- Dark sidebar as the design anchor for all authenticated and operator-facing surfaces
-- Visual reference file: `_bmad-output/planning-artifacts/ux-design-directions.html`
+- Public layout shell: shared `PublicLayout` component (top navbar + centered container + footer) used by all public routes
+- Club admin dashboard: dedicated `/{lang}/{country}/{club}/admin` route group with shadcn sidebar layout
+- Platform operator dashboard: dedicated admin route group with the same sidebar layout pattern
+- Dark/light mode: `next-themes` with `enableSystem` as default; subtle toggle in footer; follows OS preference dynamically
 
 ---
 
@@ -429,64 +464,63 @@ The composite direction unifies two distinct contexts (public-facing club sites 
 
 **Persona:** Marie, 52 — non-technical club president, setup in one afternoon
 
-**Entry point:** Acceptance email → login link
+**Entry point:** Acceptance email → admin dashboard link
 
 ```mermaid
 flowchart TD
-    A([Email: Acceptance + Login Link]) --> B[Click login link]
-    B --> C[Club site loads in Edit Mode\ndark sidebar visible]
-    C --> D[Configure identity\nclub name · logo · welcome text]
+    A([Email: Acceptance + Dashboard Link]) --> B[Click dashboard link]
+    B --> C[Admin dashboard loads\nshadcn sidebar visible]
+    C --> D[Sidebar: Home selected\nConfigure identity form\nclub name · logo · welcome text]
     D --> E{Amber dot visible\nUnsaved changes}
     E --> F[Save]
-    F --> G[Confirmation shown]
+    F --> G[Confirmation toast]
     G --> H{Add custom pages?}
-    H -->|Yes| I[Name page + choose elements\nCalendar · Gallery · Rich text · Documents]
+    H -->|Yes| I[Sidebar: Pages section\nName page + choose elements\nCalendar · Gallery · Rich text · Documents]
     I --> J{Add more elements?}
     J -->|Yes| I
     J -->|No| K{Add more pages?\nmax 5 total}
     K -->|Yes| I
-    K -->|No| L[Configure Contact page\nform · map · phone · subjects]
+    K -->|No| L[Sidebar: Contact section\nConfigure form · map · phone · subjects]
     H -->|No| L
     L --> M[Save]
-    M --> N[Toggle to Public View]
+    M --> N[Click View public site\nin sidebar footer → new tab]
     N --> O{Satisfied?}
     O -->|Yes| P[Copy URL / share]
     P --> Q([Setup complete — zero ongoing obligation])
-    O -->|Needs changes| R[Toggle back to Edit Mode]
+    O -->|Needs changes| R[Return to dashboard tab]
     R --> D
 ```
 
 **Key moments:**
 - Amber unsaved dot is the single persistent signal between edits and save
-- Toggling public view is the verification step — not a separate deployment
-- No wizard, no onboarding checklist — the edit mode IS the setup
+- "View public site" opens a new tab for verification — clean separation
+- No wizard, no onboarding checklist — the dashboard sections ARE the setup
 
 ---
 
 ### Journey 1b: Club Admin — Ongoing Content Update
 
-**Entry point:** Club site public URL → "Edit" button in footer
+**Entry point:** Platform login → admin dashboard (or direct dashboard URL bookmark)
 
 ```mermaid
 flowchart TD
-    A([Club admin visits club site]) --> B[Click Edit in footer]
-    B --> C[Authenticate via platform\nif session expired]
-    C --> D[Edit mode activates\ndark sidebar appears]
-    D --> E[Navigate to page to update\nvia sidebar]
-    E --> F[Make content changes\ntext · image · event · document]
-    F --> G{Amber dot visible}
-    G --> H{Happy with changes?}
-    H -->|Yes| I[Save]
-    I --> J[Confirmation]
-    J --> K{Preview public view?}
-    K -->|Yes| L[Toggle to Public View\nverify changes]
-    L --> M([Done — exit])
-    K -->|No| M
-    H -->|No — revert| N[Open Version History\nin Admin sidebar tab]
-    N --> O[Select previous version]
-    O --> P[Restore]
-    P --> Q[Edit mode with restored state]
-    Q --> H
+    A([Club admin visits platform]) --> B[Log in → redirected to dashboard]
+    B --> C[Admin dashboard loads\nshadcn sidebar]
+    C --> D[Navigate to section to update\nvia sidebar]
+    D --> E[Make content changes\ntext · image · event · document]
+    E --> F{Amber dot visible}
+    F --> G{Happy with changes?}
+    G -->|Yes| H[Save]
+    H --> I[Confirmation toast]
+    I --> J{Preview public view?}
+    J -->|Yes| K[Click View public site\n→ new tab]
+    K --> L([Done — close dashboard])
+    J -->|No| L
+    G -->|No — revert| M[Sidebar: Version History]
+    M --> N[Select previous version]
+    N --> O[Restore]
+    O --> P[Dashboard with restored state\namber dot visible]
+    P --> G
 ```
 
 ---
@@ -500,13 +534,13 @@ flowchart TD
 ```mermaid
 flowchart TD
     A([Search: 'badminton club Lausanne']) --> B{Landing surface}
-    B -->|Direct club site in SERP| C[Club site: Home\nlogo · name · welcome text · CTA]
-    B -->|Platform directory in SERP| D[platform-name.com/fr/ch\nCountry page]
+    B -->|Direct club site in SERP| C[Club site: Home\ntop navbar with club name\nlogo · name · welcome text · CTA]
+    B -->|Platform directory in SERP| D[platform-name.com/fr/ch\nCountry page\ntop navbar with country name]
     D --> E[Filter: Activity type + Canton]
     E --> F[Club listing]
     F --> C
     C --> G{Want more info?}
-    G -->|Yes| H[Navigate inner pages\nCalendar · About · Gallery\nSPA-style with loading skeleton]
+    G -->|Yes| H[Navigate inner pages via top navbar\nCalendar · About · Gallery\nSPA-style with loading skeleton]
     H --> I{Contact intent formed?}
     G -->|Direct intent| I
     I -->|Yes| J[Go to Contact page]
@@ -544,9 +578,9 @@ flowchart TD
     J --> K([Operator review queue — within 48h])
     K --> L{Operator decision}
     L -->|Fits niche| M[Approve — one click]
-    M --> N[Auto: subdomain provisioned]
-    N --> O[Auto: acceptance email sent\nsubdomain + login link]
-    O --> P([Ahmed clicks login link\n→ Journey 1: Initial Setup])
+    M --> N[Auto: URL path provisioned]
+    N --> O[Auto: acceptance email sent\nURL + dashboard link]
+    O --> P([Ahmed clicks dashboard link\n→ Journey 1: Initial Setup])
     L -->|Does not fit niche| Q[Reject]
     Q --> R[Rejection email with short explanation]
     R --> S([Applicant exits — curation was visible])
@@ -562,7 +596,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A([Operator login]) --> B[Admin dashboard\ndark sidebar · metrics · application queue]
+    A([Operator login]) --> B[Admin dashboard\nshadcn sidebar · metrics · application queue]
     B --> C{New applications?}
     C -->|Yes| D[Review: name · type · description]
     D --> E{Decision}
@@ -592,14 +626,14 @@ flowchart TD
 ### Journey Patterns
 
 **Navigation Patterns:**
-- **Email-as-authenticated-gateway:** Acceptance email + login link is the entry point for club admin edit mode — no username discovery flow, no password reset friction on first use
+- **Email-as-authenticated-gateway:** Acceptance email + dashboard link is the entry point for club admin setup — no username discovery flow, no password reset friction on first use
 - **Footer "Powered by" as acquisition loop:** Every public club site footer is an entry point to the platform directory — visitor becomes applicant; applicant becomes club admin
-- **Dark sidebar = authenticated context:** Public view has no sidebar; dark sidebar appears only in edit mode and operator dashboard — immediate visual disambiguation without labels
+- **Dashboard = admin context, Top navbar = public context:** Complete visual separation — admins work in a shadcn dashboard at a dedicated route; visitors browse centered, breathable public pages with a top navbar. No mode confusion possible.
 
 **Decision Patterns:**
 - **Philosophy-first self-selection:** Platform homepage shows philosophy before the Apply CTA — misaligned applicants exit before consuming operator review time
 - **Explicit save with amber indicator:** No autosave anywhere — amber dot persists until explicit save; prevents surprise state loss and makes saving a deliberate, satisfying action
-- **One-click approval with cascading automation:** Operator approves in one click; subdomain provisioning and email are fully automatic — low operational overhead by design
+- **One-click approval with cascading automation:** Operator approves in one click; URL path provisioning and email are fully automatic — low operational overhead by design
 
 **Feedback Patterns:**
 - **Inline constraint display:** File size, format, and page count limits shown at point of relevance — not in documentation, not in error messages after the fact
@@ -642,43 +676,58 @@ These cover: apply form fields, login form, version history list structure, filt
 
 Components required by the product that have no equivalent in shadcn/ui — each built on Tailwind tokens and Radix primitives for accessibility and consistency.
 
-#### EditFieldCard
+#### PublicNavbar
 
-**Purpose:** The primary edit affordance — a card containing the editable fields for a content section, shown in edit mode only. The visual anchor of the in-place editing pattern.
+**Purpose:** Sticky top navigation bar shared across all public pages (platform homepage, country directory, club public site). Provides consistent navigation and contextual page identity.
 
 **Anatomy:**
-- Section label (e.g. "Club identity", "Welcome text")
-- One or more Input / Textarea / ImageUploadField children
-- Amber unsaved-changes indicator dot (appears after any field change)
-- Save button (primary)
-- Cancel / Discard button (ghost)
+- **Left:** Contextual title — platform name (on platform pages), country name (on country page), or club name/logo (on club pages)
+- **Center:** Navigation links — page-specific (e.g., club inner pages on club sites; About, Support on platform pages)
+- **Right:** Primary CTA button (e.g., "Apply" on platform pages, "Contact" on club pages)
+- Sticky positioning: remains visible on scroll
 
 **States:**
-- `pristine` — no changes; Save and Discard dimmed/hidden
-- `dirty` — changes made; amber dot visible; Save and Discard active
-- `saving` — Save button shows spinner; fields disabled
-- `saved` — brief success toast; returns to pristine
+- `default` — transparent or subtle background; becomes opaque on scroll
+- `mobile` — hamburger menu; navigation links collapse into a `Sheet` drawer
 
-**Variants:** Standard (single section) / Compound (multiple sections with sub-labels)
+**Variants:** Platform / Country / Club — only the title and nav links change; structure is identical
 
-**Accessibility:** `aria-live="polite"` on unsaved indicator; Save button always focusable; Discard confirms if dirty to prevent accidental loss
+**Accessibility:** `<nav>` landmark; `aria-label="Main navigation"`; hamburger button with `aria-expanded`, `aria-controls`; all links keyboard-navigable
 
 ---
 
-#### LivePreviewPanel
+#### PublicFooter
 
-**Purpose:** Renders a live read-only preview of the club's current page below the EditFieldCard, reflecting unsaved changes in real time. Closes the feedback loop without requiring a page reload or toggle.
+**Purpose:** Standard multi-column footer shared across all public pages. Contains platform links, legal links, and a subtle dark/light mode toggle.
 
 **Anatomy:**
-- "Preview" label bar (non-interactive, subtle)
-- Rendered club page content (public-view styles, read-only)
-- Responsive scaling: desktop-width by default; mobile toggle button
+- Multi-column link groups (Platform, Legal, Social)
+- "Powered by [Platform]" attribution (on club pages)
+- Subtle dark/light mode toggle icon button
+- Copyright line
+
+**States:** Light / Dark mode variants via CSS tokens
+
+**Accessibility:** `<footer>` landmark; theme toggle has `aria-label="Toggle dark mode"`; all links keyboard-navigable
+
+---
+
+#### AdminSidebar
+
+**Purpose:** Persistent left sidebar for the club admin dashboard (shadcn dashboard pattern). Contains navigation for all editable sections of the club site.
+
+**Anatomy:**
+- Club name/logo lockup at top
+- Navigation items: Home, Pages, Calendar, Gallery, Documents, Contact, Settings (Version History, Accent Color, Account)
+- Active item highlighted with accent color
+- Footer: "View public site" link (opens new tab)
 
 **States:**
-- `synced` — reflects current field values
-- `loading` — brief skeleton on initial mount or heavy media update
+- `default` — standard sidebar
+- `mobile` — collapses to hamburger; opens as `Sheet` drawer
+- `dirty` — amber dot appears next to the active section name when unsaved changes exist
 
-**Accessibility:** `aria-label="Live preview of changes"`, `role="region"`, not keyboard-navigable (read-only decorative region)
+**Accessibility:** `<nav>` landmark; `aria-current="page"` on active item; hamburger button `aria-expanded`, `aria-controls`
 
 ---
 
@@ -695,7 +744,6 @@ Components required by the product that have no equivalent in shadcn/ui — each
 
 **States:**
 - `public` — rendered, fully SEO-indexed
-- `edit` — logo has upload affordance overlay; name and tagline are inline-editable (focused by EditFieldCard above)
 
 **Variants:** Logo present / Logo placeholder (shows club initial monogram)
 
@@ -703,34 +751,9 @@ Components required by the product that have no equivalent in shadcn/ui — each
 
 ---
 
-#### ClubSidebarNav
-
-**Purpose:** Persistent left sidebar navigation for club sites. The structural anchor for both public view (navigation only) and edit mode (navigation + admin functions).
-
-**Anatomy — Public mode:**
-- Club name or logo lockup at top
-- Navigation links: Home + custom pages (active state highlighted)
-- Theme toggle (light/dark) at bottom
-- "Edit" entry point at bottom (visible only to authenticated admin)
-
-**Anatomy — Edit mode (additions):**
-- Dark background (`--sidebar` dark tokens)
-- "Editing" mode label / badge
-- Admin tab appears (accent picker, version history, account, custom domain, export)
-- Amber unsaved dot mirrored next to club name
-
-**States:**
-- `public-default` — neutral zinc sidebar
-- `edit-mode` — dark sidebar, admin tab visible
-- `mobile` — collapses to hamburger; drawer on tap
-
-**Accessibility:** `<nav>` landmark; `aria-current="page"` on active link; hamburger button `aria-expanded`, `aria-controls`
-
----
-
 #### AccentColorPicker
 
-**Purpose:** 8-preset swatch selector in the Admin sidebar tab, allowing club admins to choose an accent color without risking inaccessible choices.
+**Purpose:** 8-preset swatch selector in the club admin dashboard Settings section, allowing club admins to choose an accent color without risking inaccessible choices.
 
 **Anatomy:**
 - "Accent color" label
@@ -742,7 +765,7 @@ Components required by the product that have no equivalent in shadcn/ui — each
 **States:**
 - `idle` — current accent highlighted
 - `hovered` — swatch enlarges slightly
-- `selected (unsaved)` — ring + amber unsaved dot on EditFieldCard
+- `selected (unsaved)` — ring + amber unsaved dot on Save button
 - `saved` — ring persists, amber clears
 
 **Accessibility:** Each swatch is a `<button>` with `aria-label="Zinc accent"` etc.; `aria-pressed="true"` on active swatch; keyboard-navigable with arrow keys
@@ -836,7 +859,7 @@ Components required by the product that have no equivalent in shadcn/ui — each
 
 **Token compliance:** All custom components consume only CSS custom property tokens (`--background`, `--foreground`, `--primary`, `--border`, etc.) — never hardcoded color values. This ensures light/dark mode and accent color switching work automatically across all components.
 
-**Amber signal discipline:** The amber-500 unsaved-changes indicator is used in exactly two places: the dot on EditFieldCard and the mirrored dot on ClubSidebarNav. No other component uses amber or any warm color. This uniqueness is what makes it instantly legible.
+**Amber signal discipline:** The amber-500 unsaved-changes indicator is used in exactly two places: the dot on the Save button area and the mirrored dot on the AdminSidebar active item. No other component uses amber or any warm color. This uniqueness is what makes it instantly legible.
 
 **Radix for accessibility:** All interactive overlay components (Dialog, Sheet, Popover, Tooltip, DropdownMenu) use Radix UI primitives — keyboard focus trapping, ARIA roles, and escape-key dismissal are handled by the primitive, not reimplemented.
 
@@ -848,18 +871,17 @@ Components required by the product that have no equivalent in shadcn/ui — each
 
 | Component | Required For |
 |---|---|
+| PublicNavbar | All public pages — top navigation (platform, country, club) |
+| PublicFooter | All public pages — footer with links and theme toggle |
 | ClubHeroSection | Club site public — home page render |
-| ClubSidebarNav | Club site public + edit mode navigation |
-| EditFieldCard | Club admin — in-place editing (identity, pages) |
-| LivePreviewPanel | Club admin — change verification without toggle |
+| AdminSidebar | Club admin dashboard — sidebar navigation |
 | ImageUploadField | Club admin — logo + gallery uploads |
 | ContactForm | Public visitor — contact path (core conversion) |
 | ClubCard | Public visitor — directory browsing |
 | CountryButton | Platform homepage — country navigation |
 | SearchFilterBar | Country directory — canton + activity filter |
 | ApplicationQueueItem | Platform operator — approve/reject flow |
-| AccentColorPicker | Club admin — identity setup (Admin sidebar tab) |
-| FooterAttribution | All club sites — mandatory "Powered by" link |
+| AccentColorPicker | Club admin — identity setup (dashboard Settings) |
 
 #### Phase 2 — Supporting
 
@@ -869,8 +891,8 @@ Components required by the product that have no equivalent in shadcn/ui — each
 | GalleryGrid | Image/Video Gallery page element |
 | DocumentLibraryItem | Documents library page element |
 | ElementPicker | Page builder — adding elements to custom pages |
-| PageNavItem (edit mode) | Sidebar nav with add/remove page affordances |
-| VersionHistoryEntry | Admin sidebar tab — version list + restore |
+| PageNavItem | Admin dashboard — add/remove page affordances |
+| VersionHistoryEntry | Admin dashboard Settings — version list + restore |
 | SupportTicketItem | Operator dashboard — support queue |
 | PlatformStatBadge | Platform homepage — aggregate statistics |
 | ClubHealthIndicator | Operator dashboard — site health status |
@@ -958,32 +980,38 @@ shadcn/ui button variants mapped to product intent:
 
 ### Navigation Patterns
 
-**Club site sidebar (desktop):**
-- Always visible; fixed position; width: ~240px
-- Active page: `font-medium` + left border in `--primary` accent color
-- Hover: `bg-accent` / `bg-sidebar-accent` depending on mode
-- Public mode: zinc/neutral background
-- Edit mode: dark background (sidebar-specific dark tokens)
+**Public pages — top navbar (desktop):**
+- Sticky at top; full-width with centered content constrained to `max-w-[1200px]`
+- Left: contextual title (platform name / country / club name+logo)
+- Center: navigation links (page-specific)
+- Right: primary CTA button
+- Becomes opaque/blurred on scroll
 
-**Club site sidebar (mobile):**
-- Collapses to hamburger icon (top-left)
-- Opens as a full-height drawer (`Sheet` component) — slides from left
+**Public pages — top navbar (mobile):**
+- Sticky at top; title left, hamburger right
+- Navigation links collapse into a `Sheet` drawer from the right
 - Closes on navigation or backdrop tap
-- Edit mode dark styling preserved in drawer
 
-**Admin sidebar tab:**
-- Appears as a second tab in ClubSidebarNav, visible only in edit mode
-- Contains: Accent picker, Version History, Account, Custom Domain, Export
-- Uses `Tabs` or `Accordion` pattern internally for sub-sections
+**Club admin dashboard sidebar (desktop):**
+- Persistent left sidebar; width: ~240px
+- Club name/logo at top
+- Navigation items for each editable section
+- Active item: `font-medium` + left border in `--primary` accent color
+- Footer: "View public site" link (opens new tab)
+
+**Club admin dashboard sidebar (mobile):**
+- Collapses to hamburger icon (top-left)
+- Opens as a full-height `Sheet` drawer from the left
+- Closes on navigation or backdrop tap
 
 **Breadcrumb:**
-- Only for multi-level content navigation (edit mode: page > sub-page)
+- Only for multi-level content navigation (dashboard: page > sub-page)
 - Not used on flat navigation structures
 
-**"Edit" entry point:**
-- Ghost button in sidebar footer
-- Visible only to authenticated club admin (server-side auth check)
-- Label: "Edit site" with pencil icon
+**Admin dashboard entry point:**
+- Authenticated club admins access the dashboard via direct URL (`/{lang}/{country}/{club}/admin`)
+- Login flow redirects to the dashboard after authentication
+- No "Edit" button on the public site — complete separation of concerns
 
 ---
 
@@ -1042,30 +1070,27 @@ shadcn/ui button variants mapped to product intent:
 
 ---
 
-### Edit Mode Patterns
+### Admin Dashboard Editing Patterns
 
-**Mode signal:**
-- Dark sidebar = edit mode. No banner, overlay, or mode label needed beyond the sidebar.
-- The visual contrast of the dark sidebar is the only mode indicator — sufficient and unambiguous
+**Context signal:**
+- The admin dashboard is a completely separate route (`/{lang}/{country}/{club}/admin/...`) — there is no mode ambiguity
+- The shadcn sidebar layout is the visual signal that the admin is in the management context
 
-**Editable vs. non-editable areas:**
-- In edit mode, only content areas show edit affordances (pencil icon on hover or EditFieldCard)
-- Layout structure, navigation, footer, typography — no affordance in edit mode
-- The boundary between content and style is experienced, not explained
-
-**In-place edit flow:**
-- Hover content area → pencil icon appears → click → EditFieldCard activates → amber dot → edit → Save → pristine
-- EditFieldCard is always positioned directly above or adjacent to the content it controls
-- LivePreviewPanel is always below the EditFieldCard for the current section
+**Edit flow:**
+- Admin clicks sidebar item (e.g., "Home") → content area shows the edit form for that section
+- Standard form fields: text inputs, textareas, image upload, selects
+- Amber unsaved-changes dot appears when any field is modified
+- Save commits changes; toast confirms; amber dot clears
+- "View public site" link in sidebar footer opens a new tab to verify changes
 
 **Discard vs. Cancel:**
 - "Discard" when form is dirty: triggers confirmation dialog; amber dot clears on confirm
-- "Cancel" when form is pristine: no confirmation; simply closes the edit state
+- Navigating to another sidebar section with unsaved changes: triggers "You have unsaved changes" dialog
 
 **Version history restore:**
-- User selects version from list in Admin sidebar tab
+- User selects version from list in Settings > Version History
 - Confirmation dialog: "Restore this version? Your current content will be replaced."
-- After restore: edit mode active with restored content; amber dot visible (not yet saved)
+- After restore: edit form populated with restored content; amber dot visible (not yet saved)
 - Admin must Save after restore to persist — restoring does not auto-save
 
 ---
@@ -1099,18 +1124,16 @@ shadcn/ui button variants mapped to product intent:
 
 | Surface | Mobile | Tablet | Desktop |
 |---|---|---|---|
-| Club site — public | Single column; hamburger drawer nav | Single column or narrow sidebar | Persistent sidebar (~240px) + content area |
-| Club site — edit mode | Full-width EditFieldCard stacked above LivePreviewPanel; sidebar as drawer | Same as mobile; sidebar drawer | Persistent dark sidebar + edit card + preview panel |
+| All public pages | Top navbar with hamburger; single-column centered content; stacked footer | Top navbar with links; centered content; wider margins | Sticky top navbar; centered content at max-w-[1200px]; generous side margins |
+| Club admin dashboard | Sidebar as hamburger drawer; edit forms full-width | Narrow sidebar or drawer; forms with more horizontal space | Persistent sidebar (~240px) + content area with edit forms |
 | Platform homepage | Country buttons wrap to 2-column grid; stats stacked | 3-column button grid | 4–5 column button grid; stats in a row |
 | Country directory | Filter bar stacks vertically; club cards single column | 2-column club grid | 3-column club grid; filter bar horizontal |
-| Platform admin dashboard | Sidebar as hamburger; metrics stacked; queue full-width | Narrow sidebar or drawer; metrics 2-column | Persistent dark sidebar; metrics grid; queue table |
+| Platform operator dashboard | Sidebar as hamburger; metrics stacked; queue full-width | Narrow sidebar or drawer; metrics 2-column | Persistent sidebar; metrics grid; queue table |
 
-**Mobile edit mode specifics:**
-- Hamburger drawer opens the dark sidebar; edit mode styling preserved in drawer
-- EditFieldCard renders full-width below the section being edited
-- LivePreviewPanel visible below EditFieldCard — user scrolls down to see preview
-- Entering edit on a section auto-scrolls to the EditFieldCard for that section
-- Drawer closes automatically when a section edit begins (prevents obscuring content)
+**Mobile admin dashboard specifics:**
+- Hamburger drawer opens the sidebar; closes on section selection
+- Edit forms render full-width
+- "View public site" link remains accessible in the drawer footer
 
 ---
 
@@ -1128,9 +1151,9 @@ Using Tailwind CSS default breakpoints (mobile-first):
 | `2xl` | 1536px | Max content width enforced — no unbounded wide layouts |
 
 **Max-width anchors (established in Visual Foundation):**
-- `max-w-3xl` (48rem): reading-optimized content (club About text, rich text pages)
-- `max-w-5xl` (64rem): edit form layouts (card + preview panel)
-- `max-w-7xl` (80rem): directory, dashboard, platform homepage
+- `max-w-[1200px]` (~75rem): public page content container (Dub.co-inspired centered layout)
+- `max-w-3xl` (48rem): reading-optimized content within pages (club About text, rich text)
+- Dashboard layouts: full width within sidebar offset (no max-width cap)
 
 ---
 
@@ -1161,7 +1184,7 @@ Using Tailwind CSS default breakpoints (mobile-first):
 - Semantic HTML structure: `<main>`, `<nav>`, `<aside>`, `<article>`, `<section>`, headings hierarchy (one `<h1>` per page)
 - ARIA landmarks on every surface
 - `aria-live="polite"` on the unsaved-changes indicator and toast region
-- `aria-current="page"` on active nav item in ClubSidebarNav
+- `aria-current="page"` on active nav item in PublicNavbar and AdminSidebar
 - `aria-label` on all icon-only buttons
 - `aria-expanded` + `aria-controls` on hamburger toggle
 - `aria-required` on required form fields
@@ -1220,7 +1243,7 @@ Using Tailwind CSS default breakpoints (mobile-first):
 
 **Semantic HTML:**
 - `<main>` wraps primary content on every page
-- `<nav>` for ClubSidebarNav and platform site nav — never a `<div>` with `role="navigation"`
+- `<nav>` for PublicNavbar, AdminSidebar, and platform site nav — never a `<div>` with `role="navigation"`
 - `<section>` with `aria-labelledby` for named content regions
 - Heading hierarchy: `<h1>` for page/club name, `<h2>` for major sections, `<h3>` for sub-sections — no skipping levels
 
