@@ -14,7 +14,7 @@ export type ApplicationActionResult =
   | { success: true }
   | { success: false; error: string; code: 'NOT_FOUND' | 'ALREADY_REVIEWED' | 'UNAUTHORIZED' | 'SLUG_REQUIRED' | 'SLUG_INVALID' | 'SLUG_CONFLICT' | 'EMAIL_FAILED' | 'SERVER_ERROR' }
 
-export async function approveApplication(applicationId: string, slug: string): Promise<ApplicationActionResult> {
+export async function approveApplication(applicationId: string, slug: string, operatorMessage?: string): Promise<ApplicationActionResult> {
   try {
     const session = await getAuthSession()
     if (!session?.user || session.user.role !== 'OPERATOR') {
@@ -22,6 +22,8 @@ export async function approveApplication(applicationId: string, slug: string): P
     }
 
     const trimmedSlug = slug.trim()
+    const trimmedMessage = operatorMessage?.trim() || undefined
+
     if (!trimmedSlug) {
       return { success: false, error: 'A URL slug is required.', code: 'SLUG_REQUIRED' }
     }
@@ -31,6 +33,9 @@ export async function approveApplication(applicationId: string, slug: string): P
     if (isReservedSlug(trimmedSlug)) {
       return { success: false, error: 'This slug is reserved and cannot be used.', code: 'SLUG_CONFLICT' }
     }
+    if (trimmedMessage && trimmedMessage.length > 1000) {
+      return { success: false, error: 'Operator message must be 1000 characters or less.', code: 'SERVER_ERROR' }
+    }
 
     // Fetch the full application for provisioning
     const application = await prisma.application.findUnique({
@@ -38,6 +43,8 @@ export async function approveApplication(applicationId: string, slug: string): P
       select: {
         id: true, status: true, country: true, name: true,
         email: true, activityTypeId: true, locationId: true,
+        description: true, schedule: true, contactPhone: true,
+        contactAddress: true, howToJoin: true, externalWebsiteUrl: true,
       },
     })
 
@@ -83,7 +90,7 @@ export async function approveApplication(applicationId: string, slug: string): P
 
       const defaultLanguage = inferDefaultLanguage(application.country)
 
-      // Create club record
+      // Create club record with profile fields seeded from application
       const club = await tx.club.create({
         data: {
           name: application.name,
@@ -94,8 +101,23 @@ export async function approveApplication(applicationId: string, slug: string): P
           activityTypeId: application.activityTypeId,
           locationId: application.locationId,
           defaultLanguage,
+          description: application.description,
+          schedule: application.schedule,
+          contactPhone: application.contactPhone,
+          contactAddress: application.contactAddress,
+          howToJoin: application.howToJoin,
+          externalWebsiteUrl: application.externalWebsiteUrl,
+          isPublished: false,
+          forceOffline: false,
         },
       })
+
+      // Create operator message if provided
+      if (trimmedMessage) {
+        await tx.operatorMessage.create({
+          data: { clubId: club.id, message: trimmedMessage },
+        })
+      }
 
       // Find or create user
       let user = await tx.user.findUnique({
@@ -163,6 +185,7 @@ export async function approveApplication(applicationId: string, slug: string): P
         clubName: result.club.name,
         clubUrl,
         magicLinkUrl,
+        operatorMessage: trimmedMessage,
       })
 
       await sendEmail({

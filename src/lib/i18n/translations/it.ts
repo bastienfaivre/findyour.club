@@ -118,6 +118,17 @@ export const it: Translations = {
       confirmApprove: "Conferma approvazione",
       confirmReject: 'Rifiuta candidatura',
       keepReviewing: "Continua l'esame",
+      profileFields: {
+        schedule: 'Orari',
+        contactPhone: 'Telefono',
+        contactAddress: 'Indirizzo',
+        howToJoin: 'Come partecipare',
+        externalWebsiteUrl: 'Sito web',
+      },
+      operatorMessage: {
+        label: "Messaggio per l'amministratore del club",
+        placeholder: 'Feedback opzionale per l\'amministratore del club (es. "Aggiungi più dettagli agli orari prima di pubblicare")',
+      },
       errors: {
         notFound: 'Candidatura non trovata.',
         alreadyReviewed: 'Questa candidatura è già stata esaminata.',

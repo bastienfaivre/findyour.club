@@ -27,6 +27,9 @@ vi.mock('@/server/db', () => ({
       create: vi.fn(),
       deleteMany: vi.fn(),
     },
+    operatorMessage: {
+      create: vi.fn(),
+    },
     $transaction: vi.fn(async (fn: (tx: unknown) => unknown) => fn(prisma)),
   },
 }))
@@ -63,6 +66,12 @@ const PENDING_APPLICATION = {
   email: 'admin@skiclub.ch',
   activityTypeId: 'at-1',
   locationId: 'loc-1',
+  description: 'A great ski club in Valais',
+  schedule: 'Saturdays 09:00–12:00',
+  contactPhone: '+41 27 123 45 67',
+  contactAddress: 'Rue de la Gare 1, 1950 Sion',
+  howToJoin: 'Send us an email',
+  externalWebsiteUrl: 'https://skiclub-valais.ch',
 }
 
 describe('approveApplication()', () => {
@@ -81,6 +90,7 @@ describe('approveApplication()', () => {
     vi.mocked(prisma.user.create).mockResolvedValue({ id: 'user-1' } as never)
     vi.mocked(prisma.user.update).mockResolvedValue({} as never)
     vi.mocked(prisma.clubMembership.create).mockResolvedValue({} as never)
+    vi.mocked(prisma.operatorMessage.create).mockResolvedValue({} as never)
     vi.mocked(sendEmail).mockResolvedValue(undefined)
   })
 
@@ -102,6 +112,14 @@ describe('approveApplication()', () => {
         activityTypeId: 'at-1',
         locationId: 'loc-1',
         defaultLanguage: 'fr',
+        description: 'A great ski club in Valais',
+        schedule: 'Saturdays 09:00–12:00',
+        contactPhone: '+41 27 123 45 67',
+        contactAddress: 'Rue de la Gare 1, 1950 Sion',
+        howToJoin: 'Send us an email',
+        externalWebsiteUrl: 'https://skiclub-valais.ch',
+        isPublished: false,
+        forceOffline: false,
       }),
     })
     expect(prisma.user.create).toHaveBeenCalledWith({
@@ -262,6 +280,47 @@ describe('approveApplication()', () => {
     const result = await approveApplication('app-1', 'some-slug')
 
     expect(result).toMatchObject({ success: false, code: 'SERVER_ERROR' })
+  })
+
+  it('creates OperatorMessage when operator message is provided', async () => {
+    const result = await approveApplication('app-1', 'ski-club-valais', 'Please add schedule details')
+
+    expect(result).toEqual({ success: true })
+    expect(prisma.operatorMessage.create).toHaveBeenCalledWith({
+      data: { clubId: 'club-1', message: 'Please add schedule details' },
+    })
+  })
+
+  it('does not create OperatorMessage when message is not provided', async () => {
+    const result = await approveApplication('app-1', 'ski-club-valais')
+
+    expect(result).toEqual({ success: true })
+    expect(prisma.operatorMessage.create).not.toHaveBeenCalled()
+  })
+
+  it('does not create OperatorMessage when message is empty string', async () => {
+    const result = await approveApplication('app-1', 'ski-club-valais', '')
+
+    expect(result).toEqual({ success: true })
+    expect(prisma.operatorMessage.create).not.toHaveBeenCalled()
+  })
+
+  it('does not create OperatorMessage when message is whitespace only', async () => {
+    const result = await approveApplication('app-1', 'ski-club-valais', '   ')
+
+    expect(result).toEqual({ success: true })
+    expect(prisma.operatorMessage.create).not.toHaveBeenCalled()
+  })
+
+  it('sets isPublished false and forceOffline false on created club', async () => {
+    await approveApplication('app-1', 'ski-club-valais')
+
+    expect(prisma.club.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        isPublished: false,
+        forceOffline: false,
+      }),
+    })
   })
 })
 
@@ -483,6 +542,43 @@ describe('buildAcceptanceEmailHtml()', () => {
     })
 
     expect(html).toContain('Club d&#39;Art')
+  })
+
+  it('includes operator message section when provided', async () => {
+    const { buildAcceptanceEmailHtml } = await import('@/lib/email-templates')
+    const html = buildAcceptanceEmailHtml({
+      clubName: 'Ski Club',
+      clubUrl: 'http://localhost:3000/fr/ch/ski-club',
+      magicLinkUrl: 'http://localhost:3000/fr/auth/magic-link?token=abc',
+      operatorMessage: 'Please update your schedule',
+    })
+
+    expect(html).toContain('Message from the platform')
+    expect(html).toContain('Please update your schedule')
+  })
+
+  it('omits operator message section when not provided', async () => {
+    const { buildAcceptanceEmailHtml } = await import('@/lib/email-templates')
+    const html = buildAcceptanceEmailHtml({
+      clubName: 'Ski Club',
+      clubUrl: 'http://localhost:3000/fr/ch/ski-club',
+      magicLinkUrl: 'http://localhost:3000/fr/auth/magic-link?token=abc',
+    })
+
+    expect(html).not.toContain('Message from the platform')
+  })
+
+  it('escapes HTML in operator message to prevent XSS', async () => {
+    const { buildAcceptanceEmailHtml } = await import('@/lib/email-templates')
+    const html = buildAcceptanceEmailHtml({
+      clubName: 'Ski Club',
+      clubUrl: 'http://localhost:3000/fr/ch/ski-club',
+      magicLinkUrl: 'http://localhost:3000/fr/auth/magic-link?token=abc',
+      operatorMessage: '<script>alert("xss")</script>',
+    })
+
+    expect(html).not.toContain('<script>alert')
+    expect(html).toContain('&lt;script&gt;')
   })
 })
 

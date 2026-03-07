@@ -124,6 +124,17 @@ export type Translations = {
       confirmApprove: string
       confirmReject: string
       keepReviewing: string
+      profileFields: {
+        schedule: string
+        contactPhone: string
+        contactAddress: string
+        howToJoin: string
+        externalWebsiteUrl: string
+      }
+      operatorMessage: {
+        label: string
+        placeholder: string
+      }
       errors: {
         notFound: string
         alreadyReviewed: string

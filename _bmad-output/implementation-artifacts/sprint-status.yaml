@@ -78,7 +78,7 @@ development_status:
   epic-4: in-progress
   4-1-schema-migration-profile-visibility-clubphoto-operatormessage: done
   4-2-application-form-profile-fields: done
-  4-3-approval-flow-profile-seeding-operator-message: backlog
+  4-3-approval-flow-profile-seeding-operator-message: done
   4-4-club-admin-dashboard-shell: backlog
   4-5-explicit-save-unsaved-changes-protection: backlog
   4-6-club-profile-edit-form-photo-upload: backlog

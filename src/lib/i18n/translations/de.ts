@@ -118,6 +118,17 @@ export const de: Translations = {
       confirmApprove: 'Genehmigung bestätigen',
       confirmReject: 'Bewerbung ablehnen',
       keepReviewing: 'Weiter prüfen',
+      profileFields: {
+        schedule: 'Zeiten',
+        contactPhone: 'Telefon',
+        contactAddress: 'Adresse',
+        howToJoin: 'So trittst du bei',
+        externalWebsiteUrl: 'Webseite',
+      },
+      operatorMessage: {
+        label: 'Nachricht an den Vereinsadministrator',
+        placeholder: 'Optionales Feedback für den Vereinsadministrator (z. B. „Bitte ergänze deine Zeiten vor der Veröffentlichung")',
+      },
       errors: {
         notFound: 'Bewerbung nicht gefunden.',
         alreadyReviewed: 'Diese Bewerbung wurde bereits geprüft.',

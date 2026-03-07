@@ -2,9 +2,16 @@ interface AcceptanceEmailParams {
   clubName: string
   clubUrl: string
   magicLinkUrl: string
+  operatorMessage?: string
 }
 
-export function buildAcceptanceEmailHtml({ clubName, clubUrl, magicLinkUrl }: AcceptanceEmailParams): string {
+export function buildAcceptanceEmailHtml({ clubName, clubUrl, magicLinkUrl, operatorMessage }: AcceptanceEmailParams): string {
+  const operatorMessageBlock = operatorMessage
+    ? `<div style="background:#f8f9fa;border-left:4px solid #2563eb;padding:16px;margin:24px 0;">
+          <p style="margin:0 0 8px;font-weight:600;font-size:15px;color:#18181b;">Message from the platform:</p>
+          <p style="margin:0;font-size:15px;line-height:1.6;color:#3f3f46;">${escapeHtml(operatorMessage)}</p>
+        </div>`
+    : ''
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"></head>
@@ -17,6 +24,7 @@ export function buildAcceptanceEmailHtml({ clubName, clubUrl, magicLinkUrl }: Ac
           <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#3f3f46;">
             Congratulations! Your application for <strong>${escapeHtml(clubName)}</strong> has been approved.
           </p>
+          ${operatorMessageBlock}
           <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#3f3f46;">
             Your club URL:
           </p>

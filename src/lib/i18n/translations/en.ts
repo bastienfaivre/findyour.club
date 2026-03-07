@@ -118,6 +118,17 @@ export const en: Translations = {
       confirmApprove: 'Confirm Approval',
       confirmReject: 'Reject Application',
       keepReviewing: 'Keep reviewing',
+      profileFields: {
+        schedule: 'Schedule',
+        contactPhone: 'Phone',
+        contactAddress: 'Address',
+        howToJoin: 'How to join',
+        externalWebsiteUrl: 'Website',
+      },
+      operatorMessage: {
+        label: 'Message to club admin',
+        placeholder: 'Optional feedback for the club admin (e.g., "Please add more detail to your schedule before publishing")',
+      },
       errors: {
         notFound: 'Application not found.',
         alreadyReviewed: 'This application has already been reviewed.',

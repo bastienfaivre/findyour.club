@@ -57,6 +57,7 @@ export function ApplicationQueueItem({ application, translations: t, locale, onR
   const [error, setError] = useState<string | null>(null)
   const [rejectReason, setRejectReason] = useState('')
   const [slug, setSlug] = useState(application.desiredSlug ?? '')
+  const [operatorMessage, setOperatorMessage] = useState('')
   const [approvePopoverOpen, setApprovePopoverOpen] = useState(false)
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
   const [fadingOut, setFadingOut] = useState(false)
@@ -71,10 +72,10 @@ export function ApplicationQueueItem({ application, translations: t, locale, onR
     ? (swissLoc?.plz ? `${locTranslation} (${swissLoc.plz})` : locTranslation)
     : null
 
-  const descriptionTruncated = application.description.length > 120
+  const hasLongDescription = application.description.length > 120
   const displayDescription = expanded
     ? application.description
-    : application.description.slice(0, 120) + (descriptionTruncated ? '…' : '')
+    : application.description.slice(0, 120) + (hasLongDescription ? '…' : '')
 
   const submittedDate = new Date(application.submittedAt).toLocaleDateString(locale)
 
@@ -83,7 +84,7 @@ export function ApplicationQueueItem({ application, translations: t, locale, onR
     setAction('approve')
     setApprovePopoverOpen(false)
     startTransition(async () => {
-      const result = await approveApplication(application.id, slug)
+      const result = await approveApplication(application.id, slug, operatorMessage || undefined)
       if (result.success) {
         toast.success(t.admin.applications.approvedWithEmail.replace('{email}', application.email))
         setFadingOut(true)
@@ -138,14 +139,12 @@ export function ApplicationQueueItem({ application, translations: t, locale, onR
               <button
                 type="button"
                 className="text-sm text-left"
-                onClick={() => descriptionTruncated && setExpanded(!expanded)}
+                onClick={() => setExpanded(!expanded)}
               >
                 {displayDescription}
-                {descriptionTruncated && (
-                  <span className="ml-1 text-muted-foreground underline">
-                    {expanded ? t.admin.applications.showLess : t.admin.applications.showMore}
-                  </span>
-                )}
+                <span className="ml-1 text-muted-foreground underline">
+                  {expanded ? t.admin.applications.showLess : t.admin.applications.showMore}
+                </span>
               </button>
             </div>
 
@@ -160,6 +159,41 @@ export function ApplicationQueueItem({ application, translations: t, locale, onR
               )}
               <span>{t.admin.applications.submittedAt}: {submittedDate}</span>
             </div>
+
+            {expanded && (
+              <div className="mt-4 space-y-3 rounded-md border p-4 text-sm">
+                {application.howToJoin && (
+                  <div>
+                    <span className="font-medium">{t.admin.applications.profileFields.howToJoin}</span>
+                    <p className="mt-1 text-muted-foreground whitespace-pre-wrap">{application.howToJoin}</p>
+                  </div>
+                )}
+                {application.schedule && (
+                  <div>
+                    <span className="font-medium">{t.admin.applications.profileFields.schedule}</span>
+                    <p className="mt-1 text-muted-foreground whitespace-pre-wrap">{application.schedule}</p>
+                  </div>
+                )}
+                {application.contactPhone && (
+                  <div>
+                    <span className="font-medium">{t.admin.applications.profileFields.contactPhone}</span>
+                    <p className="mt-1 text-muted-foreground">{application.contactPhone}</p>
+                  </div>
+                )}
+                {application.contactAddress && (
+                  <div>
+                    <span className="font-medium">{t.admin.applications.profileFields.contactAddress}</span>
+                    <p className="mt-1 text-muted-foreground whitespace-pre-wrap">{application.contactAddress}</p>
+                  </div>
+                )}
+                {application.externalWebsiteUrl && (
+                  <div>
+                    <span className="font-medium">{t.admin.applications.profileFields.externalWebsiteUrl}</span>
+                    <p className="mt-1 text-muted-foreground">{application.externalWebsiteUrl}</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex gap-2 shrink-0">
@@ -187,6 +221,17 @@ export function ApplicationQueueItem({ application, translations: t, locale, onR
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
                     placeholder={t.admin.applications.desiredSlug}
+                  />
+                </div>
+                <div className="space-y-2 mb-4">
+                  <Label htmlFor={`msg-${application.id}`}>{t.admin.applications.operatorMessage.label}</Label>
+                  <Textarea
+                    id={`msg-${application.id}`}
+                    value={operatorMessage}
+                    onChange={(e) => setOperatorMessage(e.target.value)}
+                    placeholder={t.admin.applications.operatorMessage.placeholder}
+                    maxLength={1000}
+                    rows={3}
                   />
                 </div>
                 <div className="flex justify-end gap-2">
