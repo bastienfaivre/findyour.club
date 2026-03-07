@@ -5,6 +5,7 @@ import { getAuthSession } from '@/server/auth'
 import { TotpEnrollmentBanner } from '@/components/app/auth/TotpEnrollmentBanner'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
+import { PoweredByBanner } from '@/components/app/club-site/PoweredByBanner'
 
 interface ClubLayoutProps {
   children: React.ReactNode
@@ -28,6 +29,7 @@ export default async function ClubLayout({ children, params }: ClubLayoutProps) 
         <TotpEnrollmentBanner session={session} lang={lang} t={t.auth.banner} />
       )}
       {children}
+      <PoweredByBanner lang={lang} />
     </>
   )
 }

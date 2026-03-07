@@ -261,6 +261,8 @@ export type Translations = {
     editSite: string
     menu: string
     navigation: string
+    poweredBy: string
+    poweredByAriaLabel: string
   }
   activityTypes: Record<string, string>
 }

@@ -244,6 +244,8 @@ export const en: Translations = {
     editSite: 'Edit site',
     menu: 'Menu',
     navigation: 'Club navigation',
+    poweredBy: 'Powered by Clashware',
+    poweredByAriaLabel: 'Powered by Clashware — visit platform homepage',
   },
   activityTypes: {
     skiing: 'Skiing',

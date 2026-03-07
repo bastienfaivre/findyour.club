@@ -244,6 +244,8 @@ export const de: Translations = {
     editSite: 'Seite bearbeiten',
     menu: 'Menü',
     navigation: 'Vereinsnavigation',
+    poweredBy: 'Betrieben von Clashware',
+    poweredByAriaLabel: 'Betrieben von Clashware — zur Plattform-Startseite',
   },
   activityTypes: {
     skiing: 'Skifahren',

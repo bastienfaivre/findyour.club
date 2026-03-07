@@ -244,6 +244,8 @@ export const it: Translations = {
     editSite: 'Modifica sito',
     menu: 'Menu',
     navigation: 'Navigazione del club',
+    poweredBy: 'Realizzato con Clashware',
+    poweredByAriaLabel: 'Realizzato con Clashware — visita la homepage della piattaforma',
   },
   activityTypes: {
     skiing: 'Sci',
