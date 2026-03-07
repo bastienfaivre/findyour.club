@@ -63,7 +63,7 @@ development_status:
   epic-2-retrospective: done
 
   # ─── Epic 3: Public Platform Site & Discovery ───
-  epic-3: in-progress
+  epic-3: done
   3-1-platform-homepage-country-navigation: done
   3-2-country-directory-with-filtering: done
   3-3-club-public-site-server-rendered-home-page: done
@@ -72,34 +72,36 @@ development_status:
   3-6-design-system-foundation-dark-light-mode: done
   3-7-public-layout-shell-top-navbar-centered-container-footer: done
   3-8-refactor-existing-public-pages-to-new-layout: done
-  epic-3-retrospective: optional
+  epic-3-retrospective: done
 
-  # ─── Epic 4: Club Site Identity & Navigation ───
+  # ─── Epic 4: Club Profile Setup & Moderation ───
   epic-4: backlog
-  4-1-club-admin-dashboard-shell-navigation: backlog
-  4-2-club-identity-configuration-name-logo-welcome-text: backlog
-  4-3-page-management-activate-deactivate-create-pages: backlog
-  4-4-page-navigation-labels-sub-pages: backlog
+  4-1-schema-migration-profile-visibility-clubphoto-operatormessage: backlog
+  4-2-application-form-profile-fields: backlog
+  4-3-approval-flow-profile-seeding-operator-message: backlog
+  4-4-club-admin-dashboard-shell: backlog
   4-5-explicit-save-unsaved-changes-protection: backlog
-  4-6-version-history-content-restore: backlog
-  4-7-accent-color-picker: backlog
+  4-6-club-profile-edit-form-photo-upload: backlog
+  4-7-publish-unpublish-operator-message-banner: backlog
+  4-8-club-profile-page-public-rendering: backlog
+  4-9-operator-club-moderation: backlog
   epic-4-retrospective: optional
 
-  # ─── Epic 5: Club Content Elements ───
-  epic-5: backlog
-  5-1-element-picker-page-element-framework: backlog
-  5-2-rich-text-element-inline-image: backlog
-  5-3-calendar-element-event-management: backlog
-  5-4-gallery-element-image-video-management: backlog
-  5-5-documents-library-element: backlog
-  5-6-contact-page-sub-blocks-configuration: backlog
+  # ─── Epic 5: Club Content Elements (entire epic deferred to post-MVP) ───
+  epic-5: deferred
+  5-1-element-picker-page-element-framework: deferred
+  5-2-rich-text-element-inline-image: deferred
+  5-3-calendar-element-event-management: deferred
+  5-4-gallery-element-image-video-management: deferred
+  5-5-documents-library-element: deferred
+  5-6-contact-page-sub-blocks-configuration: deferred
   epic-5-retrospective: optional
 
-  # ─── Epic 6: Contact & Communication ───
+  # ─── Epic 6: Contact & Communication (partially deferred) ───
   epic-6: backlog
-  6-1-public-contact-form-email-relay: backlog
-  6-2-email-relay-health-monitoring: backlog
-  6-3-club-admin-view-contact-form-submissions: backlog
+  6-1-public-contact-form-email-relay: deferred
+  6-2-email-relay-health-monitoring: deferred
+  6-3-club-admin-view-contact-form-submissions: deferred
   6-4-platform-support-request-form: backlog
   epic-6-retrospective: optional
 
@@ -111,16 +113,15 @@ development_status:
   7-4-feature-flags-platform-wide-configuration: backlog
   7-5-audit-log-viewer: backlog
   7-6-operator-dashboard-site-health-status: backlog
-  7-7-operator-nudge-club-admin-notification: backlog
+  # 7-7 removed — replaced by unified OperatorMessage system in Epic 4 (Stories 4.7, 4.9)
   7-8-operator-support-inbox: backlog
   7-9-template-versioning-silent-migration: backlog
   epic-7-retrospective: optional
 
-  # ─── Epic 8: Custom Domains & Data Compliance ───
+  # ─── Epic 8: Data Compliance ───
   epic-8: backlog
-  8-1-custom-domain-setup-dns-verification: backlog
-  8-2-gdpr-right-to-erasure-club-data-deletion: backlog
-  8-3-gdpr-visitor-data-requests-automated-retention: backlog
-  8-4-club-admin-data-export-gdpr-portability: backlog
-  8-5-cookie-consent-mechanism: backlog
+  8-1-gdpr-right-to-erasure-club-data-deletion: backlog
+  8-2-gdpr-visitor-data-requests-automated-retention: backlog
+  8-3-club-admin-data-export-gdpr-portability: backlog
+  8-4-cookie-consent-mechanism: backlog
   epic-8-retrospective: optional

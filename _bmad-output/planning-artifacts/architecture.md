@@ -8,8 +8,20 @@ workflowType: 'architecture'
 lastStep: 8
 status: 'complete'
 completedAt: '2026-02-27'
-lastEdited: '2026-03-06'
+lastEdited: '2026-03-07'
 editHistory:
+  - date: '2026-03-07'
+    changes: 'MVP scope pivot — single-page club profile replaces multi-page CMS at MVP. Club model
+      gains profile fields (description, schedule, howToJoin, contactPhone, contactAddress,
+      externalWebsiteUrl), visibility flags (isPublished, forceOffline), and ClubPhoto relation.
+      Application model gains matching fields for approval-time data copy. OperatorNudge replaced
+      by unified OperatorMessage model. New ClubPhoto model for profile carousel (max 10, presigned
+      R2 upload). Page/PageElement/ContentVersion/Event/GalleryItem/Document models retained in
+      schema but deferred to post-MVP. Deferred from MVP: multi-page site builder, content elements
+      (rich text, calendar, gallery, documents), contact form/email relay, accent color picker,
+      version history, custom domains. ADR-002 (profile data model), ADR-003 (visibility control),
+      ADR-004 (OperatorMessage) added. Project structure updated for club admin dashboard and
+      photo management routes.'
   - date: '2026-03-06'
     changes: 'PRD vision pivot sync: FR count 45→50 (FR47-50 added). Custom domain (FR8) deferred
       to post-MVP. Scalability targets quantified (50K clubs, directory <3s at 10K). Profile-only
@@ -32,20 +44,20 @@ _This document builds collaboratively through step-by-step discovery. Sections a
 
 **Functional Requirements:**
 
-50 FRs across 8 capability areas:
-- **Club Site Configuration & Navigation** (FR1–FR9): URL path provisioning per club (slug-based), page management (max 5, configurable), ~~custom domain (deferred to post-MVP)~~, anchor pages (Home, Contact non-removable), edit/public toggle
-- **Content Editing & Element Library** (FR10–FR19): element picker, Calendar, Gallery, Documents library, Rich Text, inline image, explicit save, N-version history, inline constraint display
-- **Public Discovery & Contact** (FR20–FR26): directory with activity type + region filter, public club site browsing, contact form with reply-to relay, mandatory "Powered by" footer
-- **Application & Access** (FR27–FR30): Apply form, club admin auth via platform site, operator auth via dedicated admin interface, support form
-- **Platform Operations** (FR31–FR39): application queue (approve/reject), automated URL provisioning + acceptance email, platform-wide metrics (hosted vs profile-only breakdown), site health monitoring, operator nudge, support inbox, configurable platform variables, silent template migration
-- **Compliance & Data Rights** (FR40–FR46): club data export, club data deletion, cookie consent, automated SEO metadata, contact form submission storage, per-club analytics, accent color picker
-- **Club Profile — Profile-Only Presence** (FR47–FR49): profile page with optional external website link; public viewing without auth. Note: "profile-only" is a **user behavior**, not a technical distinction — every club gets identical capabilities; some simply choose to use only the profile fields and link out to their own website
+50 FRs across 8 capability areas (MVP scope pivot: single-page club profile replaces multi-page CMS; deferred features noted with ~~strikethrough~~):
+- **Club Site Configuration & Navigation** (FR1–FR9): URL path provisioning per club (slug-based), ~~page management (max 5, configurable) — deferred~~, ~~custom domain — deferred~~, ~~anchor pages — deferred~~, publish/unpublish toggle (two-flag visibility: admin `isPublished` + operator `forceOffline`)
+- **Content Editing & Element Library** (FR10–FR19): ~~All deferred to post-MVP~~ — element picker, Calendar, Gallery, Documents library, Rich Text, inline image, explicit save, N-version history, inline constraint display. Schema models (`Page`, `PageElement`, `ContentVersion`) retained for post-MVP expansion.
+- **Public Discovery & Contact** (FR20–FR26): directory with activity type + region filter, public club profile page (fixed layout: description, photo carousel, schedule, contact info, how to join), ~~contact form with reply-to relay — deferred~~, mandatory "Powered by" footer
+- **Application & Access** (FR27–FR30): Apply form (collects profile fields: name, activity type, description, schedule, contact info, how to join, optional website URL — seeds club profile on approval), club admin auth via platform site, operator auth via dedicated admin interface, support form
+- **Platform Operations** (FR31–FR39): application queue (approve/reject with optional operator message), automated URL provisioning + acceptance email (with operator message when present), platform-wide metrics, ~~site health monitoring — deferred~~, unified operator message system (replaces operator nudge), support inbox, configurable platform variables, ~~silent template migration — deferred~~
+- **Compliance & Data Rights** (FR40–FR46): club data export, club data deletion, ~~cookie consent — deferred (not required: no analytics cookies)~~, automated SEO metadata, ~~contact form submission storage — deferred~~, per-club analytics, ~~accent color picker — deferred~~
+- **Club Profile — Single-Page Presence** (FR47–FR49): fixed-layout profile page with name, logo, description, photo carousel (5–10 images), schedule, contact info, how to join, optional external website link; public viewing without auth. At MVP, every club has exactly one page — the profile. Post-MVP, clubs gain multi-page CMS capabilities.
 - **Platform Funding** (FR50): donation/support page on the platform site (covered by the existing `/support` route)
 
 The platform requires **three distinct authenticated roles**: Club Admin (per-club, content-only), Platform Operator (platform-wide, full access), and Public Visitor (unauthenticated).
 
-**Profile-Only vs Hosted — User Behavior, Not Technical Distinction:**
-All clubs share the same data model and capabilities. "Profile-only" describes clubs that choose to fill in only the minimal profile fields (name, logo, description, activity type, location, external website link) without creating pages or using the content editor. The platform makes no technical distinction — every club is provisioned identically. This means FR47–FR49 are satisfied by the existing `Club` model with optional fields, not by a separate entity or rendering path.
+**MVP Club Profile — Fixed Layout, Not CMS:**
+At MVP, each club has a single, fixed-layout profile page with predetermined fields (name, logo, description, photo carousel, schedule, contact info, how to join). There is no page editor, no element picker, no content versioning. The profile fields live directly on the `Club` model (see ADR-002). The application form collects these same fields; on approval, they are copied to the new `Club` record — no duplicate data entry. Post-MVP, the existing `Page`/`PageElement`/`ContentVersion` schema models enable multi-page CMS expansion without re-architecture.
 
 **Non-Functional Requirements:**
 
@@ -60,7 +72,7 @@ Architecture-driving NFRs:
 **Scale & Complexity:**
 
 - Primary domain: Full-stack web — frontend-heavy (SSR + SPA hybrid) with backend API and multi-tenant data layer
-- Complexity level: Medium — simple domain (community associations), significant platform complexity (multi-tenancy, hybrid rendering, in-place editing, template versioning, passkey auth, GDPR, email relay)
+- Complexity level: Medium — simple domain (community associations), significant platform complexity (multi-tenancy, hybrid rendering, ~~in-place editing — deferred~~, ~~template versioning — deferred~~, passkey auth, GDPR, email relay)
 - Estimated architectural components: ~10 major systems
 
 ### Technical Constraints & Dependencies
@@ -81,9 +93,9 @@ Architecture-driving NFRs:
 ### Cross-Cutting Concerns Identified
 
 1. **Multi-tenant isolation** — affects every layer: data models, API access control, routing, storage, analytics. Every query and API response must be scoped to the correct club or operator context.
-2. **Authentication & authorization** — three roles (Club Admin, Platform Operator, Public Visitor) with distinct entry points, session strategies, and capability boundaries. Auth state drives the in-place edit mode toggle.
-3. **GDPR/nDSG compliance** — affects data models (retention, deletion, export), APIs (no PII in public responses), UX (cookie consent), and infrastructure (EU/CH hosting, DPAs).
-4. **Template versioning pipeline** — separates platform-owned style from association-owned content. Affects content storage schema, rendering pipeline, migration tooling, and version history rollback.
+2. **Authentication & authorization** — three roles (Club Admin, Platform Operator, Public Visitor) with distinct entry points, session strategies, and capability boundaries. Auth state drives access to the club admin dashboard.
+3. **GDPR/nDSG compliance** — affects data models (retention, deletion, export), APIs (no PII in public responses), UX (~~cookie consent — deferred, not required~~), and infrastructure (EU/CH hosting, DPAs).
+4. **Template versioning pipeline** — ~~deferred to post-MVP~~. Separates platform-owned style from association-owned content.
 5. **SEO automation** — affects all server-rendered surfaces (club home pages, platform directory, platform site pages). Meta tags, Open Graph, JSON-LD, and sitemap generation must be computed automatically from content data.
 6. **WCAG 2.1 AA accessibility** — affects every UI component across all three surfaces. Shared component library must meet AA by default via Radix UI primitives.
 7. **Email relay monitoring** — affects reliability architecture; delivery failures require operator alerting within 15 minutes.
@@ -242,16 +254,14 @@ Docker Compose orchestrates Next.js + PostgreSQL + Nginx + Certbot.
 - Rationale: PostgreSQL row-level security adds operational complexity without meaningful additional safety for a single-application multi-tenant platform; application-level isolation is standard for this scale
 - Affects: all data models, all Server Actions, all Route Handlers
 
-**Content Storage**
-- Schema: `page_elements` table with columns: `id`, `page_id`, `club_id`, `position` (integer, determines render order), `type` (enum: `rich_text` | `image` | `gallery` | `calendar` | `documents`), `data` (JSONB, element-specific payload)
-- Structured data exceptions: `events`, `gallery_items`, and `documents` get normalized relational tables to support efficient cross-club date queries and file management; referenced from `page_elements.data` by ID
-- Rationale: JSONB per-element avoids a rigid schema for diverse element types; normalized tables for structured collections enable queries that JSONB cannot support efficiently
+**Content Storage (Post-MVP)**
+- ~~MVP does not use the `PageElement`-based content system.~~ The `Page`, `PageElement`, `ContentVersion`, `Event`, `GalleryItem`, and `Document` models remain in the schema for post-MVP multi-page CMS expansion, but are not populated or rendered at MVP.
+- MVP content: Club profile fields live directly on the `Club` model as typed columns (see ADR-002 and "Club Profile Fields" below). The club profile page is a fixed layout rendered from these fields — no element picker, no drag-and-drop, no JSONB content.
+- Post-MVP: `page_elements` table with columns: `id`, `page_id`, `club_id`, `position`, `type` (enum), `data` (JSONB). Structured data exceptions (`events`, `gallery_items`, `documents`) use normalized relational tables.
 
-**Version History**
-- Model: Full JSONB page snapshots stored in `content_versions` table: `id`, `page_id`, `club_id`, `snapshot` (JSONB — complete page_elements state at save time), `created_at`, `created_by`
-- Retention: Last N versions per page (N configurable per platform variable via admin dashboard); oldest versions pruned on save
-- Restore SLA: Must complete within 30 seconds (NFR)
-- Rationale: Full snapshots enable one-query restore without reconstructing deltas; acceptable storage cost for community association content volumes
+**Version History (Post-MVP)**
+- Deferred to post-MVP. `ContentVersion` model retained in schema.
+- When activated: Full JSONB page snapshots, last N versions per page, restore within 30 seconds.
 
 **Caching Strategy**
 - Primary: Next.js route cache on SSR pages (club home page, directory); invalidated via `revalidatePath` on content save
@@ -264,9 +274,88 @@ Docker Compose orchestrates Next.js + PostgreSQL + Nginx + Certbot.
 - Per-club limits: `storage_limit_bytes` and `storage_used_bytes` fields on the `clubs` table; enforced at Server Action level before accepting upload
 - Rationale: Zero egress fees (critical for gallery-heavy club sites with moderate traffic); 10 GB free tier; S3 SDK compatibility means trivial future migration via env var change
 
-**Club Profile Fields (FR47–FR48)**
-- The `clubs` table includes optional profile fields: `external_website_url` (nullable string — link to the club's own website), `how_to_join` (nullable text — free-form description of how to join). These are standard optional columns on the existing `Club` model, not a separate entity.
-- All clubs are provisioned identically. Clubs that only fill in profile fields and set `external_website_url` are "profile-only" by behavior — the platform imposes no technical distinction.
+**Club Profile Fields (FR47–FR49) — MVP Single-Page Profile**
+- The `clubs` table includes all profile fields as typed columns (see ADR-002):
+  - `description` (text, nullable) — club description (replaces `welcomeText`)
+  - `schedule` (text, nullable) — free-text schedule/availability
+  - `howToJoin` (text, nullable) — free-text "how to join" info
+  - `contactPhone` (string, nullable) — phone number
+  - `contactAddress` (text, nullable) — physical address
+  - `externalWebsiteUrl` (string, nullable) — link to club's own website
+- These fields are collected by the application form and copied to the `Club` on approval (one-time data copy; application record preserved for audit). The club admin can edit their profile freely after approval.
+- All clubs are provisioned identically with a single fixed-layout profile page. Post-MVP, clubs gain multi-page CMS capabilities via the existing `Page`/`PageElement` models.
+
+**Club Profile Visibility (Two-Flag System — ADR-003)**
+- `isPublished` (boolean, default `false`) — controlled by club admin; admin chooses when to go live
+- `forceOffline` (boolean, default `false`) — controlled by platform operator; hard override that prevents publication
+- **Page visible only when:** `isPublished === true && forceOffline === false`
+- When not visible: `notFound()` — standard 404. No special "temporarily unavailable" page at MVP. Club still appears in operator admin dashboard.
+- Both flags live on the `Club` model. `ClubStatus.SUSPENDED` remains for hard admin actions (full suspension = data deletion pipeline); `forceOffline` is softer (page hidden but admin can still log in and edit).
+
+**Club Photos (MVP Carousel)**
+- New `ClubPhoto` model — separate from `GalleryItem` (which is tied to `PageElement` for post-MVP CMS):
+
+```prisma
+model ClubPhoto {
+  id        String   @id @default(cuid())
+  clubId    String   @map("club_id")
+  url       String
+  alt       String   @default("")
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@index([clubId])
+  @@map("club_photos")
+}
+```
+
+- Max 10 photos per club, enforced at Server Action level.
+- Upload flow: Presigned URLs to R2 (same pattern as existing file storage architecture). Accepted formats: JPEG, PNG, WebP. Max file size: 5 MB per image.
+- No server-side resizing at MVP. Use `next/image` with responsive `sizes` for client-side optimization.
+- Carousel rendering: Server-rendered images in club profile page. Auto-scroll + pause-on-hover handled by a `"use client"` component island within the server-rendered page.
+- No photo upload at application time (prevents storage abuse). Photos are added by the club admin after approval.
+
+**Application Model — Profile Field Additions**
+- The `Application` model gains explicit columns matching the club profile fields:
+  - `schedule` (text, nullable)
+  - `contactPhone` (string, nullable)
+  - `contactAddress` (text, nullable)
+  - `howToJoin` (text, nullable)
+  - `externalWebsiteUrl` (string, nullable)
+- Existing fields: `name`, `description`, `email` already map to club profile fields.
+- On approval: fields are copied 1:1 from `Application` to the new `Club` record. The `Application` record is preserved unchanged as an audit trail.
+- Explicit columns (not JSONB) because: same fields are copied to typed `Club` columns; Prisma type safety; trivial copy logic.
+
+**Unified Operator Message (ADR-004 — Replaces OperatorNudge)**
+
+```prisma
+model OperatorMessage {
+  id        String    @id @default(cuid())
+  clubId    String    @map("club_id")
+  message   String    @db.Text
+  createdAt DateTime  @default(now()) @map("created_at")
+  readAt    DateTime? @map("read_at")
+
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@index([clubId])
+  @@map("operator_messages")
+}
+```
+
+- Replaces `OperatorNudge` model. Single model for all operator→club-admin communication: application review feedback (bundled in approval email), post-live moderation messages (request changes, explain force-offline), any other operator communication.
+- Club admin dashboard shows persistent banner for unread messages (`readAt IS NULL`).
+- Same email notification regardless of when message is sent — different email templates for approval-bundled vs standalone messages.
+
+**Application → Club Profile Data Flow (Approval)**
+1. Application fields copied to new `Club` record (name, description, schedule, email, contactPhone, contactAddress, howToJoin, externalWebsiteUrl, activityTypeId, locationId, country)
+2. Club created with `isPublished = false`, `forceOffline = false`
+3. `ClubMembership` created (OWNER, ACTIVE) for the applicant user
+4. If operator included a message → `OperatorMessage` record created
+5. Acceptance email sent (with operator message section if present)
+6. Admin logs in, sees pre-populated profile, uploads photos, publishes when ready
 
 **Database Hosting Path**
 - MVP: PostgreSQL in Docker on the same Infomaniak VPS (Docker Compose service); simplest operational baseline
@@ -311,7 +400,7 @@ Docker Compose orchestrates Next.js + PostgreSQL + Nginx + Certbot.
 **Email Service**
 - Provider: Resend
 - Rationale: EU-friendly (GDPR-compliant infrastructure); DPA available; developer-friendly API; reliable deliverability; free tier covers MVP volume
-- Use cases: Magic link delivery, application approval/rejection notifications, contact form relay (reply-to pattern), support form delivery
+- Use cases: Magic link delivery, application approval/rejection notifications (with optional operator message), operator messages (standalone moderation emails), ~~contact form relay — deferred~~, support form delivery
 - DPA: Required — must be signed before storing any email addresses
 
 **Bot Protection**
@@ -335,22 +424,21 @@ Docker Compose orchestrates Next.js + PostgreSQL + Nginx + Certbot.
 
 ### Frontend Architecture
 
-**Edit Mode State**
-- Mechanism: React Context (`EditModeContext`) wrapping the club site layout; URL param `?edit=true` as the source of truth (bookmarkable, shareable with Clashware support)
-- Auth gate: No middleware guard on `?edit=true`; the club layout reads the param and ignores it (renders read-only) if the user has no active Club Admin session — simpler and avoids unnecessary redirect overhead
-- Rationale: URL-driven state is transparent, debuggable, and survives page refreshes without localStorage complexity
+**Club Admin Dashboard (MVP)**
+- Mechanism: Separate `/edit/` route under the club path (`/{lang}/{country}/{club}/edit/`) — standard shadcn dashboard layout (sidebar + content area). Not an in-place editing overlay.
+- Auth gate: The `edit/layout.tsx` checks `ClubMembership` (OWNER or EDITOR, ACTIVE status) — returns 404 if unauthorized.
+- Profile editing: Standard form with `react-hook-form` + Zod validation. Photo management: dedicated photo management page with upload, reorder (drag-and-drop), and delete.
+- Rationale: Simpler than in-place editing for a fixed-layout profile. Post-MVP, in-place editing may be reintroduced for the multi-page CMS.
+
+**Edit Mode State (Post-MVP)**
+- ~~Deferred to post-MVP.~~ When multi-page CMS is introduced: React Context (`EditModeContext`) wrapping the club site layout; URL param `?edit=true` as the source of truth.
 
 **Unsaved Changes Protection**
-- Mechanism: `beforeunload` browser event fires a warning when the React Context has `isDirty: true`
-- No auto-save / localStorage draft: Aligns with explicit save philosophy (FR15 — explicit save action required); avoids conflict between draft state and published state
-- Rationale: Simple, zero-dep, browser-native; matches user mental model of explicit save
+- Mechanism: `beforeunload` browser event fires a warning when the form has unsaved changes (`isDirty` from `react-hook-form`)
+- No auto-save / localStorage draft at MVP
 
-**Rich Text Editor**
-- Library: TipTap (core package, MIT license, free)
-- Underlying engine: ProseMirror
-- Extensions used: `StarterKit` (headings, bold, italic, lists, blockquote, code), `Link`, `Image` (inline image per FR17)
-- Output: HTML string stored in `page_elements.data.html`; sanitized via `sanitize-html` before storage and before render
-- Rationale: TipTap core is MIT/free; Pro tier (not used) adds advanced collaboration features; ProseMirror foundation ensures long-term stability
+**Rich Text Editor (Post-MVP)**
+- ~~Deferred to post-MVP.~~ When content elements are introduced: TipTap (core, MIT, ProseMirror). Output: sanitized HTML stored in `page_elements.data.html`.
 
 ---
 
@@ -388,28 +476,28 @@ Docker Compose orchestrates Next.js + PostgreSQL + Nginx + Certbot.
 
 ### Decision Impact Analysis
 
-**Implementation Sequence:**
-1. Project initialization (`create-next-app` + post-init dependencies)
-2. Docker Compose setup (Next.js + PostgreSQL + Nginx + Certbot)
-3. Prisma schema (core models: `clubs`, `club_memberships`, `pages`, `page_elements`, `content_versions`, `users`, `sessions`, `page_events`)
-4. Auth.js configuration (database sessions + magic link + TOTP + passkeys)
-5. Multi-tenant Prisma middleware (clubId enforcement)
-6. Nginx configuration (single-domain routing, maintenance page)
-7. Cloudflare R2 integration (presigned URLs, storage accounting)
-8. Core Server Actions with Zod validation and `{ success, error, code }` contract
-9. Resend email integration + Cloudflare Turnstile integration
-10. Analytics `page_events` write path
-11. Feature implementation (content editing, directory, operator dashboard)
+**Implementation Sequence (MVP-adjusted):**
+1. ~~Project initialization~~ — done (Epic 1)
+2. ~~Docker Compose setup~~ — done (Epic 1)
+3. ~~Prisma schema (core models)~~ — done; schema migration needed for MVP pivot (add profile fields, visibility flags, `ClubPhoto`, `OperatorMessage`; rename `welcomeText` → `description`; drop `OperatorNudge`)
+4. ~~Auth.js configuration~~ — done (Epic 1)
+5. ~~Multi-tenant Prisma middleware~~ — done (Epic 1)
+6. ~~Nginx configuration~~ — done (Epic 1)
+7. Cloudflare R2 integration (presigned URLs for club photos, storage accounting)
+8. Application form expansion (new profile fields) + approval flow rework (copy to club, operator message)
+9. Club profile page rendering (fixed layout: description, photo carousel, schedule, contact, how to join)
+10. Club admin dashboard (profile editor, photo management, publish toggle)
+11. Operator dashboard updates (operator message, force-offline, application review with new fields)
+12. Post-MVP: content editing, version history, contact form, template migration
 
-**Cross-Component Dependencies:**
-- Auth session → Edit mode state (Context reads auth session to determine edit capability)
-- Multi-tenant middleware → All Server Actions and Route Handlers (must be established first)
-- Prisma schema → Auth.js adapter (Auth.js Prisma adapter extends the schema)
-- `page_elements` schema → TipTap integration (data shape must be agreed before editor wiring)
-- R2 presigned URL flow → Gallery and Documents elements (upload architecture must be in place)
-- `revalidatePath` → Content save Server Actions (caching invalidation coupled to save flow)
-- `content_versions` snapshot → Restore Server Action (snapshot schema must be stable before restore UI is built)
-- AES-256-GCM `lib/crypto.ts` → Contact form submission Server Action (encryption must exist before contact form stores data)
+**Cross-Component Dependencies (MVP):**
+- Auth session → Club admin dashboard (session determines edit access via `ClubMembership`)
+- Multi-tenant middleware → All Server Actions and Route Handlers (established)
+- Prisma schema → Auth.js adapter (established)
+- R2 presigned URL flow → Club photo upload (upload architecture must be in place before photo management)
+- `revalidatePath` → Profile save and photo management Server Actions (caching invalidation)
+- `OperatorMessage` model → Approval flow + force-offline flow (must exist before either feature is built)
+- Visibility flags → Club layout visibility guard + directory query filter (must be in place before public rendering)
 
 ## Implementation Patterns & Consistency Rules
 
@@ -585,9 +673,9 @@ export async function savePageContent(
 
 **State Management Rules**
 
-- React Context used for: `EditModeContext` (`isDirty`, `isEditMode`), `AuthContext` (session, role)
+- React Context used for: `AuthContext` (session, role). Post-MVP: `EditModeContext` (`isDirty`, `isEditMode`) when in-place editing is introduced.
 - Context updates: always via typed dispatch functions exported from the context module — never mutate context value directly
-- URL state: directory filters (`?activity=ski&region=valais`) and edit mode (`?edit=true`) — managed via `useSearchParams` + `useRouter`; never mirror URL state into React state
+- URL state: directory filters (`?activity=ski&region=valais`) — managed via `useSearchParams` + `useRouter`; never mirror URL state into React state. Post-MVP: edit mode (`?edit=true`).
 - Form state: `react-hook-form` with `@hookform/resolvers/zod` — never uncontrolled inputs except shadcn primitives
 
 **Loading State Patterns**
@@ -741,16 +829,16 @@ const prisma = new PrismaClient() // in any file other than src/server/db.ts
 
 ### Requirements-to-Structure Mapping
 
-| FR Category | Surfaces | Primary Location |
-|---|---|---|
-| Club Site Configuration & Navigation (FR1–9) | Club site + Operator dashboard | `app/[lang]/(country)/[country]/[club]/`, `app/admin/clubs/` |
-| Content Editing & Element Library (FR10–19) | Club site (edit mode) | `app/[lang]/(country)/[country]/[club]/[page]/`, `components/app/page-editor/` |
-| Public Discovery & Contact (FR20–26) | Platform site | `app/[lang]/(platform)/`, `components/app/directory/`, `components/app/contact/` |
-| Application & Access (FR27–30) | Platform site + Auth | `app/[lang]/(platform)/apply/`, `app/auth/`, `components/app/auth/` |
-| Platform Operations (FR31–39) | Operator dashboard | `app/admin/`, `components/app/admin/` |
-| Compliance & Data Rights (FR40–46) | Cross-cutting | `lib/seo.ts`, `lib/crypto.ts`, `app/admin/clubs/[clubId]/` |
-| Club Profile — Profile-Only Presence (FR47–49) | Club site (same route) | `app/[lang]/(country)/[country]/[club]/page.tsx` + optional fields on `clubs` table |
-| Platform Funding (FR50) | Platform site | `app/[lang]/(platform)/support/page.tsx` (donation section) |
+| FR Category | Surfaces | Primary Location | MVP Status |
+|---|---|---|---|
+| Club Site Configuration & Navigation (FR1–9) | Club site + Operator dashboard | `app/[lang]/(country)/[country]/[club]/`, `app/admin/clubs/` | Partial — publish/unpublish only; page management deferred |
+| Content Editing & Element Library (FR10–19) | Club site (edit mode) | `components/app/page-editor/` | **Deferred** — all post-MVP |
+| Public Discovery & Contact (FR20–26) | Platform site | `app/[lang]/(platform)/`, `components/app/directory/` | Partial — contact form deferred |
+| Application & Access (FR27–30) | Platform site + Auth | `app/[lang]/(platform)/apply/`, `app/auth/`, `components/app/auth/` | Active — application form expanded with profile fields |
+| Platform Operations (FR31–39) | Operator dashboard | `app/admin/`, `components/app/admin/` | Partial — operator message replaces nudge; force-offline added |
+| Compliance & Data Rights (FR40–46) | Cross-cutting | `lib/seo.ts`, `lib/crypto.ts`, `app/admin/clubs/[clubId]/` | Partial — accent color, contact storage deferred |
+| Club Profile — Single-Page Presence (FR47–49) | Club site + Club admin | `app/[lang]/(country)/[country]/[club]/page.tsx`, `.../edit/`, `components/app/club-profile/`, `components/app/club-admin/` | **Active** — MVP focus |
+| Platform Funding (FR50) | Platform site | `app/[lang]/(platform)/support/page.tsx` (donation section) | Active |
 
 ---
 
@@ -794,15 +882,24 @@ website-template/
 │   │   │   └── (country)/
 │   │   │       └── [country]/        # Country segment: ch, fr, de, ...
 │   │   │           └── [club]/       # FR1: Club slug path segment
-│   │   │               ├── layout.tsx # Club site layout (header, nav, footer, edit toolbar)
-│   │   │               ├── page.tsx  # FR5/FR20: Club home page (SSR)
-│   │   │               ├── actions.ts # togglePublish (FR8), submitContactForm (FR24)
-│   │   │               ├── contact/
-│   │   │               │   └── page.tsx # FR24: Contact page (anchor, non-removable)
-│   │   │               └── [page]/   # FR3: Club inner pages (dynamic slug)
-│   │   │                   ├── page.tsx
-│   │   │                   └── actions.ts # savePageContent, addElement, removeElement,
-│   │   │                              # reorderElements, restoreVersion (FR15–FR19)
+│   │   │               ├── layout.tsx # Club site layout (header, footer, visibility guard)
+│   │   │               ├── page.tsx  # Club profile page (SSR, fixed layout: description,
+│   │   │               │             # photo carousel, schedule, contact, how to join)
+│   │   │               ├── actions.ts # togglePublish
+│   │   │               ├── edit/     # Club admin dashboard (shadcn sidebar + content)
+│   │   │               │   ├── layout.tsx # Admin layout guard (OWNER/EDITOR membership check)
+│   │   │               │   ├── page.tsx   # Profile editor (edit description, schedule, etc.)
+│   │   │               │   ├── actions.ts # updateProfile, uploadPhoto, deletePhoto, reorderPhotos
+│   │   │               │   └── photos/
+│   │   │               │       └── page.tsx # Photo management (upload, reorder, delete)
+│   │   │               │
+│   │   │               │   # Post-MVP routes (deferred):
+│   │   │               │   # ├── pages/         # Page management
+│   │   │               │   # └── [page]/        # Page content editing
+│   │   │               │
+│   │   │               └── [page]/   # Post-MVP: Club inner pages (dynamic slug)
+│   │   │                   ├── page.tsx  # (deferred — kept for route structure)
+│   │   │                   └── actions.ts
 │   │   │
 │   │   ├── auth/
 │   │   │   ├── login/
@@ -830,7 +927,7 @@ website-template/
 │   │   │   │       ├── page.tsx      # Club detail + settings
 │   │   │   │       ├── actions.ts    # updateClubSettings, exportClubData (FR40),
 │   │   │   │       │                 # deleteClubData (FR41), provisionClub (FR32),
-│   │   │   │       │                 # sendNudge (FR37)
+│   │   │   │       │                 # sendOperatorMessage, toggleForceOffline
 │   │   │   │       └── analytics/
 │   │   │   │           └── page.tsx  # FR45: Per-club analytics view
 │   │   │   ├── support/
@@ -843,16 +940,19 @@ website-template/
 │   │   └── api/
 │   │       ├── clubs/
 │   │       │   └── [clubId]/
-│   │       │       ├── pages/
-│   │       │       │   └── route.ts  # GET — club pages list (edit mode SPA fetch)
-│   │       │       ├── pages/[pageId]/elements/
-│   │       │       │   └── route.ts  # GET — page elements (edit mode SPA fetch)
+│   │       │       ├── upload/
+│   │       │       │   └── route.ts  # POST — generate R2 presigned URL (photos at MVP)
 │   │       │       ├── storage/
 │   │       │       │   └── route.ts  # GET — storage usage for club
-│   │       │       ├── upload/
-│   │       │       │   └── route.ts  # POST — generate R2 presigned URL
-│   │       │       └── analytics/
-│   │       │           └── route.ts  # GET — analytics data (operator, per-club)
+│   │       │       ├── analytics/
+│   │       │       │   └── route.ts  # GET — analytics data (operator, per-club)
+│   │       │       │
+│   │       │       │   # Post-MVP API routes (deferred):
+│   │       │       │   # ├── pages/         # GET — club pages list
+│   │       │       │   # └── pages/[pageId]/elements/  # GET — page elements
+│   │       │       │
+│   │       │       └── photos/
+│   │       │           └── route.ts  # GET — list club photos; DELETE — remove photo
 │   │       └── events/
 │   │           └── route.ts          # POST — analytics page_view tracking (fire-and-forget)
 │   │
@@ -870,38 +970,39 @@ website-template/
 │   │   │   └── tooltip.tsx
 │   │   │
 │   │   └── app/                      # Product components
-│   │       ├── page-editor/          # FR10–19: Content editing
-│   │       │   ├── PageEditor.tsx    # Root edit mode orchestrator
-│   │       │   ├── PageEditor.test.tsx
-│   │       │   ├── ElementPicker.tsx # FR10: Element type picker
-│   │       │   ├── ElementRenderer.tsx
-│   │       │   ├── SortableElement.tsx
-│   │       │   ├── SaveBar.tsx       # FR15: Explicit save + unsaved indicator
-│   │       │   ├── VersionHistory.tsx # FR18: Version history panel
-│   │       │   └── elements/
-│   │       │       ├── RichTextElement.tsx   # FR16: TipTap editor
-│   │       │       ├── GalleryElement.tsx    # FR13: Gallery grid + upload
-│   │       │       ├── CalendarElement.tsx   # FR11: Event calendar
-│   │       │       ├── DocumentsElement.tsx  # FR14: Documents library
-│   │       │       └── ImageElement.tsx      # FR17: Inline image
+│   │       ├── club-profile/         # MVP: Club profile page components
+│   │       │   ├── ProfilePage.tsx   # Full fixed-layout profile (server component)
+│   │       │   ├── PhotoCarousel.tsx # "use client" — auto-scroll, pause on hover
+│   │       │   ├── ProfileSection.tsx # Reusable section (schedule, how to join, etc.)
+│   │       │   └── ContactInfo.tsx   # Email, phone, address, website link
 │   │       │
-│   │       ├── club-site/            # FR20–26: Public club site chrome
+│   │       ├── club-admin/           # MVP: Club admin dashboard components
+│   │       │   ├── ProfileEditor.tsx # Edit profile fields form
+│   │       │   ├── PhotoManager.tsx  # Upload, reorder, delete photos
+│   │       │   ├── PublishToggle.tsx # isPublished toggle with status indicator
+│   │       │   └── OperatorMessageBanner.tsx # Persistent banner for unread messages
+│   │       │
+│   │       ├── page-editor/          # Post-MVP: Content editing (deferred)
+│   │       │   # PageEditor.tsx, ElementPicker.tsx, ElementRenderer.tsx,
+│   │       │   # SortableElement.tsx, SaveBar.tsx, VersionHistory.tsx,
+│   │       │   # elements/ (RichTextElement, GalleryElement, CalendarElement, etc.)
+│   │       │
+│   │       ├── club-site/            # Public club site chrome
 │   │       │   ├── ClubHeader.tsx
-│   │       │   ├── ClubNav.tsx
+│   │       │   ├── ClubNav.tsx       # Minimal at MVP (profile-only); expands post-MVP
 │   │       │   ├── ClubFooter.tsx
-│   │       │   ├── PoweredByBanner.tsx       # FR26: Mandatory footer
-│   │       │   └── EditModeToolbar.tsx
+│   │       │   └── PoweredByBanner.tsx       # FR26: Mandatory footer
 │   │       │
 │   │       ├── directory/            # FR20–23: Platform directory
 │   │       │   ├── DirectoryPage.tsx
 │   │       │   ├── ClubCard.tsx
 │   │       │   └── DirectoryFilters.tsx      # FR21: Activity + region filters
 │   │       │
-│   │       ├── contact/              # FR24–25: Contact form
-│   │       │   └── ContactForm.tsx   # With Turnstile + reply-to relay
+│   │       ├── contact/              # Post-MVP: Contact form (deferred)
+│   │       │   # └── ContactForm.tsx
 │   │       │
 │   │       ├── apply/                # FR27–28: Club application
-│   │       │   └── ApplyForm.tsx     # With Turnstile
+│   │       │   └── ApplyForm.tsx     # With Turnstile — collects profile fields
 │   │       │
 │   │       ├── auth/                 # FR27–30: Authentication UI
 │   │       │   ├── LoginForm.tsx
@@ -911,12 +1012,12 @@ website-template/
 │   │       │   └── MagicLinkSent.tsx
 │   │       │
 │   │       ├── admin/                # FR31–39: Operator dashboard
-│   │       │   ├── ApplicationQueue.tsx
-│   │       │   ├── ClubList.tsx
+│   │       │   ├── ApplicationQueue.tsx  # Shows new profile fields; optional message input
+│   │       │   ├── ClubList.tsx          # Shows isPublished/forceOffline status
 │   │       │   ├── PlatformMetrics.tsx
 │   │       │   ├── SupportInbox.tsx
 │   │       │   ├── SettingsForm.tsx
-│   │       │   └── ClubHealthBadge.tsx
+│   │       │   └── OperatorMessageForm.tsx  # Send message to club admin
 │   │       │
 │   │       ├── turnstile/
 │   │       │   └── TurnstileWidget.tsx       # Zero-dep Cloudflare Turnstile component
@@ -930,10 +1031,12 @@ website-template/
 │   │
 │   ├── lib/
 │   │   ├── schemas/
-│   │   │   ├── club.ts               # clubCreateSchema, clubUpdateSchema, provisionSchema
-│   │   │   ├── page.ts               # pageElementSchema, saveContentSchema, elementTypeEnum
+│   │   │   ├── club.ts               # clubProfileSchema, clubUpdateSchema, provisionSchema, photoUploadSchema
+│   │   │   ├── page.ts               # Post-MVP: pageElementSchema, saveContentSchema, elementTypeEnum
 │   │   │   ├── user.ts               # loginSchema, setupPasswordSchema, totpVerifySchema, changePasswordSchema
-│   │   │   ├── contact.ts            # contactFormSchema, applyFormSchema, supportFormSchema
+│   │   │   ├── application.ts        # applyFormSchema (profile fields + Turnstile token)
+│   │   │   ├── contact.ts            # contactFormSchema, supportFormSchema
+│   │   │   ├── operator.ts           # operatorMessageSchema, approveApplicationSchema
 │   │   │   └── analytics.ts          # pageEventSchema
 │   │   │
 │   │   ├── i18n/
@@ -1300,7 +1403,9 @@ No blocking issues found. All 6 gaps resolved collaboratively during validation.
 - Follow all architectural decisions exactly as documented — versions, naming conventions, and patterns are non-negotiable
 - Use the multi-tenant query guard pattern on every Prisma query (always co-filter `clubId` from session); verify club access via `ClubMembership` table — never rely on a `clubId` field on the `User` model
 - Use the `{ success: boolean; data?: T; error?: string; code?: string }` contract for all Server Actions and Route Handlers
-- Import TipTap only via `dynamic(() => import(...), { ssr: false })` — never at module level
+- TipTap is deferred to post-MVP. When introduced: import only via `dynamic(() => import(...), { ssr: false })` — never at module level
+- Club visibility: always check `isPublished && !forceOffline` before rendering public club pages; filter directory queries with `WHERE is_published = true AND force_offline = false`
+- `OperatorNudge` is removed — use `OperatorMessage` for all operator→club-admin communication
 - Respect the `server/` vs `lib/` boundary: `server/` files are server-only singletons; `lib/` files may be shared
 - Run `pnpm` as the exclusive package manager — never `npm` or `yarn`
 - All new shadcn/ui components go into `components/ui/` via the shadcn CLI; do not hand-author these files
@@ -1438,3 +1543,209 @@ The following already-implemented stories require rework due to this model chang
 - Auth middleware is slightly more complex — one additional DB lookup per club-context resolution (mitigated by session caching)
 - Stories 1.2 and 1.3 require rework — accepted cost of catching this before deeper implementation
 - Invitation flow is a new feature surface not covered by existing stories — must be added to backlog
+
+---
+
+## ADR-002: Club Profile Data Model — Fields on Club, Not Separate Entity
+
+_Recorded: 2026-03-07_
+
+### Context
+
+The MVP scope pivot replaces the multi-page CMS with a single-page club profile. The profile has fixed fields: name, logo, description, photo carousel, schedule, contact info (email, phone, address), how to join, and optional external website link. The question is where these fields should live in the schema.
+
+Three options were evaluated:
+- **Option A:** Directly on the `Club` model as typed columns
+- **Option B:** As JSONB content on a single `Page` record
+- **Option C:** Dedicated `ClubProfile` model (1:1 with Club)
+
+### Decision
+
+**Option A — fields directly on the `Club` model.**
+
+The `Club` model gains the following optional columns:
+
+| Field | Type | Notes |
+|---|---|---|
+| `description` | `String?` (text) | Replaces `welcomeText` |
+| `schedule` | `String?` (text) | Free-text schedule/availability |
+| `howToJoin` | `String?` (text) | Free-text "how to join" |
+| `contactPhone` | `String?` | Phone number |
+| `contactAddress` | `String?` (text) | Physical address |
+| `externalWebsiteUrl` | `String?` | Link to club's own website |
+
+The existing `email` field on `Club` serves as the contact email. The existing `logoUrl` and `logoAlt` fields serve the logo. Photos are handled by the separate `ClubPhoto` model (see Data Architecture section).
+
+### Rationale
+
+- **Simplicity:** No JOINs, no JSONB parsing. Profile fields are queried directly via `prisma.club.findUnique({ select: { ... } })`.
+- **Type safety:** Prisma generates typed fields. JSONB (Option B) would require runtime parsing and lose compile-time safety.
+- **Application → Club copy:** The application form collects the same fields. On approval, values are copied 1:1 from `Application` columns to `Club` columns — trivial, type-safe, no transformation needed.
+- **Post-MVP extensibility is preserved:** When multi-page CMS returns, the `Page`/`PageElement` models (already in the schema) handle rich content. The profile fields on `Club` remain as the "club identity" section — they persist regardless of how many pages a club has. There is no conflict between Option A and future multi-page support.
+- **Option C rejected:** A separate `ClubProfile` model adds a 1:1 JOIN for no benefit. The profile *is* the club identity at MVP and beyond.
+- **Option B rejected:** JSONB content on a `Page` record is over-abstracted for fixed fields with known types. It would require Zod runtime validation on every read, lose Prisma type safety, and complicate the application-to-club data copy.
+
+### Impact on Existing Schema
+
+- `welcomeText` field on `Club` is renamed to `description` (migration: rename column, no data loss).
+- New nullable columns added to `clubs` table: `schedule`, `how_to_join`, `contact_phone`, `contact_address`, `external_website_url`.
+- `Application` model gains matching columns for the approval-time copy.
+
+### Consequences
+
+**Positive:**
+- Zero query overhead — profile data is part of the club row
+- Type-safe end-to-end — Prisma types → Zod schemas → form fields
+- Clean data flow from application to club profile
+
+**Negative / Accepted trade-offs:**
+- Club model grows wider (6 new nullable columns) — acceptable for a fixed set of profile fields
+- If post-MVP profiles become highly customizable (user-defined fields), this model would need augmentation (e.g., JSONB `customFields` column) — but that's a post-MVP concern
+
+---
+
+## ADR-003: Two-Flag Visibility Control
+
+_Recorded: 2026-03-07_
+
+### Context
+
+Club page visibility needs to be controlled by two independent actors: the club admin (who decides when their page is ready to go live) and the platform operator (who may need to force a page offline for moderation reasons). A single `isPublished` flag cannot express both intents — if an operator unpublishes a club, the admin cannot distinguish "I haven't published yet" from "the operator took my page down."
+
+### Decision
+
+Two independent boolean flags on the `Club` model:
+
+| Flag | Default | Controlled by | Purpose |
+|---|---|---|---|
+| `isPublished` | `false` | Club Admin | Admin chooses when to go live |
+| `forceOffline` | `false` | Platform Operator | Hard override — admin CANNOT publish while this is true |
+
+**Visibility rule:** A club's public profile page is visible **only when** `isPublished === true AND forceOffline === false`.
+
+**Behavior matrix:**
+
+| `isPublished` | `forceOffline` | Public page | Admin can toggle publish? |
+|:---:|:---:|---|---|
+| `false` | `false` | Not visible (404) | Yes |
+| `true` | `false` | **Visible** | Yes (can unpublish) |
+| `true` | `true` | Not visible (404) | No (toggle disabled, banner explains) |
+| `false` | `true` | Not visible (404) | No (toggle disabled) |
+
+### Implementation
+
+- Club layout (`app/[lang]/(country)/[country]/[club]/layout.tsx`) checks visibility: if not visible → `notFound()`.
+- Club admin dashboard shows `isPublished` toggle. When `forceOffline === true`, the toggle is disabled with a message: "Your page has been taken offline by the platform. Check your messages for details."
+- Operator admin panel shows `forceOffline` toggle per club, with a mandatory `OperatorMessage` when turning it on (explain why).
+- Directory query filters: `WHERE is_published = true AND force_offline = false`.
+
+### Relationship to `ClubStatus`
+
+`ClubStatus` (`ACTIVE` | `SUSPENDED`) remains for hard administrative actions (full suspension = login disabled, data deletion pipeline). `forceOffline` is softer — the page is hidden but the admin can still log in, edit their profile, upload photos, and read operator messages. The two concepts are orthogonal:
+
+- `ACTIVE` + `forceOffline = true`: Admin can log in and fix issues; page hidden
+- `SUSPENDED`: Admin cannot log in; full lock-out (operator-only recovery)
+
+### Consequences
+
+**Positive:**
+- Clear separation of concerns — admin controls publication, operator controls moderation
+- Admin always knows whether they published or the operator intervened
+- Simple boolean logic — no state machine complexity
+- `forceOffline` + `OperatorMessage` creates a clean moderation workflow
+
+**Negative / Accepted trade-offs:**
+- Two flags instead of one enum — marginally more complex queries, but the `WHERE` clause is trivial
+- No history of flag changes at MVP — could add audit log entries post-MVP if needed
+
+---
+
+## ADR-004: Unified OperatorMessage Model (Replaces OperatorNudge)
+
+_Recorded: 2026-03-07_
+
+### Context
+
+The original architecture included an `OperatorNudge` model for operator-to-club-admin notifications. The MVP scope pivot introduces multiple scenarios where the operator needs to communicate with club admins:
+
+1. **Application review:** Operator approves but wants to request changes (e.g., "Please update your description before publishing"). Message is bundled in the approval email.
+2. **Post-live moderation:** Operator forces a club offline and explains why (e.g., "Your photos violate our content policy").
+3. **General communication:** Operator sends a message to a club admin for any reason.
+
+All three scenarios share the same data shape (message text, timestamps, read status) and the same admin-facing UX (persistent banner in the club admin dashboard until read). A single model serves all cases.
+
+### Decision
+
+Replace `OperatorNudge` with `OperatorMessage`:
+
+```prisma
+model OperatorMessage {
+  id        String    @id @default(cuid())
+  clubId    String    @map("club_id")
+  message   String    @db.Text
+  createdAt DateTime  @default(now()) @map("created_at")
+  readAt    DateTime? @map("read_at")
+
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@index([clubId])
+  @@map("operator_messages")
+}
+```
+
+**Changes from `OperatorNudge`:**
+- Dropped `operatorId` — not needed for admin-facing display; audit trail covers who did what via `AuditLog`
+- Dropped `subject` — single `message` field is sufficient; messages are short and contextual
+- Added `readAt` — nullable timestamp for read/unread tracking (null = unread)
+
+### Usage Patterns
+
+**On application approval with feedback:**
+```typescript
+// In approveApplication Server Action
+const club = await prisma.club.create({ data: { ... } })
+if (operatorMessage) {
+  await prisma.operatorMessage.create({
+    data: { clubId: club.id, message: operatorMessage }
+  })
+}
+// Approval email includes the message text
+```
+
+**On force-offline:**
+```typescript
+// In toggleForceOffline Server Action
+await prisma.club.update({ where: { id: clubId }, data: { forceOffline: true } })
+await prisma.operatorMessage.create({
+  data: { clubId, message: reason }
+})
+// Standalone moderation email sent
+```
+
+**Admin dashboard display:**
+```typescript
+// In club admin layout
+const unreadMessages = await prisma.operatorMessage.findMany({
+  where: { clubId, readAt: null },
+  orderBy: { createdAt: 'desc' },
+})
+// Render persistent banner if unreadMessages.length > 0
+```
+
+### Email Integration
+
+- **Approval email with message:** Same Resend call, conditional section in the email template showing the operator's message.
+- **Standalone moderation email:** Separate email triggered by `sendOperatorMessage` Server Action. Same email template structure, different subject line.
+- Both use the platform's Resend account. The `OperatorMessage` DB record exists regardless of email delivery status.
+
+### Consequences
+
+**Positive:**
+- Single model for all operator→admin communication — no proliferation of notification models
+- Read/unread tracking enables persistent banner UX without additional state
+- Clean audit trail: `OperatorMessage` records are append-only; `readAt` is the only mutable field
+- Email is a notification channel, not the source of truth — the DB record persists even if email fails
+
+**Negative / Accepted trade-offs:**
+- No threading or replies at MVP — messages are one-directional (operator → admin). If bidirectional communication is needed post-MVP, the model can be extended with a `parentId` or a separate `MessageThread` model.
+- No `operatorId` on the model — if attribution is needed, it's available via `AuditLog`. This keeps the model lean.

@@ -278,28 +278,27 @@ The platform directory is the core product surface. Public Visitors can browse t
 **FRs covered:** FR20, FR21, FR22, FR25, FR26, FR43, FR50
 **NFRs addressed:** NFR1, NFR2, NFR3, NFR21–24, NFR26
 
-### Epic 4: Club Site Identity & Navigation
-Club Admins can configure their site's core identity (name, logo, welcome text, accent color, external website link), manage pages (activate, deactivate, create, enforce limit), explicitly save changes, and restore any previous version from version history — all through a dedicated admin dashboard (shadcn sidebar + content area) at a separate admin route.
-**FRs covered:** FR1, FR2, FR3, FR4, FR5, FR6, FR7, FR17, FR18, FR46, FR47
-**NFRs addressed:** NFR4, NFR17
+### Epic 4: Club Profile Setup & Moderation
+Rework the application form to collect club profile fields (description, schedule, contact info, how to join), seed the club profile on approval with optional operator message, build the simplified club admin dashboard with profile edit form and photo upload, implement publish/unpublish with operator force-offline override, render the single-page public club profile with photo carousel, and add operator club moderation tools (send message, force offline).
+**FRs covered:** FR1, FR2, FR9, FR17, FR19, FR27, FR32, FR36, FR47, FR48, FR49, FR51, FR52, FR53, FR54, FR55, FR56, FR57
+**NFRs addressed:** NFR4, NFR21-24
 
-### Epic 5: Club Content Elements
-Club Admins can add and manage rich content on custom pages using the element library: rich text, inline images, calendar events, image/video galleries, and document libraries. File constraints are displayed inline before upload — never after failure.
-**FRs covered:** FR10, FR11, FR12, FR13, FR14, FR15, FR16, FR19
-**NFRs addressed:** NFR7 (file storage encryption)
+### Epic 5: Club Content Elements _(Deferred to post-MVP)_
+~~Club Admins can add and manage rich content on custom pages using the element library: rich text, inline images, calendar events, image/video galleries, and document libraries.~~ Entire epic deferred to post-MVP. Depends on multi-page site builder expansion. Schema models (`Page`, `PageElement`, `ContentVersion`, `Event`, `GalleryItem`, `Document`) are retained in the database for future use.
+**FRs covered:** ~~FR10, FR11, FR12, FR13, FR14, FR15, FR16, FR19~~ (all deferred)
 
-### Epic 6: Contact & Communication
-Public Visitors can contact clubs through a contact form with automatic email relay (reply-to set to the sender's address). Club Admins can view stored contact submissions. Club Admins can submit support requests to the platform team from the platform site.
-**FRs covered:** FR23, FR24, FR30, FR44
-**NFRs addressed:** NFR7 (contact submission encryption), NFR16 (email relay monitoring)
+### Epic 6: Contact & Communication _(Partially deferred)_
+~~Public Visitors can contact clubs through a contact form with automatic email relay.~~ Contact form, email relay, and contact submission viewing are deferred to post-MVP. Club Admin support request form remains in MVP scope.
+**FRs covered:** ~~FR23, FR24, FR44~~ (deferred), FR30 (MVP)
+**NFRs addressed:** ~~NFR7, NFR16~~ (deferred)
 
 ### Epic 7: Platform Operations & Health Monitoring
-The Platform Operator can view platform-wide metrics, monitor club site health, send nudges to club admins about detected issues, manage the support inbox, configure platform-wide operational variables without a deployment, view per-club analytics, and trust that template updates are silently applied to all clubs with zero downtime.
-**FRs covered:** FR34, FR35, FR36, FR37, FR38, FR39, FR45
+The Platform Operator can view platform-wide metrics, monitor club site health, manage the support inbox, configure platform-wide operational variables without a deployment, view per-club analytics, and trust that template updates are silently applied to all clubs with zero downtime. Operator-to-club messaging is handled by the unified OperatorMessage system (Epic 4) — Story 7.7 (Operator Nudge) removed.
+**FRs covered:** FR34, FR35, FR37, FR38, FR39, FR45
 **NFRs addressed:** NFR4, NFR5, NFR15, NFR16, NFR25, NFR27
 
 ### Epic 8: Data Compliance
-All GDPR/nDSG data rights are available: clubs can export their data and request deletion. A cookie consent mechanism is presented where legally required. Data retention policies are enforced automatically. Custom domain support (FR8) is deferred to post-MVP.
+All GDPR/nDSG data rights are available: clubs can export their profile data and photos and request deletion. A cookie consent mechanism is presented where legally required. Data retention policies are enforced automatically. Custom domain support (FR8) is deferred to post-MVP.
 **FRs covered:** FR40, FR41, FR42
 **NFRs addressed:** NFR6 (TLS encryption)
 
@@ -959,24 +958,108 @@ So that the design is cohesive across all public surfaces with proper centering,
 
 ---
 
-## Epic 4: Club Site Identity & Navigation
+## Epic 4: Club Profile Setup & Moderation
 
-Club Admins can configure their site's core identity, manage pages, explicitly save changes, and restore previous versions — all through a dedicated admin dashboard (shadcn sidebar + content area) at a separate admin route.
+Rework the application and approval flows to collect and seed club profile data, build the simplified club admin dashboard with profile editing and photo upload, implement two-flag visibility control (publish/unpublish + operator force-offline), render the single-page public club profile with photo carousel, and add operator moderation tools. This epic touches existing Epic 2 and Epic 3 code to align with the MVP scope pivot.
 
-### Story 4.1: Club Admin Dashboard Shell & Navigation
+### Story 4.1: Schema Migration — Profile Fields, Visibility, ClubPhoto, OperatorMessage
 
-As a Club Admin,
-I want a dedicated admin dashboard with sidebar navigation to manage my club site,
-So that I have a familiar, organized interface for all content management tasks.
+As a platform engineer,
+I want the database schema updated to support club profile fields, two-flag visibility, photo storage, and unified operator messages,
+So that all subsequent stories in this epic have the data foundation they need.
 
 **Acceptance Criteria:**
 
-**Given** an authenticated Club Admin navigates to their club's admin URL (`/{lang}/{country}/{club}/admin`),
-**When** the page loads,
-**Then** a standard shadcn dashboard layout renders with: an `AdminSidebar` (persistent left sidebar with club name/logo at top, navigation items for editable sections, and a "View public site" link in the footer that opens the public club URL in a new tab).
+**Given** the Prisma schema is migrated,
+**Then** the `Club` model has new nullable columns: `description` (text, renamed from `welcomeText`), `schedule` (text), `howToJoin` (text), `contactPhone`, `contactAddress` (text), `externalWebsiteUrl`; and new boolean columns: `isPublished` (default `false`), `forceOffline` (default `false`) (ADR-002, ADR-003).
 
-**Given** the admin dashboard,
-**Then** the sidebar navigation items include: Home (identity), Pages, Contact, Settings (accent color, version history, account). Additional items (Calendar, Gallery, Documents) appear only when those page types are active on the club site.
+**Given** the Prisma schema is migrated,
+**Then** the `Application` model has new columns matching the club profile fields: `schedule` (text), `contactPhone`, `contactAddress` (text), `howToJoin` (text), `externalWebsiteUrl` — all nullable.
+
+**Given** the Prisma schema is migrated,
+**Then** a `ClubPhoto` model exists with: `id` (cuid), `clubId` (FK to Club), `url`, `alt` (default ""), `position` (int, default 0), `createdAt`; indexed on `clubId`; mapped to `club_photos`.
+
+**Given** the Prisma schema is migrated,
+**Then** the `OperatorNudge` model is replaced by `OperatorMessage` with: `id` (cuid), `clubId` (FK to Club, cascade delete), `message` (text), `createdAt`, `readAt` (nullable DateTime); indexed on `clubId`; mapped to `operator_messages` (ADR-004).
+
+**Given** the existing `Club` model has a `welcomeText` column,
+**Then** the migration renames it to `description` (no data loss).
+
+**Given** the `Club` model,
+**Then** it has relations to `ClubPhoto[]` and `OperatorMessage[]`; the old `OperatorNudge` relation is removed.
+
+> **Dev note:** This story is purely a schema migration + Prisma client regeneration. No application code changes — those come in subsequent stories. Run `prisma migrate dev` and verify the generated client types.
+
+---
+
+### Story 4.2: Application Form — Profile Fields
+
+As a Club Applicant,
+I want the application form to collect my club's description, schedule, contact details, and how to join,
+So that my club profile is pre-populated when my application is approved and I don't have to enter the same information twice.
+
+**Acceptance Criteria:**
+
+**Given** a visitor navigates to the `/apply` page,
+**When** the page loads,
+**Then** the form displays the existing fields (name, activity type, location, email) plus new fields: description (required, textarea), schedule/availability (optional, textarea with placeholder "e.g., Tuesdays 19h-21h, Salle des sports"), contact phone (optional), contact address (optional, textarea), how to join (required, textarea with placeholder "e.g., Send us an email or come to any session"), external website URL (optional, URL input) (FR27).
+
+**Given** the applicant fills all required fields (name, activity type, location, email, description, how to join) and completes the Turnstile challenge,
+**When** they submit the form,
+**Then** the application is stored with all profile fields; the existing submission flow (status `pending`, success confirmation) is unchanged.
+
+**Given** the applicant leaves the description or how to join fields empty,
+**Then** inline validation errors appear below those fields on blur; the form is not submitted.
+
+**Given** the applicant enters a value in the external website URL field,
+**Then** it is validated as a well-formed URL; an inline error appears if the format is invalid.
+
+> **Dev note:** This reworks Story 2.1's existing implementation. The Zod schema in the Server Action needs the new fields. The form component needs new form sections. The Turnstile and rate-limiting behavior remain unchanged.
+
+---
+
+### Story 4.3: Approval Flow — Profile Seeding & Operator Message
+
+As a Platform Operator,
+I want approving an application to automatically create the club with pre-populated profile fields and optionally include a message for the club admin,
+So that clubs are ready to review and publish immediately after the admin completes account setup.
+
+**Acceptance Criteria:**
+
+**Given** the operator views a pending application in the review queue,
+**When** the application detail is displayed,
+**Then** the operator sees all submitted profile fields: name, description, schedule, contact info, how to join, external website URL — displayed as the actual club profile content, not just metadata (FR32).
+
+**Given** the operator clicks Approve,
+**When** the confirmation dialog appears,
+**Then** it includes an optional "Message to club admin" textarea (free text); the operator can leave it empty or type feedback (e.g., "Please add more detail to your schedule before publishing").
+
+**Given** the operator confirms approval with no message,
+**When** the `approveApplication` Server Action executes,
+**Then** the club record is created with profile fields copied from the application (name, description, schedule, email, contactPhone, contactAddress, howToJoin, externalWebsiteUrl, activityTypeId, locationId, country); `isPublished = false`, `forceOffline = false`; `ClubMembership` (OWNER, ACTIVE) created; acceptance email sent with magic link.
+
+**Given** the operator confirms approval with a message,
+**When** the `approveApplication` Server Action executes,
+**Then** an `OperatorMessage` record is created for the new club in the same transaction; the message text is included in the acceptance email as a dedicated section (FR57); the message will appear as a banner in the admin dashboard on first login (FR55).
+
+**Given** the existing approval flow (Story 2.3),
+**Then** slug generation, magic link creation, and email dispatch remain unchanged; only the club record creation is extended with profile fields and optional operator message.
+
+> **Dev note:** This reworks Story 2.3's `approveApplication` Server Action. The acceptance email template (Resend) needs a conditional "Message from the platform" section. The `ApplicationQueueItem` component in the operator dashboard needs to display the full profile fields for content review.
+
+---
+
+### Story 4.4: Club Admin Dashboard Shell
+
+As a Club Admin,
+I want a dedicated admin dashboard with simplified sidebar navigation,
+So that I have a clean, focused interface to manage my club profile and settings.
+
+**Acceptance Criteria:**
+
+**Given** an authenticated Club Admin navigates to `/{lang}/{country}/{club}/admin`,
+**When** the page loads,
+**Then** a standard shadcn dashboard layout renders with an `AdminSidebar`: club name/logo at top, navigation items (Club Profile, Settings), and a "View public page" link in the footer that opens the public club URL in a new tab (FR2).
 
 **Given** the admin URL,
 **When** an unauthenticated visitor or a user who is not a member of the club attempts to access it,
@@ -986,97 +1069,10 @@ So that I have a familiar, organized interface for all content management tasks.
 **Then** the sidebar collapses to a hamburger menu that opens as a `Sheet` drawer from the left; all navigation items remain accessible.
 
 **Given** a Club Admin who is authenticated and visits their club's public URL,
-**Then** the public site renders normally with no admin chrome — complete separation between public and admin views. The admin accesses the dashboard via direct URL or via the post-login redirect.
+**Then** the public site renders normally with no admin chrome — complete separation between public and admin views.
 
----
-
-### Story 4.2: Club Identity Configuration (Name, Logo, Welcome Text)
-
-As a Club Admin,
-I want to configure my club's name, logo, and welcome text through the admin dashboard,
-So that my club's public home page reflects our identity from the very first save.
-
-**Acceptance Criteria:**
-
-**Given** the Club Admin selects "Home" in the admin dashboard sidebar,
-**When** the content area loads,
-**Then** an edit form appears with fields for: club name (text input), logo (`ImageUploadField` with "Max 5 MB · JPG, PNG, WebP" constraint displayed permanently), welcome text (textarea), and external website link (optional URL field — for clubs that have their own website) (FR47); the amber dot is absent until a field is changed.
-
-**Given** the Club Admin changes any field value,
-**When** a change is made,
-**Then** the amber unsaved-changes dot appears on the Save button area and is mirrored on the active sidebar item.
-
-**Given** the Club Admin uploads a logo image meeting the constraints,
-**When** the upload completes,
-**Then** a thumbnail preview replaces the drop zone; an alt text field (required, enforced) appears; the logo is uploaded to R2/MinIO via a presigned URL — no file bytes pass through the Next.js server.
-
-**Given** an uploaded file exceeds the size limit or uses an unsupported format,
-**Then** an inline error appears below the upload field describing the specific constraint violated — no upload is attempted.
-
-**Given** the Club Admin clicks Save,
-**When** the `saveClubIdentity` Server Action executes,
-**Then** `clubId` is resolved from URL params (verified by the club layout membership check — never from client input or stored session data); the club record is updated; `revalidatePath` invalidates the club home page SSR cache; a "Saved" toast appears; the amber dot clears.
-
-**Given** the Club Admin clicks "View public site" in the sidebar footer after saving,
-**Then** a new tab opens showing the club's public home page with the updated identity.
-
-> **Dev note:** The amber dot, Save button, and dirty-state management shown here are partial implementations. The complete explicit-save protection pattern (beforeunload guard, discard confirmation, full dirty-state lifecycle) is formally defined in Story 4.5 and must be implemented holistically across the epic — not story by story. Implement Story 4.5 as the save framework before finalising 4.2 and 4.3.
-
----
-
-### Story 4.3: Page Management — Activate, Deactivate & Create Pages
-
-As a Club Admin,
-I want to activate, deactivate, and create custom pages in my site's navigation,
-So that I can control which sections are publicly visible and grow my site's content over time.
-
-**Acceptance Criteria:**
-
-**Given** the Club Admin selects "Pages" in the admin dashboard sidebar,
-**When** the content area loads,
-**Then** a page management view shows all pages with their active/inactive status and an "Add page" button.
-
-**Given** the Club Admin toggles a custom page to inactive,
-**When** the toggle is confirmed,
-**Then** the page disappears from the public-facing nav immediately; it remains in the admin nav with an "inactive" badge; its content is preserved (FR3).
-
-**Given** the Club Admin clicks "Add page" and provides a navigation label,
-**When** the page is created,
-**Then** a new page record is added to the database with the given label and a URL-safe slug; it appears in the sidebar nav in edit mode (FR4).
-
-**Given** the club has reached the platform's maximum page count (default: 5, configurable),
-**When** the Club Admin attempts to add another page,
-**Then** the "Add page" button is disabled with the inline label: "Maximum pages reached (5)" (FR7).
-
-**Given** the Club Admin attempts to deactivate the Home or Contact page,
-**Then** no deactivation toggle is shown for these anchor pages — they cannot be removed or deactivated (FR6).
-
-> **Dev note:** The amber dot and save mechanics referenced here are partial. The complete explicit-save protection pattern is defined in Story 4.5 — implement Story 4.5 as the save framework foundation before finalising this story.
-
----
-
-### Story 4.4: Page Navigation Labels & Sub-Pages
-
-As a Club Admin,
-I want to rename pages and configure one level of sub-pages within my site's navigation,
-So that my site's structure is clearly labelled and organized for visitors.
-
-**Acceptance Criteria:**
-
-**Given** a custom page in the admin nav,
-**When** the Club Admin clicks on its label to rename it,
-**Then** an inline text input allows editing the navigation label; saving updates the label in the database and invalidates the affected routes via `revalidatePath`.
-
-**Given** the Club Admin selects a parent page and clicks "Add sub-page",
-**When** they provide a sub-page label,
-**Then** a new page is created as a child of the selected parent; it appears nested in the `PublicNavbar` dropdown and in the `AdminSidebar` one level below the parent (FR5).
-
-**Given** a page has sub-pages,
-**When** a public visitor views the nav,
-**Then** the parent page is expandable to reveal its sub-pages; the parent page itself remains navigable as its own content page.
-
-**Given** the total page count including sub-pages,
-**Then** it counts against the club's maximum page limit; adding a sub-page that would exceed the limit is blocked with the same inline message as Story 4.3 (FR7).
+**Given** the admin dashboard,
+**Then** the default view (landing page) is the Club Profile section.
 
 ---
 
@@ -1107,66 +1103,153 @@ So that I never accidentally publish unfinished content or lose work unexpectedl
 **Given** a Save action is in flight (Server Action pending),
 **Then** the Save button shows a spinner and all edit fields are disabled — preventing duplicate submissions.
 
+> **Dev note:** This story establishes the save framework (`isDirty` context, `beforeunload` handler, discard dialog) used by Story 4.6. Implement this before the profile edit form.
+
 ---
 
-### Story 4.6: Version History & Content Restore
+### Story 4.6: Club Profile Edit Form & Photo Upload
 
 As a Club Admin,
-I want to view my site's version history and restore any previous version,
-So that I can recover from unwanted changes with confidence, knowing my work is never permanently lost.
+I want to edit my club's profile fields and upload photos through the admin dashboard,
+So that I can complete my club's public presence with accurate information and appealing visuals.
 
 **Acceptance Criteria:**
 
-**Given** the Club Admin selects "Settings" in the admin dashboard sidebar and opens "Version History",
-**When** the section loads,
-**Then** a list of saved versions for the current page is displayed, each showing: version number, save timestamp, and a "Restore" button; an empty state is shown if no saves exist yet (FR18).
+**Given** the Club Admin selects "Club Profile" in the admin dashboard sidebar,
+**When** the content area loads,
+**Then** an edit form appears with fields pre-populated from the club record: name (text input), logo (image upload, max 5 MB, JPG/PNG/WebP with alt text required), description (textarea), schedule/availability (textarea), contact email (text input — the club's registered email), contact phone (optional), contact address (optional, textarea), how to join (textarea), external website link (optional URL field) (FR1, FR47). The amber dot is absent until a field is changed.
 
-**Given** the Club Admin clicks "Restore" on a version and confirms the dialog,
-**When** the `restoreVersion` Server Action executes,
-**Then** the page content is replaced with the JSONB snapshot from `content_versions`; the admin dashboard form is populated with the restored content; the amber unsaved dot appears (restore does not auto-save).
+**Given** the Club Admin changes any text field value,
+**When** a change is made,
+**Then** the amber unsaved-changes dot appears (Story 4.5 save framework).
 
-**Given** a restore action,
-**When** it completes,
-**Then** the total elapsed time from confirming restore to edit mode displaying the restored content is ≤ 30 seconds (NFR17).
+**Given** the profile form,
+**Then** a "Photos" section displays existing club photos as a thumbnail grid, and an "Add photos" upload zone accepting up to 10 images total (JPEG, PNG, WebP; max 5 MB each); photos are uploaded via presigned URL to R2/MinIO — no file bytes pass through the Next.js server (FR48).
 
-**Given** the platform's version retention limit (N versions per page, configurable),
-**When** a new save is made and the limit is exceeded,
-**Then** the oldest version is pruned automatically — the admin never manages this manually.
+**Given** the club already has 10 photos,
+**When** the Club Admin attempts to add another,
+**Then** the upload zone is disabled with an inline message: "Maximum 10 photos reached. Remove a photo to add a new one."
 
-**Given** the version history list,
-**Then** each "Restore" button has an `aria-label` including the version timestamp; the list is keyboard-navigable.
+**Given** an uploaded photo,
+**Then** it appears in the thumbnail grid with a delete button; deleting a photo removes it from R2 and the `ClubPhoto` record.
+
+**Given** an upload that exceeds size or format constraints,
+**Then** an inline error appears below the upload zone describing the specific constraint violated; no upload is attempted (FR19).
+
+**Given** the Club Admin clicks Save,
+**When** the `saveClubProfile` Server Action executes,
+**Then** `clubId` is resolved from URL params (verified by the club layout membership check); the club record is updated with all text field values; `revalidatePath` invalidates the club page SSR cache; a "Saved" toast appears.
+
+> **Dev note:** Photo upload/delete operations are immediate (not deferred to save) — they hit R2 and the DB on action. The save button only applies to text field changes. This keeps the UX simple: photos appear instantly in the grid, text fields require explicit save.
 
 ---
 
-### Story 4.7: Accent Color Picker
+### Story 4.7: Publish/Unpublish & Operator Message Banner
 
 As a Club Admin,
-I want to select an accent color for my club's site from a curated palette,
-So that my site reflects my association's visual identity and feels distinctly ours.
+I want to control when my club page goes live and see any messages from the platform operator,
+So that I publish only when I'm ready and can respond to operator feedback promptly.
 
 **Acceptance Criteria:**
 
-**Given** the Club Admin selects "Settings" in the admin dashboard sidebar,
-**When** the settings section loads,
-**Then** an `AccentColorPicker` is displayed showing 8 color swatches with labels: Zinc, Blue, Green, Red, Violet, Orange, Rose, Yellow; the currently active accent is visually indicated with a checkmark ring (FR46).
+**Given** an authenticated Club Admin views their admin dashboard,
+**When** the dashboard loads,
+**Then** a publish/unpublish toggle is visible (e.g., in the header area or Settings section); it reflects the current `isPublished` state of the club (FR49).
 
-**Given** the Club Admin selects a different accent color,
-**When** the selection is made,
-**Then** the accent previews immediately within the dashboard UI (accent color on buttons, active states); the amber unsaved-changes dot appears.
+**Given** `isPublished = false` and `forceOffline = false`,
+**When** the Club Admin toggles publish on,
+**Then** the `togglePublish` Server Action sets `isPublished = true`; the club page becomes publicly visible; `revalidatePath` invalidates the club page cache; a success toast confirms "Your club page is now live."
 
-**Given** the Club Admin saves,
-**When** the `saveClubIdentity` Server Action executes,
-**Then** the selected accent color slug (e.g., `"blue"`) is persisted to `clubs.accentColor`; the public club site immediately reflects the new accent via CSS custom property override on the `<html>` element — served server-side to avoid flash of unstyled content.
+**Given** `isPublished = true` and `forceOffline = false`,
+**When** the Club Admin toggles publish off,
+**Then** `isPublished` is set to `false`; the club page is no longer visible; a toast confirms "Your club page is now offline."
 
-**Given** a club with no accent color set (legacy or newly provisioned),
-**Then** the accent defaults to `Zinc`; no migration is required — the Zinc preset is the base Tailwind palette already in use.
+**Given** `forceOffline = true` (operator override active),
+**Then** the publish toggle is disabled with a message: "Your page has been taken offline by the platform. Check your messages for details." The Club Admin cannot change `isPublished` until the operator lifts the override (FR51, FR52).
 
-**Given** the `AccentColorPicker`,
-**Then** it is fully keyboard-accessible: arrow keys move focus between swatches; Enter or Space selects the focused swatch; the active swatch has `aria-checked="true"` and the group uses `role="radiogroup"`.
+**Given** the club has unread `OperatorMessage` records (`readAt IS NULL`),
+**When** the admin dashboard loads,
+**Then** a persistent banner appears at the top of the content area showing the most recent unread message; a "View all messages" link shows all messages if there are multiple (FR55).
+
+**Given** the Club Admin reads/acknowledges an operator message,
+**When** they dismiss the banner or click "Mark as read",
+**Then** the `readAt` timestamp is set on the `OperatorMessage` record; the banner disappears (or shows the next unread message if any).
+
+**Given** the club has no unread operator messages,
+**Then** no banner is displayed.
 
 ---
 
-## Epic 5: Club Content Elements
+### Story 4.8: Club Profile Page — Public Rendering
+
+As a Public Visitor,
+I want to view a club's profile page with all their essential information and photos,
+So that I can quickly decide whether to join and know how to get in touch.
+
+**Acceptance Criteria:**
+
+**Given** a visitor navigates to a club's public URL (`/{lang}/{country}/{club}`),
+**When** `isPublished = true` AND `forceOffline = false`,
+**Then** a server-rendered single-page profile displays: club name, logo, description, photo carousel, schedule/availability, contact info (email, phone, address), how to join, and external website link (if set); the page includes meta tags, Open Graph, and JSON-LD structured data (FR22, FR43).
+
+**Given** a visitor navigates to a club's public URL,
+**When** `isPublished = false` OR `forceOffline = true`,
+**Then** a 404 page is returned — the club page is not visible (FR51).
+
+**Given** the club has uploaded photos,
+**Then** a photo carousel displays all photos in `position` order, auto-scrolling horizontally; the carousel pauses on hover; on mobile, the carousel is swipe-enabled (FR48).
+
+**Given** the club has no uploaded photos,
+**Then** the carousel section is not rendered; the page displays remaining profile fields without a visual gap.
+
+**Given** the club has an external website link set,
+**Then** a prominent "Visit our website" link/button is displayed on the profile page, opening in a new tab (FR47).
+
+**Given** the club profile page,
+**Then** the platform attribution footer link is present (FR26); the footer includes a link back to the platform directory (FR25).
+
+**Given** the directory listing query,
+**Then** it filters clubs with `WHERE is_published = true AND force_offline = false` — unpublished or force-offline clubs do not appear in the directory.
+
+> **Dev note:** This reworks Story 3.3's club home page rendering. The existing server-rendered page is replaced with the single-page profile layout. The photo carousel is a `"use client"` component island within the server-rendered page (auto-scroll + pause-on-hover requires client-side JS). The inner page navigation from Story 3.4 remains in code but has nothing to iterate over — no rework needed.
+
+---
+
+### Story 4.9: Operator Club Moderation
+
+As a Platform Operator,
+I want to send messages to club admins and force club pages offline when needed,
+So that I can maintain content quality standards across the platform and communicate moderation decisions clearly.
+
+**Acceptance Criteria:**
+
+**Given** the operator navigates to a club's detail view in the platform admin dashboard,
+**When** the view loads,
+**Then** the operator sees: the club's current profile content, visibility status (`isPublished`, `forceOffline`), a "Send message" action, and a "Force offline" / "Lift offline" toggle.
+
+**Given** the operator clicks "Send message",
+**When** the message dialog appears,
+**Then** a free-text textarea is shown; on submit, the `sendOperatorMessage` Server Action creates an `OperatorMessage` record and sends a standalone email to the club admin via Resend (FR54, FR56).
+
+**Given** the operator toggles "Force offline" on a club that is currently live,
+**When** the action is confirmed,
+**Then** a mandatory message field appears — the operator must explain why; the `forceOffline` Server Action sets `forceOffline = true` on the club, creates an `OperatorMessage` with the reason, sends a moderation email, and invalidates the club page cache; the club page immediately becomes invisible to visitors (FR52).
+
+**Given** the operator toggles "Lift offline" on a force-offline club,
+**When** the action is confirmed,
+**Then** `forceOffline` is set to `false`; the club admin regains control of `isPublished`; if the club was previously published (`isPublished = true`), the page becomes visible again immediately (FR53).
+
+**Given** the operator sends a message or forces a club offline,
+**Then** the `OperatorMessage` record persists in the database regardless of email delivery status — the DB is the source of truth, email is the notification channel (ADR-004).
+
+**Given** the operator views the club list in the admin dashboard,
+**Then** clubs with `forceOffline = true` are visually flagged (e.g., a red badge or indicator) so the operator can track which clubs are currently under moderation.
+
+---
+
+## Epic 5: Club Content Elements _(Entire epic deferred to post-MVP)_
+
+> **Post-MVP deferral:** This entire epic is deferred. It depends on the multi-page site builder expansion (currently deferred). All schema models (`Page`, `PageElement`, `ContentVersion`, `Event`, `GalleryItem`, `Document`) are retained in the database for future use. Stories below are preserved for reference and will be revised when multi-page support is implemented.
 
 Club Admins can add and manage rich content on custom pages using the full element library. File constraints are displayed inline before upload — never after failure.
 
@@ -1331,11 +1414,13 @@ So that visitors have multiple ways to reach my club, all configured to my assoc
 
 ---
 
-## Epic 6: Contact & Communication
+## Epic 6: Contact & Communication _(Partially deferred)_
+
+> **Partial deferral:** Stories 6.1 (contact form), 6.2 (email relay monitoring), and 6.3 (contact submissions) are deferred to post-MVP. At MVP, club contact info (email, phone, address) is displayed directly on the club profile page — visitors contact clubs directly. Story 6.4 (platform support request form) remains in MVP scope.
 
 Club visitors can reliably reach associations via contact forms; club admins can read received messages; platform operators receive support requests; and the email relay is actively monitored for health.
 
-### Story 6.1: Public Contact Form & Email Relay
+### Story 6.1: Public Contact Form & Email Relay _(Deferred to post-MVP)_
 
 As a Public Visitor,
 I want to submit a contact message through a club's contact form,
@@ -1364,7 +1449,7 @@ So that I can reach the association without needing to know their private email 
 
 ---
 
-### Story 6.2: Email Relay Health Monitoring
+### Story 6.2: Email Relay Health Monitoring _(Deferred to post-MVP)_
 
 As a Platform Operator,
 I want the email relay to be actively monitored,
@@ -1389,7 +1474,7 @@ So that I am alerted within 15 minutes if the relay stops functioning and can re
 
 ---
 
-### Story 6.3: Club Admin — View Contact Form Submissions
+### Story 6.3: Club Admin — View Contact Form Submissions _(Deferred to post-MVP)_
 
 As a Club Admin,
 I want to view messages submitted through my club's contact form,
@@ -1444,7 +1529,7 @@ So that I can get help with issues or questions about my club's website.
 
 ## Epic 7: Platform Operations & Health Monitoring
 
-Platform Operators have full operational visibility — they can manage the club registry, monitor system health, enforce usage limits, view privacy-safe analytics, and control platform-wide flags.
+Platform Operators have full operational visibility — they can manage the club registry, monitor system health, enforce usage limits, view privacy-safe analytics, and control platform-wide flags. Note: operator-to-club messaging and club page moderation (force offline) are handled by the unified OperatorMessage system in Epic 4 (Stories 4.7, 4.9) — Story 7.7 (Operator Nudge) has been removed from this epic.
 
 ### Story 7.1: Operator Dashboard — Club Registry Management
 
@@ -1460,7 +1545,7 @@ So that I can oversee the platform's club population and take administrative act
 
 **Given** the operator clicks on a club,
 **When** the detail view opens,
-**Then** the operator sees full club metadata: name, logo, contact email, page count, external website link (if configured), and a list of admin actions.
+**Then** the operator sees full club metadata: name, logo, description, schedule, contact info, how to join, external website link (if configured), visibility status (`isPublished`, `forceOffline`), photo count, and a list of admin actions (including moderation tools from Story 4.9).
 
 **Given** the operator triggers a "Suspend" action on a club,
 **When** confirmed,
@@ -1485,11 +1570,11 @@ So that the platform stays performant and fair across all member associations.
 
 **Given** the operator views the club detail page,
 **When** the metrics section loads,
-**Then** the following counters are displayed: page count, element count per page, total R2/MinIO storage used (MB), and a breakdown by asset type (images, videos, documents) (FR34).
+**Then** the following counters are displayed: photo count, total R2/MinIO storage used (MB), and a breakdown by asset type (logo, photos) (FR34). Post-MVP: page count and element count per page will be added when multi-page support is implemented.
 
-**Given** a Club Admin attempts to exceed a platform-defined limit (e.g., max pages, max storage),
+**Given** a Club Admin attempts to exceed a platform-defined limit (e.g., max photos, max storage),
 **When** the limit is reached,
-**Then** the system returns a clear error: "You have reached the maximum number of pages allowed" — no partial state is created; the operation is rejected atomically (FR7, FR38).
+**Then** the system returns a clear error (e.g., "Maximum 10 photos reached") — no partial state is created; the operation is rejected atomically (FR38).
 
 **Given** the operator updates a limit value in the admin panel,
 **When** saved,
@@ -1601,30 +1686,7 @@ So that I can proactively identify and address site issues before club admins or
 
 ---
 
-### Story 7.7: Operator Nudge — Club Admin Notification
-
-As a Platform Operator,
-I want to send a notification to a club admin about a detected site issue,
-So that I can prompt them to fix problems without needing to contact them outside the platform.
-
-**Acceptance Criteria:**
-
-**Given** the operator is on the health dashboard (Story 7.6) or any club detail page,
-**When** they click "Send nudge",
-**Then** a modal opens with: a pre-filled subject ("Action needed: [detected issue type]"), an editable message body, and a Send button (FR36).
-
-**Given** the operator fills in or edits the message and clicks Send,
-**When** the `sendNudge` Server Action executes,
-**Then** Resend dispatches an email to the club admin's registered address; the `reply-to` header is set to the operator's platform email; a `operator_nudges` record is created with: `clubId`, `operatorId`, `subject`, `messageBody`, `sentAt`.
-
-**Given** the nudge is sent successfully,
-**Then** a confirmation toast appears: "Nudge sent to [club name] admin"; the club detail page shows a "Last nudged" timestamp.
-
-**Given** the operator attempts to send a second nudge to the same club within 24 hours,
-**Then** the Send button is disabled with the label: "Nudge already sent in the last 24 hours" — preventing spam to club admins.
-
-**Given** the Resend API call fails,
-**Then** the Server Action returns an error; the `operator_nudges` record is not created; the operator sees an inline error with a retry option.
+### ~~Story 7.7: Operator Nudge — Club Admin Notification~~ _(Removed — replaced by unified OperatorMessage system in Epic 4, Stories 4.7 and 4.9)_
 
 ---
 
@@ -1667,7 +1729,7 @@ So that all clubs benefit from improvements and fixes without any action require
 
 **Given** a new Next.js build is deployed,
 **When** the deployment completes,
-**Then** all club sites immediately serve the updated template — no per-club migration step is required; club content stored in `page_elements`, `events`, `gallery_items`, and `documents` is schema-agnostic JSONB and is never corrupted by UI-layer changes (FR39, NFR15).
+**Then** all club sites immediately serve the updated template — no per-club migration step is required; club content stored in typed `Club` model columns and `ClubPhoto` records (MVP), plus `page_elements`, `events`, `gallery_items`, and `documents` (post-MVP), is never corrupted by UI-layer changes (FR39, NFR15).
 
 **Given** the `clubs` table,
 **Then** it includes a `templateVersion` field recording the version string at the time of each club's last content save; a `migration_log` table records: `templateVersion`, `migratedAt`, `clubsAffected`, `migrationType` (content-safe / structural).
@@ -1699,11 +1761,11 @@ So that my association can exercise its right to erasure under GDPR.
 
 **Given** the Club Admin navigates to the "Delete Club Account" section,
 **When** they initiate the deletion request,
-**Then** a confirmation dialog is shown listing exactly what will be deleted: club profile, all pages and elements, all uploaded files (R2/MinIO), all contact form submissions, and the club admin user account (FR41).
+**Then** a confirmation dialog is shown listing exactly what will be deleted: club profile data, all uploaded photos (R2/MinIO), logo, operator messages, and the club admin user account (FR41). Post-MVP: will also include pages, elements, contact form submissions, gallery items, documents.
 
 **Given** the Club Admin confirms the deletion,
 **When** the deletion job runs,
-**Then** all R2/MinIO objects for the club are deleted; all Prisma records scoped to the `clubId` are hard-deleted in dependency order (child records before parent); the club's URL path is de-provisioned; the deletion is logged to `audit_log` (FR41).
+**Then** all R2/MinIO objects for the club are deleted (logo, photos); all Prisma records scoped to the `clubId` are hard-deleted in dependency order (child records before parent); the club's URL path is de-provisioned; the deletion is logged to `audit_log` (FR41).
 
 **Given** the deletion job completes,
 **Then** the club admin's session is invalidated immediately; any subsequent request using their credentials returns HTTP 401; the platform path URL for the club returns HTTP 404.
@@ -1731,7 +1793,7 @@ So that the platform is compliant with GDPR data minimisation and right-to-acces
 
 **Given** the automated retention policy is active,
 **When** the nightly cleanup job runs (scheduled via `node-cron` or equivalent),
-**Then** all `page_events` records older than 12 months are deleted; all `contact_submissions` records older than 24 months are deleted; a summary of deleted record counts is appended to an application log.
+**Then** all `page_events` records older than 12 months are deleted; post-MVP: all `contact_submissions` records older than 24 months will also be deleted; a summary of deleted record counts is appended to an application log.
 
 **Given** the cleanup job runs,
 **Then** the job itself is idempotent — running it twice in the same window produces no errors and no additional deletions; the job's last-run timestamp is stored and visible in `/admin/settings`.
@@ -1746,13 +1808,13 @@ So that I can exercise my right to data portability and migrate my content if ne
 
 **Acceptance Criteria:**
 
-**Given** the Club Admin is in edit mode and opens the Admin sidebar tab,
-**When** they view the Admin section,
-**Then** an "Export data" option is available alongside Version History and Account (FR40).
+**Given** the Club Admin is in the admin dashboard and opens the Settings section,
+**When** they view the Settings page,
+**Then** an "Export data" option is available (FR40).
 
 **Given** the Club Admin clicks "Export data",
 **When** the dialog opens,
-**Then** a confirmation dialog explains what will be exported: club profile, all pages and elements, calendar events, gallery item metadata, documents metadata, and decrypted contact form submissions.
+**Then** a confirmation dialog explains what will be exported: club profile data (name, description, schedule, contact info, how to join), photo metadata and URLs, and operator messages. Post-MVP: will also include pages, elements, calendar events, gallery item metadata, documents metadata, and contact form submissions.
 
 **Given** the Club Admin confirms the export,
 **When** the `exportClubData` Server Action executes,
@@ -1763,7 +1825,7 @@ So that I can exercise my right to data portability and migrate my content if ne
 **Then** an async export job is triggered; the club admin receives an email via Resend when the download link is ready; the link expires after 24 hours.
 
 **Given** the generated export,
-**Then** it contains no raw file binaries (images, videos, documents) — only metadata and R2/MinIO URLs; the JSON structure includes: `version`, `exportedAt`, `club`, `pages`, `elements`, `events`, `gallery_items`, `documents`, `contact_submissions`; the export operation is logged to `audit_log` with: `clubId`, `exportedAt`, `recordCount`.
+**Then** it contains no raw file binaries (photos, logo) — only metadata and R2/MinIO URLs; the JSON structure includes: `version`, `exportedAt`, `club` (all profile fields), `photos` (metadata + URLs), `operator_messages`; post-MVP additions: `pages`, `elements`, `events`, `gallery_items`, `documents`, `contact_submissions`; the export operation is logged to `audit_log` with: `clubId`, `exportedAt`, `recordCount`.
 
 ---
 
@@ -1791,9 +1853,9 @@ So that my privacy choices are respected and the platform meets its GDPR/nDSG ob
 **When** the modal opens,
 **Then** toggles are shown for each category: Strictly Necessary (always on, non-togglable), Analytics (default off); saving preferences records the choice identically to Accept or Decline.
 
-**Given** a club site with the Map sub-block enabled on the Contact page,
-**When** a visitor who has not consented views the Contact page,
-**Then** the static map image is blocked behind a click-to-load overlay: "Click to load map (requires cookies)" — clicking reveals the map and prompts for analytics consent.
+**Given** a club page with third-party embeds (post-MVP: Map sub-block on Contact page),
+**When** a visitor who has not consented views the page,
+**Then** the embed is blocked behind a click-to-load overlay: "Click to load (requires cookies)" — clicking reveals the embed and prompts for consent. (At MVP, no third-party embeds exist on club profile pages — this AC applies post-MVP.)
 
 **Given** consent state,
 **Then** it is checked server-side before inserting `page_events` records — no analytics events are created for visitors who declined; consent persists across pages within a session and across sessions for 12 months.

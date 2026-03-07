@@ -19,6 +19,15 @@ classification:
 lastEdited: '2026-03-07'
 editHistory:
   - date: '2026-03-07'
+    changes: 'MVP scope pivot: Single-page club profile replaces multi-page CMS. Application
+      form collects profile fields (description, schedule, contact, how to join) that seed
+      the club profile — no duplicate data entry. Photos (5-10, carousel) added after approval
+      only. Two-flag visibility system: admin isPublished + operator forceOffline override.
+      Unified operator message model for application feedback and post-live moderation.
+      Deferred to post-MVP: multi-page site builder, content elements (rich text, calendar,
+      gallery, documents), contact form/email relay, accent color picker, version history.
+      Architecture retains extensibility for multi-page expansion.'
+  - date: '2026-03-07'
     changes: 'Design direction pivot: Public pages adopt Dub.co-inspired centered layout
       (~1200px max-width, sticky top navbar, standard footer). Club edit mode becomes a
       standard shadcn dashboard (sidebar + content area) replacing in-place editing on
@@ -45,11 +54,14 @@ and social activity groups. It is the starting point for anyone looking to find 
 group — sports, music, culture, gaming, hiking, or any activity built around people doing
 things together. Think of it as the Yellow Pages for social activities.
 
-Every club on the platform gets the same site with the same capabilities: name, logo,
-description, activity type, location, calendar, gallery, contact form, and more. Clubs with
-an existing website can add a direct link out to their own site. Some clubs will use every
-feature; others will fill in the basics and link out. That's a content decision, not a
-platform distinction. The directory is the product.
+Every club on the platform gets a single-page profile with the essentials: name, description,
+a photo carousel showcasing the club's people and locale, schedule or availability info,
+contact details, and a "how to join" section. Clubs with an existing website can add a direct
+link out to their own site. The profile is deliberately simple — it answers the one question
+visitors have: "How do I join this club?" The directory is the product.
+
+Post-MVP, the platform may evolve into a multi-page site builder — the architecture supports
+it — but the MVP validates the directory model with the simplest possible club presence.
 
 The platform solves a visibility problem: real-world and online social activities are
 happening, but people searching for them can't find them. A public, filterable directory —
@@ -71,16 +83,14 @@ Most platforms that connect people to activities are event-centric (Meetup, Even
 marketplace-driven. This platform is club-centric and permanent: it indexes durable social
 groups, not ephemeral events. A club listed today is still discoverable next year.
 
-The directory is inclusive by design. Every club gets the same site with the same
-capabilities. Clubs with polished websites and clubs with no digital presence at all coexist
-as equals — same structure, same discoverability, same weight in search. A club that uses
-every feature and a club that fills in the basics and links to their own site are treated
-identically. The platform never penalizes a club for using less.
+The directory is inclusive by design. Every club gets the same single-page profile. Clubs with
+polished websites and clubs with no digital presence at all coexist as equals — same
+structure, same discoverability, same weight in search. The platform never penalizes a club
+for having less content.
 
-For clubs that need a website, the platform provides one — but the differentiator is not the
-website. It's being the single place where anyone, anywhere, can search "what can I join near
-me?" and get an answer. Every product decision traces back to that root: make social
-activities findable, and make joining frictionless.
+The differentiator is not the club page. It's being the single place where anyone, anywhere,
+can search "what can I join near me?" and get an answer. Every product decision traces back
+to that root: make social activities findable, and make joining frictionless.
 
 ## Project Classification
 
@@ -93,10 +103,11 @@ activities findable, and make joining frictionless.
 
 ### User Success
 
-- A Club Admin completes their initial site setup — pages, content, static elements — without
-  external technical help or documentation
-- Clubs with existing websites complete their site setup — including external website link —
-  without external help
+- A Club Admin completes their club profile — description, schedule, contact info, photos —
+  without external technical help or documentation (profile fields pre-populated from
+  application)
+- Clubs with existing websites complete their profile setup — including external website
+  link — without external help
 - Club Admins experience zero ongoing maintenance burden for design, infrastructure, or
   technical upkeep; the platform absorbs it entirely
 - Clubs receive measurable real-world benefit within the first weeks of going live: contact
@@ -105,8 +116,8 @@ activities findable, and make joining frictionless.
   first search session
 - Club Admins feel pride in being listed on the platform — it signals belonging to a curated
   community of social activity groups
-- No admin ever encounters a destructive or irreversible action by accident; the editing
-  interface prevents technical error states entirely
+- No admin ever encounters a destructive or irreversible action by accident; the admin
+  dashboard prevents technical error states entirely
 
 ### Business Success
 
@@ -131,7 +142,7 @@ activities findable, and make joining frictionless.
   required
 - Template migrations are silent and zero-downtime; clubs are never notified of upgrades,
   sites simply improve
-- Explicit save with N-version history and rollback — no admin ever loses work
+- Explicit save with unsaved-changes protection — no admin ever loses work
 
 ### Measurable Outcomes
 
@@ -160,37 +171,44 @@ outdated fees, a dead email address, and a photo of the old committee. Every yea
 to "fix the website." Every year, she doesn't.
 
 A friend who runs a football club sends her a message: *"You need to see this. We got our
-site live in one afternoon."* Marie clicks the link, reads the philosophy on the platform
-homepage. She recognizes herself in it immediately. She fills out the Apply form — two fields
-and a short description of the club. Two days later she receives a personal email: her club
-has been accepted.
+club listed in one afternoon."* Marie clicks the link, reads the philosophy on the platform
+homepage. She recognizes herself in it immediately. She fills out the Apply form — club name,
+a description of what the club does, their weekly schedule ("Saturdays 9h-12h, Piste de
+Thyon"), how to join ("Send us a message on WhatsApp or email"), and contact details (email,
+phone). She writes it all in plain French. Two days later she receives a personal email: her
+club has been accepted. The approval email includes a note from the operator — "Your
+description looks great, consider adding your website URL if you have one."
 
-She clicks the login link in the email. She's taken directly to her club's new site — already
-structured, already her subdomain — in edit mode. She types the club name. She uploads the
-logo from her phone. She writes a welcome paragraph in plain French. She creates a Calendar
-page and adds the upcoming ski weekend in Verbier. She saves. She visits the public view. It
-looks exactly like a real website. She screenshots the directory page showing *Ski Club
-Valais* and sends it to the WhatsApp group.
+She clicks the login link in the email. She's taken to her club's admin dashboard. Her
+profile is already populated with everything she typed in the application — name, description,
+schedule, contact info. She uploads a few photos: one of the club house, one of a group ski
+day, one of the kids' training session. She hits Save. She clicks "View public page." It
+looks like a real page — clean, with her photos flowing in a carousel. She screenshots it and
+sends it to the WhatsApp group.
 
-Three weeks later, a family from the village contacts the club through the contact form —
-they want to enroll their two kids. The email arrives in Marie's inbox. She hits reply.
-That's it.
+Three weeks later, a family from the village calls the phone number listed on the club
+page — they want to enroll their two kids. Marie didn't have to do anything. The info was
+just there.
 
 Six months later, someone at the club AGM asks "who manages the website?" Marie realizes she
 hasn't thought about it once since that afternoon.
 
 **Edge case — admin hits a genuine wall:** All basic constraints (file size limits, image
 dimensions, accepted formats) are displayed inline, contextually, before or at the moment
-they're relevant. Marie never has to guess what's allowed. But one day she encounters
-something the UI can't resolve: custom domain DNS propagation isn't completing as expected.
-She finds a "Contact Support" link on the platform site, submits a short form with her club
-name and the issue. Within 24 hours she receives a direct reply from the founder. Resolved.
-The low volume of support requests like this is itself a product quality signal.
+they're relevant. Marie never has to guess what's allowed. She finds a "Contact Support"
+link on the platform site, submits a short form with her club name and the issue. Within
+24 hours she receives a direct reply from the founder. Resolved.
 
-**This journey reveals requirements for:** application flow, subdomain provisioning, in-page
-edit mode, static homepage elements, calendar element, contact form with reply-to email relay,
-explicit save with version history, public site view, directory listing, inline constraint
-display, support contact form.
+**Edge case — operator requests changes on a live club:** Six months in, the operator
+notices Marie's club description has become outdated — it still references last season's
+schedule. The operator sends a message through the platform: "Hi Marie, your schedule still
+shows last season's times — could you update it?" Marie sees the message as a banner in her
+admin dashboard and in her email. She updates the schedule field and saves. Done.
+
+**This journey reveals requirements for:** application form with profile fields, operator
+review with change request, admin dashboard with pre-populated profile, photo upload,
+explicit save, public single-page club view, directory listing, inline constraint display,
+operator message system, support contact form.
 
 ---
 
@@ -229,23 +247,32 @@ community dinners for a diaspora community in Bern. They have no website. Their 
 presence is a Facebook page updated sporadically.
 
 Ahmed discovers the platform through a friend's recommendation. He reads the philosophy. He
-opens the Apply page, fills in the association's name, activity type, a short description,
-and indicates they do not have an existing website. He submits. He goes back to his day.
+opens the Apply page. The form asks for: association name, activity type, a description of
+what the association does, their schedule or availability ("concerts monthly, language
+exchange every Wednesday 18h-20h"), how to join ("come to any Wednesday session or email us"),
+and contact details (email, phone, address). He fills it all in. He submits.
 
-Forty-eight hours later he receives an email. He's been accepted. The email contains his
-subdomain — already live — and a login link. He clicks it, arrives at his new site in edit
-mode. He spends an hour setting it up. By the end of the day, the association has a public
-website for the first time in 8 years.
+Forty-eight hours later he receives an email. He's been accepted. The email contains a login
+link. He clicks it, arrives at his admin dashboard. Everything he typed in the application is
+already there. He uploads a few photos — one of a concert night, one of the language exchange
+group. He hits save, publishes the page, and shares the link on the Facebook group. By the
+end of the day, the association has a public presence for the first time in 8 years.
 
 **Edge case — rejection:** A user applies claiming to represent a "digital marketing
 collective." The operator reviews the application — it doesn't fit the association niche.
 A short email explains that the platform is specifically for clubs and groups focused on
-social activities, and that this application doesn't match that profile. The curation
-was visible in the product — they knew what they were applying to.
+social activities, and that this application doesn't match that profile.
 
-**This journey reveals requirements for:** Apply page with form (including existing website
-URL field), manual operator review queue, acceptance email with login link and subdomain,
-rejection email with explanation, immediate subdomain provisioning on acceptance.
+**Edge case — change request during application:** An applicant submits a club with a
+one-word description. The operator approves the club but includes a message in the approval
+email: "Your description is very brief — could you add more about what activities you offer
+and when?" The message also appears as a banner in the admin dashboard when the admin first
+logs in.
+
+**This journey reveals requirements for:** Apply page with profile fields (description,
+schedule, contact, how to join), manual operator review queue, acceptance email with login
+link and optional operator message, rejection email with explanation, operator message
+system unified across application and post-live phases.
 
 ---
 
@@ -258,21 +285,19 @@ But the club struggles with discoverability: new residents in Geneva don't know 
 unless someone tells them.
 
 Léa discovers the platform through a colleague whose hiking club is listed. She applies,
-providing the club name, activity type, description, and their existing website URL. Two days
-later, the club is accepted.
+providing the club name, activity type, description, schedule, how to join, contact details,
+and their existing website URL. Two days later, the club is accepted.
 
-Léa logs in and sets up her club's site: she uploads the logo, writes a short description of
-the club's philosophy, adds the location and a "how to join" section. She configures the
-external website link pointing to their main site. She could add a calendar, gallery, or
-custom pages — the full capabilities are available — but she doesn't need them. Her site is
-live in 15 minutes.
+Léa logs in. Her profile is already filled in from the application. She uploads a few photos
+of training sessions. She publishes. Her club page shows all the essentials plus a prominent
+link to their main website. Done in 10 minutes.
 
 Three months later, the club president mentions that two new members found them through the
-platform directory. Léa hasn't thought about the site since she set it up. It just works.
+platform directory. Léa hasn't thought about the platform since she set it up. It just works.
 
-**This journey reveals requirements for:** application form with existing website URL field,
-external website link feature on club site, same capabilities available to all clubs
-regardless of whether they have an existing website.
+**This journey reveals requirements for:** application form with profile fields including
+existing website URL, external website link on club page, same single-page profile for all
+clubs regardless of whether they have an existing website.
 
 ---
 
@@ -283,27 +308,33 @@ regardless of whether they have an existing website.
 It's a Tuesday morning. The operator logs into the platform admin dashboard.
 
 There's one new application — a brass band association from canton Fribourg. The operator
-reads the description, checks the activity type, confirms it fits the niche. One click:
-approved. The subdomain is provisioned automatically. An acceptance email goes out.
+reads the submitted profile — name, description, schedule, contact details, how to join. The
+content is thorough and well-written. One click: approved. The subdomain is provisioned
+automatically. An acceptance email goes out.
+
+Another application — a yoga group in Basel. The description is just "yoga classes." The
+operator approves but includes a message: "Could you add more detail about your schedule,
+location, and what makes your group unique? This helps visitors decide to join." The message
+goes in the approval email and will appear as a banner in the admin's dashboard.
 
 The operator scans the metrics panel: 24 clubs now live. Platform uptime: 100% for the last
-30 days. All club sites returning Lighthouse scores ≥ 90. Storage usage is well within
-bounds.
+30 days. Storage usage is well within bounds.
 
-One flag: a club site in Geneva has a broken image in its Gallery element. The
-operator notes it and sends a brief nudge to the club admin to review their Gallery page.
+One issue: a club in Geneva has updated their description with promotional content for a
+commercial service — this doesn't fit the platform's purpose. The operator sends a message
+requesting changes and forces the club page offline until the content is fixed. The club
+admin cannot republish until the operator lifts the override.
 
-The support queue has one ticket: a club admin asking how to update their profile
-description. The operator replies directly. The low ticket volume confirms the interface is
-working as intended — admins aren't confused by basic constraints because those are displayed
-inline.
+The support queue has one ticket: a club admin asking how to update their profile photos.
+The operator replies directly. The low ticket volume confirms the interface is working as
+intended.
 
 The operator closes the tab and goes back to building the next feature.
 
-**This journey reveals requirements for:** platform admin dashboard (application queue,
-approval/rejection, metrics — clubs live by type, uptime, Lighthouse scores, storage),
-automated subdomain provisioning on approval, templated acceptance/rejection emails, site
-health monitoring, operator nudge mechanism, support ticket inbox.
+**This journey reveals requirements for:** platform admin dashboard (application queue with
+profile content review, approval/rejection, metrics), automated subdomain provisioning on
+approval, acceptance/rejection emails, unified operator message system, club page visibility
+control (admin publish + operator force-offline override), support ticket inbox.
 
 ---
 
@@ -439,9 +470,9 @@ different requirements, handled by a single framework supporting hybrid renderin
 
 | Surface | Rendering | Rationale |
 |---|---|---|
-| Club site — home page | Server-rendered (MPA) | SEO-critical — contains name, logo, welcome text, structured data |
-| Club site — inner pages (navbar tabs) | SPA-style | Client-side navigation, content fetched from backend, loading skeleton while fetching |
-| Club site — admin dashboard | SPA-style | Standard shadcn dashboard with sidebar navigation; edit forms for each page/section |
+| Club profile page (single page) | Server-rendered (MPA) | SEO-critical — contains name, description, photos, schedule, contact, structured data |
+| Club site — inner pages (navbar tabs) | ~~Deferred to post-MVP~~ SPA-style | Client-side navigation for multi-page sites (post-MVP) |
+| Club admin dashboard | SPA-style | Standard shadcn dashboard with sidebar navigation; profile edit form |
 | Platform site (directory, apply, home, about, support) | Server-rendered (MPA) | SEO-critical — directory is the primary product surface, must be indexed |
 | Platform admin dashboard | SPA-style | Internal tool, no SEO requirement, needs rich interactivity |
 
@@ -504,41 +535,55 @@ correctness over speed.
 Club webapp and platform site are built in parallel thereafter — they share the same
 database.
 
-**Page Limit:** 5 pages maximum per club site in v1. This constraint is enforced in code
-and configurable from the platform admin dashboard — adjustable without a deployment.
+**Single-Page Profile:** MVP club presence is a single, fixed-layout page — not a multi-page
+site. The underlying architecture (Page model, content storage) supports future expansion to
+multi-page sites, but the application layer enforces a single profile page for MVP.
 
 ### MVP Feature Set (Phase 1)
 
 **Core User Journeys Supported:**
-- Club Admin — setup and ongoing content management (full hosted site, happy path + edge cases)
-- Public Visitor — discovery via platform directory and club site browsing
-- Club Applicant — application (with optional existing website URL), manual review,
-  acceptance/rejection, subdomain provisioning
-- Platform Operator — dashboard, application queue, site health, support queue
+- Club Admin — apply with profile content, complete account setup, upload photos, publish
+- Public Visitor — discovery via platform directory and single-page club profile
+- Club Applicant — application with profile fields (description, schedule, contact, how to
+  join), manual review with optional change request, acceptance/rejection
+- Platform Operator — dashboard, application queue with content review, club moderation
+  (message, force offline), support queue
 
 **Must-Have Capabilities:**
 
-*Club Webapp:*
-- Static homepage elements: club name, logo, welcome text (server-rendered, SEO-optimized)
-- Anchor pages (non-removable): Home, Contact with composable sub-blocks (form + reply-to
-  relay, map, phone, email, predefined subjects)
-- Opt-in custom pages via auto-generated navbar, 1 level of sub-pages, maximum 5 pages
-  total (configurable)
-- V1 element library — page-level: Calendar, Image/Video Gallery, Documents library;
-  building: Rich text, inline image
-- Hybrid MPA/SPA rendering: home page server-rendered, inner pages SPA-style with loading
-  skeletons
-- Admin dashboard: standard shadcn dashboard layout (sidebar + content area) at a dedicated
-  admin route; edit forms for each page/section; explicit save, N-version history, defensive
-  UX, inline constraint display
-- Per-club accent color picker: 8 curated presets (Zinc, Blue, Green, Red, Violet, Orange,
-  Rose, Yellow) applied via OKLCH CSS token
-- Single admin account per club; login entry from platform site
-- Subdomain provisioning (immediate on approval)
-- Optional external website link (for clubs with their own site)
+*Club Profile (single page):*
+- Fixed-layout single page: club name, logo, description, photo carousel (5-10 images,
+  auto-scrolling, pause on hover), schedule/availability (free text), contact info (email,
+  phone, address, optional website link), "how to join" (free text)
+- Server-rendered for SEO (meta tags, Open Graph, JSON-LD, structured data)
 - Platform attribution link in footer
-- Full mobile/desktop parity including admin mode
+- Full mobile/desktop parity
+
+*Application Form:*
+- Collects club profile fields directly: name, activity type, description, schedule, contact
+  info, how to join, optional existing website URL
+- No photo upload at application time (prevents storage abuse — photos added after approval)
+- Application content seeds the club profile — no duplicate data entry after approval
+
+*Club Admin Dashboard:*
+- Standard shadcn dashboard layout (sidebar + content area) at dedicated admin route
+- Simplified sidebar: Club Profile, Settings
+- Club profile edit form: all profile fields pre-populated from application, plus photo
+  upload (5-10 images via presigned URL to R2/MinIO)
+- Explicit save with unsaved-changes protection (amber dot, beforeunload guard, discard
+  confirmation)
+- Publish/unpublish toggle: club page offline by default after approval, admin publishes
+  when ready
+- Operator message banner: displays unread messages from platform operator
+- Inline constraint display (file size, format, field length)
+- Single admin account per club; login entry from platform site
 - WCAG 2.1 AA accessibility (best-effort AAA)
+
+*Club Page Visibility:*
+- Two-flag system: admin `isPublished` (admin-controlled) + operator `forceOffline` override
+- Page visible only when `isPublished = true` AND `forceOffline = false`
+- Operator force-offline locks admin out of publishing until operator lifts override
+- Club page offline by default after approval
 
 *Platform Site:*
 - Home (philosophy + apply CTA), Directory (filterable by country, activity type, and
@@ -547,25 +592,33 @@ and configurable from the platform admin dashboard — adjustable without a depl
 - Directory is the primary product surface — the homepage
 
 *Platform Admin Dashboard:*
-- Application queue (approve/reject with templated emails)
-- Club management (metrics, storage, site health monitoring)
-- Configurable platform variables (page limit per club, etc.)
+- Application queue: review submitted profile content, approve/reject
+- Approve with optional operator message (bundled in approval email + stored in DB)
+- Club moderation: send operator message, request changes, force club page offline/online
+- Unified operator message system: same model for application feedback and post-live
+  moderation; messages appear in club admin dashboard and are sent via email
+- Club management (metrics, storage)
+- Configurable platform variables
 - Support ticket inbox
 
 *Platform-wide:*
-- Automatic SEO on all club sites (meta tags, Open Graph, JSON-LD, sitemap)
+- Automatic SEO on all club pages (meta tags, Open Graph, JSON-LD, sitemap)
 - GDPR/nDSG dual compliance, cookie consent, DPAs with sub-processors
 - Data export right available to every club
 - Template versioning with silent zero-downtime migration
-- Color token architecture (single scheme, variable-ready)
 - Hosting on Swiss or EU infrastructure
 
 ### Post-MVP Features (Phase 2 — Growth)
 
+- Multi-page club site builder: page management, custom pages, sub-pages, navigation
+  configuration (architecture already supports this — MVP enforces single page)
+- Content element library: rich text, calendar/events, image/video gallery, documents library
+- Contact page with composable sub-blocks (form + reply-to email relay, map, phone, email)
+- Per-club accent color picker (8 curated presets)
+- Version history and content restore
 - Custom domain support for hosted club sites
 - Role-based multi-user access per club
 - Member management
-- Calendar event sub-page detail design
 - Federation / umbrella organization partnerships
 - Community roadmap page (block requests, feature visibility)
 - Open-source template (post security review)
@@ -585,52 +638,64 @@ and configurable from the platform admin dashboard — adjustable without a depl
 |---|---|
 | Clubs with existing websites see no value in joining | Directory discoverability is the value proposition — same capabilities, minimal effort to set up |
 | Directory too sparse to be useful at launch | Personal network launch builds directory density; density accelerates organic discovery |
-| Contact form or email relay failure | Robust email relay with delivery monitoring; operator alerts on failure |
-| Silent template migration breaks club content | Schema designed for content preservation from day one; N-version history enables rollback |
-| 5-page limit frustrates clubs with complex structures | Limit is configurable from admin dashboard — adjustable without a deployment when evidence warrants |
+| ~~Deferred~~ Contact form or email relay failure | Robust email relay with delivery monitoring; operator alerts on failure (post-MVP) |
+| Silent template migration breaks club content | Schema designed for content preservation from day one |
+| Single-page profile too limiting for some clubs | Architecture supports multi-page expansion post-MVP; single page validates the core directory model first |
 | Donation model insufficient for sustainability | Minimal infrastructure costs; civic grants supplement donations; paid storage tier considered as future option |
 
 ## Functional Requirements
 
-### Club Site Configuration & Navigation
+### Club Profile & Admin Dashboard
 
-- **FR1:** Club Admin can configure their site's core identity elements (name, logo, welcome text)
-- **FR2:** Club Admin can access a dedicated admin dashboard to manage their club site content, with a link to preview the public view
-- **FR3:** Club Admin can activate and deactivate optional pages in their site's navigation
-- **FR4:** Club Admin can create custom pages with user-defined navigation labels
-- **FR5:** Club Admin can configure one level of sub-pages within their site's navigation
-- **FR6:** System prevents Club Admin from removing anchor pages (Home and Contact)
-- **FR7:** System enforces a configurable maximum page count per club site
+- **FR1:** Club Admin can configure their club's profile: name, logo, description, schedule/availability (free text), contact info (email, phone, address), "how to join" (free text), optional external website link
+- **FR2:** Club Admin can access a dedicated admin dashboard to manage their club profile, with a link to preview the public page
+- **FR3:** ~~Deferred to post-MVP~~ Club Admin can activate and deactivate optional pages in their site's navigation
+- **FR4:** ~~Deferred to post-MVP~~ Club Admin can create custom pages with user-defined navigation labels
+- **FR5:** ~~Deferred to post-MVP~~ Club Admin can configure one level of sub-pages within their site's navigation
+- **FR6:** ~~Deferred to post-MVP~~ System prevents Club Admin from removing anchor pages (Home and Contact)
+- **FR7:** ~~Deferred to post-MVP~~ System enforces a configurable maximum page count per club site
 - **FR8:** ~~Deferred to post-MVP~~ Club Admin can set up and manage a custom domain for their site
 - **FR9:** System provisions a subdomain for each approved club immediately upon acceptance
-- **FR47:** Club Admin can configure an external website link on their club site that directs visitors to the club's own website
+- **FR47:** Club Admin can configure an external website link on their club profile that directs visitors to the club's own website
+- **FR48:** Club Admin can upload 5-10 photos displayed as an auto-scrolling carousel on the public club page (pause on hover); photos uploaded via presigned URL to object storage
+- **FR49:** Club Admin can publish or unpublish their club page (offline by default after approval)
+
+### Club Page Visibility & Moderation
+
+- **FR51:** System uses a two-flag visibility model: admin-controlled `isPublished` and operator-controlled `forceOffline`; club page is visible only when `isPublished = true` AND `forceOffline = false`
+- **FR52:** Platform Operator can force a club page offline; when forced offline, the Club Admin cannot republish until the operator lifts the override
+- **FR53:** Platform Operator can lift a force-offline override, restoring the Club Admin's ability to publish
+- **FR54:** Platform Operator can send an operator message to any club (free text); messages are stored in the database and sent via email
+- **FR55:** Operator messages appear as a persistent banner in the Club Admin dashboard until read/acknowledged
+- **FR56:** Operator messages use a single unified model regardless of context (application review or post-live moderation)
+- **FR57:** When approving an application with an operator message, the message is bundled into the approval email (not sent as a separate email)
 
 ### Content Editing & Element Library
 
-- **FR10:** Club Admin can add, configure, and remove elements on custom pages using a visual element picker
-- **FR11:** Club Admin can configure Contact page sub-blocks (contact form, map, phone number, email address, predefined message subjects) independently
-- **FR12:** Club Admin can create, edit, and delete calendar events on a Calendar page
-- **FR13:** Club Admin can upload and manage images and videos in a Gallery page
-- **FR14:** Club Admin can upload and manage documents and PDFs in a Documents library page
-- **FR15:** Club Admin can add and edit rich text content on custom pages
-- **FR16:** Club Admin can add and edit inline images on custom pages
-- **FR17:** Club Admin can explicitly save changes to their site
-- **FR18:** Club Admin can view their site's version history and restore a previous version
+- **FR10:** ~~Deferred to post-MVP~~ Club Admin can add, configure, and remove elements on custom pages using a visual element picker
+- **FR11:** ~~Deferred to post-MVP~~ Club Admin can configure Contact page sub-blocks (contact form, map, phone number, email address, predefined message subjects) independently
+- **FR12:** ~~Deferred to post-MVP~~ Club Admin can create, edit, and delete calendar events on a Calendar page
+- **FR13:** ~~Deferred to post-MVP~~ Club Admin can upload and manage images and videos in a Gallery page
+- **FR14:** ~~Deferred to post-MVP~~ Club Admin can upload and manage documents and PDFs in a Documents library page
+- **FR15:** ~~Deferred to post-MVP~~ Club Admin can add and edit rich text content on custom pages
+- **FR16:** ~~Deferred to post-MVP~~ Club Admin can add and edit inline images on custom pages
+- **FR17:** Club Admin can explicitly save changes to their club profile
+- **FR18:** ~~Deferred to post-MVP~~ Club Admin can view their site's version history and restore a previous version
 - **FR19:** System displays file constraints (size limits, accepted formats) inline at the point of upload
 
 ### Public Discovery & Contact
 
 - **FR20:** Public Visitor can browse a directory of all member associations on the platform site
 - **FR21:** Public Visitor can filter the directory by country, activity type, and location
-- **FR22:** Public Visitor can view any club's public website without authentication
-- **FR23:** Public Visitor can submit a contact message through a club's contact form
-- **FR24:** System delivers contact form submissions to the club's registered email address with reply-to set to the sender's address
-- **FR25:** Public Visitor can navigate from any club site to the platform directory via a footer link
-- **FR26:** System displays a platform attribution link in the footer of every hosted club site
+- **FR22:** Public Visitor can view any club's public page without authentication
+- **FR23:** ~~Deferred to post-MVP~~ Public Visitor can submit a contact message through a club's contact form
+- **FR24:** ~~Deferred to post-MVP~~ System delivers contact form submissions to the club's registered email address with reply-to set to the sender's address
+- **FR25:** Public Visitor can navigate from any club page to the platform directory via a footer link
+- **FR26:** System displays a platform attribution link in the footer of every club page
 
 ### Application & Access
 
-- **FR27:** Club Applicant can submit an application to join the platform providing association name, activity type, description, and optionally their existing website URL
+- **FR27:** Club Applicant can submit an application providing association name, activity type, description, schedule/availability, contact info (email, phone, address), "how to join" instructions, and optionally their existing website URL — these fields seed the club profile upon approval (no photo upload at application time)
 - **FR28:** Club Admin can authenticate and access their site's edit mode via the platform site login
 - **FR29:** Platform Operator can authenticate via a dedicated platform-level admin interface separate from club sites
 - **FR30:** Club Admin can submit a support request to the platform team from the platform site
@@ -638,11 +703,11 @@ and configurable from the platform admin dashboard — adjustable without a depl
 ### Platform Operations
 
 - **FR31:** Platform Operator can view and manage a queue of pending club applications
-- **FR32:** Platform Operator can approve an application, triggering automatic subdomain provisioning and an acceptance email to the applicant
+- **FR32:** Platform Operator can approve an application with an optional operator message (bundled in acceptance email), triggering automatic subdomain provisioning
 - **FR33:** Platform Operator can reject an application with an explanatory email to the applicant
 - **FR34:** Platform Operator can view platform-wide metrics (clubs live, uptime, performance scores, storage)
 - **FR35:** Platform Operator can monitor site health status across all hosted club sites
-- **FR36:** Platform Operator can send a notification to a club admin regarding a detected site issue
+- **FR36:** Platform Operator can send an operator message to any club admin (see FR54-FR57 for unified message system)
 - **FR37:** Platform Operator can view and respond to club admin support requests
 - **FR38:** Platform Operator can configure platform-wide operational variables including the per-club page limit
 - **FR39:** System applies template version updates to all club sites automatically without downtime or any action required from club admins
@@ -653,9 +718,9 @@ and configurable from the platform admin dashboard — adjustable without a depl
 - **FR41:** Club Admin can request deletion of their club's data from the platform
 - **FR42:** System presents a cookie consent mechanism to users on the platform site and on club sites where applicable
 - **FR43:** System automatically generates and maintains SEO metadata for all club site pages without requiring any admin configuration
-- **FR44:** Club Admin can view stored contact form submissions received for their site
-- **FR45:** Platform Operator can view detailed per-club analytics (traffic, page views, edit events, login events, contact form submission counts)
-- **FR46:** Club Admin can select an accent color for their club site from a curated palette of 8 presets (Zinc, Blue, Green, Red, Violet, Orange, Rose, Yellow)
+- **FR44:** ~~Deferred to post-MVP~~ Club Admin can view stored contact form submissions received for their site
+- **FR45:** Platform Operator can view detailed per-club analytics (traffic, page views, edit events, login events)
+- **FR46:** ~~Deferred to post-MVP~~ Club Admin can select an accent color for their club site from a curated palette of 8 presets (Zinc, Blue, Green, Red, Violet, Orange, Rose, Yellow)
 
 ### Platform Funding
 
@@ -686,8 +751,8 @@ and configurable from the platform admin dashboard — adjustable without a depl
 
 - Platform uptime ≥ 99.9% measured monthly across all hosted club sites and the platform site
 - Template migrations complete with zero downtime — no club site goes offline or degrades during an upgrade
-- Email relay delivery is monitored; failures trigger an operator alert within 15 minutes of failure detection
-- Version history restore completes within 30 seconds of a Club Admin initiating a rollback
+- ~~Deferred to post-MVP~~ Email relay delivery is monitored; failures trigger an operator alert within 15 minutes of failure detection
+- ~~Deferred to post-MVP~~ Version history restore completes within 30 seconds of a Club Admin initiating a rollback
 
 ### Scalability
 
