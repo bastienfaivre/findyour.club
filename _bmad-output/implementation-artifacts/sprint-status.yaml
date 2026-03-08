@@ -84,7 +84,7 @@ development_status:
   4-6-club-profile-edit-form-photo-upload: done
   4-7-publish-unpublish-operator-message-banner: done
   4-8-club-profile-page-public-rendering: done
-  4-9-operator-club-moderation: backlog
+  4-9-operator-club-moderation: done
   epic-4-retrospective: optional
 
   # ─── Epic 5: Club Content Elements (entire epic deferred to post-MVP) ───

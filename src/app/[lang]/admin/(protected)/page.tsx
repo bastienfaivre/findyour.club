@@ -14,12 +14,18 @@ export default async function AdminDashboardPage({ params }: AdminDashboardPageP
     <main className="p-8">
       <h1 className="text-2xl font-semibold">{t.admin.dashboardTitle}</h1>
       <p className="mt-4 text-sm text-muted-foreground">Full implementation in Epic 7.</p>
-      <nav className="mt-6">
+      <nav className="mt-6 flex gap-6">
         <Link
           href={`/${lang}/admin/applications`}
           className="text-sm font-medium underline underline-offset-4 hover:text-primary"
         >
           {t.admin.applications.title}
+        </Link>
+        <Link
+          href={`/${lang}/admin/clubs`}
+          className="text-sm font-medium underline underline-offset-4 hover:text-primary"
+        >
+          {t.admin.clubs.title}
         </Link>
       </nav>
     </main>

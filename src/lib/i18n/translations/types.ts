@@ -145,6 +145,40 @@ export type Translations = {
         emailFailed: string
       }
     }
+    clubs: {
+      title: string
+      clubModeration: string
+      sendMessage: string
+      forceOffline: string
+      liftOffline: string
+      messageRequired: string
+      reasonRequired: string
+      messageSent: string
+      clubForcedOffline: string
+      offlineLifted: string
+      published: string
+      draft: string
+      moderatedOffline: string
+      viewClub: string
+      recentMessages: string
+      noMessages: string
+      read: string
+      unread: string
+      messagePlaceholder: string
+      reasonPlaceholder: string
+      /** Use {clubName} as placeholder */
+      sendMessageDescription: string
+      /** Use {clubName} as placeholder */
+      liftOfflineDescription: string
+      noClubs: string
+      name: string
+      country: string
+      status: string
+      photos: string
+      actions: string
+      /** Use {count} as placeholder */
+      photoCount: string
+    }
   }
   apply: {
     title: string

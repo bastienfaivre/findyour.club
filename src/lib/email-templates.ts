@@ -89,6 +89,73 @@ export function buildRejectionEmailHtml({ clubName, rejectionReason }: Rejection
 </html>`
 }
 
+interface OperatorMessageEmailParams {
+  clubName: string
+  message: string
+}
+
+export function buildOperatorMessageEmailHtml({ clubName, message }: OperatorMessageEmailParams): string {
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background-color:#f4f4f5;color:#18181b;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 20px;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;padding:40px;">
+        <tr><td>
+          <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Message from the platform</h1>
+          <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#3f3f46;">
+            The following message concerns your club <strong>${escapeHtml(clubName)}</strong>:
+          </p>
+          <div style="background:#f8f9fa;border-left:4px solid #2563eb;padding:16px;margin:24px 0;">
+            <p style="margin:0;font-size:15px;line-height:1.6;color:#3f3f46;">${escapeHtml(message)}</p>
+          </div>
+          <p style="margin:0;font-size:13px;color:#71717a;line-height:1.5;">
+            Best regards,<br>The Platform Team
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+}
+
+interface ForceOfflineEmailParams {
+  clubName: string
+  reason: string
+}
+
+export function buildForceOfflineEmailHtml({ clubName, reason }: ForceOfflineEmailParams): string {
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background-color:#f4f4f5;color:#18181b;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 20px;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;padding:40px;">
+        <tr><td>
+          <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Your club page has been taken offline</h1>
+          <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#3f3f46;">
+            Your club page for <strong>${escapeHtml(clubName)}</strong> has been taken offline by the platform team for the following reason:
+          </p>
+          <div style="background:#f8f9fa;border-left:4px solid #2563eb;padding:16px;margin:24px 0;">
+            <p style="margin:0;font-size:15px;line-height:1.6;color:#3f3f46;">${escapeHtml(reason)}</p>
+          </div>
+          <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#3f3f46;">
+            Your page will remain offline until the issue is resolved. Please review the reason above and make any necessary changes. Once the issue is addressed, the platform team will restore your page.
+          </p>
+          <p style="margin:0;font-size:13px;color:#71717a;line-height:1.5;">
+            Best regards,<br>The Platform Team
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+}
+
 export function escapeHtml(str: string): string {
   return str
     .replace(/&/g, '&amp;')
