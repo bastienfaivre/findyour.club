@@ -53,6 +53,10 @@ vi.mock('lucide-react', () => ({
   ExternalLink: vi.fn(() => ({ type: 'ExternalLinkIcon', props: {}, key: null })),
 }))
 
+vi.mock('@/components/app/club-admin/AdminDirtyContext', () => ({
+  useAdminDirty: vi.fn(() => ({ isDirty: false, setIsDirty: vi.fn() })),
+}))
+
 vi.mock('react', async () => {
   const actual = await vi.importActual('react')
   return {
@@ -99,6 +103,19 @@ const defaultTranslations = {
   },
   clubProfile: { title: 'Club Profile', placeholder: 'Profile editing coming soon.' },
   settings: { title: 'Settings', placeholder: 'Settings coming soon.' },
+  save: {
+    save: 'Save',
+    discard: 'Discard',
+    unsavedChanges: 'Unsaved changes',
+    savedSuccessfully: 'Saved',
+    discardConfirmTitle: 'Discard changes?',
+    discardConfirmDescription: 'All unsaved changes will be lost.',
+    leaveConfirmTitle: 'Unsaved changes',
+    leaveConfirmDescription: 'You have unsaved changes that will be lost.',
+    stay: 'Stay',
+    leave: 'Leave',
+    keepEditing: 'Keep editing',
+  },
   navigation: 'Admin navigation',
   openMenu: 'Open menu',
   skipToContent: 'Skip to main content',
@@ -215,5 +232,34 @@ describe('AdminSidebar', () => {
       return el.type === 'nav' && el.props?.['aria-label'] === 'Admin navigation'
     })
     expect(navs.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('shows amber dot on active nav item when isDirty is true', async () => {
+    const { useAdminDirty } = await import('@/components/app/club-admin/AdminDirtyContext')
+    vi.mocked(useAdminDirty).mockReturnValue({ isDirty: true, setIsDirty: vi.fn() })
+
+    const { AdminSidebar } = await import('@/components/app/club-admin/AdminSidebar')
+    const result = AdminSidebar(defaultProps)
+
+    const amberDots = findInTree(result, (n) => {
+      const el = n as AnyElement
+      return typeof el.props?.className === 'string' && el.props.className.includes('bg-amber-500')
+    })
+    // Should have amber dots (at least in mobile and desktop views)
+    expect(amberDots.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('does NOT show amber dot when isDirty is false', async () => {
+    const { useAdminDirty } = await import('@/components/app/club-admin/AdminDirtyContext')
+    vi.mocked(useAdminDirty).mockReturnValue({ isDirty: false, setIsDirty: vi.fn() })
+
+    const { AdminSidebar } = await import('@/components/app/club-admin/AdminSidebar')
+    const result = AdminSidebar(defaultProps)
+
+    const amberDots = findInTree(result, (n) => {
+      const el = n as AnyElement
+      return typeof el.props?.className === 'string' && el.props.className.includes('bg-amber-500')
+    })
+    expect(amberDots.length).toBe(0)
   })
 })

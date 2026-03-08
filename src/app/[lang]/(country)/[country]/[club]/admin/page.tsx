@@ -1,19 +1,21 @@
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
+import { ClubProfileForm } from '@/components/app/club-admin/ClubProfileForm'
 
 interface AdminPageProps {
-  params: Promise<{ lang: string }>
+  params: Promise<{ lang: string; country: string; club: string }>
 }
 
 export default async function AdminPage({ params }: AdminPageProps) {
-  const { lang } = await params
+  const { lang, country, club: slug } = await params
   const uiLang = resolveUILang(lang)
   const t = getTranslations(uiLang)
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">{t.club.admin.clubProfile.title}</h1>
-      <p className="mt-2 text-muted-foreground">{t.club.admin.clubProfile.placeholder}</p>
-    </div>
+    <ClubProfileForm
+      country={country}
+      slug={slug}
+      translations={t.club.admin}
+    />
   )
 }

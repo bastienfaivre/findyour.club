@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Menu, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet'
+import { useAdminDirty } from './AdminDirtyContext'
 import type { Translations } from '@/lib/i18n/translations/types'
 
 export interface AdminSidebarProps {
@@ -47,6 +48,7 @@ export function AdminSidebar({
   translations: t,
 }: AdminSidebarProps) {
   const [open, setOpen] = useState(false)
+  const { isDirty } = useAdminDirty()
   const pathname = usePathname()
   const menuId = 'admin-sidebar-menu'
 
@@ -94,7 +96,12 @@ export function AdminSidebar({
                       aria-current={active ? 'page' : undefined}
                       className={linkClass(active)}
                     >
-                      {item.label}
+                      <span className="flex items-center gap-2">
+                        {item.label}
+                        {active && isDirty && (
+                          <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden="true" />
+                        )}
+                      </span>
                     </Link>
                   </SheetClose>
                 )
@@ -123,7 +130,12 @@ export function AdminSidebar({
                 aria-current={active ? 'page' : undefined}
                 className={linkClass(active)}
               >
-                {item.label}
+                <span className="flex items-center gap-2">
+                  {item.label}
+                  {active && isDirty && (
+                    <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden="true" />
+                  )}
+                </span>
               </Link>
             )
           })}
@@ -132,6 +144,7 @@ export function AdminSidebar({
           <FooterLink href={publicClubPath} label={t.sidebar.viewPublicPage} />
         </div>
       </aside>
+
     </>
   )
 }

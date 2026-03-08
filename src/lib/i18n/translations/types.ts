@@ -217,6 +217,19 @@ export type Translations = {
         title: string
         placeholder: string
       }
+      save: {
+        save: string
+        discard: string
+        unsavedChanges: string
+        savedSuccessfully: string
+        discardConfirmTitle: string
+        discardConfirmDescription: string
+        leaveConfirmTitle: string
+        leaveConfirmDescription: string
+        stay: string
+        leave: string
+        keepEditing: string
+      }
       navigation: string
       openMenu: string
       skipToContent: string

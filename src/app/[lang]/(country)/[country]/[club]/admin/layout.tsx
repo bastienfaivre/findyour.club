@@ -4,6 +4,7 @@ import { getClubBySlug, getClubActiveMembership } from '@/lib/server/club-querie
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { AdminSidebar } from '@/components/app/club-admin/AdminSidebar'
+import { AdminDirtyProvider } from '@/components/app/club-admin/AdminDirtyContext'
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -33,24 +34,26 @@ export default async function AdminLayout({ children, params }: AdminLayoutProps
   const publicClubPath = `/${lang}/${country}/${slug}`
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <div className="flex flex-1">
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[60] focus:rounded-md focus:px-4 focus:py-2 focus:bg-background focus:text-foreground focus:ring-2 focus:ring-ring"
-        >
-          {t.club.admin.skipToContent}
-        </a>
-        <AdminSidebar
-          clubName={club.name}
-          adminBasePath={adminBasePath}
-          publicClubPath={publicClubPath}
-          translations={t.club.admin}
-        />
-        <main id="main-content" className="flex-1 p-6 lg:p-8">
-          {children}
-        </main>
+    <AdminDirtyProvider>
+      <div className="flex min-h-screen flex-col">
+        <div className="flex flex-1">
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[60] focus:rounded-md focus:px-4 focus:py-2 focus:bg-background focus:text-foreground focus:ring-2 focus:ring-ring"
+          >
+            {t.club.admin.skipToContent}
+          </a>
+          <AdminSidebar
+            clubName={club.name}
+            adminBasePath={adminBasePath}
+            publicClubPath={publicClubPath}
+            translations={t.club.admin}
+          />
+          <main id="main-content" className="flex-1 p-6 lg:p-8">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </AdminDirtyProvider>
   )
 }
