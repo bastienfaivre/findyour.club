@@ -212,6 +212,56 @@ export type Translations = {
       clubProfile: {
         title: string
         placeholder: string
+        fields: {
+          name: string
+          description: string
+          schedule: string
+          howToJoin: string
+          contactEmail: string
+          contactPhone: string
+          contactAddress: string
+          externalWebsiteUrl: string
+        }
+        placeholders: {
+          name: string
+          description: string
+          schedule: string
+          howToJoin: string
+          contactPhone: string
+          contactAddress: string
+          externalWebsiteUrl: string
+        }
+        validation: {
+          nameRequired: string
+          descriptionMaxLength: string
+          scheduleMaxLength: string
+          howToJoinMaxLength: string
+          contactPhoneMaxLength: string
+          contactAddressMaxLength: string
+          externalWebsiteUrlInvalid: string
+        }
+        logo: {
+          title: string
+          change: string
+          remove: string
+          altLabel: string
+          altPlaceholder: string
+          altRequired: string
+          uploading: string
+          errorType: string
+          errorSize: string
+        }
+        photos: {
+          title: string
+          add: string
+          delete: string
+          deleteConfirm: string
+          maxReached: string
+          constraints: string
+          uploading: string
+          errorType: string
+          errorSize: string
+        }
       }
       settings: {
         title: string

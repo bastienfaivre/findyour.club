@@ -101,7 +101,15 @@ const defaultTranslations = {
     settings: 'Settings',
     viewPublicPage: 'View public page',
   },
-  clubProfile: { title: 'Club Profile', placeholder: 'Profile editing coming soon.' },
+  clubProfile: {
+    title: 'Club Profile',
+    placeholder: 'Profile editing coming soon.',
+    fields: { name: '', description: '', schedule: '', howToJoin: '', contactEmail: '', contactPhone: '', contactAddress: '', externalWebsiteUrl: '' },
+    placeholders: { name: '', description: '', schedule: '', howToJoin: '', contactPhone: '', contactAddress: '', externalWebsiteUrl: '' },
+    validation: { nameRequired: '', descriptionMaxLength: '', scheduleMaxLength: '', howToJoinMaxLength: '', contactPhoneMaxLength: '', contactAddressMaxLength: '', externalWebsiteUrlInvalid: '' },
+    logo: { title: '', change: '', remove: '', altLabel: '', altPlaceholder: '', altRequired: '', uploading: '', errorType: '', errorSize: '' },
+    photos: { title: '', add: '', delete: '', deleteConfirm: '', maxReached: '', constraints: '', uploading: '', errorType: '', errorSize: '' },
+  },
   settings: { title: 'Settings', placeholder: 'Settings coming soon.' },
   save: {
     save: 'Save',

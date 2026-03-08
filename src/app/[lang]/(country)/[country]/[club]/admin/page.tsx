@@ -1,5 +1,7 @@
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
+import { prisma } from '@/server/db'
+import { getClubBySlug } from '@/lib/server/club-queries'
 import { ClubProfileForm } from '@/components/app/club-admin/ClubProfileForm'
 
 interface AdminPageProps {
@@ -11,11 +13,54 @@ export default async function AdminPage({ params }: AdminPageProps) {
   const uiLang = resolveUILang(lang)
   const t = getTranslations(uiLang)
 
+  const clubRef = await getClubBySlug(slug, country)
+  if (!clubRef) return null
+
+  const club = await prisma.club.findUnique({
+    where: { id: clubRef.id },
+    select: {
+      name: true,
+      email: true,
+      description: true,
+      schedule: true,
+      howToJoin: true,
+      contactPhone: true,
+      contactAddress: true,
+      externalWebsiteUrl: true,
+      logoUrl: true,
+      logoAlt: true,
+      photos: {
+        orderBy: { position: 'asc' },
+        select: {
+          id: true,
+          url: true,
+          alt: true,
+          position: true,
+        },
+      },
+    },
+  })
+  if (!club) return null
+
   return (
     <ClubProfileForm
+      lang={lang}
       country={country}
       slug={slug}
       translations={t.club.admin}
+      initialData={{
+        name: club.name,
+        email: club.email,
+        description: club.description,
+        schedule: club.schedule,
+        howToJoin: club.howToJoin,
+        contactPhone: club.contactPhone,
+        contactAddress: club.contactAddress,
+        externalWebsiteUrl: club.externalWebsiteUrl,
+        logoUrl: club.logoUrl,
+        logoAlt: club.logoAlt,
+        photos: club.photos,
+      }}
     />
   )
 }

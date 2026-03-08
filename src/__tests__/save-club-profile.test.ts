@@ -13,6 +13,30 @@ vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
 }))
 
+vi.mock('@/server/db', () => ({
+  prisma: {
+    club: { update: vi.fn().mockResolvedValue({}) },
+  },
+}))
+
+vi.mock('@/lib/r2', () => ({
+  generateUploadUrl: vi.fn(),
+  deleteObject: vi.fn(),
+  getPublicUrl: vi.fn(),
+  ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp'],
+  MAX_IMAGE_SIZE_BYTES: 5242880,
+}))
+
+const validInput = {
+  name: 'Test',
+  description: null,
+  schedule: null,
+  howToJoin: null,
+  contactPhone: null,
+  contactAddress: null,
+  externalWebsiteUrl: null,
+}
+
 describe('saveClubProfile', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -26,7 +50,7 @@ describe('saveClubProfile', () => {
     const { saveClubProfile } = await import(
       '@/app/[lang]/(country)/[country]/[club]/admin/actions'
     )
-    const result = await saveClubProfile('ch', 'test-club', { name: 'Test' })
+    const result = await saveClubProfile('en', 'ch', 'test-club', validInput)
 
     expect(result).toEqual({
       success: false,
@@ -48,7 +72,7 @@ describe('saveClubProfile', () => {
     const { saveClubProfile } = await import(
       '@/app/[lang]/(country)/[country]/[club]/admin/actions'
     )
-    const result = await saveClubProfile('ch', 'nonexistent', { name: 'Test' })
+    const result = await saveClubProfile('en', 'ch', 'nonexistent', validInput)
 
     expect(result).toEqual({
       success: false,
@@ -73,7 +97,7 @@ describe('saveClubProfile', () => {
     const { saveClubProfile } = await import(
       '@/app/[lang]/(country)/[country]/[club]/admin/actions'
     )
-    const result = await saveClubProfile('ch', 'test-club', { name: 'Test' })
+    const result = await saveClubProfile('en', 'ch', 'test-club', validInput)
 
     expect(result).toEqual({
       success: false,
@@ -99,14 +123,14 @@ describe('saveClubProfile', () => {
     const { saveClubProfile } = await import(
       '@/app/[lang]/(country)/[country]/[club]/admin/actions'
     )
-    const result = await saveClubProfile('ch', 'test-club', { name: 'Updated' })
+    const result = await saveClubProfile('en', 'ch', 'test-club', { ...validInput, name: 'Updated' })
 
     expect(result.success).toBe(true)
     if (result.success) {
       expect(result.data.savedAt).toBeDefined()
       expect(new Date(result.data.savedAt).toISOString()).toBe(result.data.savedAt)
     }
-    expect(revalidatePath).toHaveBeenCalledWith('/ch/test-club')
+    expect(revalidatePath).toHaveBeenCalledWith('/en/ch/test-club')
   })
 
   it('returns VALIDATION_ERROR for invalid input', async () => {
@@ -126,7 +150,7 @@ describe('saveClubProfile', () => {
       '@/app/[lang]/(country)/[country]/[club]/admin/actions'
     )
     // Pass invalid data (name is empty string, fails min(1))
-    const result = await saveClubProfile('ch', 'test-club', { name: '' })
+    const result = await saveClubProfile('en', 'ch', 'test-club', { ...validInput, name: '' })
 
     expect(result).toEqual({
       success: false,
