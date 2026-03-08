@@ -257,6 +257,21 @@ export const de: Translations = {
           errorSize: 'Datei ist zu groß. Maximale Größe: 5 MB.',
         },
       },
+      publish: {
+        title: 'Veröffentlichen',
+        published: 'Die Seite deines Vereins ist online.',
+        unpublished: 'Die Seite deines Vereins ist offline.',
+        publishSuccess: 'Deine Vereinsseite ist jetzt online.',
+        unpublishSuccess: 'Deine Vereinsseite ist jetzt offline.',
+        forceOfflineWarning: 'Deine Seite wurde von der Plattform offline genommen. Sieh deine Nachrichten für Details.',
+        error: 'Veröffentlichungsstatus konnte nicht aktualisiert werden.',
+      },
+      operatorMessages: {
+        title: 'Plattform-Nachricht',
+        markAsRead: 'Als gelesen markieren',
+        viewAll: 'Alle Nachrichten anzeigen',
+        hideAll: 'Nachrichten ausblenden',
+      },
       settings: {
         title: 'Einstellungen',
         placeholder: 'Einstellungen kommen bald.',

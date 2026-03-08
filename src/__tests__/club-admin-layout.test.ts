@@ -12,6 +12,13 @@ vi.mock('@/lib/server/club-queries', () => ({
   getClubBySlug: vi.fn(),
   getClubActiveMembership: vi.fn(),
 }))
+vi.mock('@/server/db', () => ({
+  prisma: {
+    operatorMessage: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+  },
+}))
 vi.mock('@/components/app/club-admin/AdminSidebar', () => ({
   AdminSidebar: vi.fn(() => null),
 }))
@@ -40,9 +47,12 @@ function mockSession(overrides: Record<string, unknown> = {}) {
   } as any
 }
 
+import { prisma } from '@/server/db'
+
 describe('Club Admin Layout — membership guard', () => {
   beforeEach(() => {
     vi.resetAllMocks()
+    vi.mocked(prisma.operatorMessage.findMany).mockResolvedValue([])
   })
 
   it('redirects unauthenticated users to login', async () => {

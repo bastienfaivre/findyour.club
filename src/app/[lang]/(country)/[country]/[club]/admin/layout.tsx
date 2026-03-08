@@ -3,8 +3,10 @@ import { getAuthSession } from '@/server/auth'
 import { getClubBySlug, getClubActiveMembership } from '@/lib/server/club-queries'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
+import { prisma } from '@/server/db'
 import { AdminSidebar } from '@/components/app/club-admin/AdminSidebar'
 import { AdminDirtyProvider } from '@/components/app/club-admin/AdminDirtyContext'
+import { OperatorMessageBanner } from '@/components/app/club-admin/OperatorMessageBanner'
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -30,6 +32,12 @@ export default async function AdminLayout({ children, params }: AdminLayoutProps
   const uiLang = resolveUILang(lang)
   const t = getTranslations(uiLang)
 
+  const unreadMessages = await prisma.operatorMessage.findMany({
+    where: { clubId: club.id, readAt: null },
+    orderBy: { createdAt: 'desc' },
+    select: { id: true, message: true, createdAt: true },
+  })
+
   const adminBasePath = `/${lang}/${country}/${slug}/admin`
   const publicClubPath = `/${lang}/${country}/${slug}`
 
@@ -50,6 +58,19 @@ export default async function AdminLayout({ children, params }: AdminLayoutProps
             translations={t.club.admin}
           />
           <main id="main-content" className="flex-1 p-6 lg:p-8">
+            {unreadMessages.length > 0 && (
+              <OperatorMessageBanner
+                messages={unreadMessages.map((m) => ({
+                  id: m.id,
+                  message: m.message,
+                  createdAt: m.createdAt.toISOString(),
+                }))}
+                lang={lang}
+                country={country}
+                slug={slug}
+                translations={t.club.admin.operatorMessages}
+              />
+            )}
             {children}
           </main>
         </div>

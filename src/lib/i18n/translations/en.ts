@@ -257,6 +257,21 @@ export const en: Translations = {
           errorSize: 'File is too large. Maximum size is 5 MB.',
         },
       },
+      publish: {
+        title: 'Publish',
+        published: 'Your club page is live.',
+        unpublished: 'Your club page is offline.',
+        publishSuccess: 'Your club page is now live.',
+        unpublishSuccess: 'Your club page is now offline.',
+        forceOfflineWarning: 'Your page has been taken offline by the platform. Check your messages for details.',
+        error: 'Failed to update publish status.',
+      },
+      operatorMessages: {
+        title: 'Platform Message',
+        markAsRead: 'Mark as read',
+        viewAll: 'View all messages',
+        hideAll: 'Hide messages',
+      },
       settings: {
         title: 'Settings',
         placeholder: 'Settings coming soon.',

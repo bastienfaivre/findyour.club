@@ -263,6 +263,21 @@ export type Translations = {
           errorSize: string
         }
       }
+      publish: {
+        title: string
+        published: string
+        unpublished: string
+        publishSuccess: string
+        unpublishSuccess: string
+        forceOfflineWarning: string
+        error: string
+      }
+      operatorMessages: {
+        title: string
+        markAsRead: string
+        viewAll: string
+        hideAll: string
+      }
       settings: {
         title: string
         placeholder: string

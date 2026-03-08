@@ -35,6 +35,74 @@ async function authGuard(country: string, slug: string): Promise<AuthGuardError 
   return { ok: true, club, membership }
 }
 
+// ── Toggle Publish ──
+
+export type TogglePublishResult = ActionResult<{ isPublished: boolean }>
+
+export async function togglePublish(
+  lang: string,
+  country: string,
+  slug: string,
+): Promise<TogglePublishResult> {
+  const guard = await authGuard(country, slug)
+  if (!guard.ok) return guard.result
+
+  const result = await prisma.$transaction(async (tx) => {
+    const club = await tx.club.findUnique({
+      where: { id: guard.club.id },
+      select: { isPublished: true, forceOffline: true },
+    })
+    if (!club) return { success: false as const, error: 'Club not found.', code: 'NOT_FOUND' }
+
+    if (club.forceOffline) {
+      return { success: false as const, error: 'Your page has been taken offline by the platform.', code: 'FORCE_OFFLINE' }
+    }
+
+    const newState = !club.isPublished
+    await tx.club.update({
+      where: { id: guard.club.id },
+      data: { isPublished: newState },
+    })
+
+    return { success: true as const, data: { isPublished: newState } }
+  })
+
+  if (result.success) {
+    revalidatePath(`/${lang}/${country}/${slug}`)
+    revalidatePath(`/${lang}/${country}/${slug}/admin`)
+  }
+
+  return result
+}
+
+// ── Mark Operator Message as Read ──
+
+export async function markOperatorMessageAsRead(
+  messageId: string,
+  lang: string,
+  country: string,
+  slug: string,
+): Promise<ActionResult<undefined>> {
+  const guard = await authGuard(country, slug)
+  if (!guard.ok) return guard.result
+
+  const message = await prisma.operatorMessage.findFirst({
+    where: { id: messageId, clubId: guard.club.id, readAt: null },
+  })
+  if (!message) {
+    return { success: false, error: 'Message not found.', code: 'NOT_FOUND' }
+  }
+
+  await prisma.operatorMessage.update({
+    where: { id: messageId },
+    data: { readAt: new Date() },
+  })
+
+  revalidatePath(`/${lang}/${country}/${slug}/admin`)
+
+  return { success: true, data: undefined }
+}
+
 // ── Save Club Profile (text fields) ──
 
 export type SaveClubProfileResult = ActionResult<{ savedAt: string }>

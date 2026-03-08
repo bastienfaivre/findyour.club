@@ -257,6 +257,21 @@ export const fr: Translations = {
           errorSize: 'Le fichier est trop volumineux. Taille maximale : 5 Mo.',
         },
       },
+      publish: {
+        title: 'Publier',
+        published: 'La page de votre club est en ligne.',
+        unpublished: 'La page de votre club est hors ligne.',
+        publishSuccess: 'Votre page de club est maintenant en ligne.',
+        unpublishSuccess: 'Votre page de club est maintenant hors ligne.',
+        forceOfflineWarning: 'Votre page a été mise hors ligne par la plateforme. Consultez vos messages pour plus de détails.',
+        error: 'Impossible de mettre à jour le statut de publication.',
+      },
+      operatorMessages: {
+        title: 'Message de la plateforme',
+        markAsRead: 'Marquer comme lu',
+        viewAll: 'Voir tous les messages',
+        hideAll: 'Masquer les messages',
+      },
       settings: {
         title: 'Paramètres',
         placeholder: 'Les paramètres arrivent bientôt.',

@@ -3,6 +3,7 @@ import { getTranslations } from '@/lib/i18n/translations'
 import { prisma } from '@/server/db'
 import { getClubBySlug } from '@/lib/server/club-queries'
 import { ClubProfileForm } from '@/components/app/club-admin/ClubProfileForm'
+import { PublishToggle } from '@/components/app/club-admin/PublishToggle'
 
 interface AdminPageProps {
   params: Promise<{ lang: string; country: string; club: string }>
@@ -19,6 +20,8 @@ export default async function AdminPage({ params }: AdminPageProps) {
   const club = await prisma.club.findUnique({
     where: { id: clubRef.id },
     select: {
+      isPublished: true,
+      forceOffline: true,
       name: true,
       email: true,
       description: true,
@@ -43,24 +46,34 @@ export default async function AdminPage({ params }: AdminPageProps) {
   if (!club) return null
 
   return (
-    <ClubProfileForm
-      lang={lang}
-      country={country}
-      slug={slug}
-      translations={t.club.admin}
-      initialData={{
-        name: club.name,
-        email: club.email,
-        description: club.description,
-        schedule: club.schedule,
-        howToJoin: club.howToJoin,
-        contactPhone: club.contactPhone,
-        contactAddress: club.contactAddress,
-        externalWebsiteUrl: club.externalWebsiteUrl,
-        logoUrl: club.logoUrl,
-        logoAlt: club.logoAlt,
-        photos: club.photos,
-      }}
-    />
+    <div className="space-y-6">
+      <PublishToggle
+        isPublished={club.isPublished}
+        forceOffline={club.forceOffline}
+        lang={lang}
+        country={country}
+        slug={slug}
+        translations={t.club.admin.publish}
+      />
+      <ClubProfileForm
+        lang={lang}
+        country={country}
+        slug={slug}
+        translations={t.club.admin}
+        initialData={{
+          name: club.name,
+          email: club.email,
+          description: club.description,
+          schedule: club.schedule,
+          howToJoin: club.howToJoin,
+          contactPhone: club.contactPhone,
+          contactAddress: club.contactAddress,
+          externalWebsiteUrl: club.externalWebsiteUrl,
+          logoUrl: club.logoUrl,
+          logoAlt: club.logoAlt,
+          photos: club.photos,
+        }}
+      />
+    </div>
   )
 }

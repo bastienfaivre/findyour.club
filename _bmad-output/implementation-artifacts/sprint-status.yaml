@@ -81,8 +81,8 @@ development_status:
   4-3-approval-flow-profile-seeding-operator-message: done
   4-4-club-admin-dashboard-shell: done
   4-5-explicit-save-unsaved-changes-protection: done
-  4-6-club-profile-edit-form-photo-upload: review
-  4-7-publish-unpublish-operator-message-banner: backlog
+  4-6-club-profile-edit-form-photo-upload: done
+  4-7-publish-unpublish-operator-message-banner: done
   4-8-club-profile-page-public-rendering: backlog
   4-9-operator-club-moderation: backlog
   epic-4-retrospective: optional

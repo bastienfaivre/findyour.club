@@ -1,6 +1,6 @@
 # Story 4.5: Explicit Save & Unsaved Changes Protection
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
