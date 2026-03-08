@@ -368,6 +368,13 @@ export const de: Translations = {
     navigation: 'Vereinsnavigation',
     poweredBy: 'Betrieben von Clashware',
     poweredByAriaLabel: 'Betrieben von Clashware — zur Plattform-Startseite',
+    schedule: 'Zeitplan',
+    howToJoin: 'So treten Sie bei',
+    contactInfo: 'Kontaktinformationen',
+    email: 'E-Mail',
+    phone: 'Telefon',
+    address: 'Adresse',
+    photos: 'Fotos',
   },
   layout: {
     skipToContent: 'Zum Hauptinhalt springen',

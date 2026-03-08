@@ -368,6 +368,13 @@ export const fr: Translations = {
     navigation: 'Navigation du club',
     poweredBy: 'Propulsé par Clashware',
     poweredByAriaLabel: "Propulsé par Clashware — visiter la page d'accueil",
+    schedule: 'Horaires',
+    howToJoin: 'Comment nous rejoindre',
+    contactInfo: 'Coordonnées',
+    email: 'E-mail',
+    phone: 'Téléphone',
+    address: 'Adresse',
+    photos: 'Photos',
   },
   layout: {
     skipToContent: 'Aller au contenu principal',

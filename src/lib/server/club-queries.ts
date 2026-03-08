@@ -40,7 +40,7 @@ export const getClubActiveMembership = cache(async (userId: string, clubId: stri
  */
 export const getClubPublicData = cache(async (slug: string, country: string) =>
   prisma.club.findFirst({
-    where: { slug, country, status: 'ACTIVE' },
+    where: { slug, country, status: 'ACTIVE', isPublished: true, forceOffline: false },
     select: {
       id: true,
       name: true,
@@ -51,6 +51,12 @@ export const getClubPublicData = cache(async (slug: string, country: string) =>
       description: true,
       accentColor: true,
       defaultLanguage: true,
+      email: true,
+      schedule: true,
+      howToJoin: true,
+      contactPhone: true,
+      contactAddress: true,
+      externalWebsiteUrl: true,
       activityType: { select: { slug: true } },
       location: {
         select: {
@@ -65,6 +71,10 @@ export const getClubPublicData = cache(async (slug: string, country: string) =>
       pages: {
         where: { isActive: true },
         select: { id: true, slug: true, label: true, isAnchor: true, position: true, parentId: true },
+        orderBy: { position: 'asc' },
+      },
+      photos: {
+        select: { id: true, url: true, alt: true, position: true },
         orderBy: { position: 'asc' },
       },
     },

@@ -35,12 +35,12 @@ export default async function HomePage({ params }: Props) {
   const [clubsByCountry, activityTypesCount] = await Promise.all([
     prisma.club.groupBy({
       by: ['country'],
-      where: { status: 'ACTIVE' },
+      where: { status: 'ACTIVE', isPublished: true, forceOffline: false },
       _count: { id: true },
     }),
     prisma.club.groupBy({
       by: ['activityTypeId'],
-      where: { status: 'ACTIVE', activityTypeId: { not: null } },
+      where: { status: 'ACTIVE', isPublished: true, forceOffline: false, activityTypeId: { not: null } },
     }),
   ])
 

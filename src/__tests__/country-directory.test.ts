@@ -250,8 +250,27 @@ describe('CountryDirectoryPage', () => {
       expect.objectContaining({
         country: 'ch',
         status: 'ACTIVE',
+        isPublished: true,
+        forceOffline: false,
         activityType: { slug: 'skiing' },
         location: { swissLocation: { cantonCode: 'VS' } },
+      })
+    )
+  })
+
+  it('includes visibility filters in club query (isPublished + forceOffline)', async () => {
+    setupMocks()
+
+    await CountryDirectoryPage({
+      params: makeParams(),
+      searchParams: makeSearchParams(),
+    })
+
+    const findManyCall = vi.mocked(prisma.club.findMany).mock.calls[0][0]
+    expect(findManyCall?.where).toEqual(
+      expect.objectContaining({
+        isPublished: true,
+        forceOffline: false,
       })
     )
   })

@@ -5,10 +5,8 @@ import { getTranslations } from '@/lib/i18n/translations'
 import { isValidCountry, getCountryName } from '@/lib/country'
 import { getClubPublicData } from '@/lib/server/club-queries'
 import { generateClubMetadata, generateClubJsonLd } from '@/components/app/seo/metadata'
-import { ClubHeroSection } from '@/components/app/club-site/ClubHeroSection'
-import { ElementRenderer } from '@/components/app/club-site/ElementRenderer'
+import { ProfilePage } from '@/components/app/club-profile/ProfilePage'
 import { ACCENT_COLORS } from '@/components/app/club-site/accent-colors'
-import { getHomePageElements } from '@/lib/server/page-queries'
 
 type Props = {
   params: Promise<{ lang: string; country: string; club: string }>
@@ -65,11 +63,8 @@ export default async function ClubPage({ params }: Props) {
     activityTypeLabel,
   })
 
-  const homeElements = await getHomePageElements(club.id)
-
   return (
     <div
-      className=""
       style={{
         '--primary': accentColor.primary,
         '--primary-foreground': accentColor.primaryForeground,
@@ -79,23 +74,33 @@ export default async function ClubPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
-      <ClubHeroSection
+      <ProfilePage
         club={{
           name: club.name,
           logoUrl: club.logoUrl,
           logoAlt: club.logoAlt,
           description: club.description,
+          schedule: club.schedule,
+          howToJoin: club.howToJoin,
+          email: club.email,
+          contactPhone: club.contactPhone,
+          contactAddress: club.contactAddress,
+          externalWebsiteUrl: club.externalWebsiteUrl,
+          photos: club.photos,
         }}
         ctaLabel={t.clubSite.contactCta}
         ctaHref={`${clubBase}/contact`}
+        translations={{
+          schedule: t.clubSite.schedule,
+          howToJoin: t.clubSite.howToJoin,
+          contactInfo: t.clubSite.contactInfo,
+          email: t.clubSite.email,
+          phone: t.clubSite.phone,
+          address: t.clubSite.address,
+          visitWebsite: t.clubSite.visitWebsite,
+          photos: t.clubSite.photos,
+        }}
       />
-      {homeElements.length > 0 && (
-        <div className="flex flex-col gap-4 py-8">
-          {homeElements.map(element => (
-            <ElementRenderer key={element.id} element={element} />
-          ))}
-        </div>
-      )}
     </div>
   )
 }

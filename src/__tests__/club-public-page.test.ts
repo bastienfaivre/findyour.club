@@ -77,6 +77,12 @@ const mockClub = {
   description: 'Welcome to our ski club!',
   accentColor: 'blue',
   defaultLanguage: 'fr',
+  email: 'info@skiclubvalais.ch',
+  schedule: 'Every Saturday 9am-12pm' as string | null,
+  howToJoin: 'Fill out the form on our website' as string | null,
+  contactPhone: '+41 27 123 45 67' as string | null,
+  contactAddress: '123 Alpine Road\nSion, VS' as string | null,
+  externalWebsiteUrl: 'https://skiclubvalais.ch' as string | null,
   activityType: { slug: 'skiing' },
   location: {
     swissLocation: {
@@ -86,6 +92,10 @@ const mockClub = {
   } as { swissLocation: { cantonCode: string; translations: { language: string; name: string }[] } } | null,
   pages: [
     { id: 'p1', slug: 'about', label: 'About', isAnchor: false, position: 1, parentId: null },
+  ],
+  photos: [
+    { id: 'photo-1', url: 'https://example.com/photo1.jpg', alt: 'Mountain view', position: 1 },
+    { id: 'photo-2', url: 'https://example.com/photo2.jpg', alt: 'Ski slope', position: 2 },
   ],
 }
 
@@ -111,38 +121,85 @@ describe('ClubPage', () => {
     expect(notFound).toHaveBeenCalled()
   })
 
-  it('renders ClubHeroSection with club name, welcome text, and CTA', async () => {
+  it('renders ProfilePage with club data and translations', async () => {
     setupClubMock()
     const result = await ClubPage({ params: makeParams() })
-    const { ClubHeroSection } = await import('@/components/app/club-site/ClubHeroSection')
-    const heroProps = findProps(result, ClubHeroSection)
-    expect(heroProps).not.toBeNull()
-    expect(heroProps!.club).toEqual(expect.objectContaining({
+    const { ProfilePage } = await import('@/components/app/club-profile/ProfilePage')
+    const profileProps = findProps(result, ProfilePage)
+    expect(profileProps).not.toBeNull()
+    expect(profileProps!.club).toEqual(expect.objectContaining({
       name: 'Ski Club Valais',
       description: 'Welcome to our ski club!',
       logoUrl: null,
+      email: 'info@skiclubvalais.ch',
+      schedule: 'Every Saturday 9am-12pm',
+      howToJoin: 'Fill out the form on our website',
+      contactPhone: '+41 27 123 45 67',
     }))
-    expect(heroProps!.ctaLabel).toBe('Contact us')
-    expect(heroProps!.ctaHref).toBe('/en/ch/ski-club-valais/contact')
+    expect(profileProps!.ctaLabel).toBe('Contact us')
+    expect(profileProps!.ctaHref).toBe('/en/ch/ski-club-valais/contact')
   })
 
-  it('renders ClubHeroSection with monogram fallback when no logoUrl', async () => {
+  it('renders ProfilePage with monogram fallback when no logoUrl', async () => {
     setupClubMock()
     const result = await ClubPage({ params: makeParams() })
-    const { ClubHeroSection } = await import('@/components/app/club-site/ClubHeroSection')
-    const heroProps = findProps(result, ClubHeroSection)
-    expect(heroProps).not.toBeNull()
-    expect((heroProps!.club as { logoUrl: unknown }).logoUrl).toBeNull()
+    const { ProfilePage } = await import('@/components/app/club-profile/ProfilePage')
+    const profileProps = findProps(result, ProfilePage)
+    expect(profileProps).not.toBeNull()
+    expect((profileProps!.club as { logoUrl: unknown }).logoUrl).toBeNull()
   })
 
-  it('renders ClubHeroSection with logo when logoUrl present', async () => {
+  it('renders ProfilePage with logo when logoUrl present', async () => {
     const clubWithLogo = { ...mockClub, logoUrl: 'https://example.com/logo.png', logoAlt: 'Logo' }
     setupClubMock(clubWithLogo)
     const result = await ClubPage({ params: makeParams() })
-    const { ClubHeroSection } = await import('@/components/app/club-site/ClubHeroSection')
-    const heroProps = findProps(result, ClubHeroSection)
-    expect(heroProps).not.toBeNull()
-    expect((heroProps!.club as { logoUrl: unknown }).logoUrl).toBe('https://example.com/logo.png')
+    const { ProfilePage } = await import('@/components/app/club-profile/ProfilePage')
+    const profileProps = findProps(result, ProfilePage)
+    expect(profileProps).not.toBeNull()
+    expect((profileProps!.club as { logoUrl: unknown }).logoUrl).toBe('https://example.com/logo.png')
+  })
+
+  it('passes photos to ProfilePage', async () => {
+    setupClubMock()
+    const result = await ClubPage({ params: makeParams() })
+    const { ProfilePage } = await import('@/components/app/club-profile/ProfilePage')
+    const profileProps = findProps(result, ProfilePage)
+    expect(profileProps).not.toBeNull()
+    const club = profileProps!.club as { photos: unknown[] }
+    expect(club.photos).toHaveLength(2)
+  })
+
+  it('passes empty photos array when club has no photos', async () => {
+    setupClubMock({ ...mockClub, photos: [] })
+    const result = await ClubPage({ params: makeParams() })
+    const { ProfilePage } = await import('@/components/app/club-profile/ProfilePage')
+    const profileProps = findProps(result, ProfilePage)
+    expect(profileProps).not.toBeNull()
+    const club = profileProps!.club as { photos: unknown[] }
+    expect(club.photos).toHaveLength(0)
+  })
+
+  it('passes null optional fields when not set', async () => {
+    const minimalClub = {
+      ...mockClub,
+      contactPhone: null,
+      contactAddress: null,
+      externalWebsiteUrl: null,
+      schedule: null,
+      howToJoin: null,
+      photos: [],
+    }
+    setupClubMock(minimalClub)
+    const result = await ClubPage({ params: makeParams() })
+    const { ProfilePage } = await import('@/components/app/club-profile/ProfilePage')
+    const profileProps = findProps(result, ProfilePage)
+    expect(profileProps).not.toBeNull()
+    const club = profileProps!.club as Record<string, unknown>
+    expect(club.contactPhone).toBeNull()
+    expect(club.contactAddress).toBeNull()
+    expect(club.externalWebsiteUrl).toBeNull()
+    expect(club.schedule).toBeNull()
+    expect(club.howToJoin).toBeNull()
   })
 
   it('is publicly accessible without authentication', async () => {

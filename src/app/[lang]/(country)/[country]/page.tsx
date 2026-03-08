@@ -44,6 +44,8 @@ export default async function CountryDirectoryPage({ params, searchParams }: Pro
       where: {
         country,
         status: 'ACTIVE',
+        isPublished: true,
+        forceOffline: false,
         ...(activity && { activityType: { slug: activity } }),
         ...(canton && {
           location: { swissLocation: { cantonCode: canton } },
@@ -73,7 +75,7 @@ export default async function CountryDirectoryPage({ params, searchParams }: Pro
       where: {
         locations: {
           some: {
-            location: { clubs: { some: { country, status: 'ACTIVE' } } },
+            location: { clubs: { some: { country, status: 'ACTIVE', isPublished: true, forceOffline: false } } },
           },
         },
       },
@@ -85,7 +87,7 @@ export default async function CountryDirectoryPage({ params, searchParams }: Pro
     }),
     prisma.activityType.findMany({
       where: {
-        clubs: { some: { country, status: 'ACTIVE' } },
+        clubs: { some: { country, status: 'ACTIVE', isPublished: true, forceOffline: false } },
       },
       select: { slug: true },
       orderBy: { slug: 'asc' },

@@ -385,6 +385,13 @@ export type Translations = {
     navigation: string
     poweredBy: string
     poweredByAriaLabel: string
+    schedule: string
+    howToJoin: string
+    contactInfo: string
+    email: string
+    phone: string
+    address: string
+    photos: string
   }
   layout: {
     skipToContent: string
