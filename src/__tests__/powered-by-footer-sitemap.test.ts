@@ -57,7 +57,7 @@ describe('Platform sitemap', () => {
 
     const urls = entries.map((e) => e.url)
     expect(urls.some((u) => u.endsWith('/en/'))).toBe(true)
-    expect(urls.some((u) => u.includes('/en/ch/'))).toBe(true)
+    expect(urls.some((u) => u.includes('/en/search'))).toBe(true)
     expect(urls.some((u) => u.includes('/en/about'))).toBe(true)
     expect(urls.some((u) => u.includes('/en/support'))).toBe(true)
   })

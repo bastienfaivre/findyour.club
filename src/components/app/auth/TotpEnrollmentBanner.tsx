@@ -21,7 +21,7 @@ export function TotpEnrollmentBanner({ session, lang, t }: TotpEnrollmentBannerP
     >
       <span>
         {t.pre}{' '}
-        <Link href={`/${lang}/auth/totp-setup`} className="underline font-semibold">
+        <Link href={`/${lang}/account/totp-setup`} className="underline font-semibold">
           {t.link}
         </Link>{' '}
         {t.post}

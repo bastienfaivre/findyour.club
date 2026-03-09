@@ -1,27 +1,16 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { buildClubAdminUrl } from '@/lib/url'
 
 describe('buildClubAdminUrl()', () => {
-  afterEach(() => vi.unstubAllEnvs())
-
-  it('returns an http URL in development using the request host', () => {
-    expect(buildClubAdminUrl('localhost:3000', 'fr', 'ch', 'ski-club-valais')).toBe('http://localhost:3000/fr/ch/ski-club-valais')
+  it('returns a relative admin URL with lang and clubId', () => {
+    expect(buildClubAdminUrl('fr', 'club-123')).toBe('/fr/club/club-123')
   })
 
-  it('returns an https URL in production', () => {
-    vi.stubEnv('NODE_ENV', 'production')
-    expect(buildClubAdminUrl('yourplatform.com', 'fr', 'ch', 'ski-club-valais')).toBe('https://yourplatform.com/fr/ch/ski-club-valais')
+  it('works for different language codes', () => {
+    expect(buildClubAdminUrl('de', 'club-456')).toBe('/de/club/club-456')
   })
 
-  it('preserves port number from host', () => {
-    expect(buildClubAdminUrl('localhost:3000', 'fr', 'ch', 'football-club')).toBe('http://localhost:3000/fr/ch/football-club')
-  })
-
-  it('correctly builds URL for different lang, country and slug combinations', () => {
-    expect(buildClubAdminUrl('localhost:3000', 'de', 'ch', 'basketball-club-bern')).toBe('http://localhost:3000/de/ch/basketball-club-bern')
-  })
-
-  it('falls back to empty host when headers return null (produces protocol-relative-style path)', () => {
-    expect(buildClubAdminUrl('', 'fr', 'ch', 'ski-club-valais')).toBe('http:///fr/ch/ski-club-valais')
+  it('handles UUID-style club IDs', () => {
+    expect(buildClubAdminUrl('en', 'a1b2c3d4-e5f6-7890-abcd-ef1234567890')).toBe('/en/club/a1b2c3d4-e5f6-7890-abcd-ef1234567890')
   })
 })

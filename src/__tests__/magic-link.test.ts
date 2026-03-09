@@ -5,7 +5,7 @@ vi.mock('@/server/db', () => ({
 }))
 
 import { prisma } from '@/server/db'
-import { verifyMagicLinkToken } from '@/app/[lang]/auth/magic-link/actions'
+import { verifyMagicLinkToken } from '@/app/[lang]/(dashboard)/auth/magic-link/actions'
 
 describe('verifyMagicLinkToken()', () => {
   beforeEach(() => vi.clearAllMocks())

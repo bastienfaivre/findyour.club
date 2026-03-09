@@ -21,6 +21,11 @@ vi.mock('@simplewebauthn/server', () => ({
 }))
 vi.mock('next/headers', () => ({
   cookies: vi.fn(async () => ({ get: vi.fn(), set: vi.fn() })),
+  headers: vi.fn(async () => ({ get: vi.fn(() => '127.0.0.1') })),
+}))
+vi.mock('@/lib/rate-limit', () => ({
+  checkRateLimit: vi.fn(() => false),
+  clearRateLimit: vi.fn(),
 }))
 vi.mock('@/lib/webauthn', () => ({
   getWebAuthnConfig: vi.fn(() => ({ rpID: 'localhost', rpName: 'Test', origin: 'http://localhost:3000' })),

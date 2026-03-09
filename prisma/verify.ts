@@ -23,7 +23,7 @@ const rawPrisma = new PrismaClient({ adapter })
 const CLUB_SCOPED_READ_MODELS = new Set([
   'page', 'pageElement', 'contentVersion', 'event',
   'galleryItem', 'document', 'pageEvent', 'contactSubmission',
-  'clubPhoto', 'operatorMessage', 'supportTicket', 'healthCheck',
+  'clubPhoto', 'supportMessage', 'conversationReadCursor', 'supportTicket', 'healthCheck',
 ])
 
 function hasClubIdFilter(where: Record<string, unknown>): boolean {

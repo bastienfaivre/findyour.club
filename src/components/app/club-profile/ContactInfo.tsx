@@ -2,7 +2,7 @@ import { Mail, Phone, MapPin, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 type ContactInfoProps = {
-  email: string
+  email?: string | null
   phone?: string | null
   address?: string | null
   websiteUrl?: string | null
@@ -24,16 +24,18 @@ export function ContactInfo({
 }: ContactInfoProps) {
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <Mail className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-        <span className="sr-only">{translations.email}</span>
-        <a
-          href={`mailto:${email}`}
-          className="text-sm underline underline-offset-4 hover:text-primary"
-        >
-          {email}
-        </a>
-      </div>
+      {email && (
+        <div className="flex items-center gap-2">
+          <Mail className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <span className="sr-only">{translations.email}</span>
+          <a
+            href={`mailto:${email}`}
+            className="text-sm underline underline-offset-4 hover:text-primary"
+          >
+            {email}
+          </a>
+        </div>
+      )}
 
       {phone && (
         <div className="flex items-center gap-2">
@@ -56,7 +58,7 @@ export function ContactInfo({
         </div>
       )}
 
-      {websiteUrl && (
+      {websiteUrl && /^https?:\/\//i.test(websiteUrl) && (
         <div className="mt-4">
           <Button variant="outline" asChild>
             <a

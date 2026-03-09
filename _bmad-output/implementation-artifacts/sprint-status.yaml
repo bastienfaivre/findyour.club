@@ -75,7 +75,7 @@ development_status:
   epic-3-retrospective: done
 
   # ─── Epic 4: Club Profile Setup & Moderation ───
-  epic-4: in-progress
+  epic-4: done
   4-1-schema-migration-profile-visibility-clubphoto-operatormessage: done
   4-2-application-form-profile-fields: done
   4-3-approval-flow-profile-seeding-operator-message: done
@@ -118,10 +118,18 @@ development_status:
   7-9-template-versioning-silent-migration: backlog
   epic-7-retrospective: optional
 
-  # ─── Epic 8: Data Compliance ───
+  # ─── Epic 8: Data Compliance (superseded by Epic 9 for MVP-critical GDPR stories) ───
   epic-8: backlog
   8-1-gdpr-right-to-erasure-club-data-deletion: backlog
   8-2-gdpr-visitor-data-requests-automated-retention: backlog
   8-3-club-admin-data-export-gdpr-portability: backlog
   8-4-cookie-consent-mechanism: backlog
   epic-8-retrospective: optional
+
+  # ─── Epic 9: Launch Readiness — Dev Infra & GDPR Compliance ───
+  epic-9: in-progress
+  9-1-local-dev-image-upload-pipeline: done
+  9-2-gdpr-right-to-erasure-account-club-deletion: done
+  9-3-gdpr-data-portability-club-data-export: done
+  9-4-operator-delete-club: done
+  epic-9-retrospective: optional

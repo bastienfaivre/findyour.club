@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { applicationSchema, slugRegex, type ApplicationInput } from '@/lib/schemas/application'
-import { submitApplication, type SubmitApplicationResult } from '@/app/[lang]/(platform)/apply/actions'
+import { submitApplication, type SubmitApplicationResult } from '@/app/[lang]/(dashboard)/apply/actions'
 import type { Translations } from '@/lib/i18n/translations'
 import type { SupportedLanguage } from '@/lib/i18n'
 import type { Country } from '@/lib/country'
@@ -31,7 +31,7 @@ type LocationResult = {
 type Props = {
   lang: SupportedLanguage
   t: Translations
-  activityTypes: { id: string; name: string }[]
+  activityTypes: { slug: string; name: string }[]
   countries: { code: Country; label: string }[]
 }
 
@@ -124,6 +124,8 @@ export function ApplyForm({ lang, t, activityTypes, countries }: Props) {
     },
     mode: 'onBlur',
   })
+
+  const watchedActivityType = useWatch({ control, name: 'activityType' })
 
   // Clean up debounce timer on unmount
   useEffect(() => {
@@ -304,32 +306,51 @@ export function ApplyForm({ lang, t, activityTypes, countries }: Props) {
         <Label htmlFor="activityType">{t.apply.fields.activityType}<RequiredMark /></Label>
         <Controller
           control={control}
-          name="activityTypeId"
+          name="activityType"
           render={({ field }) => (
             <Select value={field.value ?? ''} onValueChange={field.onChange}>
               <SelectTrigger
                 id="activityType"
                 className="w-full"
                 aria-required="true"
-                aria-describedby={errors.activityTypeId ? 'activityType-error' : undefined}
-                aria-invalid={!!errors.activityTypeId}
+                aria-describedby={errors.activityType ? 'activityType-error' : undefined}
+                aria-invalid={!!errors.activityType}
               >
                 <SelectValue placeholder={t.apply.placeholders.activityType} />
               </SelectTrigger>
               <SelectContent>
                 {activityTypes.map((at) => (
-                  <SelectItem key={at.id} value={at.id}>
+                  <SelectItem key={at.slug} value={at.slug}>
                     {at.name}
                   </SelectItem>
                 ))}
+                <SelectItem key="other" value="other">{t.activityTypes.other}</SelectItem>
               </SelectContent>
             </Select>
           )}
         />
-        {errors.activityTypeId && (
+        {errors.activityType && (
           <p id="activityType-error" className="text-sm text-destructive">
             {t.apply.validation.activityTypeRequired}
           </p>
+        )}
+        {watchedActivityType === 'other' && (
+          <div className="space-y-2 mt-2">
+            <Label htmlFor="otherDescription">{t.apply.fields.otherDescription}<RequiredMark /></Label>
+            <Input
+              id="otherDescription"
+              {...register('otherDescription')}
+              placeholder={t.apply.placeholders.otherDescription}
+              aria-required="true"
+              aria-describedby={errors.otherDescription ? 'otherDescription-error' : undefined}
+              aria-invalid={!!errors.otherDescription}
+            />
+            {errors.otherDescription && (
+              <p id="otherDescription-error" className="text-sm text-destructive">
+                {t.apply.validation.otherDescriptionRequired}
+              </p>
+            )}
+          </div>
         )}
       </div>
 

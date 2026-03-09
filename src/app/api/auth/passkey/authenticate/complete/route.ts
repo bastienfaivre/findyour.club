@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthenticationResponse } from '@simplewebauthn/server'
 import type { AuthenticationResponseJSON, AuthenticatorTransportFuture } from '@simplewebauthn/server'
 import { cookies } from 'next/headers'
-import { randomUUID } from 'crypto'
+import { randomBytes } from 'crypto'
 import { prisma } from '@/server/db'
 import { SESSION_COOKIE_NAME } from '@/server/auth'
 import { encodeTotpVerifiedCookie } from '@/lib/setup-cookie'
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Update counter and create session atomically (prevents counter update without session, or vice versa)
-  const sessionToken = randomUUID()
+  const sessionToken = randomBytes(32).toString('hex')
   const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
 
   try {

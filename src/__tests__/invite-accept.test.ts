@@ -26,7 +26,7 @@ vi.mock('@/lib/setup-cookie', () => ({
 
 import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
-import { GET } from '@/app/[lang]/auth/invite/accept/route'
+import { GET } from '@/app/[lang]/(dashboard)/auth/invite/accept/route'
 
 const BASE = 'http://localhost'
 
@@ -67,35 +67,35 @@ describe('GET /auth/invite/accept', () => {
     expect(response.headers.get('location')).toBe(`${BASE}/auth/error?error=InviteExpired`)
   })
 
-  it('redirects to /auth/login with callbackUrl=/my-clubs when token is not found and user is unauthenticated', async () => {
+  it('redirects to /auth/login when token is not found and user is unauthenticated', async () => {
     vi.mocked(prisma.invitation.findUnique).mockResolvedValue(null)
     const response = await GET(makeRequest('unknown-token'))
     expect(response.status).toBe(307)
-    expect(response.headers.get('location')).toBe(`${BASE}/auth/login?callbackUrl=%2Fmy-clubs`)
+    expect(response.headers.get('location')).toBe(`${BASE}/auth/login`)
     expect(prisma.invitation.delete).not.toHaveBeenCalled()
   })
 
-  it('redirects to /auth/login with callbackUrl=/my-clubs and deletes invitation when token is expired and user is unauthenticated', async () => {
+  it('redirects to /auth/login and deletes invitation when token is expired and user is unauthenticated', async () => {
     vi.mocked(prisma.invitation.findUnique).mockResolvedValue({
       ...VALID_INVITATION,
       expiresAt: PAST_DATE,
     } as never)
     const response = await GET(makeRequest('expired-token'))
     expect(response.status).toBe(307)
-    expect(response.headers.get('location')).toBe(`${BASE}/auth/login?callbackUrl=%2Fmy-clubs`)
+    expect(response.headers.get('location')).toBe(`${BASE}/auth/login`)
     expect(prisma.invitation.delete).toHaveBeenCalled()
   })
 
-  it('redirects to /my-clubs when invitation is not found but user is already authenticated (re-click after acceptance)', async () => {
+  it('redirects to / when invitation is not found but user is already authenticated (re-click after acceptance)', async () => {
     vi.mocked(prisma.invitation.findUnique).mockResolvedValue(null)
     vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'invited-user-id' } } as never)
     const response = await GET(makeRequest('already-accepted-token'))
     expect(response.status).toBe(307)
-    expect(response.headers.get('location')).toBe(`${BASE}/my-clubs`)
+    expect(response.headers.get('location')).toBe(`${BASE}/`)
     expect(prisma.invitation.delete).not.toHaveBeenCalled()
   })
 
-  it('redirects to /my-clubs when invitation is expired but user is already authenticated', async () => {
+  it('redirects to / when invitation is expired but user is already authenticated', async () => {
     vi.mocked(prisma.invitation.findUnique).mockResolvedValue({
       ...VALID_INVITATION,
       expiresAt: PAST_DATE,
@@ -103,7 +103,7 @@ describe('GET /auth/invite/accept', () => {
     vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'invited-user-id' } } as never)
     const response = await GET(makeRequest('expired-token'))
     expect(response.status).toBe(307)
-    expect(response.headers.get('location')).toBe(`${BASE}/my-clubs`)
+    expect(response.headers.get('location')).toBe(`${BASE}/`)
     expect(prisma.invitation.delete).toHaveBeenCalled()
   })
 
@@ -115,7 +115,7 @@ describe('GET /auth/invite/accept', () => {
     expect(response.headers.get('location')).toBe(`${BASE}/auth/error?error=InviteExpired`)
   })
 
-  it('activates membership and redirects to /my-clubs when authenticated as the invited user', async () => {
+  it('activates membership and redirects to / when authenticated as the invited user', async () => {
     vi.mocked(prisma.invitation.findUnique).mockResolvedValue(VALID_INVITATION as never)
     vi.mocked(prisma.user.findUnique).mockResolvedValue(INVITED_USER as never)
     vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'invited-user-id' } } as never)
@@ -123,7 +123,7 @@ describe('GET /auth/invite/accept', () => {
     const response = await GET(makeRequest('valid-token'))
 
     expect(response.status).toBe(307)
-    expect(response.headers.get('location')).toBe(`${BASE}/my-clubs`)
+    expect(response.headers.get('location')).toBe(`${BASE}/`)
     expect(prisma.$transaction).toHaveBeenCalled()
     expect(prisma.clubMembership.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({

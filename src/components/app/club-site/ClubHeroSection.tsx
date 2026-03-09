@@ -1,6 +1,4 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { ClubAvatar } from '@/components/app/ClubAvatar'
 
 export type ClubHeroSectionProps = {
   club: {
@@ -9,26 +7,17 @@ export type ClubHeroSectionProps = {
     logoAlt: string | null
     description: string | null
   }
-  ctaLabel: string
-  ctaHref: string
 }
 
-export function ClubHeroSection({ club, ctaLabel, ctaHref }: ClubHeroSectionProps) {
+export function ClubHeroSection({ club }: ClubHeroSectionProps) {
   return (
-    <section className="flex flex-col items-center text-center gap-6 py-16">
-      {club.logoUrl ? (
-        <Image
-          src={club.logoUrl}
-          alt={club.logoAlt ?? club.name}
-          width={96}
-          height={96}
-          className="h-24 w-24 rounded-full object-cover"
-        />
-      ) : (
-        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary text-primary-foreground text-4xl font-bold">
-          {club.name.charAt(0).toUpperCase()}
-        </div>
-      )}
+    <section className="flex flex-col items-center text-center gap-4 sm:gap-6 py-8 sm:py-16">
+      <ClubAvatar
+        name={club.name}
+        logoUrl={club.logoUrl}
+        logoAlt={club.logoAlt}
+        size="lg"
+      />
 
       <h1 className="text-2xl sm:text-4xl font-bold">{club.name}</h1>
 
@@ -37,12 +26,6 @@ export function ClubHeroSection({ club, ctaLabel, ctaHref }: ClubHeroSectionProp
           {club.description}
         </p>
       )}
-
-      <Button asChild>
-        <Link href={ctaHref} className="min-h-[44px] min-w-[44px]">
-          {ctaLabel}
-        </Link>
-      </Button>
     </section>
   )
 }

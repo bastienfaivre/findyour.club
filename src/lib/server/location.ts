@@ -76,9 +76,9 @@ async function resolveNameForLanguage(
   const res = await fetch(url.toString())
   if (!res.ok) throw new Error(`swisstopo ${lang} lookup failed: ${res.status}`)
 
-  const data = await res.json() as { results: Array<{ id: number | string; attrs: { label: string; origin: string } }> }
-  // Filter to municipalities (gg25) only — consistent with route handler behaviour
-  const match = data.results.find(r => String(r.id) === swisstopoId && r.attrs.origin === 'gg25')
+  const data = await res.json() as { results: Array<{ id: number | string; attrs: { label: string; origin: string; featureId?: string } }> }
+  // Filter to municipalities (gg25) only — match on featureId (stable BFS number)
+  const match = data.results.find(r => r.attrs.origin === 'gg25' && (r.attrs.featureId === swisstopoId || String(r.id) === swisstopoId))
   if (!match) throw new Error(`swisstopoId ${swisstopoId} not found in ${lang} results`)
 
   // Strip HTML and canton suffix: "<b>Genf (GE)</b>" → "Genf"

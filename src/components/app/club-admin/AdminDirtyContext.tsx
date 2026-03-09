@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
 
 interface AdminDirtyContextValue {
   isDirty: boolean
@@ -14,8 +14,9 @@ const AdminDirtyContext = createContext<AdminDirtyContextValue>({
 
 export function AdminDirtyProvider({ children }: { children: ReactNode }) {
   const [isDirty, setIsDirty] = useState(false)
+  const value = useMemo(() => ({ isDirty, setIsDirty }), [isDirty])
   return (
-    <AdminDirtyContext.Provider value={{ isDirty, setIsDirty }}>
+    <AdminDirtyContext.Provider value={value}>
       {children}
     </AdminDirtyContext.Provider>
   )

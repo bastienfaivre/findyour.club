@@ -2,8 +2,9 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { removeTotp } from '@/app/[lang]/auth/account/actions'
+import { removeTotp } from '@/app/[lang]/(dashboard)/account/actions'
 
 interface ManageTotpSectionT {
   totpEnabled: string
@@ -51,11 +52,9 @@ export function ManageTotpSection({ totpEnabled, lang, t }: ManageTotpSectionPro
       )}
 
       <div className="flex items-center gap-3">
-        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-          totpEnabled ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-        }`}>
+        <Badge variant={totpEnabled ? 'success' : 'destructive'}>
           {totpEnabled ? t.totpEnabled : t.totpNotEnrolled}
-        </span>
+        </Badge>
         <span className="text-sm text-muted-foreground">
           {totpEnabled ? t.totpEnabledDesc : t.totpNotEnrolledDesc}
         </span>
@@ -64,7 +63,7 @@ export function ManageTotpSection({ totpEnabled, lang, t }: ManageTotpSectionPro
       <div className="flex gap-2">
         <Button
           variant="outline"
-          onClick={() => router.push(`/${lang}/auth/totp-setup`)}
+          onClick={() => router.push(`/${lang}/account/totp-setup`)}
           disabled={isPending}
         >
           {totpEnabled ? t.resetTotp : t.enrollTotp}

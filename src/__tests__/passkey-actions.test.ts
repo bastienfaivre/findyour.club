@@ -13,7 +13,7 @@ vi.mock('@/server/db', () => ({
 
 import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
-import { deletePasskey } from '@/app/[lang]/auth/passkey/actions'
+import { deletePasskey } from '@/app/[lang]/(dashboard)/account/passkey/actions'
 
 describe('deletePasskey()', () => {
   beforeEach(() => vi.clearAllMocks())

@@ -6,7 +6,6 @@ vi.mock('next/headers', () => ({
 vi.mock('@/server/db', () => ({
   prisma: {
     application: { create: vi.fn() },
-    activityType: { findUnique: vi.fn() },
     $transaction: vi.fn(async (fn: (tx: unknown) => unknown) => fn(prisma)),
   },
 }))
@@ -25,13 +24,13 @@ import { prisma } from '@/server/db'
 import { verifyTurnstileToken } from '@/lib/turnstile'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { upsertSwissLocation } from '@/lib/server/location'
-import { submitApplication } from '@/app/[lang]/(platform)/apply/actions'
+import { submitApplication } from '@/app/[lang]/(dashboard)/apply/actions'
 
 const VALID_INPUT = {
   name: 'Ski Club Valais',
   email: 'contact@skiclub.ch',
   country: 'ch' as const,
-  activityTypeId: 'clxxxxxxxxxxxxxxxxxxxxxxxxx',
+  activityType: 'skiing',
   location: {
     swisstopoId: '2117',
     plz: '1950',
@@ -61,7 +60,6 @@ describe('submitApplication()', () => {
     vi.mocked(checkRateLimit).mockReturnValue(false)
     vi.mocked(verifyTurnstileToken).mockResolvedValue(true)
     vi.mocked(upsertSwissLocation).mockResolvedValue({ locationId: 'loc-1' })
-    vi.mocked(prisma.activityType.findUnique).mockResolvedValue({ id: 'at-1' } as never)
     vi.mocked(prisma.application.create).mockResolvedValue({} as never)
   })
 
@@ -74,7 +72,8 @@ describe('submitApplication()', () => {
         name: 'Ski Club Valais',
         email: 'contact@skiclub.ch',
         country: 'ch',
-        activityTypeId: 'clxxxxxxxxxxxxxxxxxxxxxxxxx',
+        activityType: 'skiing',
+        otherDescription: null,
         locationId: 'loc-1',
         description: 'A ski club in Valais.',
         schedule: 'Tuesdays 19h-21h',
@@ -132,10 +131,8 @@ describe('submitApplication()', () => {
     expect(prisma.application.create).not.toHaveBeenCalled()
   })
 
-  it('returns VALIDATION_ERROR when activityTypeId does not exist', async () => {
-    vi.mocked(prisma.activityType.findUnique).mockResolvedValue(null)
-
-    const result = await submitApplication(VALID_INPUT)
+  it('returns VALIDATION_ERROR when activityType is invalid', async () => {
+    const result = await submitApplication({ ...VALID_INPUT, activityType: 'nonexistent' })
 
     expect(result).toMatchObject({ success: false, code: 'VALIDATION_ERROR' })
     expect(prisma.application.create).not.toHaveBeenCalled()

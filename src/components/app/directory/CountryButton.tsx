@@ -44,7 +44,7 @@ export function CountryButton({
 
   return (
     <Link
-      href={`/${lang}/${country}`}
+      href={`/${lang}/search?country=${country}`}
       aria-label={ariaLabel}
       className={className}
     >

@@ -17,25 +17,29 @@ vi.mock('@/server/auth', () => ({
 
 import { cookies } from 'next/headers'
 import { prisma } from '@/server/db'
-import { GET } from '@/app/[lang]/auth/logout/route'
+import { GET } from '@/app/[lang]/(dashboard)/auth/logout/route'
 
 const BASE = 'http://localhost'
 
 function makeRequest() {
-  return new NextRequest(`${BASE}/auth/logout`)
+  return new NextRequest(`${BASE}/en/auth/logout`)
 }
 
-describe('GET /auth/logout', () => {
+function makeParams(lang = 'en') {
+  return Promise.resolve({ lang })
+}
+
+describe('GET /{lang}/auth/logout', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('redirects to /auth/login', async () => {
-    const response = await GET(makeRequest())
+  it('redirects to /{lang}/', async () => {
+    const response = await GET(makeRequest(), { params: makeParams() })
     expect(response.status).toBe(307)
-    expect(response.headers.get('location')).toBe(`${BASE}/auth/login`)
+    expect(response.headers.get('location')).toBe(`${BASE}/en/`)
   })
 
   it('deletes the DB session when a session token cookie is present', async () => {
-    await GET(makeRequest())
+    await GET(makeRequest(), { params: makeParams() })
     expect(prisma.session.deleteMany).toHaveBeenCalledWith({
       where: { sessionToken: 'session-token-abc' },
     })
@@ -46,12 +50,12 @@ describe('GET /auth/logout', () => {
       get: vi.fn(() => undefined),
     } as never)
 
-    await GET(makeRequest())
+    await GET(makeRequest(), { params: makeParams() })
     expect(prisma.session.deleteMany).not.toHaveBeenCalled()
   })
 
   it('deletes all three auth cookies from the response', async () => {
-    const response = await GET(makeRequest())
+    const response = await GET(makeRequest(), { params: makeParams() })
     // next-auth session token
     expect(response.cookies.get('next-auth.session-token')).toBeDefined()
     // totp_verified
@@ -63,9 +67,9 @@ describe('GET /auth/logout', () => {
   it('proceeds gracefully even if DB session deletion fails', async () => {
     vi.mocked(prisma.session.deleteMany).mockRejectedValueOnce(new Error('DB down'))
 
-    const response = await GET(makeRequest())
-    // Should still redirect to login — .catch(() => {}) in route handles this
+    const response = await GET(makeRequest(), { params: makeParams() })
+    // Should still redirect to home — .catch(() => {}) in route handles this
     expect(response.status).toBe(307)
-    expect(response.headers.get('location')).toBe(`${BASE}/auth/login`)
+    expect(response.headers.get('location')).toBe(`${BASE}/en/`)
   })
 })

@@ -5,7 +5,7 @@ vi.mock('@/server/auth', () => ({
 }))
 vi.mock('@/server/db', () => ({
   prisma: {
-    club: { findFirst: vi.fn() },
+    club: { findUnique: vi.fn() },
     clubMembership: { findFirst: vi.fn(), create: vi.fn(), deleteMany: vi.fn() },
     user: { findUnique: vi.fn(), create: vi.fn() },
     invitation: { findFirst: vi.fn(), create: vi.fn(), deleteMany: vi.fn() },
@@ -19,10 +19,9 @@ vi.mock('@/lib/email', () => ({
 import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
 import { sendEmail } from '@/lib/email'
-import { inviteEditor } from '@/app/[lang]/(country)/[country]/[club]/settings/actions'
+import { inviteEditor } from '@/app/[lang]/(dashboard)/club/[clubId]/settings/actions'
 
-const COUNTRY = 'ch'
-const SLUG = 'test-club'
+const CLUB_ID = 'club-1'
 
 function makeFormData(email: string) {
   const fd = new FormData()
@@ -40,7 +39,7 @@ const OWNER_MEMBERSHIP = { id: 'mem-1', role: 'OWNER', status: 'ACTIVE' }
 describe('inviteEditor()', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(prisma.club.findFirst).mockResolvedValue(CLUB as never)
+    vi.mocked(prisma.club.findUnique).mockResolvedValue(CLUB as never)
     vi.mocked(prisma.clubMembership.findFirst).mockResolvedValue(OWNER_MEMBERSHIP as never)
     vi.mocked(prisma.clubMembership.create).mockResolvedValue({} as never)
     vi.mocked(prisma.clubMembership.deleteMany).mockResolvedValue({ count: 0 } as never)
@@ -51,33 +50,33 @@ describe('inviteEditor()', () => {
 
   it('returns UNAUTHORIZED when not authenticated', async () => {
     vi.mocked(getAuthSession).mockResolvedValue(null)
-    const result = await inviteEditor(COUNTRY, SLUG, null, makeFormData('editor@example.com'))
+    const result = await inviteEditor(CLUB_ID, null, makeFormData('editor@example.com'))
     expect(result).toMatchObject({ success: false, code: 'UNAUTHORIZED' })
   })
 
   it('returns UNAUTHORIZED when club is not found', async () => {
     vi.mocked(getAuthSession).mockResolvedValue(OWNER_SESSION)
-    vi.mocked(prisma.club.findFirst).mockResolvedValue(null)
-    const result = await inviteEditor(COUNTRY, SLUG, null, makeFormData('editor@example.com'))
+    vi.mocked(prisma.club.findUnique).mockResolvedValue(null)
+    const result = await inviteEditor(CLUB_ID, null, makeFormData('editor@example.com'))
     expect(result).toMatchObject({ success: false, code: 'UNAUTHORIZED' })
   })
 
   it('returns FORBIDDEN when caller is not an OWNER', async () => {
     vi.mocked(getAuthSession).mockResolvedValue(OWNER_SESSION)
     vi.mocked(prisma.clubMembership.findFirst).mockResolvedValue(null)
-    const result = await inviteEditor(COUNTRY, SLUG, null, makeFormData('editor@example.com'))
+    const result = await inviteEditor(CLUB_ID, null, makeFormData('editor@example.com'))
     expect(result).toMatchObject({ success: false, code: 'FORBIDDEN' })
   })
 
   it('returns VALIDATION_ERROR for an invalid email', async () => {
     vi.mocked(getAuthSession).mockResolvedValue(OWNER_SESSION)
-    const result = await inviteEditor(COUNTRY, SLUG, null, makeFormData('not-an-email'))
+    const result = await inviteEditor(CLUB_ID, null, makeFormData('not-an-email'))
     expect(result).toMatchObject({ success: false, code: 'VALIDATION_ERROR' })
   })
 
   it('returns VALIDATION_ERROR for an empty email', async () => {
     vi.mocked(getAuthSession).mockResolvedValue(OWNER_SESSION)
-    const result = await inviteEditor(COUNTRY, SLUG, null, makeFormData(''))
+    const result = await inviteEditor(CLUB_ID, null, makeFormData(''))
     expect(result).toMatchObject({ success: false, code: 'VALIDATION_ERROR' })
   })
 
@@ -87,7 +86,7 @@ describe('inviteEditor()', () => {
       id: 'existing-user',
       memberships: [{ id: 'mem-existing', status: 'ACTIVE' }],
     } as never)
-    const result = await inviteEditor(COUNTRY, SLUG, null, makeFormData('existing@example.com'))
+    const result = await inviteEditor(CLUB_ID, null, makeFormData('existing@example.com'))
     expect(result).toMatchObject({ success: false, code: 'ALREADY_MEMBER' })
     expect(prisma.user.create).not.toHaveBeenCalled()
   })
@@ -99,7 +98,7 @@ describe('inviteEditor()', () => {
       memberships: [{ id: 'mem-existing', status: 'PENDING' }],
     } as never)
     vi.mocked(prisma.invitation.findFirst).mockResolvedValue({ id: 'inv-1' } as never)
-    const result = await inviteEditor(COUNTRY, SLUG, null, makeFormData('existing@example.com'))
+    const result = await inviteEditor(CLUB_ID, null, makeFormData('existing@example.com'))
     expect(result).toMatchObject({ success: false, code: 'ALREADY_MEMBER' })
     expect(prisma.user.create).not.toHaveBeenCalled()
   })
@@ -115,7 +114,7 @@ describe('inviteEditor()', () => {
     vi.mocked(prisma.invitation.create).mockResolvedValue({} as never)
     vi.mocked(prisma.clubMembership.create).mockResolvedValue({} as never)
 
-    const result = await inviteEditor(COUNTRY, SLUG, null, makeFormData('existing@example.com'))
+    const result = await inviteEditor(CLUB_ID, null, makeFormData('existing@example.com'))
 
     expect(result).toMatchObject({ success: true })
     // Cleanup transaction called once (stale cleanup) + create transaction called once
@@ -138,7 +137,7 @@ describe('inviteEditor()', () => {
     vi.mocked(prisma.user.create).mockResolvedValue({ id: 'new-user-id' } as never)
     vi.mocked(sendEmail).mockRejectedValueOnce(new Error('SMTP error'))
 
-    const result = await inviteEditor(COUNTRY, SLUG, null, makeFormData('newuser@example.com'))
+    const result = await inviteEditor(CLUB_ID, null, makeFormData('newuser@example.com'))
 
     expect(result).toMatchObject({ success: false, code: 'SERVER_ERROR' })
     expect(prisma.invitation.deleteMany).toHaveBeenCalled()
@@ -152,7 +151,7 @@ describe('inviteEditor()', () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue(null)
     vi.mocked(prisma.user.create).mockResolvedValue({ id: 'new-user-id' } as never)
 
-    const result = await inviteEditor(COUNTRY, SLUG, null, makeFormData('newuser@example.com'))
+    const result = await inviteEditor(CLUB_ID, null, makeFormData('newuser@example.com'))
 
     expect(result).toMatchObject({ success: true })
     expect(prisma.user.create).toHaveBeenCalledWith(
@@ -180,7 +179,7 @@ describe('inviteEditor()', () => {
       memberships: [],
     } as never)
 
-    const result = await inviteEditor(COUNTRY, SLUG, null, makeFormData('existing@example.com'))
+    const result = await inviteEditor(CLUB_ID, null, makeFormData('existing@example.com'))
 
     expect(result).toMatchObject({ success: true })
     expect(prisma.user.create).not.toHaveBeenCalled()

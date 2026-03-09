@@ -1,5 +1,5 @@
 export type Translations = {
-  nav: { home: string; apply: string; myClubs: string; login: string; logout: string; about: string; support: string }
+  nav: { home: string; search: string; apply: string; myClubs: string; platform: string; login: string; logout: string; about: string; support: string }
   common: { loading: string; error: string; save: string; cancel: string; submit: string; confirm: string }
   language: { label: string; fr: string; de: string; it: string; en: string }
   auth: {
@@ -88,14 +88,39 @@ export type Translations = {
       link: string
       post: string
     }
+    deleteAccount: {
+      title: string
+      description: string
+      button: string
+      dialogTitle: string
+      dialogDescription: string
+      /** Use {clubs} as placeholder for the list of club names */
+      clubsWarning: string
+      editorOnlyNote: string
+      noClubsNote: string
+      confirmLabel: string
+      /** Use {names} as placeholder for the club names to type */
+      confirmHint: string
+      deleting: string
+      confirm: string
+      cancel: string
+    }
   }
   myClubs: {
     noClubs: string
   }
   admin: {
     dashboardTitle: string
+    overviewTitle: string
+    welcome: string
+    welcomeMessage: string
     applications: {
       title: string
+      reviewTab: string
+      selectApplication: string
+      editTab: string
+      previewTab: string
+      allCountries: string
       empty: string
       name: string
       activityType: string
@@ -148,26 +173,14 @@ export type Translations = {
     clubs: {
       title: string
       clubModeration: string
-      sendMessage: string
       forceOffline: string
       liftOffline: string
-      messageRequired: string
       reasonRequired: string
-      messageSent: string
       clubForcedOffline: string
       offlineLifted: string
-      published: string
-      draft: string
       moderatedOffline: string
       viewClub: string
-      recentMessages: string
-      noMessages: string
-      read: string
-      unread: string
-      messagePlaceholder: string
       reasonPlaceholder: string
-      /** Use {clubName} as placeholder */
-      sendMessageDescription: string
       /** Use {clubName} as placeholder */
       liftOfflineDescription: string
       noClubs: string
@@ -178,6 +191,43 @@ export type Translations = {
       actions: string
       /** Use {count} as placeholder */
       photoCount: string
+      selectClub: string
+      allStatuses: string
+      online: string
+      offline: string
+      editTab: string
+      previewTab: string
+      slug: string
+      email: string
+      description: string
+      activityType: string
+      location: string
+      saveChanges: string
+      changesSaved: string
+      profileFields: {
+        schedule: string
+        contactPhone: string
+        contactAddress: string
+        howToJoin: string
+        externalWebsiteUrl: string
+      }
+      photoSection: string
+      deleteClub: string
+      /** Use {clubName} as placeholder */
+      deleteClubConfirm: string
+      deleteClubDescription: string
+      /** Use {clubName} as placeholder */
+      deleteClubHint: string
+      clubDeleted: string
+      deletePhoto: string
+      noPhotos: string
+    }
+    messages: {
+      title: string
+      noConversations: string
+      /** Use {clubName} as placeholder */
+      lastMessage: string
+      selectConversation: string
     }
   }
   apply: {
@@ -197,11 +247,13 @@ export type Translations = {
       contactAddress: string
       externalWebsiteUrl: string
       desiredSlug: string
+      otherDescription: string
     }
     placeholders: {
       name: string
       email: string
       activityType: string
+      otherDescription: string
       location: string
       description: string
       howToJoin: string
@@ -225,6 +277,7 @@ export type Translations = {
       externalWebsiteUrlInvalid: string
       desiredSlugRequired: string
       desiredSlugInvalid: string
+      otherDescriptionRequired: string
     }
     desiredSlugHint: string
     success: string
@@ -240,12 +293,15 @@ export type Translations = {
     admin: {
       sidebar: {
         clubProfile: string
+        messages: string
         settings: string
         viewPublicPage: string
       }
       clubProfile: {
         title: string
         placeholder: string
+        preview: string
+        editTab: string
         fields: {
           name: string
           description: string
@@ -261,16 +317,18 @@ export type Translations = {
           description: string
           schedule: string
           howToJoin: string
+          contactEmail: string
           contactPhone: string
           contactAddress: string
           externalWebsiteUrl: string
         }
         validation: {
           nameRequired: string
+          emailInvalid: string
           descriptionMaxLength: string
           scheduleMaxLength: string
           howToJoinMaxLength: string
-          contactPhoneMaxLength: string
+          contactPhoneInvalid: string
           contactAddressMaxLength: string
           externalWebsiteUrlInvalid: string
         }
@@ -284,6 +342,7 @@ export type Translations = {
           uploading: string
           errorType: string
           errorSize: string
+          errorUpload: string
         }
         photos: {
           title: string
@@ -291,30 +350,41 @@ export type Translations = {
           delete: string
           deleteConfirm: string
           maxReached: string
+          /** Use {count} for current count and {min} for minimum */
+          minRequired: string
           constraints: string
           uploading: string
           errorType: string
           errorSize: string
+          errorUpload: string
         }
       }
-      publish: {
+      visibility: {
         title: string
-        published: string
-        unpublished: string
-        publishSuccess: string
-        unpublishSuccess: string
+        online: string
+        offline: string
+        onlineSuccess: string
+        offlineSuccess: string
         forceOfflineWarning: string
+        /** Use {count} as placeholder for the current photo count and {min} for the minimum */
+        minPhotosRequired: string
         error: string
       }
-      operatorMessages: {
+      messages: {
         title: string
-        markAsRead: string
-        viewAll: string
-        hideAll: string
+        placeholder: string
+        send: string
+        you: string
+        platform: string
+        empty: string
+        /** Use {count} as placeholder */
+        unreadBadge: string
       }
       settings: {
         title: string
         placeholder: string
+        exportData: string
+        exportDescription: string
       }
       save: {
         save: string
@@ -364,6 +434,9 @@ export type Translations = {
   }
   platform: {
     headline: string
+    headlinePrefix: string
+    headlineRotatingWords: string[]
+    tagline: string
     philosophy: string
     stats: {
       /** Use {count} as placeholder */
@@ -397,8 +470,11 @@ export type Translations = {
     title: string
     /** Use {country} as placeholder */
     description: string
+    filterCountry: string
     filterCanton: string
+    filterCity: string
     filterActivity: string
+    allCountries: string
     allCantons: string
     allActivities: string
     noResults: string
@@ -426,6 +502,7 @@ export type Translations = {
     phone: string
     address: string
     photos: string
+    goToPhoto: string
   }
   layout: {
     skipToContent: string

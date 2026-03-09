@@ -4,8 +4,9 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import type { InviteEditorResult, TransferOwnershipResult, RevokeAccessResult } from '@/app/[lang]/(country)/[country]/[club]/settings/actions'
+import { Badge } from '@/components/ui/badge'
+import { toast } from 'sonner'
+import type { InviteEditorResult, TransferOwnershipResult, RevokeAccessResult } from '@/app/[lang]/(dashboard)/club/[clubId]/settings/actions'
 import type { Translations } from '@/lib/i18n/translations'
 
 type MembershipPanelT = Translations['club']['membership']
@@ -33,14 +34,10 @@ interface MembershipPanelProps {
 export function MembershipPanel({ memberships, currentUserId, inviteAction, transferOwnershipAction, revokeAccessAction, t }: MembershipPanelProps) {
   const router = useRouter()
   const [email, setEmail] = useState('')
-  const [lastInvitedEmail, setLastInvitedEmail] = useState('')
-  const [result, setResult] = useState<InviteEditorResult | null>(null)
   const [isPending, startTransition] = useTransition()
   const [confirmTransferId, setConfirmTransferId] = useState<string | null>(null)
-  const [transferResult, setTransferResult] = useState<TransferOwnershipResult | null>(null)
   const [isPendingTransfer, startTransferTransition] = useTransition()
   const [confirmRevokeId, setConfirmRevokeId] = useState<string | null>(null)
-  const [revokeResult, setRevokeResult] = useState<RevokeAccessResult | null>(null)
   const [isPendingRevoke, startRevokeTransition] = useTransition()
 
   const isOwnerViewing = memberships.some(
@@ -49,40 +46,43 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setResult(null)
 
     const formData = new FormData(e.currentTarget)
-    setLastInvitedEmail(formData.get('email') as string)
+    const invitedEmail = formData.get('email') as string
     startTransition(async () => {
       const res = await inviteAction(null, formData)
-      setResult(res)
       if (res.success) {
+        toast.success(t.inviteSent.replace('{email}', invitedEmail))
         setEmail('')
         router.refresh()
+      } else {
+        toast.error(res.error)
       }
     })
   }
 
   function handleRevokeConfirm(targetMembershipId: string) {
-    setRevokeResult(null)
     startRevokeTransition(async () => {
       const res = await revokeAccessAction(targetMembershipId)
-      setRevokeResult(res)
       setConfirmRevokeId(null)
       if (res.success) {
+        toast.success(t.revokeSuccess)
         router.refresh()
+      } else {
+        toast.error(res.error)
       }
     })
   }
 
   function handleTransferConfirm(targetMembershipId: string) {
-    setTransferResult(null)
     startTransferTransition(async () => {
       const res = await transferOwnershipAction(targetMembershipId)
-      setTransferResult(res)
       setConfirmTransferId(null)
       if (res.success) {
+        toast.success(t.transferSuccess)
         router.refresh()
+      } else {
+        toast.error(res.error)
       }
     })
   }
@@ -94,7 +94,8 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
         {memberships.length === 0 ? (
           <p className="text-muted-foreground text-sm">{t.noMembers}</p>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[500px]">
             <thead>
               <tr className="border-b text-left text-muted-foreground">
                 <th className="pb-2 pr-4 font-medium">{t.email}</th>
@@ -109,16 +110,16 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
                   <td className="py-2 pr-4">{m.user.email ?? '—'}</td>
                   <td className="py-2 pr-4">
                     {m.role === 'OWNER' ? (
-                      <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800">{t.owner}</span>
+                      <Badge>{t.owner}</Badge>
                     ) : (
-                      <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800">{t.editor}</span>
+                      <Badge variant="secondary">{t.editor}</Badge>
                     )}
                   </td>
                   <td className="py-2 pr-4">
                     {m.status === 'ACTIVE' ? (
-                      <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-800">{t.active}</span>
+                      <Badge variant="success">{t.active}</Badge>
                     ) : (
-                      <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium border border-gray-300 text-gray-500">{t.pending}</span>
+                      <Badge variant="destructive">{t.pending}</Badge>
                     )}
                   </td>
                   <td className="py-2">
@@ -168,14 +169,14 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
                           <Button
                             size="xs"
                             variant="outline"
-                            onClick={() => { setConfirmRevokeId(null); setRevokeResult(null); setConfirmTransferId(m.id) }}
+                            onClick={() => { setConfirmRevokeId(null); setConfirmTransferId(m.id) }}
                           >
                             {t.transfer}
                           </Button>
                           <Button
                             size="xs"
                             variant="outline"
-                            onClick={() => { setConfirmTransferId(null); setTransferResult(null); setRevokeResult(null); setConfirmRevokeId(m.id) }}
+                            onClick={() => { setConfirmTransferId(null); setConfirmRevokeId(m.id) }}
                           >
                             {t.revoke}
                           </Button>
@@ -187,38 +188,13 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
               ))}
             </tbody>
           </table>
-        )}
-        {transferResult && (
-          <div className="mt-3">
-            {transferResult.success ? (
-              <Alert>
-                <AlertDescription>{t.transferSuccess}</AlertDescription>
-              </Alert>
-            ) : (
-              <Alert variant="destructive">
-                <AlertDescription>{transferResult.error}</AlertDescription>
-              </Alert>
-            )}
-          </div>
-        )}
-        {revokeResult && (
-          <div className="mt-3">
-            {revokeResult.success ? (
-              <Alert>
-                <AlertDescription>{t.revokeSuccess}</AlertDescription>
-              </Alert>
-            ) : (
-              <Alert variant="destructive">
-                <AlertDescription>{revokeResult.error}</AlertDescription>
-              </Alert>
-            )}
           </div>
         )}
       </div>
 
       <div>
         <h2 className="text-lg font-medium mb-3">{t.inviteEditor}</h2>
-        <form onSubmit={handleSubmit} className="flex gap-2 items-end">
+        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 sm:items-end">
           <div className="flex-1 space-y-1">
             <Label htmlFor="invite-email">{t.emailAddress}</Label>
             <Input
@@ -237,19 +213,6 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
           </Button>
         </form>
 
-        {result && (
-          <div className="mt-3">
-            {result.success ? (
-              <Alert>
-                <AlertDescription>{t.inviteSent.replace('{email}', lastInvitedEmail)}</AlertDescription>
-              </Alert>
-            ) : (
-              <Alert variant="destructive">
-                <AlertDescription>{result.error}</AlertDescription>
-              </Alert>
-            )}
-          </div>
-        )}
       </div>
     </div>
   )

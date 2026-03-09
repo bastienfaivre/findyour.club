@@ -3,8 +3,8 @@ import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { changePassword } from '@/app/[lang]/auth/account/actions'
+import { toast } from 'sonner'
+import { changePassword } from '@/app/[lang]/(dashboard)/account/actions'
 
 interface ChangePasswordFormT {
   currentPassword: string
@@ -20,22 +20,18 @@ export function ChangePasswordForm({ t }: { t: ChangePasswordFormT }) {
   const [currentPassword, setCurrentPassword] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
   const [isPending, startTransition] = useTransition()
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setError(null)
-    setSuccess(false)
 
     startTransition(async () => {
       const result = await changePassword({ currentPassword, password, confirmPassword })
       if (!result.success) {
-        setError(result.error)
+        toast.error(result.error)
         return
       }
-      setSuccess(true)
+      toast.success(t.passwordChanged)
       setCurrentPassword('')
       setPassword('')
       setConfirmPassword('')
@@ -44,17 +40,6 @@ export function ChangePasswordForm({ t }: { t: ChangePasswordFormT }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-      {success && (
-        <Alert>
-          <AlertDescription>{t.passwordChanged}</AlertDescription>
-        </Alert>
-      )}
-
       <div className="space-y-2">
         <Label htmlFor="currentPassword">{t.currentPassword}</Label>
         <Input

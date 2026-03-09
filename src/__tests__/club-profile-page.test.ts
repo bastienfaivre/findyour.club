@@ -23,6 +23,7 @@ const translations = {
   address: 'Address',
   visitWebsite: 'Visit our website',
   photos: 'Photos',
+  goToPhoto: 'Go to photo {n}',
 }
 
 const fullClub = {
@@ -72,8 +73,6 @@ describe('ProfilePage', () => {
   it('renders all sections when data is present', () => {
     const result = ProfilePage({
       club: fullClub,
-      ctaLabel: 'Contact us',
-      ctaHref: '/en/ch/test/contact',
       translations,
     })
 
@@ -85,8 +84,6 @@ describe('ProfilePage', () => {
   it('omits schedule section when schedule is null', () => {
     const result = ProfilePage({
       club: { ...fullClub, schedule: null },
-      ctaLabel: 'Contact us',
-      ctaHref: '/en/ch/test/contact',
       translations,
     })
 
@@ -98,8 +95,6 @@ describe('ProfilePage', () => {
   it('omits howToJoin section when howToJoin is null', () => {
     const result = ProfilePage({
       club: { ...fullClub, howToJoin: null },
-      ctaLabel: 'Contact us',
-      ctaHref: '/en/ch/test/contact',
       translations,
     })
 
@@ -111,8 +106,6 @@ describe('ProfilePage', () => {
   it('always renders ContactInfo section', () => {
     const result = ProfilePage({
       club: { ...fullClub, schedule: null, howToJoin: null },
-      ctaLabel: 'Contact us',
-      ctaHref: '/en/ch/test/contact',
       translations,
     })
 
@@ -123,8 +116,6 @@ describe('ProfilePage', () => {
   it('renders with empty photos array', () => {
     const result = ProfilePage({
       club: { ...fullClub, photos: [] },
-      ctaLabel: 'Contact us',
-      ctaHref: '/en/ch/test/contact',
       translations,
     })
 

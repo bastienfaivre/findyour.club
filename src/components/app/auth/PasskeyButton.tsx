@@ -40,9 +40,9 @@ export function PasskeyButton({ t }: { t: PasskeyButtonT }) {
           setError(result.error ?? 'Passkey authentication failed.')
           return
         }
-        // Hard navigation so Server Components (e.g. DevAuthPanel) re-render with the new session cookie.
+        // Hard navigation so Server Components re-render with the new session cookie.
         // router.push() would use cached renders since fetch-based auth doesn't invalidate the router cache.
-        window.location.href = result.role === 'OPERATOR' ? '/admin' : '/my-clubs'
+        window.location.href = '/'
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Passkey authentication failed.'
         setError(message)

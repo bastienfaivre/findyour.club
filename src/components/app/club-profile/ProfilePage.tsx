@@ -17,8 +17,6 @@ type ProfilePageProps = {
     externalWebsiteUrl: string | null
     photos: Array<{ id: string; url: string; alt: string }>
   }
-  ctaLabel: string
-  ctaHref: string
   translations: {
     schedule: string
     howToJoin: string
@@ -28,10 +26,11 @@ type ProfilePageProps = {
     address: string
     visitWebsite: string
     photos: string
+    goToPhoto: string
   }
 }
 
-export function ProfilePage({ club, ctaLabel, ctaHref, translations }: ProfilePageProps) {
+export function ProfilePage({ club, translations }: ProfilePageProps) {
   return (
     <div className="flex flex-col">
       <ClubHeroSection
@@ -41,12 +40,10 @@ export function ProfilePage({ club, ctaLabel, ctaHref, translations }: ProfilePa
           logoAlt: club.logoAlt,
           description: club.description,
         }}
-        ctaLabel={ctaLabel}
-        ctaHref={ctaHref}
       />
 
       <div className="mx-auto w-full max-w-3xl px-4">
-        <PhotoCarousel photos={club.photos} ariaLabel={translations.photos} />
+        <PhotoCarousel photos={club.photos} ariaLabel={translations.photos} goToPhotoLabel={translations.goToPhoto} />
 
         {club.schedule && (
           <ProfileSection title={translations.schedule}>

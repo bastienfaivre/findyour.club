@@ -27,8 +27,9 @@ vi.mock('@/server/db', () => ({
       create: vi.fn(),
       deleteMany: vi.fn(),
     },
-    operatorMessage: {
+    supportMessage: {
       create: vi.fn(),
+      deleteMany: vi.fn(),
     },
     $transaction: vi.fn(async (fn: (tx: unknown) => unknown) => fn(prisma)),
   },
@@ -39,6 +40,9 @@ vi.mock('@/server/auth', () => ({
 vi.mock('@/lib/email', () => ({
   sendEmail: vi.fn(),
 }))
+vi.mock('@/lib/server/location', () => ({
+  upsertSwissLocation: vi.fn(async () => ({ locationId: 'loc-1' })),
+}))
 
 import { prisma } from '@/server/db'
 import { getAuthSession } from '@/server/auth'
@@ -46,7 +50,8 @@ import { sendEmail } from '@/lib/email'
 import {
   approveApplication,
   rejectApplication,
-} from '@/app/[lang]/admin/(protected)/applications/actions'
+} from '@/app/[lang]/(dashboard)/admin/applications/actions'
+import type { ApplicationEditableFields } from '@/app/[lang]/(dashboard)/admin/applications/actions'
 
 const OPERATOR_SESSION = {
   user: { id: 'op-1', role: 'OPERATOR', totpEnabled: false, totpVerified: true, clubId: null, clubRole: null },
@@ -64,7 +69,7 @@ const PENDING_APPLICATION = {
   country: 'ch',
   name: 'Ski Club Valais',
   email: 'admin@skiclub.ch',
-  activityTypeId: 'at-1',
+  activityType: 'skiing',
   locationId: 'loc-1',
   description: 'A great ski club in Valais',
   schedule: 'Saturdays 09:00–12:00',
@@ -72,6 +77,21 @@ const PENDING_APPLICATION = {
   contactAddress: 'Rue de la Gare 1, 1950 Sion',
   howToJoin: 'Send us an email',
   externalWebsiteUrl: 'https://skiclub-valais.ch',
+}
+
+const DEFAULT_FIELDS: ApplicationEditableFields = {
+  name: 'Ski Club Valais',
+  email: 'admin@skiclub.ch',
+  country: 'ch',
+  description: 'A great ski club in Valais',
+  activityType: 'skiing',
+  location: { swisstopoId: '2117', plz: '1950', cantonCode: 'VS', name: 'Sion' },
+  schedule: 'Saturdays 09:00–12:00',
+  contactPhone: '+41 27 123 45 67',
+  contactAddress: 'Rue de la Gare 1, 1950 Sion',
+  howToJoin: 'Send us an email',
+  externalWebsiteUrl: 'https://skiclub-valais.ch',
+  desiredSlug: 'ski-club-valais',
 }
 
 describe('approveApplication()', () => {
@@ -90,17 +110,23 @@ describe('approveApplication()', () => {
     vi.mocked(prisma.user.create).mockResolvedValue({ id: 'user-1' } as never)
     vi.mocked(prisma.user.update).mockResolvedValue({} as never)
     vi.mocked(prisma.clubMembership.create).mockResolvedValue({} as never)
-    vi.mocked(prisma.operatorMessage.create).mockResolvedValue({} as never)
+    vi.mocked(prisma.supportMessage.create).mockResolvedValue({} as never)
     vi.mocked(sendEmail).mockResolvedValue(undefined)
   })
 
   it('provisions club, user, membership and sends email (happy path)', async () => {
-    const result = await approveApplication('app-1', 'ski-club-valais')
+    const result = await approveApplication('app-1', DEFAULT_FIELDS)
 
     expect(result).toEqual({ success: true })
     expect(prisma.application.updateMany).toHaveBeenCalledWith({
       where: { id: 'app-1', status: 'PENDING' },
-      data: { status: 'APPROVED', reviewedAt: expect.any(Date), desiredSlug: 'ski-club-valais' },
+      data: expect.objectContaining({
+        status: 'APPROVED',
+        reviewedAt: expect.any(Date),
+        desiredSlug: 'ski-club-valais',
+        name: 'Ski Club Valais',
+        email: 'admin@skiclub.ch',
+      }),
     })
     expect(prisma.club.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
@@ -109,8 +135,8 @@ describe('approveApplication()', () => {
         country: 'ch',
         status: 'ACTIVE',
         email: 'admin@skiclub.ch',
-        activityTypeId: 'at-1',
-        locationId: 'loc-1',
+        activityType: 'skiing',
+        locationId: 'loc-1', // resolved via upsertSwissLocation mock
         defaultLanguage: 'fr',
         description: 'A great ski club in Valais',
         schedule: 'Saturdays 09:00–12:00',
@@ -143,10 +169,42 @@ describe('approveApplication()', () => {
     })
   })
 
+  it('uses operator-edited fields for club creation', async () => {
+    const editedFields: ApplicationEditableFields = {
+      ...DEFAULT_FIELDS,
+      name: 'Corrected Club Name',
+      email: 'corrected@skiclub.ch',
+      description: 'Updated description',
+    }
+
+    vi.mocked(prisma.club.create).mockResolvedValue({
+      id: 'club-1', name: 'Corrected Club Name', slug: 'ski-club-valais',
+      country: 'ch', defaultLanguage: 'fr',
+    } as never)
+
+    const result = await approveApplication('app-1', editedFields)
+
+    expect(result).toEqual({ success: true })
+    expect(prisma.club.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        name: 'Corrected Club Name',
+        email: 'corrected@skiclub.ch',
+        description: 'Updated description',
+      }),
+    })
+    expect(prisma.user.findUnique).toHaveBeenCalledWith({
+      where: { email: 'corrected@skiclub.ch' },
+      select: { id: true },
+    })
+    expect(sendEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ to: 'corrected@skiclub.ch' }),
+    )
+  })
+
   it('reuses existing user when email matches', async () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'existing-user' } as never)
 
-    const result = await approveApplication('app-1', 'ski-club-valais')
+    const result = await approveApplication('app-1', DEFAULT_FIELDS)
 
     expect(result).toEqual({ success: true })
     expect(prisma.user.create).not.toHaveBeenCalled()
@@ -162,12 +220,13 @@ describe('approveApplication()', () => {
   it('rolls back provisioning and returns EMAIL_FAILED when email fails', async () => {
     vi.mocked(sendEmail).mockRejectedValue(new Error('Resend error'))
 
-    const result = await approveApplication('app-1', 'ski-club-valais')
+    const result = await approveApplication('app-1', DEFAULT_FIELDS)
 
     expect(result).toMatchObject({ success: false, code: 'EMAIL_FAILED' })
     // Compensating transaction should have been called (second $transaction call)
     expect(prisma.$transaction).toHaveBeenCalledTimes(2)
     expect(prisma.clubMembership.deleteMany).toHaveBeenCalledWith({ where: { clubId: 'club-1' } })
+    expect(prisma.supportMessage.deleteMany).toHaveBeenCalledWith({ where: { clubId: 'club-1' } })
     expect(prisma.club.delete).toHaveBeenCalledWith({ where: { id: 'club-1' } })
     expect(prisma.user.update).toHaveBeenCalledWith({
       where: { id: 'user-1' },
@@ -180,7 +239,7 @@ describe('approveApplication()', () => {
   })
 
   it('approves with an operator-modified slug', async () => {
-    const result = await approveApplication('app-1', 'custom-slug')
+    const result = await approveApplication('app-1', { ...DEFAULT_FIELDS, desiredSlug: 'custom-slug' })
 
     expect(result).toEqual({ success: true })
     expect(prisma.club.create).toHaveBeenCalledWith({
@@ -189,35 +248,35 @@ describe('approveApplication()', () => {
   })
 
   it('returns SLUG_REQUIRED when slug is empty', async () => {
-    const result = await approveApplication('app-1', '')
+    const result = await approveApplication('app-1', { ...DEFAULT_FIELDS, desiredSlug: '' })
 
     expect(result).toMatchObject({ success: false, code: 'SLUG_REQUIRED' })
     expect(prisma.application.updateMany).not.toHaveBeenCalled()
   })
 
   it('returns SLUG_REQUIRED when slug is whitespace only', async () => {
-    const result = await approveApplication('app-1', '   ')
+    const result = await approveApplication('app-1', { ...DEFAULT_FIELDS, desiredSlug: '   ' })
 
     expect(result).toMatchObject({ success: false, code: 'SLUG_REQUIRED' })
     expect(prisma.application.updateMany).not.toHaveBeenCalled()
   })
 
   it('returns SLUG_INVALID for uppercase characters', async () => {
-    const result = await approveApplication('app-1', 'My-Club')
+    const result = await approveApplication('app-1', { ...DEFAULT_FIELDS, desiredSlug: 'My-Club' })
 
     expect(result).toMatchObject({ success: false, code: 'SLUG_INVALID' })
     expect(prisma.application.updateMany).not.toHaveBeenCalled()
   })
 
   it('returns SLUG_INVALID for special characters', async () => {
-    const result = await approveApplication('app-1', 'club_name!')
+    const result = await approveApplication('app-1', { ...DEFAULT_FIELDS, desiredSlug: 'club_name!' })
 
     expect(result).toMatchObject({ success: false, code: 'SLUG_INVALID' })
     expect(prisma.application.updateMany).not.toHaveBeenCalled()
   })
 
   it('returns SLUG_INVALID for leading hyphen', async () => {
-    const result = await approveApplication('app-1', '-club')
+    const result = await approveApplication('app-1', { ...DEFAULT_FIELDS, desiredSlug: '-club' })
 
     expect(result).toMatchObject({ success: false, code: 'SLUG_INVALID' })
     expect(prisma.application.updateMany).not.toHaveBeenCalled()
@@ -226,7 +285,7 @@ describe('approveApplication()', () => {
   it('returns SLUG_CONFLICT when slug matches an existing club', async () => {
     vi.mocked(prisma.club.findUnique).mockResolvedValue({ id: 'club-1' } as never)
 
-    const result = await approveApplication('app-1', 'taken-slug')
+    const result = await approveApplication('app-1', { ...DEFAULT_FIELDS, desiredSlug: 'taken-slug' })
 
     expect(result).toMatchObject({ success: false, code: 'SLUG_CONFLICT' })
     expect(prisma.club.create).not.toHaveBeenCalled()
@@ -235,7 +294,7 @@ describe('approveApplication()', () => {
   it('returns SLUG_CONFLICT when slug matches another approved application', async () => {
     vi.mocked(prisma.application.findFirst).mockResolvedValue({ id: 'app-2' } as never)
 
-    const result = await approveApplication('app-1', 'taken-slug')
+    const result = await approveApplication('app-1', { ...DEFAULT_FIELDS, desiredSlug: 'taken-slug' })
 
     expect(result).toMatchObject({ success: false, code: 'SLUG_CONFLICT' })
     expect(prisma.club.create).not.toHaveBeenCalled()
@@ -244,7 +303,7 @@ describe('approveApplication()', () => {
   it('returns NOT_FOUND when application does not exist', async () => {
     vi.mocked(prisma.application.findUnique).mockResolvedValue(null)
 
-    const result = await approveApplication('nonexistent', 'some-slug')
+    const result = await approveApplication('nonexistent', { ...DEFAULT_FIELDS, desiredSlug: 'some-slug' })
 
     expect(result).toMatchObject({ success: false, code: 'NOT_FOUND' })
   })
@@ -252,7 +311,7 @@ describe('approveApplication()', () => {
   it('returns ALREADY_REVIEWED when application already approved', async () => {
     vi.mocked(prisma.application.findUnique).mockResolvedValue({ ...PENDING_APPLICATION, status: 'APPROVED' } as never)
 
-    const result = await approveApplication('app-1', 'some-slug')
+    const result = await approveApplication('app-1', { ...DEFAULT_FIELDS, desiredSlug: 'some-slug' })
 
     expect(result).toMatchObject({ success: false, code: 'ALREADY_REVIEWED' })
   })
@@ -260,7 +319,7 @@ describe('approveApplication()', () => {
   it('returns UNAUTHORIZED for non-OPERATOR user', async () => {
     vi.mocked(getAuthSession).mockResolvedValue(NON_OPERATOR_SESSION as never)
 
-    const result = await approveApplication('app-1', 'some-slug')
+    const result = await approveApplication('app-1', { ...DEFAULT_FIELDS, desiredSlug: 'some-slug' })
 
     expect(result).toMatchObject({ success: false, code: 'UNAUTHORIZED' })
     expect(prisma.application.updateMany).not.toHaveBeenCalled()
@@ -269,7 +328,7 @@ describe('approveApplication()', () => {
   it('returns UNAUTHORIZED when not authenticated', async () => {
     vi.mocked(getAuthSession).mockResolvedValue(null)
 
-    const result = await approveApplication('app-1', 'some-slug')
+    const result = await approveApplication('app-1', { ...DEFAULT_FIELDS, desiredSlug: 'some-slug' })
 
     expect(result).toMatchObject({ success: false, code: 'UNAUTHORIZED' })
   })
@@ -277,43 +336,43 @@ describe('approveApplication()', () => {
   it('returns SERVER_ERROR when database update fails', async () => {
     vi.mocked(prisma.application.updateMany).mockRejectedValue(new Error('DB error'))
 
-    const result = await approveApplication('app-1', 'some-slug')
+    const result = await approveApplication('app-1', { ...DEFAULT_FIELDS, desiredSlug: 'some-slug' })
 
     expect(result).toMatchObject({ success: false, code: 'SERVER_ERROR' })
   })
 
   it('creates OperatorMessage when operator message is provided', async () => {
-    const result = await approveApplication('app-1', 'ski-club-valais', 'Please add schedule details')
+    const result = await approveApplication('app-1', DEFAULT_FIELDS,'Please add schedule details')
 
     expect(result).toEqual({ success: true })
-    expect(prisma.operatorMessage.create).toHaveBeenCalledWith({
-      data: { clubId: 'club-1', message: 'Please add schedule details' },
+    expect(prisma.supportMessage.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ clubId: 'club-1', senderRole: 'OPERATOR', body: 'Please add schedule details' }),
     })
   })
 
   it('does not create OperatorMessage when message is not provided', async () => {
-    const result = await approveApplication('app-1', 'ski-club-valais')
+    const result = await approveApplication('app-1', DEFAULT_FIELDS)
 
     expect(result).toEqual({ success: true })
-    expect(prisma.operatorMessage.create).not.toHaveBeenCalled()
+    expect(prisma.supportMessage.create).not.toHaveBeenCalled()
   })
 
   it('does not create OperatorMessage when message is empty string', async () => {
-    const result = await approveApplication('app-1', 'ski-club-valais', '')
+    const result = await approveApplication('app-1', DEFAULT_FIELDS,'')
 
     expect(result).toEqual({ success: true })
-    expect(prisma.operatorMessage.create).not.toHaveBeenCalled()
+    expect(prisma.supportMessage.create).not.toHaveBeenCalled()
   })
 
   it('does not create OperatorMessage when message is whitespace only', async () => {
-    const result = await approveApplication('app-1', 'ski-club-valais', '   ')
+    const result = await approveApplication('app-1', DEFAULT_FIELDS,'   ')
 
     expect(result).toEqual({ success: true })
-    expect(prisma.operatorMessage.create).not.toHaveBeenCalled()
+    expect(prisma.supportMessage.create).not.toHaveBeenCalled()
   })
 
   it('sets isPublished false and forceOffline false on created club', async () => {
-    await approveApplication('app-1', 'ski-club-valais')
+    await approveApplication('app-1', DEFAULT_FIELDS)
 
     expect(prisma.club.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
@@ -639,13 +698,13 @@ describe('reserved slug validation', () => {
   })
 
   it('returns SLUG_CONFLICT for reserved slug "admin"', async () => {
-    const result = await approveApplication('app-1', 'admin')
+    const result = await approveApplication('app-1', { ...DEFAULT_FIELDS, desiredSlug: 'admin' })
     expect(result).toMatchObject({ success: false, code: 'SLUG_CONFLICT' })
     expect(prisma.club.create).not.toHaveBeenCalled()
   })
 
   it('returns SLUG_CONFLICT for reserved slug "auth"', async () => {
-    const result = await approveApplication('app-1', 'auth')
+    const result = await approveApplication('app-1', { ...DEFAULT_FIELDS, desiredSlug: 'auth' })
     expect(result).toMatchObject({ success: false, code: 'SLUG_CONFLICT' })
   })
 })

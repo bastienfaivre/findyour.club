@@ -26,29 +26,19 @@ vi.mock('@/lib/country', () => ({
   isValidCountry: vi.fn((country: string) => ['ch', 'fr', 'de'].includes(country)),
   getCountryName: vi.fn(() => 'Switzerland'),
 }))
-vi.mock('@/components/app/auth/TotpEnrollmentBanner', () => ({
-  TotpEnrollmentBanner: vi.fn(() => null),
+vi.mock('@/components/app/club-profile/ProfilePage', () => ({
+  ProfilePage: vi.fn(() => null),
 }))
-vi.mock('@/components/layout/mobile-nav-menu', () => ({
-  MobileNavMenu: vi.fn(() => null),
+vi.mock('@/components/app/admin/AdminPageTitle', () => ({
+  AdminPageTitle: vi.fn(() => null),
 }))
-vi.mock('@/components/app/LanguageSwitcher', () => ({
-  LanguageSwitcher: vi.fn(() => null),
-}))
-vi.mock('@/components/ui/theme-toggle', () => ({
-  ThemeToggle: vi.fn(() => null),
-}))
-vi.mock('@/components/app/club-site/PoweredByBanner', () => ({
-  PoweredByBanner: vi.fn(() => null),
-}))
-vi.mock('@/components/layout/nav-link', () => ({
-  NavLink: vi.fn(() => null),
+vi.mock('@/components/app/seo/metadata', () => ({
+  generateClubJsonLd: vi.fn(() => ({})),
 }))
 
 import { notFound } from 'next/navigation'
-import { getAuthSession } from '@/server/auth'
 import { getClubPublicData } from '@/lib/server/club-queries'
-import ClubLayout from '@/app/[lang]/(country)/[country]/[club]/layout'
+import ClubPage from '@/app/[lang]/(dashboard)/[country]/[club]/page'
 
 const MOCK_CLUB = {
   id: 'club-1',
@@ -62,38 +52,40 @@ const MOCK_CLUB = {
   defaultLanguage: 'fr',
   activityType: { slug: 'skiing' },
   location: null,
-  pages: [],
+  schedule: null,
+  howToJoin: null,
+  email: null,
+  contactPhone: null,
+  contactAddress: null,
+  externalWebsiteUrl: null,
+  photos: [],
 }
-
-const MOCK_CHILDREN = null
 
 function makeParams(slug = 'ski-club-valais', country = 'ch', lang = 'fr') {
   return Promise.resolve({ lang, country, club: slug })
 }
 
-describe('ClubLayout (public access)', () => {
+describe('ClubPage (public access)', () => {
   beforeEach(() => {
     vi.resetAllMocks()
   })
 
   it('calls notFound() when club does not exist in DB', async () => {
     vi.mocked(getClubPublicData).mockResolvedValue(null)
-    await expect(ClubLayout({ children: MOCK_CHILDREN, params: makeParams('nonexistent-slug') })).rejects.toThrow('NEXT_NOT_FOUND')
+    await expect(ClubPage({ params: makeParams('nonexistent-slug') })).rejects.toThrow('NEXT_NOT_FOUND')
     expect(notFound).toHaveBeenCalled()
   })
 
-  it('renders children without requiring authentication (public access)', async () => {
-    vi.mocked(getAuthSession).mockResolvedValue(null)
+  it('renders without requiring authentication (public access)', async () => {
     vi.mocked(getClubPublicData).mockResolvedValue(MOCK_CLUB as never)
-    const result = await ClubLayout({ children: MOCK_CHILDREN, params: makeParams() })
+    const result = await ClubPage({ params: makeParams() })
     expect(notFound).not.toHaveBeenCalled()
     expect(result).toBeTruthy()
   })
 
   it('resolves club by (slug, country) via getClubPublicData', async () => {
-    vi.mocked(getAuthSession).mockResolvedValue(null)
     vi.mocked(getClubPublicData).mockResolvedValue(MOCK_CLUB as never)
-    await ClubLayout({ children: MOCK_CHILDREN, params: makeParams('ski-club-valais', 'ch') })
+    await ClubPage({ params: makeParams('ski-club-valais', 'ch') })
     expect(vi.mocked(getClubPublicData)).toHaveBeenCalledWith('ski-club-valais', 'ch')
   })
 })

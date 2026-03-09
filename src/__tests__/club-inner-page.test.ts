@@ -14,9 +14,6 @@ vi.mock('@/lib/country', () => ({
   isValidCountry: vi.fn((country: string) => country === 'ch'),
   getCountryName: vi.fn(() => 'Switzerland'),
 }))
-vi.mock('@/components/app/auth/TotpEnrollmentBanner', () => ({
-  TotpEnrollmentBanner: vi.fn(() => null),
-}))
 vi.mock('next/image', () => ({
   default: vi.fn((_props: Record<string, unknown>) => null),
 }))
@@ -26,9 +23,9 @@ vi.mock('next/link', () => ({
 
 import { notFound } from 'next/navigation'
 import { prisma } from '@/server/db'
-import InnerPage, { generateMetadata as innerPageMetadata } from '@/app/[lang]/(country)/[country]/[club]/[page]/page'
-import ContactPage, { generateMetadata as contactMetadata } from '@/app/[lang]/(country)/[country]/[club]/contact/page'
-import InnerPageLoading from '@/app/[lang]/(country)/[country]/[club]/[page]/loading'
+import InnerPage, { generateMetadata as innerPageMetadata } from '@/app/[lang]/(dashboard)/[country]/[club]/[page]/page'
+import ContactPage, { generateMetadata as contactMetadata } from '@/app/[lang]/(dashboard)/[country]/[club]/contact/page'
+import InnerPageLoading from '@/app/[lang]/(dashboard)/[country]/[club]/[page]/loading'
 import { ElementRenderer } from '@/components/app/club-site/ElementRenderer'
 
 function makeParams(lang = 'en', country = 'ch', club = 'ski-club-valais', page = 'calendar') {

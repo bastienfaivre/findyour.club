@@ -116,7 +116,8 @@ model User {
   sentInvitations   ClubMembership[]    @relation("SentInvitations")
   passkeys          WebauthnCredential[]
   ticketReplies     TicketReply[]
-  createdActivityTypes ActivityType[]
+  supportMessages   SupportMessage[]
+  readCursors       ConversationReadCursor[]
 
   @@map("users")
 }
@@ -156,28 +157,15 @@ model ClubMembership {
 
   user    User  @relation("Memberships", fields: [userId], references: [id], onDelete: Cascade)
   club    Club  @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  inviter User? @relation("SentInvitations", fields: [invitedBy], references: [id])
+  inviter User? @relation("SentInvitations", fields: [invitedBy], references: [id], onDelete: SetNull)
 
   @@unique([userId, clubId])
   @@index([clubId])
+  @@index([userId])
   @@map("club_memberships")
 }
 
 // ─── PLATFORM MODELS ────────────────────────────────────────────────────────
-
-model ActivityType {
-  id        String   @id @default(cuid())
-  name      String
-  slug      String   @unique
-  createdAt DateTime @default(now()) @map("created_at")
-  createdBy String   @map("created_by") // userId of operator who created this type
-
-  creator      User          @relation(fields: [createdBy], references: [id])
-  applications Application[]
-  clubs        Club[]
-
-  @@map("activity_types")
-}
 
 model Club {
   id                String      @id @default(cuid())
@@ -186,7 +174,7 @@ model Club {
   country           String      // "ch" | "fr" | "de"
   status            ClubStatus  @default(ACTIVE)
   email             String
-  activityTypeId    String?     @map("activity_type_id")
+  activityType      String?     @map("activity_type") // slug, e.g. "skiing"
   locationId        String?     @map("location_id")
   logoUrl           String?     @map("logo_url")
   logoAlt           String?     @map("logo_alt")
@@ -207,7 +195,6 @@ model Club {
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
 
-  activityType       ActivityType?       @relation(fields: [activityTypeId], references: [id])
   location           Location?           @relation(fields: [locationId], references: [id])
   memberships        ClubMembership[]
   invitations        Invitation[]
@@ -217,7 +204,8 @@ model Club {
   pageEvents         PageEvent[]
   contactSubmissions ContactSubmission[]
   photos             ClubPhoto[]
-  operatorMessages   OperatorMessage[]
+  supportMessages    SupportMessage[]
+  readCursors        ConversationReadCursor[]
   supportTickets     SupportTicket[]
   events             Event[]
   galleryItems       GalleryItem[]
@@ -232,8 +220,8 @@ model Application {
   id               String            @id @default(cuid())
   name             String
   country          String
-  activityTypeId   String?           @map("activity_type_id")
-  otherDescription String?           @map("other_description") // filled when no matching ActivityType
+  activityType     String?           @map("activity_type") // slug, e.g. "skiing"
+  otherDescription String?           @map("other_description") // filled when applicant picks "other"
   locationId       String?           @map("location_id")
   description      String
   email            String
@@ -248,9 +236,9 @@ model Application {
   submittedAt      DateTime          @default(now()) @map("submitted_at")
   reviewedAt       DateTime?         @map("reviewed_at")
 
-  activityType ActivityType? @relation(fields: [activityTypeId], references: [id])
   location     Location?     @relation(fields: [locationId], references: [id])
 
+  @@index([status, submittedAt])
   @@map("applications")
 }
 
@@ -504,17 +492,32 @@ model ClubPhoto {
   @@map("club_photos")
 }
 
-model OperatorMessage {
-  id        String    @id @default(cuid())
-  clubId    String    @map("club_id")
-  message   String
-  createdAt DateTime  @default(now()) @map("created_at")
-  readAt    DateTime? @map("read_at")
+model SupportMessage {
+  id         String   @id @default(cuid())
+  clubId     String   @map("club_id")
+  senderId   String?  @map("sender_id") // nullable: preserved when sender account is deleted
+  senderRole UserRole @map("sender_role")
+  body       String   @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  club   Club  @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  sender User? @relation(fields: [senderId], references: [id], onDelete: SetNull)
+
+  @@index([clubId, createdAt])
+  @@map("support_messages")
+}
+
+model ConversationReadCursor {
+  id         String   @id @default(cuid())
+  clubId     String   @map("club_id")
+  userId     String   @map("user_id")
+  lastReadAt DateTime @map("last_read_at")
 
   club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([clubId])
-  @@map("operator_messages")
+  @@unique([clubId, userId])
+  @@map("conversation_read_cursors")
 }
 
 model SupportTicket {
@@ -536,12 +539,12 @@ model SupportTicket {
 model TicketReply {
   id         String   @id @default(cuid())
   ticketId   String   @map("ticket_id")
-  operatorId String   @map("operator_id")
+  operatorId String?  @map("operator_id") // nullable: preserved when operator account is deleted
   body       String   @db.Text
   sentAt     DateTime @default(now()) @map("sent_at")
 
   ticket   SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  operator User          @relation(fields: [operatorId], references: [id])
+  operator User?         @relation(fields: [operatorId], references: [id], onDelete: SetNull)
 
   @@map("ticket_replies")
 }

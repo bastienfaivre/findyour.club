@@ -11,20 +11,18 @@ import {
   getPresignedUploadUrl,
   createClubPhoto,
   deleteClubPhoto,
-} from '@/app/[lang]/(country)/[country]/[club]/admin/actions'
+} from '@/app/[lang]/(dashboard)/club/[clubId]/actions'
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_SIZE_BYTES } from '@/lib/r2'
 import type { ClubPhoto } from './ClubProfileForm'
 import type { Translations } from '@/lib/i18n/translations/types'
 
 interface PhotoGalleryProps {
-  lang: string
-  country: string
-  slug: string
+  clubId: string
   photos: ClubPhoto[]
   translations: Translations['club']['admin']['clubProfile']['photos']
 }
 
-export function PhotoGallery({ lang, country, slug, photos, translations: t }: PhotoGalleryProps) {
+export function PhotoGallery({ clubId, photos, translations: t }: PhotoGalleryProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isPending, startTransition] = useTransition()
@@ -56,26 +54,30 @@ export function PhotoGallery({ lang, country, slug, photos, translations: t }: P
 
     for (const file of validFiles) {
       try {
-        const urlResult = await getPresignedUploadUrl(lang, country, slug, file.type)
+        const urlResult = await getPresignedUploadUrl(clubId, file.type)
         if (!urlResult.success) {
           toast.error(urlResult.error)
           continue
         }
 
         // Upload directly to R2
-        await fetch(urlResult.data.uploadUrl, {
+        const uploadResponse = await fetch(urlResult.data.uploadUrl, {
           method: 'PUT',
           body: file,
           headers: { 'Content-Type': file.type },
         })
+        if (!uploadResponse.ok) {
+          toast.error(`${file.name}: ${t.errorUpload}`)
+          continue
+        }
 
         // Create DB record
-        const createResult = await createClubPhoto(lang, country, slug, urlResult.data.key, file.name)
+        const createResult = await createClubPhoto(clubId, urlResult.data.key, file.name)
         if (!createResult.success) {
           toast.error(createResult.error)
         }
       } catch {
-        toast.error(`Failed to upload ${file.name}`)
+        toast.error(`${file.name}: ${t.errorUpload}`)
       } finally {
         setUploadingCount((c) => c - 1)
       }
@@ -87,7 +89,7 @@ export function PhotoGallery({ lang, country, slug, photos, translations: t }: P
 
   const handleDelete = (photoId: string) => {
     startTransition(async () => {
-      const result = await deleteClubPhoto(lang, country, slug, photoId)
+      const result = await deleteClubPhoto(clubId, photoId)
       if (result.success) {
         router.refresh()
       } else {
@@ -98,9 +100,18 @@ export function PhotoGallery({ lang, country, slug, photos, translations: t }: P
 
   const isLoading = isPending || uploadingCount > 0
 
+  const MIN_PHOTOS = 5
+  const needsMore = photos.length < MIN_PHOTOS
+
   return (
     <div className="space-y-3">
       <Label>{t.title}</Label>
+
+      {needsMore && (
+        <p className="text-sm text-amber-600 dark:text-amber-400">
+          {t.minRequired.replace('{count}', String(photos.length)).replace(/{min}/g, String(MIN_PHOTOS))}
+        </p>
+      )}
 
       {/* Thumbnail grid */}
       {photos.length > 0 && (

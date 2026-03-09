@@ -16,8 +16,23 @@ classification:
   domain: general
   complexity: low
   projectContext: greenfield
-lastEdited: '2026-03-07'
+lastEdited: '2026-03-09'
 editHistory:
+  - date: '2026-03-09'
+    changes: 'Dashboard migration sync: Updated technical architecture references to reflect unified
+      dashboard shell. All pages now render within single (dashboard) route group with AppSidebar.
+      Search page replaces country directory. Club admin at /{lang}/club/{clubId}/. Messaging
+      evolved from one-way operator messages to bidirectional threaded conversations. User journeys
+      updated to reflect unified navigation. FR descriptions unchanged (they describe capabilities,
+      not routing).'
+  - date: '2026-03-08'
+    changes: 'Unified admin routing: All admin pages (platform operator + club admin) consolidated
+      under /{lang}/admin/. Club admin pages move from /{lang}/{country}/{club}/admin/ to
+      /{lang}/admin/club/{clubId}/. Users with multiple clubs see all their clubs in a single
+      sidebar. Shadcn dashboard pattern (SidebarProvider + SidebarInset) adopted for both
+      platform and club admin areas with collapsible sidebar, responsive mobile drawer,
+      and header with sidebar trigger. Platform admin sidebar shows Dashboard, Applications,
+      Clubs; club admin sidebar shows per-club entries with Profile and Settings sub-items.'
   - date: '2026-03-07'
     changes: 'MVP scope pivot: Single-page club profile replaces multi-page CMS. Application
       form collects profile fields (description, schedule, contact, how to join) that seed
@@ -217,13 +232,15 @@ operator message system, support contact form.
 **Thomas, 28. Recently moved to Lausanne from Zurich.**
 
 Thomas wants to find a badminton club. He doesn't know anyone locally yet. He Googles
-*"badminton club Lausanne"* and lands on the platform's directory — a clean, fast-loading
-page with clubs filterable by activity type and location. He filters by *Sport* and *Canton
-Vaud*. He finds a badminton club, clicks through to their profile, browses the calendar,
-finds a training session on Thursday evenings. He sends a message through the contact form:
-*"I'm looking to join. What's the process?"*
+*"badminton club Lausanne"* and lands on the platform's search page — a clean, fast-loading
+page within the dashboard shell, with a master-detail layout: filters and club list on the
+left, club detail on the right. He filters by *Sport* and *Canton Vaud* using the sidebar
+filters. He finds a badminton club, clicks it to see the detail panel, browses the schedule,
+finds a training session on Thursday evenings. He clicks through to the full club profile
+page and sends a message through the contact form: *"I'm looking to join. What's the
+process?"*
 
-Still on the directory, he notices four other clubs he didn't know existed — including a
+Back on the search page, he notices four other clubs he didn't know existed — including a
 volleyball club 10 minutes from his apartment. He bookmarks two.
 
 **Edge case:** Thomas is looking for a music ensemble — something informal, not a
@@ -233,8 +250,8 @@ He sends a message asking if they accept beginners. The club president replies w
 He shows up the following Saturday.
 
 **This journey reveals requirements for:** public site browsability (no account), contact
-form, directory with country, activity type, and location filters, responsive mobile
-experience, SEO/searchability of the platform directory itself.
+form, search page with country, activity type, and location filters (master-detail layout),
+responsive mobile experience, SEO/searchability of the platform search page itself.
 
 ---
 
@@ -309,7 +326,7 @@ It's a Tuesday morning. The operator logs into the platform admin dashboard.
 
 There's one new application — a brass band association from canton Fribourg. The operator
 reads the submitted profile — name, description, schedule, contact details, how to join. The
-content is thorough and well-written. One click: approved. The subdomain is provisioned
+content is thorough and well-written. One click: approved. The club's URL path is provisioned
 automatically. An acceptance email goes out.
 
 Another application — a yoga group in Basel. The description is just "yoga classes." The
@@ -332,9 +349,10 @@ intended.
 The operator closes the tab and goes back to building the next feature.
 
 **This journey reveals requirements for:** platform admin dashboard (application queue with
-profile content review, approval/rejection, metrics), automated subdomain provisioning on
-approval, acceptance/rejection emails, unified operator message system, club page visibility
-control (admin publish + operator force-offline override), support ticket inbox.
+profile content review, approval/rejection, metrics), automated URL path provisioning on
+approval, acceptance/rejection emails, unified operator message system (bidirectional threaded
+messaging), club page visibility control (admin publish + operator force-offline override),
+support messaging.
 
 ---
 
@@ -472,9 +490,9 @@ different requirements, handled by a single framework supporting hybrid renderin
 |---|---|---|
 | Club profile page (single page) | Server-rendered (MPA) | SEO-critical — contains name, description, photos, schedule, contact, structured data |
 | Club site — inner pages (navbar tabs) | ~~Deferred to post-MVP~~ SPA-style | Client-side navigation for multi-page sites (post-MVP) |
-| Club admin dashboard | SPA-style | Standard shadcn dashboard with sidebar navigation; profile edit form |
-| Platform site (directory, apply, home, about, support) | Server-rendered (MPA) | SEO-critical — directory is the primary product surface, must be indexed |
-| Platform admin dashboard | SPA-style | Internal tool, no SEO requirement, needs rich interactivity |
+| Club admin dashboard | SPA-style | Within unified dashboard shell — AppSidebar shows club admin sections based on ClubMembership |
+| Platform site (search, apply, home, about, support) | Server-rendered (MPA) | SEO-critical — search page is the primary product surface, must be indexed; all pages render within the unified dashboard shell |
+| Platform admin dashboard | SPA-style | Within unified dashboard shell — AppSidebar shows operator sections based on OPERATOR role |
 
 The framework must natively support this hybrid model (e.g., Next.js, SvelteKit, Nuxt).
 Backend API required for SPA-style content fetching across club pages and edit mode.
@@ -566,17 +584,18 @@ multi-page sites, but the application layer enforces a single profile page for M
 - Application content seeds the club profile — no duplicate data entry after approval
 
 *Club Admin Dashboard:*
-- Standard shadcn dashboard layout (sidebar + content area) at dedicated admin route
-- Simplified sidebar: Club Profile, Settings
+- Unified dashboard shell (AppSidebar + content area) — club admin sections appear in the sidebar when user has club memberships
+- AppSidebar shows clubs under MY CLUBS section with collapsible sub-items: Profile, Settings, Messages
+- Club admin routes at `/{lang}/club/{clubId}/` (no country/slug needed in URL)
 - Club profile edit form: all profile fields pre-populated from application, plus photo
   upload (5-10 images via presigned URL to R2/MinIO)
 - Explicit save with unsaved-changes protection (amber dot, beforeunload guard, discard
   confirmation)
 - Publish/unpublish toggle: club page offline by default after approval, admin publishes
   when ready
-- Operator message banner: displays unread messages from platform operator
+- Messages: threaded bidirectional messaging with platform operator
 - Inline constraint display (file size, format, field length)
-- Single admin account per club; login entry from platform site
+- Login at `/{lang}/auth/login` within the dashboard shell
 - WCAG 2.1 AA accessibility (best-effort AAA)
 
 *Club Page Visibility:*
@@ -586,17 +605,17 @@ multi-page sites, but the application layer enforces a single profile page for M
 - Club page offline by default after approval
 
 *Platform Site:*
-- Home (philosophy + apply CTA), Directory (filterable by country, activity type, and
-  location), Apply, About, Support/Donate
+- Home (philosophy + apply CTA), Search page (master-detail, filterable by country, activity type, and
+  location — replaces standalone country directory), Apply, About, Support/Donate
 - All pages server-rendered for SEO
 - Directory is the primary product surface — the homepage
 
 *Platform Admin Dashboard:*
+- Sections within the unified AppSidebar (not a separate app) — visible based on OPERATOR role
 - Application queue: review submitted profile content, approve/reject
 - Approve with optional operator message (bundled in approval email + stored in DB)
 - Club moderation: send operator message, request changes, force club page offline/online
-- Unified operator message system: same model for application feedback and post-live
-  moderation; messages appear in club admin dashboard and are sent via email
+- Threaded messaging: bidirectional conversations with club admins (not just one-way operator messages)
 - Club management (metrics, storage)
 - Configurable platform variables
 - Support ticket inbox
@@ -655,7 +674,7 @@ multi-page sites, but the application layer enforces a single profile page for M
 - **FR6:** ~~Deferred to post-MVP~~ System prevents Club Admin from removing anchor pages (Home and Contact)
 - **FR7:** ~~Deferred to post-MVP~~ System enforces a configurable maximum page count per club site
 - **FR8:** ~~Deferred to post-MVP~~ Club Admin can set up and manage a custom domain for their site
-- **FR9:** System provisions a subdomain for each approved club immediately upon acceptance
+- **FR9:** System provisions a URL path for each approved club immediately upon acceptance (path-based routing, not subdomains)
 - **FR47:** Club Admin can configure an external website link on their club profile that directs visitors to the club's own website
 - **FR48:** Club Admin can upload 5-10 photos displayed as an auto-scrolling carousel on the public club page (pause on hover); photos uploaded via presigned URL to object storage
 - **FR49:** Club Admin can publish or unpublish their club page (offline by default after approval)
@@ -690,7 +709,7 @@ multi-page sites, but the application layer enforces a single profile page for M
 - **FR22:** Public Visitor can view any club's public page without authentication
 - **FR23:** ~~Deferred to post-MVP~~ Public Visitor can submit a contact message through a club's contact form
 - **FR24:** ~~Deferred to post-MVP~~ System delivers contact form submissions to the club's registered email address with reply-to set to the sender's address
-- **FR25:** Public Visitor can navigate from any club page to the platform directory via a footer link
+- **FR25:** Public Visitor can navigate from any club page to the platform search page via the sidebar
 - **FR26:** System displays a platform attribution link in the footer of every club page
 
 ### Application & Access
@@ -703,12 +722,12 @@ multi-page sites, but the application layer enforces a single profile page for M
 ### Platform Operations
 
 - **FR31:** Platform Operator can view and manage a queue of pending club applications
-- **FR32:** Platform Operator can approve an application with an optional operator message (bundled in acceptance email), triggering automatic subdomain provisioning
+- **FR32:** Platform Operator can approve an application with an optional operator message (bundled in acceptance email), triggering automatic URL path provisioning
 - **FR33:** Platform Operator can reject an application with an explanatory email to the applicant
 - **FR34:** Platform Operator can view platform-wide metrics (clubs live, uptime, performance scores, storage)
 - **FR35:** Platform Operator can monitor site health status across all hosted club sites
 - **FR36:** Platform Operator can send an operator message to any club admin (see FR54-FR57 for unified message system)
-- **FR37:** Platform Operator can view and respond to club admin support requests
+- **FR37:** Platform Operator can view and respond to club admin support requests (implemented as threaded bidirectional messaging via SupportMessage model + ChatThread component, not a simple ticket inbox)
 - **FR38:** Platform Operator can configure platform-wide operational variables including the per-club page limit
 - **FR39:** System applies template version updates to all club sites automatically without downtime or any action required from club admins
 

@@ -34,7 +34,7 @@ vi.mock('@/server/auth', () => ({
 import { prisma } from '@/server/db'
 import { decodeSetupCookie } from '@/lib/setup-cookie'
 import { redirect } from 'next/navigation'
-import { setupPassword } from '@/app/[lang]/auth/setup/actions'
+import { setupPassword } from '@/app/[lang]/(dashboard)/auth/setup/actions'
 
 const STRONG_PASSWORD = 'Str0ng!P@ssw0rd'
 
@@ -83,7 +83,7 @@ describe('setupPassword()', () => {
     expect(result).toMatchObject({ success: false, code: 'VALIDATION_ERROR' })
   })
 
-  it('hashes password, clears magic token, creates session, and redirects to /my-clubs', async () => {
+  it('hashes password, clears magic token, creates session, and redirects to /', async () => {
     vi.mocked(decodeSetupCookie).mockReturnValue('user-123')
 
     // Mock fetch (HIBP) to return no breached passwords
@@ -109,8 +109,8 @@ describe('setupPassword()', () => {
       expect.objectContaining({ data: expect.objectContaining({ userId: 'user-123' }) })
     )
 
-    // Redirect to /my-clubs after successful password setup
-    expect(redirect).toHaveBeenCalledWith('/my-clubs')
+    // Redirect to / after successful password setup
+    expect(redirect).toHaveBeenCalledWith('/')
   })
 
   it('returns PASSWORD_BREACHED when HIBP returns a matching SHA-1 suffix', async () => {
@@ -138,7 +138,7 @@ describe('setupPassword()', () => {
 
     expect(prisma.user.update).toHaveBeenCalled()
     expect(prisma.session.create).toHaveBeenCalled()
-    expect(redirect).toHaveBeenCalledWith('/my-clubs')
+    expect(redirect).toHaveBeenCalledWith('/')
   })
 
   it('activates PENDING memberships atomically in the same transaction', async () => {
@@ -161,6 +161,6 @@ describe('setupPassword()', () => {
     expect(prisma.invitation.deleteMany).toHaveBeenCalledWith(
       expect.objectContaining({ where: expect.objectContaining({ email: 'user@example.com' }) })
     )
-    expect(redirect).toHaveBeenCalledWith('/my-clubs')
+    expect(redirect).toHaveBeenCalledWith('/')
   })
 })

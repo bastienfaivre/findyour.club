@@ -1,3 +1,6 @@
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
+
 -- CreateEnum
 CREATE TYPE "UserRole" AS ENUM ('CLUB_ADMIN', 'OPERATOR');
 
@@ -73,6 +76,18 @@ CREATE TABLE "verification_tokens" (
 );
 
 -- CreateTable
+CREATE TABLE "invitations" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "club_id" TEXT NOT NULL,
+    "token_hash" TEXT NOT NULL,
+    "expires_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "invitations_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "club_memberships" (
     "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
@@ -87,14 +102,68 @@ CREATE TABLE "club_memberships" (
 );
 
 -- CreateTable
-CREATE TABLE "activity_types" (
+CREATE TABLE "clubs" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
+    "country" TEXT NOT NULL,
+    "status" "ClubStatus" NOT NULL DEFAULT 'ACTIVE',
+    "email" TEXT NOT NULL,
+    "activity_type" TEXT,
+    "location_id" TEXT,
+    "logo_url" TEXT,
+    "logo_alt" TEXT,
+    "description" TEXT,
+    "schedule" TEXT,
+    "how_to_join" TEXT,
+    "contact_phone" TEXT,
+    "contact_address" TEXT,
+    "external_website_url" TEXT,
+    "is_published" BOOLEAN NOT NULL DEFAULT false,
+    "force_offline" BOOLEAN NOT NULL DEFAULT false,
+    "accent_color" TEXT NOT NULL DEFAULT 'zinc',
+    "custom_domain" TEXT,
+    "storage_used_bytes" BIGINT NOT NULL DEFAULT 0,
+    "storage_limit_bytes" BIGINT NOT NULL DEFAULT 5368709120,
+    "template_version" TEXT NOT NULL DEFAULT '1.0.0',
+    "default_language" TEXT NOT NULL DEFAULT 'fr',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "created_by" TEXT NOT NULL,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "activity_types_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "clubs_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "applications" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "country" TEXT NOT NULL,
+    "activity_type" TEXT,
+    "other_description" TEXT,
+    "location_id" TEXT,
+    "description" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "schedule" TEXT,
+    "contact_phone" TEXT,
+    "contact_address" TEXT,
+    "how_to_join" TEXT,
+    "external_website_url" TEXT,
+    "desired_slug" TEXT,
+    "status" "ApplicationStatus" NOT NULL DEFAULT 'PENDING',
+    "rejection_reason" TEXT,
+    "submitted_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "reviewed_at" TIMESTAMP(3),
+
+    CONSTRAINT "applications_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "locations" (
+    "id" TEXT NOT NULL,
+    "country" TEXT NOT NULL,
+    "swiss_location_id" TEXT,
+
+    CONSTRAINT "locations_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -130,71 +199,6 @@ CREATE TABLE "swiss_location_translations" (
     "name" TEXT NOT NULL,
 
     CONSTRAINT "swiss_location_translations_pkey" PRIMARY KEY ("swiss_location_id","language")
-);
-
--- CreateTable
-CREATE TABLE "locations" (
-    "id" TEXT NOT NULL,
-    "country" TEXT NOT NULL,
-    "swiss_location_id" TEXT,
-
-    CONSTRAINT "locations_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "clubs" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
-    "country" TEXT NOT NULL,
-    "status" "ClubStatus" NOT NULL DEFAULT 'ACTIVE',
-    "email" TEXT NOT NULL,
-    "activity_type_id" TEXT,
-    "location_id" TEXT,
-    "logo_url" TEXT,
-    "logo_alt" TEXT,
-    "welcome_text" TEXT,
-    "accent_color" TEXT NOT NULL DEFAULT 'zinc',
-    "custom_domain" TEXT,
-    "storage_used_bytes" BIGINT NOT NULL DEFAULT 0,
-    "storage_limit_bytes" BIGINT NOT NULL DEFAULT 5368709120,
-    "template_version" TEXT NOT NULL DEFAULT '1.0.0',
-    "default_language" TEXT NOT NULL DEFAULT 'fr',
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "clubs_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "applications" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "country" TEXT NOT NULL,
-    "activity_type_id" TEXT,
-    "other_description" TEXT,
-    "location_id" TEXT,
-    "description" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "desired_slug" TEXT,
-    "status" "ApplicationStatus" NOT NULL DEFAULT 'PENDING',
-    "rejection_reason" TEXT,
-    "submitted_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "reviewed_at" TIMESTAMP(3),
-
-    CONSTRAINT "applications_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "invitations" (
-    "id" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "club_id" TEXT NOT NULL,
-    "token_hash" TEXT NOT NULL,
-    "expires_at" TIMESTAMP(3) NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "invitations_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -339,15 +343,26 @@ CREATE TABLE "audit_logs" (
 );
 
 -- CreateTable
-CREATE TABLE "operator_nudges" (
+CREATE TABLE "club_photos" (
     "id" TEXT NOT NULL,
     "club_id" TEXT NOT NULL,
-    "operator_id" TEXT NOT NULL,
-    "subject" TEXT NOT NULL,
-    "message_body" TEXT NOT NULL,
-    "sent_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "url" TEXT NOT NULL,
+    "alt" TEXT NOT NULL DEFAULT '',
+    "position" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "operator_nudges_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "club_photos_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "operator_messages" (
+    "id" TEXT NOT NULL,
+    "club_id" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "read_at" TIMESTAMP(3),
+
+    CONSTRAINT "operator_messages_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -408,6 +423,34 @@ CREATE TABLE "feature_flags" (
     CONSTRAINT "feature_flags_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "support_messages" (
+    "id" TEXT NOT NULL,
+    "club_id" TEXT NOT NULL,
+    "sender_id" TEXT NOT NULL,
+    "sender_role" "UserRole" NOT NULL,
+    "body" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "support_messages_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "conversation_read_cursors" (
+    "id" TEXT NOT NULL,
+    "club_id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "last_read_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "conversation_read_cursors_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE INDEX "support_messages_club_id_created_at_idx" ON "support_messages"("club_id", "created_at");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "conversation_read_cursors_club_id_user_id_key" ON "conversation_read_cursors"("club_id", "user_id");
+
 -- CreateIndex
 CREATE UNIQUE INDEX "accounts_provider_provider_account_id_key" ON "accounts"("provider", "provider_account_id");
 
@@ -427,22 +470,16 @@ CREATE UNIQUE INDEX "verification_tokens_token_key" ON "verification_tokens"("to
 CREATE UNIQUE INDEX "verification_tokens_identifier_token_key" ON "verification_tokens"("identifier", "token");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "invitations_token_hash_key" ON "invitations"("token_hash");
+
+-- CreateIndex
+CREATE INDEX "invitations_email_idx" ON "invitations"("email");
+
+-- CreateIndex
 CREATE INDEX "club_memberships_club_id_idx" ON "club_memberships"("club_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "club_memberships_user_id_club_id_key" ON "club_memberships"("user_id", "club_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "activity_types_slug_key" ON "activity_types"("slug");
-
--- CreateIndex
-CREATE UNIQUE INDEX "swiss_locations_swisstopo_id_key" ON "swiss_locations"("swisstopo_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "locations_swiss_location_id_key" ON "locations"("swiss_location_id");
-
--- CreateIndex
-CREATE INDEX "locations_country_idx" ON "locations"("country");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "clubs_custom_domain_key" ON "clubs"("custom_domain");
@@ -451,10 +488,13 @@ CREATE UNIQUE INDEX "clubs_custom_domain_key" ON "clubs"("custom_domain");
 CREATE UNIQUE INDEX "clubs_slug_country_key" ON "clubs"("slug", "country");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "invitations_token_hash_key" ON "invitations"("token_hash");
+CREATE UNIQUE INDEX "locations_swiss_location_id_key" ON "locations"("swiss_location_id");
 
 -- CreateIndex
-CREATE INDEX "invitations_email_idx" ON "invitations"("email");
+CREATE INDEX "locations_country_idx" ON "locations"("country");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "swiss_locations_swisstopo_id_key" ON "swiss_locations"("swisstopo_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "pages_club_id_slug_key" ON "pages"("club_id", "slug");
@@ -475,6 +515,12 @@ CREATE INDEX "page_events_ip_hash_idx" ON "page_events"("ip_hash");
 CREATE UNIQUE INDEX "webauthn_credentials_credential_id_key" ON "webauthn_credentials"("credential_id");
 
 -- CreateIndex
+CREATE INDEX "club_photos_club_id_idx" ON "club_photos"("club_id");
+
+-- CreateIndex
+CREATE INDEX "operator_messages_club_id_idx" ON "operator_messages"("club_id");
+
+-- CreateIndex
 CREATE INDEX "support_tickets_club_id_idx" ON "support_tickets"("club_id");
 
 -- CreateIndex
@@ -487,6 +533,9 @@ ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_fkey" FOREIGN KEY ("user
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "invitations" ADD CONSTRAINT "invitations_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "club_memberships" ADD CONSTRAINT "club_memberships_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -496,7 +545,13 @@ ALTER TABLE "club_memberships" ADD CONSTRAINT "club_memberships_club_id_fkey" FO
 ALTER TABLE "club_memberships" ADD CONSTRAINT "club_memberships_invited_by_fkey" FOREIGN KEY ("invited_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "activity_types" ADD CONSTRAINT "activity_types_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "clubs" ADD CONSTRAINT "clubs_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "locations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "applications" ADD CONSTRAINT "applications_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "locations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "locations" ADD CONSTRAINT "locations_swiss_location_id_fkey" FOREIGN KEY ("swiss_location_id") REFERENCES "swiss_locations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "swiss_canton_translations" ADD CONSTRAINT "swiss_canton_translations_canton_code_fkey" FOREIGN KEY ("canton_code") REFERENCES "swiss_cantons"("code") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -506,24 +561,6 @@ ALTER TABLE "swiss_locations" ADD CONSTRAINT "swiss_locations_canton_code_fkey" 
 
 -- AddForeignKey
 ALTER TABLE "swiss_location_translations" ADD CONSTRAINT "swiss_location_translations_swiss_location_id_fkey" FOREIGN KEY ("swiss_location_id") REFERENCES "swiss_locations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "locations" ADD CONSTRAINT "locations_swiss_location_id_fkey" FOREIGN KEY ("swiss_location_id") REFERENCES "swiss_locations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "clubs" ADD CONSTRAINT "clubs_activity_type_id_fkey" FOREIGN KEY ("activity_type_id") REFERENCES "activity_types"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "clubs" ADD CONSTRAINT "clubs_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "locations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "applications" ADD CONSTRAINT "applications_activity_type_id_fkey" FOREIGN KEY ("activity_type_id") REFERENCES "activity_types"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "applications" ADD CONSTRAINT "applications_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "locations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "invitations" ADD CONSTRAINT "invitations_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "pages" ADD CONSTRAINT "pages_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -571,7 +608,10 @@ ALTER TABLE "contact_submissions" ADD CONSTRAINT "contact_submissions_club_id_fk
 ALTER TABLE "webauthn_credentials" ADD CONSTRAINT "webauthn_credentials_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "operator_nudges" ADD CONSTRAINT "operator_nudges_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "club_photos" ADD CONSTRAINT "club_photos_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "operator_messages" ADD CONSTRAINT "operator_messages_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "support_tickets" ADD CONSTRAINT "support_tickets_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -584,3 +624,16 @@ ALTER TABLE "ticket_replies" ADD CONSTRAINT "ticket_replies_operator_id_fkey" FO
 
 -- AddForeignKey
 ALTER TABLE "health_checks" ADD CONSTRAINT "health_checks_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "support_messages" ADD CONSTRAINT "support_messages_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "support_messages" ADD CONSTRAINT "support_messages_sender_id_fkey" FOREIGN KEY ("sender_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "conversation_read_cursors" ADD CONSTRAINT "conversation_read_cursors_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "conversation_read_cursors" ADD CONSTRAINT "conversation_read_cursors_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+

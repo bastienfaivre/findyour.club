@@ -34,7 +34,7 @@ import { getServerSession } from 'next-auth'
 import { prisma } from '@/server/db'
 import { verifyTotpCode } from '@/lib/totp'
 import { redirect } from 'next/navigation'
-import { verifyTotpChallenge } from '@/app/[lang]/auth/totp/actions'
+import { verifyTotpChallenge } from '@/app/[lang]/(dashboard)/auth/totp/actions'
 
 describe('verifyTotpChallenge()', () => {
   beforeEach(() => {
@@ -69,7 +69,7 @@ describe('verifyTotpChallenge()', () => {
     expect(result).toMatchObject({ success: false, code: 'TOTP_INVALID' })
   })
 
-  it('sets encrypted totp_verified cookie and redirects CLUB_ADMIN to /my-clubs', async () => {
+  it('sets encrypted totp_verified cookie and redirects CLUB_ADMIN to /', async () => {
     const mockCookieSet = vi.fn()
     const { cookies } = await import('next/headers')
     vi.mocked(cookies).mockResolvedValueOnce({ set: mockCookieSet, get: vi.fn() } as never)
@@ -78,17 +78,17 @@ describe('verifyTotpChallenge()', () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue({ totpSecret: 'SECRET' } as never)
     vi.mocked(verifyTotpCode).mockResolvedValue(true)
 
-    await expect(verifyTotpChallenge({ code: '123456' })).rejects.toThrow('NEXT_REDIRECT:/my-clubs')
+    await expect(verifyTotpChallenge({ code: '123456' })).rejects.toThrow('NEXT_REDIRECT:/')
 
     expect(mockCookieSet).toHaveBeenCalledWith(
       'totp_verified',
       expect.any(String),
       expect.objectContaining({ httpOnly: true })
     )
-    expect(redirect).toHaveBeenCalledWith('/my-clubs')
+    expect(redirect).toHaveBeenCalledWith('/')
   })
 
-  it('redirects OPERATOR to /admin after successful TOTP verification', async () => {
+  it('redirects OPERATOR to / after successful TOTP verification', async () => {
     const mockCookieSet = vi.fn()
     const { cookies } = await import('next/headers')
     vi.mocked(cookies).mockResolvedValueOnce({ set: mockCookieSet, get: vi.fn() } as never)
@@ -97,9 +97,9 @@ describe('verifyTotpChallenge()', () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue({ totpSecret: 'SECRET' } as never)
     vi.mocked(verifyTotpCode).mockResolvedValue(true)
 
-    await expect(verifyTotpChallenge({ code: '123456' })).rejects.toThrow('NEXT_REDIRECT:/admin')
+    await expect(verifyTotpChallenge({ code: '123456' })).rejects.toThrow('NEXT_REDIRECT:/')
 
-    expect(redirect).toHaveBeenCalledWith('/admin')
+    expect(redirect).toHaveBeenCalledWith('/')
   })
 
   it('blocks after 5 failed attempts from same IP (rate limit)', async () => {
@@ -119,17 +119,18 @@ describe('verifyTotpChallenge()', () => {
 
   it('different IPs are isolated by rate limiter', async () => {
     const { headers } = await import('next/headers')
-    vi.mocked(getServerSession).mockResolvedValue({ user: { id: 'u1' } } as never)
     vi.mocked(prisma.user.findUnique).mockResolvedValue({ totpSecret: 'SECRET' } as never)
     vi.mocked(verifyTotpCode).mockResolvedValue(false)
 
-    // Exhaust IP A
+    // Exhaust IP A with user A
+    vi.mocked(getServerSession).mockResolvedValue({ user: { id: 'user-a' } } as never)
     vi.mocked(headers).mockResolvedValue({ get: vi.fn(() => '10.0.0.1') } as never)
     for (let i = 0; i < 5; i++) {
       await verifyTotpChallenge({ code: '000000' })
     }
 
-    // IP B should still be allowed
+    // IP B with user B should still be allowed (both IP and user are different)
+    vi.mocked(getServerSession).mockResolvedValue({ user: { id: 'user-b' } } as never)
     vi.mocked(headers).mockResolvedValue({ get: vi.fn(() => '10.0.0.2') } as never)
     const result = await verifyTotpChallenge({ code: '000000' })
     // Not rate-limited (but may get TOTP_INVALID since code is wrong)

@@ -14,7 +14,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
-import { liftForceOffline } from '@/app/[lang]/admin/(protected)/clubs/[id]/actions'
+import { liftForceOffline } from '@/app/[lang]/(dashboard)/admin/clubs/[id]/actions'
 import type { Translations } from '@/lib/i18n/translations/types'
 
 interface LiftOfflineButtonProps {

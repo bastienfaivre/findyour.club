@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { toggleForceOffline } from '@/app/[lang]/admin/(protected)/clubs/[id]/actions'
+import { toggleForceOffline } from '@/app/[lang]/(dashboard)/admin/clubs/[id]/actions'
 import type { Translations } from '@/lib/i18n/translations/types'
 
 interface ForceOfflineDialogProps {

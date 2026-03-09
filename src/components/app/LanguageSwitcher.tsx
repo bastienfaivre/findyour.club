@@ -13,7 +13,7 @@ const LANG_LABELS: Record<string, string> = {
   en: 'English',
 }
 
-export function LanguageSwitcher({ currentLang }: { currentLang: string }) {
+export function LanguageSwitcher({ currentLang, dropUp }: { currentLang: string; dropUp?: boolean }) {
   const pathname = usePathname()
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -117,7 +117,7 @@ export function LanguageSwitcher({ currentLang }: { currentLang: string }) {
         <div
           role="listbox"
           onKeyDown={handleListKeyDown}
-          className="absolute right-0 top-full z-20 mt-1 min-w-[140px] rounded-lg border bg-background py-1 shadow-md"
+          className={`absolute right-0 z-50 min-w-[140px] rounded-lg border bg-background py-1 shadow-md ${dropUp ? 'bottom-full mb-1' : 'top-full mt-1'}`}
         >
           {LANGS.map((lang, i) => (
             <button

@@ -57,7 +57,7 @@ export const getClubPublicData = cache(async (slug: string, country: string) =>
       contactPhone: true,
       contactAddress: true,
       externalWebsiteUrl: true,
-      activityType: { select: { slug: true } },
+      activityType: true,
       location: {
         select: {
           swissLocation: {

@@ -16,11 +16,12 @@ interface SaveBarTranslations {
 interface SaveBarProps {
   isDirty: boolean
   isPending: boolean
+  isValid: boolean
   translations: SaveBarTranslations
   onDiscard: () => void
 }
 
-export function SaveBar({ isDirty, isPending, translations: t, onDiscard }: SaveBarProps) {
+export function SaveBar({ isDirty, isPending, isValid, translations: t, onDiscard }: SaveBarProps) {
   const [showDiscardDialog, setShowDiscardDialog] = useState(false)
 
   return (
@@ -34,7 +35,7 @@ export function SaveBar({ isDirty, isPending, translations: t, onDiscard }: Save
         >
           {t.discard}
         </Button>
-        <Button type="submit" disabled={!isDirty || isPending}>
+        <Button type="submit" disabled={!isDirty || isPending || !isValid}>
           {isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : isDirty ? (

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { setupPassword } from '@/app/[lang]/auth/setup/actions'
+import { setupPassword } from '@/app/[lang]/(dashboard)/auth/setup/actions'
 
 interface SetupPasswordFormT {
   newPassword: string

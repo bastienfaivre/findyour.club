@@ -1,12 +1,18 @@
 import { NextResponse } from 'next/server'
 import { generateRegistrationOptions } from '@simplewebauthn/server'
 import type { AuthenticatorTransportFuture } from '@simplewebauthn/server'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { getAuthSession } from '@/server/auth'
 import { getWebAuthnConfig, encodeChallengeCookie, PASSKEY_CHALLENGE_COOKIE } from '@/lib/webauthn'
 import { getWebAuthnCredentialsByUser } from '@/lib/server/webauthn-queries'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 export async function POST() {
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1'
+  if (checkRateLimit(`passkey-reg:${ip}`, { windowMs: 10 * 60 * 1000, maxAttempts: 10 })) {
+    return NextResponse.json({ error: 'Too many attempts' }, { status: 429 })
+  }
   const session = await getAuthSession()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

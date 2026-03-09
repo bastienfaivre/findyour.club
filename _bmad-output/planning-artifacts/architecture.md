@@ -8,8 +8,38 @@ workflowType: 'architecture'
 lastStep: 8
 status: 'complete'
 completedAt: '2026-02-27'
-lastEdited: '2026-03-07'
+lastEdited: '2026-03-09'
 editHistory:
+  - date: '2026-03-09'
+    changes: 'UI polish pass: Admin messages page (ConversationQueue) now uses card-style list items
+      matching ApplicationQueue and ClubQueue pattern (rounded-lg border p-3, selected state via
+      border-primary bg-accent). Mobile responsiveness audit: dashboard layout padding p-4 sm:p-6
+      lg:p-8, responsive hero sections py-8 sm:py-16 lg:py-24, photo carousel h-40 w-64 sm:h-48
+      sm:w-80, MembershipPanel table wrapped in overflow-x-auto, club messages page uses flex
+      layout instead of fixed height calc. AdminPageTitle extended with optional backHref prop
+      for back navigation (ArrowLeft icon in header bar). Search filters use grid grid-cols-2
+      on mobile instead of full-width vertical stacking. Code cleanup: deduplicated countryCodeToFlag
+      (removed duplicate from phone-input.tsx), optimized operator unread count query in dashboard
+      layout (parallel Promise.all instead of sequential N+1 loop).'
+  - date: '2026-03-09'
+    changes: 'Dashboard migration sync: Unified dashboard shell replaces all previous layout systems.
+      Single (dashboard) route group replaces (platform), (country), admin/(protected), and my-clubs.
+      AppSidebar replaces AdminSidebar + PublicLayout/PublicNavbar/PublicFooter. Club admin at
+      /{lang}/club/{clubId}/ (no country/slug). Search page at /{lang}/search replaces country
+      directory. Auth pages under (dashboard)/auth/ (no separate route group). Threaded messaging
+      (SupportMessage + ConversationReadCursor) replaces simple OperatorMessage one-way model.
+      New context providers: SearchStateContext, AdminSelectionContext, PageTitleProvider.
+      New components: ProfilePreview, ChatThread, ConversationQueue, ClubQueue, LocationTypeahead.
+      Removed: PublicLayout, PublicNavbar, PublicFooter, MobileNavMenu, NavLink, AdminSidebar,
+      OperatorMessageBanner, DevAuthPanel, SendMessageDialog, ApplicationQueueItem, MyClubsList.
+      Test files centralized in src/__tests__/ (not co-located). Project directory structure,
+      architectural boundaries, state management, component listings all updated.'
+  - date: '2026-03-08'
+    changes: 'Unified admin routing — all admin pages consolidated under /{lang}/admin/. Club admin
+      moves from /{lang}/{country}/{club}/admin/ to /{lang}/admin/club/{clubId}/. Users with
+      multiple club memberships see all clubs in a single sidebar. Shadcn SidebarProvider +
+      SidebarInset pattern adopted for both platform and club admin dashboards. Route group
+      (country)/[country]/[club]/admin/ removed. Code organization updated accordingly.'
   - date: '2026-03-07'
     changes: 'MVP scope pivot — single-page club profile replaces multi-page CMS at MVP. Club model
       gains profile fields (description, schedule, howToJoin, contactPhone, contactAddress,
@@ -83,7 +113,7 @@ Architecture-driving NFRs:
 - **Auth standards:** TOTP (authenticator app), WebAuthn/FIDO2 (passkeys) — both required; bcrypt or Argon2 for password hashing.
 - **Email:** External email relay service required (contact form relay + transactional emails for application acceptance/rejection). DPA required with provider.
 - **URL architecture:** Single domain with language, country, and club as separate path segments: `platform-name.com/{lang}/{country}/{club-slug}`. Language and country are orthogonal — `{lang}` is the visitor's preferred language (BCP 47 subtag: `fr`, `de`, `it`, `en`, or any); `{country}` is the geographic context determined by where the club physically is. No per-club DNS provisioning — routing is handled at the application layer. Club slugs are generated at provisioning time, URL-safe, **unique per country** (two clubs in different countries may share the same slug — e.g., `platform-name.com/fr/ch/ski-club` and `platform-name.com/fr/fr/ski-club` are both valid), and treated as immutable identifiers. The DB constraint is `@@unique([slug, country])` on the `Club` model.
-- **Reserved path management:** The application routing layer must distinguish reserved root paths (`/api`, `/admin`, `/auth`, `/my-clubs`, etc.) from the localized `/{lang}` segment. In Next.js App Router, named static folders (`api/`, `admin/`) take priority over the dynamic `[lang]/` segment — no slug collision is possible. Slug generation must exclude reserved path names; uniqueness is enforced per country.
+- **Reserved path management:** The application routing layer must distinguish reserved root paths (`/api`, `admin`, `auth`, `club`, `account`, `search`, `about`, `support`, `apply`) from dynamic segments like `[country]`. In Next.js App Router, named static folders take priority over dynamic segments — no slug collision is possible. Slug generation must exclude reserved path names; uniqueness is enforced per country.
 - **Language resolution (layered):** The `{lang}` URL segment captures the visitor's preferred language. Each content layer has its own resolution/fallback chain: (1) **Platform UI** — `resolveUILang(lang)` maps to one of `[fr, de, it, en]`, falls back to `en` for any unsupported language (e.g., `pt` → `en`); (2) **Geographic data** (swisstopo canton/location names) — same resolution as Platform UI (`en` fallback); (3) **Club content** — served in the club's `defaultLanguage` field (e.g., `fr`) when the visitor's language has no authored translation. This means `/pt/ch/ski-club-valais` shows the platform UI in English, Swiss geographic names in English, and club content in French (the club's default).
 - **Language switching:** The `LanguageSwitcher` client component navigates to `/{newLang}/{country}/{club-slug}` via `router.push()` — no cookie write, no Server Action. The country segment is preserved; only the language prefix changes. `proxy.ts` reads the `[lang]` segment from the URL and sets a `platform_lang` cookie (used exclusively to propagate the language to the root `layout.tsx` for the `<html lang>` attribute, which cannot read URL params directly).
 - **Custom domains:** ~~Deferred to post-MVP (FR8).~~ No custom domain routing, TLS provisioning, or Nginx passthrough required at MVP. When reintroduced post-MVP: the platform maps the custom domain to the club via lookup and serves identical content; TLS provisioning automated via Certbot sidecar.
@@ -188,11 +218,19 @@ Next.js 16 with Turbopack (dev); `next build` for production. `output: 'standalo
 src/
   app/                    # Next.js App Router
     [lang]/               # Language segment (fr, de, it, en — or any BCP 47 subtag)
-      (platform)/         # Route group: platform site (SSR)
-      (country)/[country]/ # Route group + country path segment (ch, fr, de, …)
-        [club]/           # Club site pages (SSR home + RSC inner pages)
+      (dashboard)/        # Unified dashboard shell (sidebar + header + content)
+        layout.tsx        # AppSidebar, context providers, session-aware
+        page.tsx          # Platform homepage
+        search/           # Club discovery (master-detail, filters as query params)
+        [country]/[club]/ # Public club profile (SSR, SEO)
+        club/[clubId]/    # Club admin (auth-guarded, profile editor, settings)
+        admin/            # Operator dashboard (applications, clubs, messages)
+        account/          # User account settings + TOTP setup
+        auth/             # Auth pages (login, setup, TOTP challenge — minimal layout)
+        about/            # Platform about page
+        support/          # Platform support/donate page
+        apply/            # Club application form
     api/                  # Route Handlers (client-side data endpoints)
-    admin/                # Platform operator dashboard
   components/
     ui/                   # shadcn/ui owned primitives
     app/                  # Product-specific custom components
@@ -328,26 +366,44 @@ model ClubPhoto {
 - On approval: fields are copied 1:1 from `Application` to the new `Club` record. The `Application` record is preserved unchanged as an audit trail.
 - Explicit columns (not JSONB) because: same fields are copied to typed `Club` columns; Prisma type safety; trivial copy logic.
 
-**Unified Operator Message (ADR-004 — Replaces OperatorNudge)**
+**Threaded Messaging (ADR-004 — Replaces OperatorNudge, Evolves OperatorMessage)**
+
+The original one-way `OperatorMessage` model has been replaced with a bidirectional threaded messaging system:
 
 ```prisma
-model OperatorMessage {
-  id        String    @id @default(cuid())
-  clubId    String    @map("club_id")
-  message   String    @db.Text
-  createdAt DateTime  @default(now()) @map("created_at")
-  readAt    DateTime? @map("read_at")
+model SupportMessage {
+  id        String   @id @default(cuid())
+  clubId    String   @map("club_id")
+  senderId  String   @map("sender_id")
+  body      String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
 
-  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  club   Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  sender User @relation(fields: [senderId], references: [id])
 
   @@index([clubId])
-  @@map("operator_messages")
+  @@map("support_messages")
+}
+
+model ConversationReadCursor {
+  id        String   @id @default(cuid())
+  clubId    String   @map("club_id")
+  userId    String   @map("user_id")
+  lastReadAt DateTime @map("last_read_at")
+
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([clubId, userId])
+  @@map("conversation_read_cursors")
 }
 ```
 
-- Replaces `OperatorNudge` model. Single model for all operator→club-admin communication: application review feedback (bundled in approval email), post-live moderation messages (request changes, explain force-offline), any other operator communication.
-- Club admin dashboard shows persistent banner for unread messages (`readAt IS NULL`).
-- Same email notification regardless of when message is sent — different email templates for approval-bundled vs standalone messages.
+- **Bidirectional:** Both operators and club admins can send messages. Each club has one conversation thread.
+- **Unread tracking:** `ConversationReadCursor` tracks per-user read state. Unread counts shown as badges in the `AppSidebar` (per-club for club admins, total for operators).
+- **UI components:** `ChatThread` (message thread display + compose), `ConversationQueue` (operator view — all conversations sorted by latest activity).
+- **Routes:** Club admins access via `/{lang}/club/{clubId}/messages`; operators via `/{lang}/admin/messages`.
+- **Application approval messages:** Still bundled into the approval email. Also appear as the first message in the club's conversation thread.
 
 **Application → Club Profile Data Flow (Approval)**
 1. Application fields copied to new `Club` record (name, description, schedule, email, contactPhone, contactAddress, howToJoin, externalWebsiteUrl, activityTypeId, locationId, country)
@@ -425,10 +481,10 @@ model OperatorMessage {
 ### Frontend Architecture
 
 **Club Admin Dashboard (MVP)**
-- Mechanism: Separate `/edit/` route under the club path (`/{lang}/{country}/{club}/edit/`) — standard shadcn dashboard layout (sidebar + content area). Not an in-place editing overlay.
-- Auth gate: The `edit/layout.tsx` checks `ClubMembership` (OWNER or EDITOR, ACTIVE status) — returns 404 if unauthorized.
-- Profile editing: Standard form with `react-hook-form` + Zod validation. Photo management: dedicated photo management page with upload, reorder (drag-and-drop), and delete.
-- Rationale: Simpler than in-place editing for a fixed-layout profile. Post-MVP, in-place editing may be reintroduced for the multi-page CMS.
+- Mechanism: Club admin pages at `/{lang}/club/{clubId}/` within the unified dashboard shell. The `AppSidebar` shows the club under "MY CLUBS" with Profile and Settings sub-items. Not a separate dashboard — same shell as all other pages.
+- Auth gate: The `club/[clubId]/layout.tsx` checks `ClubMembership` (OWNER or EDITOR, ACTIVE status) — redirects to login if unauthorized.
+- Profile editing: Standard form with `react-hook-form` + Zod validation (`ClubProfileForm`). Photo management: inline `PhotoGallery` component with upload, reorder, and delete. Live `ProfilePreview` component shows changes in real-time.
+- Rationale: Unified shell means club admins see the full platform context (search, other clubs, account) alongside their admin tools. No context-switching between "public" and "admin" views.
 
 **Edit Mode State (Post-MVP)**
 - ~~Deferred to post-MVP.~~ When multi-page CMS is introduced: React Context (`EditModeContext`) wrapping the club site layout; URL param `?edit=true` as the source of truth.
@@ -567,28 +623,40 @@ model PageElement {
 ```
 src/
   app/
-    [lang]/                  # Language segment
-      (platform)/            # Platform site (SSR)
-        page.tsx             # Directory home
-        apply/
-          page.tsx
-          actions.ts         # ← Server Actions co-located here
-      (country)/[country]/
-        [club]/
-          page.tsx           # Club home (SSR)
-          actions.ts         # ← Club-scoped Server Actions
-          [page]/
+    [lang]/
+      (dashboard)/             # Unified dashboard shell (all roles)
+        layout.tsx             # AppSidebar + context providers
+        page.tsx               # Platform homepage
+        search/
+          page.tsx             # Club discovery (master-detail)
+        [country]/[club]/
+          page.tsx             # Public club profile (SSR)
+          contact/page.tsx     # Contact page
+        club/[clubId]/
+          layout.tsx           # Auth guard (membership check)
+          page.tsx             # Club profile editor
+          settings/
             page.tsx
-            actions.ts
+            actions.ts         # ← Club-scoped Server Actions co-located here
+        admin/
+          layout.tsx           # Auth guard (operator check)
+          applications/
+            page.tsx
+            actions.ts         # ← Operator-scoped Server Actions
+          clubs/
+            page.tsx
+            [id]/actions.ts
+          messages/page.tsx
+        account/
+          layout.tsx           # Auth guard (authenticated user)
+          page.tsx
+          actions.ts
+        auth/
+          login/page.tsx       # Minimal layout (no sidebar on auth pages)
+          setup/page.tsx
+          totp/page.tsx
     api/
-      clubs/[clubId]/
-        pages/
-          route.ts           # GET /api/clubs/[clubId]/pages
-        storage/
-          route.ts           # GET /api/clubs/[clubId]/storage
-    admin/
-      page.tsx
-      actions.ts             # ← Operator-scoped Server Actions
+      locations/route.ts       # Location search endpoint
   components/
     ui/                      # shadcn/ui owned copies — never manually modified
     app/                     # Product components — feature-specific
@@ -673,9 +741,14 @@ export async function savePageContent(
 
 **State Management Rules**
 
-- React Context used for: `AuthContext` (session, role). Post-MVP: `EditModeContext` (`isDirty`, `isEditMode`) when in-place editing is introduced.
+- React Context used for:
+  - `SearchStateContext` — search query state for the search/browse page
+  - `AdminSelectionContext` — tracks selected items in operator admin queues (applications, clubs, conversations)
+  - `AdminDirtyContext` — tracks unsaved changes in club profile editor (amber dot indicator in sidebar)
+  - `PageTitleProvider` (`AdminPageTitle`) — dynamic page titles rendered in the dashboard header
+  - Post-MVP: `EditModeContext` (`isDirty`, `isEditMode`) when in-place editing is introduced
 - Context updates: always via typed dispatch functions exported from the context module — never mutate context value directly
-- URL state: directory filters (`?activity=ski&region=valais`) — managed via `useSearchParams` + `useRouter`; never mirror URL state into React state. Post-MVP: edit mode (`?edit=true`).
+- URL state: search filters (`?country=ch&activity=badminton&canton=ZH`) — managed via `useSearchParams` + `useRouter`; never mirror URL state into React state
 - Form state: `react-hook-form` with `@hookform/resolvers/zod` — never uncontrolled inputs except shadcn primitives
 
 **Loading State Patterns**
@@ -691,10 +764,12 @@ export async function savePageContent(
 
 **Club Resolution Pattern (slug → clubId)**
 
-A club is resolved from the URL **once per request** in the club layout. `lang`, `slug`, and `country` all come from URL path params (`[lang]`, `[country]`, and `[club]` segments):
+Clubs are resolved differently depending on context:
+
+**Public club pages** (`(dashboard)/[country]/[club]/`): Resolved from URL path params — `slug` + `country` composite key:
 
 ```typescript
-// ✅ CORRECT — always resolve by (slug, country) composite key
+// ✅ CORRECT — public pages resolve by (slug, country) composite key
 const { lang, country, club: slug } = await params
 if (!isValidCountry(country)) notFound()
 const uiLang = resolveUILang(lang)  // maps to supported lang; 'pt' → 'en'
@@ -705,7 +780,20 @@ const club = await prisma.club.findUnique({
 if (!club) notFound()
 ```
 
+**Club admin pages** (`(dashboard)/club/[clubId]/`): Resolved directly by `clubId` from the URL:
+
+```typescript
+// ✅ CORRECT — admin pages resolve by clubId directly
+const { clubId } = await params
+const membership = await prisma.clubMembership.findFirst({
+  where: { userId: session.user.id, clubId, status: 'ACTIVE' },
+})
+if (!membership) redirect(`/${lang}/auth/login`)
+```
+
 `country` is derived from the `[country]` URL path parameter and validated against `SUPPORTED_COUNTRIES` via `lib/country.ts` — **never from the Host header**. `lang` is the visitor's preferred language — resolve it with `resolveUILang(lang)` for UI strings, `club.defaultLanguage` for club content fallback. Never query a club by `slug` alone; two clubs in different countries may share the same slug.
+
+**URL helper:** `buildClubAdminUrl(lang, clubId)` returns `/${lang}/club/${clubId}` — no country or slug needed for admin routes.
 
 **Multi-Tenant Query Pattern (CRITICAL)**
 
@@ -778,9 +866,10 @@ try {
 
 **Test File Convention**
 
-- Location: co-located with source — `ComponentName.test.tsx`, `actions.test.ts`
-- Framework: to be decided when testing story is prioritized (Vitest preferred for native ESM/TypeScript support)
+- Location: centralized in `src/__tests__/` — `component-name.test.tsx`, `feature-name.test.ts`
+- Framework: Vitest (native ESM/TypeScript support)
 - Naming: `describe('ComponentName')` → `it('should <expected behavior> when <condition>')`
+- Mocking: For server actions — mock `next/navigation`, `next/headers`, `@/server/db`, `next-auth`
 
 ---
 
@@ -831,14 +920,14 @@ const prisma = new PrismaClient() // in any file other than src/server/db.ts
 
 | FR Category | Surfaces | Primary Location | MVP Status |
 |---|---|---|---|
-| Club Site Configuration & Navigation (FR1–9) | Club site + Operator dashboard | `app/[lang]/(country)/[country]/[club]/`, `app/admin/clubs/` | Partial — publish/unpublish only; page management deferred |
-| Content Editing & Element Library (FR10–19) | Club site (edit mode) | `components/app/page-editor/` | **Deferred** — all post-MVP |
-| Public Discovery & Contact (FR20–26) | Platform site | `app/[lang]/(platform)/`, `components/app/directory/` | Partial — contact form deferred |
-| Application & Access (FR27–30) | Platform site + Auth | `app/[lang]/(platform)/apply/`, `app/auth/`, `components/app/auth/` | Active — application form expanded with profile fields |
-| Platform Operations (FR31–39) | Operator dashboard | `app/admin/`, `components/app/admin/` | Partial — operator message replaces nudge; force-offline added |
-| Compliance & Data Rights (FR40–46) | Cross-cutting | `lib/seo.ts`, `lib/crypto.ts`, `app/admin/clubs/[clubId]/` | Partial — accent color, contact storage deferred |
-| Club Profile — Single-Page Presence (FR47–49) | Club site + Club admin | `app/[lang]/(country)/[country]/[club]/page.tsx`, `.../edit/`, `components/app/club-profile/`, `components/app/club-admin/` | **Active** — MVP focus |
-| Platform Funding (FR50) | Platform site | `app/[lang]/(platform)/support/page.tsx` (donation section) | Active |
+| Club Site Configuration & Navigation (FR1–9) | Club admin + Operator dashboard | `app/[lang]/(dashboard)/club/[clubId]/`, `app/[lang]/(dashboard)/admin/clubs/` | Partial — publish/unpublish only; page management deferred |
+| Content Editing & Element Library (FR10–19) | Club admin (edit mode) | `components/app/page-editor/` | **Deferred** — all post-MVP |
+| Public Discovery & Contact (FR20–26) | Dashboard shell | `app/[lang]/(dashboard)/search/`, `app/[lang]/(dashboard)/[country]/[club]/`, `components/app/directory/` | Partial — contact form deferred; search page replaces country directory |
+| Application & Access (FR27–30) | Dashboard shell + Auth | `app/[lang]/(dashboard)/apply/`, `app/[lang]/(dashboard)/auth/`, `components/app/auth/` | Active — application form expanded with profile fields |
+| Platform Operations (FR31–39) | Operator dashboard | `app/[lang]/(dashboard)/admin/`, `components/app/admin/` | Partial — threaded messaging replaces one-way operator messages; force-offline added |
+| Compliance & Data Rights (FR40–46) | Cross-cutting | `components/app/seo/metadata.ts`, `lib/crypto.ts`, `app/[lang]/(dashboard)/admin/clubs/` | Partial — accent color, contact storage deferred |
+| Club Profile — Single-Page Presence (FR47–49) | Public view + Club admin | `app/[lang]/(dashboard)/[country]/[club]/page.tsx`, `app/[lang]/(dashboard)/club/[clubId]/`, `components/app/club-profile/`, `components/app/club-admin/` | **Active** — MVP focus |
+| Platform Funding (FR50) | Dashboard shell | `app/[lang]/(dashboard)/support/page.tsx` (donation section) | Active |
 
 ---
 
@@ -856,150 +945,194 @@ website-template/
 ├── prisma/
 │   ├── schema.prisma                 # Single schema — all models with @@map/@map
 │   ├── migrations/                   # Prisma migration history
-│   └── seed.ts                       # Operator + sample club data for local dev
+│   ├── seed.ts                       # Operator + sample club data for local dev
+│   └── verify.ts                     # Schema verification helper
 ├── public/
 │   └── images/
 │       └── powered-by-clashware.svg  # Mandatory "Powered by" footer asset (FR26)
+├── docs/
+│   └── DASHBOARD_MIGRATION_PLAN.md   # Dashboard shell migration reference
 ├── src/
+│   ├── __tests__/                    # Centralized test files (Vitest)
+│   │   ├── account.test.ts
+│   │   ├── admin-applications.test.ts
+│   │   ├── admin-layout.test.ts
+│   │   ├── apply.test.ts
+│   │   ├── club-admin-layout.test.ts
+│   │   ├── club-inner-page.test.ts
+│   │   ├── club-layout-guard.test.ts
+│   │   ├── club-profile-actions.test.ts
+│   │   ├── club-profile-page.test.ts
+│   │   ├── club-public-page.test.ts
+│   │   ├── invite-accept.test.ts
+│   │   ├── invite-editor.test.ts
+│   │   ├── login.test.ts
+│   │   ├── logout.test.ts
+│   │   ├── magic-link.test.ts
+│   │   ├── magic-link-route.test.ts
+│   │   ├── operator-club-moderation.test.ts
+│   │   ├── passkey-actions.test.ts
+│   │   ├── photo-carousel.test.ts
+│   │   ├── platform-homepage.test.ts
+│   │   ├── powered-by-footer-sitemap.test.ts
+│   │   ├── publish-operator-message-actions.test.ts
+│   │   ├── revoke-access.test.ts
+│   │   ├── save-bar.test.ts
+│   │   ├── save-club-profile.test.ts
+│   │   ├── setup-password.test.ts
+│   │   ├── theme-provider-toggle.test.ts
+│   │   ├── totp-challenge.test.ts
+│   │   ├── totp-setup.test.ts
+│   │   ├── transfer-ownership.test.ts
+│   │   └── url.test.ts
+│   │
 │   ├── app/
-│   │   ├── layout.tsx                # Root layout (minimal — delegates to route groups)
-│   │   ├── not-found.tsx             # Global 404
-│   │   ├── error.tsx                 # Global error boundary
+│   │   ├── layout.tsx                # Root layout: html, ThemeProvider, Sonner
+│   │   ├── sitemap.ts                # Platform-level sitemap generation
 │   │   │
 │   │   ├── [lang]/                   # Language segment: fr, de, it, en (or any BCP 47 subtag)
-│   │   │   ├── (platform)/           # Route group: platform site
-│   │   │   │   ├── layout.tsx        # Platform layout (LanguageSwitcher, nav, footer)
-│   │   │   │   ├── page.tsx          # FR20–23: Directory home (SSR, filterable)
-│   │   │   │   ├── apply/
-│   │   │   │   │   ├── page.tsx      # FR28: Club application form
-│   │   │   │   │   └── actions.ts    # submitApplication (+ Turnstile verify)
-│   │   │   │   ├── about/
-│   │   │   │   │   └── page.tsx      # Platform about page
-│   │   │   │   └── support/
-│   │   │   │       ├── page.tsx      # FR30: Support form
-│   │   │   │       └── actions.ts    # submitSupportForm
-│   │   │   │
-│   │   │   └── (country)/
-│   │   │       └── [country]/        # Country segment: ch, fr, de, ...
-│   │   │           └── [club]/       # FR1: Club slug path segment
-│   │   │               ├── layout.tsx # Club site layout (header, footer, visibility guard)
-│   │   │               ├── page.tsx  # Club profile page (SSR, fixed layout: description,
-│   │   │               │             # photo carousel, schedule, contact, how to join)
-│   │   │               ├── actions.ts # togglePublish
-│   │   │               ├── edit/     # Club admin dashboard (shadcn sidebar + content)
-│   │   │               │   ├── layout.tsx # Admin layout guard (OWNER/EDITOR membership check)
-│   │   │               │   ├── page.tsx   # Profile editor (edit description, schedule, etc.)
-│   │   │               │   ├── actions.ts # updateProfile, uploadPhoto, deletePhoto, reorderPhotos
-│   │   │               │   └── photos/
-│   │   │               │       └── page.tsx # Photo management (upload, reorder, delete)
-│   │   │               │
-│   │   │               │   # Post-MVP routes (deferred):
-│   │   │               │   # ├── pages/         # Page management
-│   │   │               │   # └── [page]/        # Page content editing
-│   │   │               │
-│   │   │               └── [page]/   # Post-MVP: Club inner pages (dynamic slug)
-│   │   │                   ├── page.tsx  # (deferred — kept for route structure)
-│   │   │                   └── actions.ts
-│   │   │
-│   │   ├── auth/
-│   │   │   ├── login/
-│   │   │   │   └── page.tsx          # FR29: Login page for both Club Admins and Operators — role-based redirect after auth
-│   │   │   ├── setup/
-│   │   │   │   └── page.tsx          # First login: set password + TOTP enroll
-│   │   │   ├── totp/
-│   │   │   │   └── page.tsx          # TOTP challenge page
-│   │   │   └── magic-link/
-│   │   │       └── page.tsx          # Magic link verification handler
-│   │   │
-│   │   ├── my-clubs/                 # Club admin dashboard (non-localized) — lists clubs with lang-prefixed links
-│   │   │   └── page.tsx              # ClubMembership list with links to /{lang}/{country}/{slug}
-│   │   │
-│   │   ├── admin/                    # FR31–39: Platform operator dashboard
-│   │   │   ├── (protected)/
-│   │   │   │   ├── layout.tsx        # Admin layout (OPERATOR role guard — layout-level, no middleware)
-│   │   │   │   └── page.tsx          # FR35: Platform metrics dashboard
-│   │   │   ├── applications/
-│   │   │   │   ├── page.tsx          # FR31: Application queue
-│   │   │   │   └── actions.ts        # approveApplication, rejectApplication
-│   │   │   ├── clubs/
-│   │   │   │   ├── page.tsx          # Club list + health overview (FR36)
-│   │   │   │   └── [clubId]/
-│   │   │   │       ├── page.tsx      # Club detail + settings
-│   │   │   │       ├── actions.ts    # updateClubSettings, exportClubData (FR40),
-│   │   │   │       │                 # deleteClubData (FR41), provisionClub (FR32),
-│   │   │   │       │                 # sendOperatorMessage, toggleForceOffline
-│   │   │   │       └── analytics/
-│   │   │   │           └── page.tsx  # FR45: Per-club analytics view
-│   │   │   ├── support/
-│   │   │   │   ├── page.tsx          # FR38: Support inbox
-│   │   │   │   └── actions.ts        # markResolved, replyToTicket
-│   │   │   └── settings/
-│   │   │       ├── page.tsx          # FR39: Platform variables config
-│   │   │       └── actions.ts        # updatePlatformVariable
+│   │   │   └── (dashboard)/          # Unified dashboard shell (all roles)
+│   │   │       ├── layout.tsx        # AppSidebar + SidebarProvider + context providers
+│   │   │       │                     # (SearchState, AdminSelection, AdminDirty, PageTitle)
+│   │   │       │                     # Fetches: user clubs, unread message counts
+│   │   │       ├── page.tsx          # FR20: Platform homepage (hero, country grid, stats)
+│   │   │       │
+│   │   │       ├── search/
+│   │   │       │   └── page.tsx      # FR20–21: Club discovery master-detail
+│   │   │       │                     # (country+filters as searchParams, club detail inline)
+│   │   │       │
+│   │   │       ├── [country]/        # Public club profiles (SEO-friendly URLs)
+│   │   │       │   ├── layout.tsx    # Country validation via isValidCountry()
+│   │   │       │   └── [club]/
+│   │   │       │       ├── page.tsx  # FR22: Club profile page (SSR, fixed layout)
+│   │   │       │       └── contact/
+│   │   │       │           └── page.tsx  # Contact page
+│   │   │       │
+│   │   │       ├── club/             # Authenticated: Club admin
+│   │   │       │   └── [clubId]/
+│   │   │       │       ├── layout.tsx    # Auth guard (ClubMembership check)
+│   │   │       │       ├── page.tsx      # FR1–2: Club profile editor (ClubProfileForm + ProfilePreview)
+│   │   │       │       ├── settings/
+│   │   │       │       │   ├── page.tsx      # Club settings
+│   │   │       │       │   └── actions.ts    # Club settings Server Actions
+│   │   │       │       └── messages/
+│   │   │       │           └── page.tsx      # Club-operator messaging thread
+│   │   │       │
+│   │   │       ├── admin/            # Authenticated: Operator only
+│   │   │       │   ├── layout.tsx    # Auth guard (OPERATOR role + TOTP verified)
+│   │   │       │   ├── applications/
+│   │   │       │   │   ├── page.tsx      # FR31: Application queue (master-detail)
+│   │   │       │   │   └── actions.ts    # approveApplication, rejectApplication
+│   │   │       │   ├── clubs/
+│   │   │       │   │   ├── page.tsx      # Club management (master-detail)
+│   │   │       │   │   └── [id]/
+│   │   │       │   │       └── actions.ts # toggleForceOffline, sendMessage, etc.
+│   │   │       │   └── messages/
+│   │   │       │       └── page.tsx      # FR37: Conversation queue (threaded messaging)
+│   │   │       │
+│   │   │       ├── account/          # Authenticated: Any user
+│   │   │       │   ├── layout.tsx    # Auth guard (authenticated + TOTP verified)
+│   │   │       │   ├── page.tsx      # Account settings (password, membership)
+│   │   │       │   ├── actions.ts    # changePassword, deleteAccount
+│   │   │       │   ├── passkey/
+│   │   │       │   │   └── actions.ts # registerPasskey, removePasskey
+│   │   │       │   └── totp-setup/
+│   │   │       │       ├── page.tsx  # TOTP enrollment
+│   │   │       │       └── actions.ts # enrollTotp, verifyTotpSetup
+│   │   │       │
+│   │   │       ├── auth/             # Auth pages (rendered within dashboard shell
+│   │   │       │   │                 # but with minimal/no sidebar interaction)
+│   │   │       │   ├── login/
+│   │   │       │   │   ├── page.tsx  # FR28–29: Login (Club Admins + Operators)
+│   │   │       │   │   └── actions.ts
+│   │   │       │   ├── setup/
+│   │   │       │   │   ├── page.tsx  # First login: set password
+│   │   │       │   │   └── actions.ts
+│   │   │       │   ├── totp/
+│   │   │       │   │   ├── page.tsx  # TOTP challenge
+│   │   │       │   │   └── actions.ts
+│   │   │       │   ├── error/
+│   │   │       │   │   └── page.tsx  # Auth error page
+│   │   │       │   ├── magic-link/
+│   │   │       │   │   ├── route.ts  # Magic link verification handler
+│   │   │       │   │   └── actions.ts
+│   │   │       │   ├── logout/
+│   │   │       │   │   └── route.ts  # Logout handler
+│   │   │       │   └── invite/
+│   │   │       │       └── accept/
+│   │   │       │           └── route.ts  # Invite acceptance handler
+│   │   │       │
+│   │   │       ├── about/
+│   │   │       │   └── page.tsx      # Platform about page
+│   │   │       ├── support/
+│   │   │       │   └── page.tsx      # FR50: Support/donate page
+│   │   │       └── apply/
+│   │   │           ├── page.tsx      # FR27: Club application form
+│   │   │           └── actions.ts    # submitApplication (+ Turnstile verify)
 │   │   │
 │   │   └── api/
-│   │       ├── clubs/
-│   │       │   └── [clubId]/
-│   │       │       ├── upload/
-│   │       │       │   └── route.ts  # POST — generate R2 presigned URL (photos at MVP)
-│   │       │       ├── storage/
-│   │       │       │   └── route.ts  # GET — storage usage for club
-│   │       │       ├── analytics/
-│   │       │       │   └── route.ts  # GET — analytics data (operator, per-club)
-│   │       │       │
-│   │       │       │   # Post-MVP API routes (deferred):
-│   │       │       │   # ├── pages/         # GET — club pages list
-│   │       │       │   # └── pages/[pageId]/elements/  # GET — page elements
-│   │       │       │
-│   │       │       └── photos/
-│   │       │           └── route.ts  # GET — list club photos; DELETE — remove photo
-│   │       └── events/
-│   │           └── route.ts          # POST — analytics page_view tracking (fire-and-forget)
+│   │       ├── auth/
+│   │       │   ├── [...nextauth]/
+│   │       │   │   └── route.ts      # NextAuth route handler
+│   │       │   └── passkey/
+│   │       │       ├── authenticate/
+│   │       │       │   ├── begin/route.ts
+│   │       │       │   └── complete/route.ts
+│   │       │       └── register/
+│   │       │           ├── begin/route.ts
+│   │       │           └── complete/route.ts
+│   │       └── locations/
+│   │           └── route.ts          # Location search endpoint (for typeahead)
 │   │
 │   ├── components/
 │   │   ├── ui/                       # shadcn/ui owned copies (CLI-managed, do not edit)
 │   │   │   ├── button.tsx
+│   │   │   ├── collapsible.tsx
 │   │   │   ├── dialog.tsx
 │   │   │   ├── input.tsx
+│   │   │   ├── phone-input.tsx
 │   │   │   ├── select.tsx
-│   │   │   ├── textarea.tsx
-│   │   │   ├── badge.tsx
 │   │   │   ├── separator.tsx
+│   │   │   ├── sidebar.tsx           # shadcn sidebar primitive (SidebarProvider, etc.)
 │   │   │   ├── skeleton.tsx
+│   │   │   ├── textarea.tsx
 │   │   │   ├── toast.tsx
 │   │   │   └── tooltip.tsx
 │   │   │
 │   │   └── app/                      # Product components
-│   │       ├── club-profile/         # MVP: Club profile page components
+│   │       ├── AppSidebar.tsx        # Unified sidebar navigation (all roles)
+│   │       │                         # Sections: public nav, operator, my clubs, account
+│   │       ├── AdminSelectionContext.tsx  # Tracks selected items in operator admin queues
+│   │       ├── SearchStateContext.tsx     # Search query state for search/browse page
+│   │       ├── RotatingWords.tsx         # Homepage hero animated words
+│   │       ├── LanguageSwitcher.tsx      # Language switcher (client component)
+│   │       │
+│   │       ├── club-profile/         # MVP: Club profile page components (public view)
 │   │       │   ├── ProfilePage.tsx   # Full fixed-layout profile (server component)
-│   │       │   ├── PhotoCarousel.tsx # "use client" — auto-scroll, pause on hover
+│   │       │   ├── PhotoCarousel.tsx  # "use client" — auto-scroll, pause on hover
 │   │       │   ├── ProfileSection.tsx # Reusable section (schedule, how to join, etc.)
 │   │       │   └── ContactInfo.tsx   # Email, phone, address, website link
 │   │       │
 │   │       ├── club-admin/           # MVP: Club admin dashboard components
-│   │       │   ├── ProfileEditor.tsx # Edit profile fields form
-│   │       │   ├── PhotoManager.tsx  # Upload, reorder, delete photos
-│   │       │   ├── PublishToggle.tsx # isPublished toggle with status indicator
-│   │       │   └── OperatorMessageBanner.tsx # Persistent banner for unread messages
-│   │       │
-│   │       ├── page-editor/          # Post-MVP: Content editing (deferred)
-│   │       │   # PageEditor.tsx, ElementPicker.tsx, ElementRenderer.tsx,
-│   │       │   # SortableElement.tsx, SaveBar.tsx, VersionHistory.tsx,
-│   │       │   # elements/ (RichTextElement, GalleryElement, CalendarElement, etc.)
+│   │       │   ├── AdminDirtyContext.tsx   # Tracks unsaved changes (amber dot in sidebar)
+│   │       │   ├── ClubProfileForm.tsx    # Edit profile fields form (react-hook-form + Zod)
+│   │       │   ├── ProfilePreview.tsx     # Live preview of club profile during editing
+│   │       │   ├── PhotoGallery.tsx       # Upload, reorder, delete photos
+│   │       │   ├── LogoUpload.tsx         # Club logo upload
+│   │       │   ├── PublishToggle.tsx      # isPublished toggle with status indicator
+│   │       │   ├── SaveBar.tsx            # Sticky save/discard bar (appears on dirty state)
+│   │       │   └── UnsavedChangesDialog.tsx # Confirmation dialog for navigation with changes
 │   │       │
 │   │       ├── club-site/            # Public club site chrome
-│   │       │   ├── ClubHeader.tsx
-│   │       │   ├── ClubNav.tsx       # Minimal at MVP (profile-only); expands post-MVP
-│   │       │   ├── ClubFooter.tsx
-│   │       │   └── PoweredByBanner.tsx       # FR26: Mandatory footer
+│   │       │   ├── ClubHeroSection.tsx    # Club hero/header section
+│   │       │   ├── ElementRenderer.tsx    # Post-MVP: renders page elements
+│   │       │   ├── PoweredByBanner.tsx    # FR26: Mandatory footer
+│   │       │   └── accent-colors.ts       # Accent color definitions
 │   │       │
 │   │       ├── directory/            # FR20–23: Platform directory
-│   │       │   ├── DirectoryPage.tsx
-│   │       │   ├── ClubCard.tsx
-│   │       │   └── DirectoryFilters.tsx      # FR21: Activity + region filters
-│   │       │
-│   │       ├── contact/              # Post-MVP: Contact form (deferred)
-│   │       │   # └── ContactForm.tsx
+│   │       │   ├── ClubCard.tsx           # Club card for search results
+│   │       │   ├── CountryButton.tsx      # Country selector button
+│   │       │   └── DirectoryFilters.tsx   # FR21: Activity + region filters
 │   │       │
 │   │       ├── apply/                # FR27–28: Club application
 │   │       │   └── ApplyForm.tsx     # With Turnstile — collects profile fields
@@ -1007,42 +1140,58 @@ website-template/
 │   │       ├── auth/                 # FR27–30: Authentication UI
 │   │       │   ├── LoginForm.tsx
 │   │       │   ├── TotpForm.tsx
+│   │       │   ├── TotpSetupForm.tsx
+│   │       │   ├── TotpEnrollmentBanner.tsx
+│   │       │   ├── ManageTotpSection.tsx
 │   │       │   ├── PasskeyButton.tsx
+│   │       │   ├── ManagePasskeysSection.tsx
 │   │       │   ├── SetupPasswordForm.tsx
-│   │       │   └── MagicLinkSent.tsx
+│   │       │   └── ChangePasswordForm.tsx
 │   │       │
 │   │       ├── admin/                # FR31–39: Operator dashboard
-│   │       │   ├── ApplicationQueue.tsx  # Shows new profile fields; optional message input
-│   │       │   ├── ClubList.tsx          # Shows isPublished/forceOffline status
-│   │       │   ├── PlatformMetrics.tsx
-│   │       │   ├── SupportInbox.tsx
-│   │       │   ├── SettingsForm.tsx
-│   │       │   └── OperatorMessageForm.tsx  # Send message to club admin
+│   │       │   ├── AdminPageTitle.tsx     # Dynamic page title context provider
+│   │       │   ├── ApplicationQueue.tsx   # Application queue (master-detail)
+│   │       │   ├── ApplicationDetail.tsx  # Application detail panel
+│   │       │   ├── ClubQueue.tsx          # Club management queue (master-detail)
+│   │       │   ├── ClubDetail.tsx         # Club detail panel (profile preview, actions)
+│   │       │   ├── ConversationQueue.tsx  # Threaded messaging queue
+│   │       │   ├── ForceOfflineDialog.tsx # Confirm force-offline with message
+│   │       │   ├── LiftOfflineButton.tsx  # Lift force-offline override
+│   │       │   ├── LocationTypeahead.tsx  # Location search for admin editing
+│   │       │   └── types.ts              # Shared admin UI types
 │   │       │
-│   │       ├── turnstile/
-│   │       │   └── TurnstileWidget.tsx       # Zero-dep Cloudflare Turnstile component
+│   │       ├── messaging/            # Threaded messaging
+│   │       │   └── ChatThread.tsx    # Bidirectional message thread (operator ↔ club admin)
+│   │       │
+│   │       ├── settings/             # Account settings components
+│   │       │   └── MembershipPanel.tsx # Club membership list/management
 │   │       │
 │   │       └── seo/
-│   │           └── metadata.ts       # FR44: generateClubMetadata, generateDirectoryMetadata
+│   │           └── metadata.ts       # FR43: generateClubMetadata, generateDirectoryMetadata
+│   │
+│   ├── hooks/
+│   │   ├── use-unsaved-changes.ts    # beforeunload + dirty state hook
+│   │   └── use-mobile.ts            # Mobile viewport detection hook
 │   │
 │   ├── server/
-│   │   ├── db.ts                     # Prisma client singleton + middleware (clubId enforcement from URL params)
+│   │   ├── db.ts                     # Prisma client singleton
 │   │   └── auth.ts                   # Auth.js configuration (providers, adapter, callbacks)
 │   │
 │   ├── lib/
 │   │   ├── schemas/
-│   │   │   ├── club.ts               # clubProfileSchema, clubUpdateSchema, provisionSchema, photoUploadSchema
-│   │   │   ├── page.ts               # Post-MVP: pageElementSchema, saveContentSchema, elementTypeEnum
+│   │   │   ├── club.ts               # clubProfileSchema, clubUpdateSchema, photoUploadSchema
 │   │   │   ├── user.ts               # loginSchema, setupPasswordSchema, totpVerifySchema, changePasswordSchema
-│   │   │   ├── application.ts        # applyFormSchema (profile fields + Turnstile token)
-│   │   │   ├── contact.ts            # contactFormSchema, supportFormSchema
-│   │   │   ├── operator.ts           # operatorMessageSchema, approveApplicationSchema
-│   │   │   └── analytics.ts          # pageEventSchema
+│   │   │   └── application.ts        # applyFormSchema (profile fields + Turnstile token)
 │   │   │
 │   │   ├── i18n/
 │   │   │   ├── index.ts              # SupportedLanguage, SUPPORTED_LANGUAGES, resolveUILang(), isSupportedLanguage()
 │   │   │   ├── get-language.ts       # getLanguage(): reads platform_lang cookie (set by proxy.ts) for root layout
-│   │   │   └── translations.ts       # Translations type + 4 language objects (fr/de/it/en) + getTranslations()
+│   │   │   └── translations/         # Per-language translation files
+│   │   │       ├── types.ts          # Translations type definition
+│   │   │       ├── en.ts
+│   │   │       ├── fr.ts
+│   │   │       ├── de.ts
+│   │   │       └── it.ts
 │   │   │
 │   │   ├── country.ts                # isValidCountry() — validates [country] URL param against SUPPORTED_COUNTRIES
 │   │   ├── crypto.ts                 # AES-256-GCM encrypt/decrypt
@@ -1051,10 +1200,11 @@ website-template/
 │   │   ├── rate-limit.ts             # In-memory sliding window rate limiter
 │   │   ├── slug.ts                   # Club slug generation + reserved path exclusion
 │   │   ├── r2.ts                     # R2/MinIO client (@aws-sdk/client-s3) + presigned URL helpers
+│   │   ├── url.ts                    # buildClubAdminUrl(lang, clubId) + URL helpers
 │   │   ├── email.ts                  # Resend/SMTP client + email sending helpers
 │   │   └── turnstile.ts              # Cloudflare Turnstile server-side token verification
 │   │
-│   ├── proxy.ts                        # Language detection: reads [lang] from URL, sets platform_lang cookie; redirects / to /{lang}/ via Accept-Language
+│   ├── proxy.ts                      # Language detection: reads [lang] from URL, sets platform_lang cookie; redirects / to /{lang}/ via Accept-Language
 │   │
 │   └── styles/
 │       └── globals.css               # OKLCH color tokens + base Tailwind directives
@@ -1066,7 +1216,6 @@ website-template/
 ├── .env.example                      # All required env vars documented (no secrets)
 ├── .gitignore
 ├── next.config.ts                    # output: 'standalone', headers (CSP)
-├── tailwind.config.ts
 ├── tsconfig.json                     # strict: true, paths: { "@/*": ["./src/*"] }
 ├── eslint.config.mjs
 ├── postcss.config.mjs
@@ -1081,19 +1230,20 @@ website-template/
 
 | Boundary | Entry Point | Auth | Scope |
 |---|---|---|---|
-| Club public site | `(country)/[country]/[club]/` | None | Read-only, SSR |
-| Club edit mode | `(country)/[country]/[club]/[page]/actions.ts` | Club Admin session | Write, club-scoped |
-| Platform site | `(platform)/` | None | Read-only, SSR |
-| Application forms | `(platform)/apply/`, `(platform)/support/` | None + Turnstile | Write, rate-limited |
-| Operator dashboard | `admin/` | Operator session (middleware-enforced) | Full platform access |
-| Data API (SPA) | `api/clubs/[clubId]/` | Club Admin session | Read, club-scoped |
-| Analytics ingest | `api/events/` | None | Write, rate-limited |
+| Club public profile | `(dashboard)/[country]/[club]/` | None | Read-only, SSR |
+| Club admin | `(dashboard)/club/[clubId]/settings/actions.ts` | Club Admin session (membership guard) | Write, club-scoped |
+| Platform public pages | `(dashboard)/page.tsx`, `search/`, `about/`, `support/` | None | Read-only, SSR |
+| Application form | `(dashboard)/apply/actions.ts` | None + Turnstile | Write, rate-limited |
+| Operator dashboard | `(dashboard)/admin/` | Operator session (layout guard) | Full platform access |
+| Messaging | `(dashboard)/admin/messages/`, `(dashboard)/club/[clubId]/messages/` | Authenticated | Scoped to conversation |
+| Data API | `api/locations/` | None | Read-only, rate-limited |
+| Auth API | `api/auth/` | Varies | Session management |
 
 **Data Boundaries**
 
-- Club data: every Prisma query scoped to `clubId` from session — no cross-club reads possible
-- Operator data: accessible only via `admin/` routes with `operator` role verified in the admin layout guard
-- Contact submissions: encrypted at write time in Server Action; decrypted on demand in operator inbox
+- Club data: every Prisma query scoped to `clubId` from URL params — no cross-club reads possible
+- Operator data: accessible only via `admin/` routes with `OPERATOR` role verified in the admin layout guard
+- Messaging: `SupportMessage` records scoped by `clubId`; `ConversationReadCursor` tracks per-user read state
 - Analytics: `ip_hash` is irreversible (SHA-256 + daily salt); raw IP never persisted
 - Media files: stored in R2/MinIO under `{clubId}/{uuid}.{ext}` — no predictable URL enumeration
 
@@ -1164,12 +1314,19 @@ export function isValidCountry(country: string): country is Country {
 
 | Surface | URL |
 |---|---|
-| Platform directory | `http://localhost:3000` → redirects to `http://localhost:3000/fr/` |
-| Platform directory (French) | `http://localhost:3000/fr/` |
-| Club site (French) | `http://localhost:3000/fr/ch/ski-club-valais` |
-| Club site (German) | `http://localhost:3000/de/ch/ski-club-valais` |
-| Club site (Portuguese → EN fallback UI) | `http://localhost:3000/pt/ch/ski-club-valais` |
-| Admin dashboard | `http://localhost:3000/admin` |
+| Platform homepage | `http://localhost:3000` → redirects to `http://localhost:3000/fr/` |
+| Platform homepage (French) | `http://localhost:3000/fr/` |
+| Search/browse clubs | `http://localhost:3000/fr/search?country=ch` |
+| Club profile (French) | `http://localhost:3000/fr/ch/ski-club-valais` |
+| Club profile (German) | `http://localhost:3000/de/ch/ski-club-valais` |
+| Club profile (Portuguese → EN fallback UI) | `http://localhost:3000/pt/ch/ski-club-valais` |
+| Club admin (profile editor) | `http://localhost:3000/fr/club/{clubId}` |
+| Club admin (settings) | `http://localhost:3000/fr/club/{clubId}/settings` |
+| Operator applications | `http://localhost:3000/fr/admin/applications` |
+| Operator clubs | `http://localhost:3000/fr/admin/clubs` |
+| Operator messages | `http://localhost:3000/fr/admin/messages` |
+| Account settings | `http://localhost:3000/fr/account` |
+| Login | `http://localhost:3000/fr/auth/login` |
 | MinIO console | `http://localhost:9001` |
 | Mailpit inbox | `http://localhost:8025` |
 
@@ -1230,9 +1387,10 @@ Implementation patterns are self-consistent across all domains:
 
 The project structure directly reflects architectural decisions:
 - `[lang]/` segment cleanly separates language preference from geographic context — `{lang}` and `{country}` are independent URL segments; switching language doesn't affect the club URL; switching country would change clubs
-- Route group `[lang]/(country)/[country]/[club]/` enforces the multi-tenant boundary at the Next.js routing level
-- Route group `[lang]/(platform)/` cleanly isolates platform-side pages
-- `admin/` route group separated from country-tenant routes with middleware enforcement
+- Single `(dashboard)` route group provides a unified shell (sidebar + header) for all roles — visitors, club admins, and operators. Role-based sidebar sections appear/disappear based on auth state
+- Public club URLs (`[country]/[club]/`) within the dashboard maintain SEO-friendly paths while sharing the shell
+- Club admin routes (`club/[clubId]/`) use clubId directly — no country/slug needed for authenticated editing
+- Sub-layouts enforce auth boundaries: `club/[clubId]/layout.tsx` (membership guard), `admin/layout.tsx` (operator guard), `account/layout.tsx` (authenticated guard)
 - `server/` directory (db.ts, auth.ts) explicitly separates server-only singletons from shared lib utilities
 - All 50 FRs map to specific directories/files — no "homeless" requirements
 
@@ -1244,14 +1402,14 @@ The project structure directly reflects architectural decisions:
 
 | FR Group | FRs | Architectural Support |
 |---|---|---|
-| Club Site Config & Navigation (FR1–FR9) | 9/9 | `[lang]/(country)/[country]/[club]/` routes + Prisma `clubs` + `pages` tables + `proxy.ts`. FR8 (custom domain) deferred to post-MVP |
+| Club Site Config & Navigation (FR1–FR9) | 9/9 | `[lang]/(dashboard)/club/[clubId]/` admin + `[lang]/(dashboard)/[country]/[club]/` public + Prisma `clubs` + `proxy.ts`. FR8 (custom domain) deferred to post-MVP |
 | Content Editing & Element Library (FR10–FR19) | 10/10 | `components/app/page-editor/` + `page_elements` JSONB + `page_versions` + Server Actions |
-| Public Discovery & Contact (FR20–FR26) | 7/7 | `[lang]/(platform)/` directory + `[lang]/(country)/[country]/[club]/` public SSR + `ContactForm.tsx` + Resend relay |
-| Application & Access (FR27–30) | 4/4 | `[lang]/(platform)/apply/` + Auth.js (magic link, TOTP, passkeys, password) + `admin/` dashboard |
+| Public Discovery & Contact (FR20–FR26) | 7/7 | `[lang]/(dashboard)/search/` + `[lang]/(dashboard)/[country]/[club]/` public SSR + Resend relay. Contact form deferred |
+| Application & Access (FR27–30) | 4/4 | `[lang]/(dashboard)/apply/` + Auth.js (magic link, TOTP, passkeys, password) + `[lang]/(dashboard)/admin/` |
 | Platform Operations (FR31–FR39) | 9/9 | `admin/` dashboard components + Server Actions + `api/health/route.ts` (FR35 alerting) |
 | Compliance & Data Rights (FR40–FR46) | 7/7 | GDPR export/delete Server Actions + `lib/crypto.ts` + `page_events` GDPR-safe analytics + accent color picker |
 | Club Profile — Profile-Only Presence (FR47–FR49) | 3/3 | Optional `external_website_url` and `how_to_join` fields on `clubs` table. No separate model — profile-only is user behavior. FR49 duplicates FR21 (directory filtering covers profile-only clubs identically) |
-| Platform Funding (FR50) | 1/1 | Covered by existing `[lang]/(platform)/support/` route (donation section within support page) |
+| Platform Funding (FR50) | 1/1 | Covered by existing `[lang]/(dashboard)/support/` route (donation section within support page) |
 
 **Non-Functional Requirements Coverage:**
 
@@ -1634,7 +1792,7 @@ Two independent boolean flags on the `Club` model:
 
 ### Implementation
 
-- Club layout (`app/[lang]/(country)/[country]/[club]/layout.tsx`) checks visibility: if not visible → `notFound()`.
+- Country/club layout (`app/[lang]/(dashboard)/[country]/[club]/layout.tsx` or page-level check) enforces visibility: if not visible → `notFound()`.
 - Club admin dashboard shows `isPublished` toggle. When `forceOffline === true`, the toggle is disabled with a message: "Your page has been taken offline by the platform. Check your messages for details."
 - Operator admin panel shows `forceOffline` toggle per club, with a mandatory `OperatorMessage` when turning it on (explain why).
 - Directory query filters: `WHERE is_published = true AND force_offline = false`.

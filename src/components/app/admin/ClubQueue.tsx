@@ -1,0 +1,307 @@
+'use client'
+
+import { useState, useMemo } from 'react'
+import { List, FileSearch, X } from 'lucide-react'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import type { Translations } from '@/lib/i18n/translations/types'
+import { useAdminSelection } from '@/components/app/AdminSelectionContext'
+import { ClubDetail } from './ClubDetail'
+import type { ActivityTypeOption, CountryOption } from './types'
+import { Badge } from '@/components/ui/badge'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { cn } from '@/lib/utils'
+
+export type ClubListItem = {
+  id: string
+  name: string
+  slug: string
+  country: string
+  logoUrl: string | null
+  logoAlt: string | null
+  email: string
+  description: string | null
+  schedule: string | null
+  howToJoin: string | null
+  contactPhone: string | null
+  contactAddress: string | null
+  externalWebsiteUrl: string | null
+  isPublished: boolean
+  forceOffline: boolean
+  activityType: string | null
+  location: {
+    swissLocation: {
+      swisstopoId: string
+      plz: string
+      cantonCode: string
+      translations: { name: string }[]
+    } | null
+  } | null
+  photos: { id: string; url: string; alt: string; position: number }[]
+}
+
+export type { ActivityTypeOption, CountryOption } from './types'
+
+type StatusFilter = '__all__' | 'online' | 'offline' | 'moderated'
+
+const ALL = '__all__'
+
+interface ClubQueueProps {
+  clubs: ClubListItem[]
+  activityTypes: ActivityTypeOption[]
+  countries: CountryOption[]
+  translations: Translations
+  locale: string
+}
+
+export function ClubQueue({ clubs, activityTypes, countries, translations: t, locale }: ClubQueueProps) {
+  const { selectedClubId: selectedId, setSelectedClubId: setSelectedId } = useAdminSelection()
+  const [activeTab, setActiveTab] = useState<'list' | 'detail'>(selectedId ? 'detail' : 'list')
+
+  // Filter state
+  const [filterCountry, setFilterCountry] = useState<string>(ALL)
+  const [filterActivity, setFilterActivity] = useState<string>(ALL)
+  const [filterStatus, setFilterStatus] = useState<StatusFilter>(ALL)
+
+  // Apply client-side filters
+  const filteredClubs = useMemo(() => {
+    return clubs.filter((club) => {
+      if (filterCountry !== ALL && club.country !== filterCountry) return false
+      if (filterActivity !== ALL && club.activityType !== filterActivity) return false
+      if (filterStatus !== ALL) {
+        if (filterStatus === 'moderated' && !club.forceOffline) return false
+        if (filterStatus === 'online' && (!club.isPublished || club.forceOffline)) return false
+        if (filterStatus === 'offline' && (club.isPublished || club.forceOffline)) return false
+      }
+      return true
+    })
+  }, [clubs, filterCountry, filterActivity, filterStatus])
+
+  const selectedClub = filteredClubs.find((c) => c.id === selectedId) ?? null
+
+  // Derive available filter options from clubs
+  const availableCountries = useMemo(() => {
+    const codes = new Set(clubs.map((c) => c.country))
+    return countries.filter((c) => codes.has(c.code))
+  }, [clubs, countries])
+
+  const availableActivities = useMemo(() => {
+    const slugs = new Set<string>()
+    for (const club of clubs) {
+      if (club.activityType) slugs.add(club.activityType)
+    }
+    return activityTypes.filter((at) => slugs.has(at.slug))
+  }, [clubs, activityTypes])
+
+  const hasFilters = filterCountry !== ALL || filterActivity !== ALL || filterStatus !== ALL
+
+  const handleSelect = (id: string) => {
+    setSelectedId(id)
+    setActiveTab('detail')
+  }
+
+  const tc = t.admin.clubs
+  const td = t.directory
+
+  if (clubs.length === 0) {
+    return <p className="text-muted-foreground">{tc.noClubs}</p>
+  }
+
+  const activeCountryLabel = availableCountries.find((c) => c.code === filterCountry)?.label
+  const activeActivityName = availableActivities.find((a) => a.slug === filterActivity)?.name
+  const activeStatusLabel = filterStatus !== ALL
+    ? (filterStatus === 'online' ? tc.online : filterStatus === 'offline' ? tc.offline : tc.moderatedOffline)
+    : null
+
+  const filtersBlock = (
+    <div className="space-y-3 mb-4">
+      <div className="flex flex-wrap gap-2">
+        <Select value={filterCountry} onValueChange={setFilterCountry}>
+          <SelectTrigger aria-label={tc.country} className="w-auto min-w-[140px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>{t.admin.applications.allCountries}</SelectItem>
+            {availableCountries.map((c) => (
+              <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {availableActivities.length > 0 && (
+          <Select value={filterActivity} onValueChange={setFilterActivity}>
+            <SelectTrigger aria-label={td.filterActivity} className="w-auto min-w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>{td.allActivities}</SelectItem>
+              {availableActivities.map((a) => (
+                <SelectItem key={a.slug} value={a.slug}>{a.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as StatusFilter)}>
+          <SelectTrigger aria-label={tc.status} className="w-auto min-w-[140px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>{tc.allStatuses}</SelectItem>
+            <SelectItem value="online">{tc.online}</SelectItem>
+            <SelectItem value="offline">{tc.offline}</SelectItem>
+            <SelectItem value="moderated">{tc.moderatedOffline}</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {hasFilters && (
+        <div className="flex items-center gap-2 flex-wrap">
+          {activeCountryLabel && (
+            <Badge
+              variant="secondary"
+              className="cursor-pointer gap-1"
+              role="button"
+              tabIndex={0}
+              onClick={() => setFilterCountry(ALL)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilterCountry(ALL) } }}
+            >
+              {activeCountryLabel}
+              <X className="size-3" />
+            </Badge>
+          )}
+          {activeActivityName && (
+            <Badge
+              variant="secondary"
+              className="cursor-pointer gap-1"
+              role="button"
+              tabIndex={0}
+              onClick={() => setFilterActivity(ALL)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilterActivity(ALL) } }}
+            >
+              {activeActivityName}
+              <X className="size-3" />
+            </Badge>
+          )}
+          {activeStatusLabel && (
+            <Badge
+              variant="secondary"
+              className="cursor-pointer gap-1"
+              role="button"
+              tabIndex={0}
+              onClick={() => setFilterStatus(ALL)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilterStatus(ALL) } }}
+            >
+              {activeStatusLabel}
+              <X className="size-3" />
+            </Badge>
+          )}
+          <button
+            type="button"
+            onClick={() => { setFilterCountry(ALL); setFilterActivity(ALL); setFilterStatus(ALL) }}
+            className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
+          >
+            {td.resetFilters}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+
+  const listBlock = (
+    <div className="space-y-2">
+      {filteredClubs.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-4">{td.noResults}</p>
+      ) : (
+        filteredClubs.map((club) => {
+          const activityLabel = club.activityType
+            ? (t.activityTypes[club.activityType] ?? club.activityType)
+            : null
+
+          return (
+            <button
+              key={club.id}
+              type="button"
+              onClick={() => handleSelect(club.id)}
+              className={cn(
+                'w-full text-left rounded-lg border p-3 transition-colors',
+                selectedId === club.id
+                  ? 'border-primary bg-accent'
+                  : 'hover:bg-muted/50'
+              )}
+            >
+              <p className="font-medium truncate">{club.name}</p>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                {activityLabel && (
+                  <Badge variant="secondary" className="text-xs">{activityLabel}</Badge>
+                )}
+                <span className="text-xs text-muted-foreground">{club.country.toUpperCase()}</span>
+                {club.isPublished && !club.forceOffline ? (
+                  <Badge variant="success" className="ml-auto text-xs">{tc.online}</Badge>
+                ) : (
+                  <Badge variant="destructive" className="ml-auto text-xs">{tc.offline}</Badge>
+                )}
+              </div>
+            </button>
+          )
+        })
+      )}
+    </div>
+  )
+
+  const detailBlock = selectedClub ? (
+    <ClubDetail
+      key={selectedClub.id}
+      club={selectedClub}
+      activityTypes={activityTypes}
+      countries={countries}
+      translations={t}
+      locale={locale}
+    />
+  ) : (
+    <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
+      {tc.selectClub}
+    </div>
+  )
+
+  return (
+    <div className="@container flex flex-col h-full min-h-0">
+      {/* Narrow: tabbed */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'list' | 'detail')} className="flex flex-col flex-1 min-h-0 @[56rem]:hidden">
+        <TabsList className="mb-4">
+          <TabsTrigger value="list">
+            <List />
+            {tc.title}
+          </TabsTrigger>
+          <TabsTrigger value="detail">
+            <FileSearch />
+            {tc.clubModeration}
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="list" className="overflow-y-auto max-w-xl">
+          {filtersBlock}
+          {listBlock}
+        </TabsContent>
+        <TabsContent value="detail" className="overflow-y-auto">
+          {detailBlock}
+        </TabsContent>
+      </Tabs>
+
+      {/* Wide: side-by-side */}
+      <div className="hidden @[56rem]:flex gap-6 flex-1 min-h-0">
+        <div className="w-full max-w-xl min-w-0 overflow-y-auto">
+          {filtersBlock}
+          {listBlock}
+        </div>
+        <div className="flex-1 min-w-0 overflow-y-auto">
+          {detailBlock}
+        </div>
+      </div>
+    </div>
+  )
+}

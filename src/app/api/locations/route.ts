@@ -145,5 +145,7 @@ function parseSwisstopoResult(r: SwisstopoFeature): SwissLocationResult | null {
   const cantonCode = cantonMatch[1]
   const name = label.replace(/\s*\([A-Z]{2}\)$/, '').trim()
   const plz = r.attrs.detail?.match(/\d{4}/)?.[0] ?? ''
-  return { swisstopoId: String(r.id), plz, name, cantonCode }
+  // Use featureId (stable municipality BFS number) when available, fall back to r.id
+  const swisstopoId = r.attrs.featureId ?? String(r.id)
+  return { swisstopoId, plz, name, cantonCode }
 }

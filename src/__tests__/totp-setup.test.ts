@@ -36,7 +36,7 @@ import { prisma } from '@/server/db'
 import { verifyTotpCode } from '@/lib/totp'
 import { redirect } from 'next/navigation'
 import { getAuthSession } from '@/server/auth'
-import { enrollTotp } from '@/app/[lang]/auth/totp-setup/actions'
+import { enrollTotp } from '@/app/[lang]/(dashboard)/account/totp-setup/actions'
 
 describe('enrollTotp()', () => {
   beforeEach(() => {
@@ -78,7 +78,7 @@ describe('enrollTotp()', () => {
     vi.mocked(verifyTotpCode).mockResolvedValue(true)
     vi.mocked(prisma.user.update).mockResolvedValue({} as never)
 
-    await expect(enrollTotp({ code: '123456' })).rejects.toThrow('NEXT_REDIRECT:/my-clubs')
+    await expect(enrollTotp({ code: '123456' })).rejects.toThrow('NEXT_REDIRECT:/')
 
     expect(prisma.user.update).toHaveBeenCalledWith({
       where: { id: 'user-abc' },
@@ -88,7 +88,7 @@ describe('enrollTotp()', () => {
         pendingTotpSecret: null,
       }),
     })
-    expect(redirect).toHaveBeenCalledWith('/my-clubs')
+    expect(redirect).toHaveBeenCalledWith('/')
   })
 
   it('returns VALIDATION_ERROR for non-6-digit code', async () => {
@@ -122,7 +122,7 @@ describe('enrollTotp()', () => {
     vi.mocked(verifyTotpCode).mockResolvedValue(true)
     vi.mocked(prisma.user.update).mockResolvedValue({} as never)
 
-    await expect(enrollTotp({ code: '123456' })).rejects.toThrow('NEXT_REDIRECT:/my-clubs')
+    await expect(enrollTotp({ code: '123456' })).rejects.toThrow('NEXT_REDIRECT:/')
 
     expect(prisma.user.update).toHaveBeenCalledWith({
       where: { id: 'user-abc' },
@@ -133,7 +133,7 @@ describe('enrollTotp()', () => {
       }),
     })
 
-    expect(redirect).toHaveBeenCalledWith('/my-clubs')
+    expect(redirect).toHaveBeenCalledWith('/')
   })
 
   it('does NOT create a new DB session (user is already logged in)', async () => {
@@ -143,7 +143,7 @@ describe('enrollTotp()', () => {
     vi.mocked(verifyTotpCode).mockResolvedValue(true)
     vi.mocked(prisma.user.update).mockResolvedValue({} as never)
 
-    await expect(enrollTotp({ code: '123456' })).rejects.toThrow('NEXT_REDIRECT:/my-clubs')
+    await expect(enrollTotp({ code: '123456' })).rejects.toThrow('NEXT_REDIRECT:/')
 
     // enrollTotp no longer creates sessions — setupPassword handles that
     expect((prisma as Record<string, unknown>).session).toBeUndefined()
@@ -160,7 +160,7 @@ describe('enrollTotp()', () => {
     vi.mocked(verifyTotpCode).mockResolvedValue(true)
     vi.mocked(prisma.user.update).mockResolvedValue({} as never)
 
-    await expect(enrollTotp({ code: '123456' })).rejects.toThrow('NEXT_REDIRECT:/my-clubs')
+    await expect(enrollTotp({ code: '123456' })).rejects.toThrow('NEXT_REDIRECT:/')
 
     expect(mockCookieSet).toHaveBeenCalledWith(
       'totp_verified',

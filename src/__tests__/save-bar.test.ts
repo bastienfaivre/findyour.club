@@ -78,6 +78,7 @@ describe('SaveBar', () => {
     const result = SaveBar({
       isDirty: false,
       isPending: false,
+      isValid: true,
       translations: defaultTranslations,
       onDiscard: vi.fn(),
     })
@@ -92,6 +93,7 @@ describe('SaveBar', () => {
     const result = SaveBar({
       isDirty: true,
       isPending: false,
+      isValid: true,
       translations: defaultTranslations,
       onDiscard: vi.fn(),
     })
@@ -108,6 +110,7 @@ describe('SaveBar', () => {
     const result = SaveBar({
       isDirty: false,
       isPending: false,
+      isValid: true,
       translations: defaultTranslations,
       onDiscard: vi.fn(),
     })
@@ -124,6 +127,7 @@ describe('SaveBar', () => {
     const result = SaveBar({
       isDirty: true,
       isPending: true,
+      isValid: true,
       translations: defaultTranslations,
       onDiscard: vi.fn(),
     })
@@ -141,6 +145,7 @@ describe('SaveBar', () => {
     const result = SaveBar({
       isDirty: false,
       isPending: false,
+      isValid: true,
       translations: defaultTranslations,
       onDiscard: vi.fn(),
     })
@@ -153,5 +158,30 @@ describe('SaveBar', () => {
     for (const btn of buttons) {
       expect(btn.props.disabled).toBe(true)
     }
+  })
+
+  it('disables Save button when form is dirty but invalid', async () => {
+    const { SaveBar } = await import('@/components/app/club-admin/SaveBar')
+    const { Button } = await import('@/components/ui/button')
+    const result = SaveBar({
+      isDirty: true,
+      isPending: false,
+      isValid: false,
+      translations: defaultTranslations,
+      onDiscard: vi.fn(),
+    })
+
+    const buttons = findInTree(result, (n) => {
+      const el = n as AnyElement
+      return el.type === Button
+    }) as AnyElement[]
+
+    // Submit button (type="submit") should be disabled
+    const submitBtn = buttons.find((b) => b.props.type === 'submit')
+    expect(submitBtn?.props.disabled).toBe(true)
+
+    // Discard button should still be enabled (dirty + not pending)
+    const discardBtn = buttons.find((b) => b.props.type === 'button')
+    expect(discardBtn?.props.disabled).toBe(false)
   })
 })

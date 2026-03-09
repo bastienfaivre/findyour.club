@@ -29,7 +29,7 @@ const mockPhotos = [
 ]
 
 function renderCarousel(photos: typeof mockPhotos) {
-  return PhotoCarousel({ photos, ariaLabel: 'Photos' })
+  return PhotoCarousel({ photos, ariaLabel: 'Photos', goToPhotoLabel: 'Go to photo {n}' })
 }
 
 describe('PhotoCarousel', () => {
@@ -49,20 +49,13 @@ describe('PhotoCarousel', () => {
     expect(container).toBeDefined()
   })
 
-  it('renders dot indicators for multiple photos', () => {
+  it('duplicates photos for seamless looping', () => {
     const result = renderCarousel(mockPhotos)
     expect(result).not.toBeNull()
     const tree = JSON.stringify(result)
-    expect(tree).toContain('Go to photo 1')
-    expect(tree).toContain('Go to photo 2')
-    expect(tree).toContain('Go to photo 3')
-  })
-
-  it('does not render dot indicators for single photo', () => {
-    const result = renderCarousel([mockPhotos[0]])
-    expect(result).not.toBeNull()
-    const tree = JSON.stringify(result)
-    expect(tree).not.toContain('Go to photo')
+    // Each photo URL should appear twice (original + duplicate for looping)
+    const count1 = (tree.match(/example\.com\/1\.jpg/g) || []).length
+    expect(count1).toBe(2)
   })
 
   it('has carousel role, aria-roledescription, and aria-label', () => {

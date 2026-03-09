@@ -3,48 +3,50 @@
 import { useTransition, useOptimistic } from 'react'
 import { toast } from 'sonner'
 import { Switch } from '@/components/ui/switch'
-import { togglePublish } from '@/app/[lang]/(country)/[country]/[club]/admin/actions'
+import { togglePublish } from '@/app/[lang]/(dashboard)/club/[clubId]/actions'
 
-interface PublishToggleTranslations {
+interface VisibilityToggleTranslations {
   title: string
-  published: string
-  unpublished: string
-  publishSuccess: string
-  unpublishSuccess: string
+  online: string
+  offline: string
+  onlineSuccess: string
+  offlineSuccess: string
   forceOfflineWarning: string
+  minPhotosRequired: string
   error: string
 }
 
-interface PublishToggleProps {
+const MIN_PHOTOS = 5
+
+interface VisibilityToggleProps {
   isPublished: boolean
   forceOffline: boolean
-  lang: string
-  country: string
-  slug: string
-  translations: PublishToggleTranslations
+  clubId: string
+  photoCount: number
+  translations: VisibilityToggleTranslations
 }
 
-export function PublishToggle({
+export function VisibilityToggle({
   isPublished,
   forceOffline,
-  lang,
-  country,
-  slug,
+  clubId,
+  photoCount,
   translations: t,
-}: PublishToggleProps) {
+}: VisibilityToggleProps) {
   const [isPending, startTransition] = useTransition()
   const [optimisticPublished, setOptimisticPublished] = useOptimistic(isPublished)
 
-  const disabled = forceOffline || isPending
+  const needsMorePhotos = !optimisticPublished && photoCount < MIN_PHOTOS
+  const disabled = forceOffline || isPending || needsMorePhotos
 
   function handleToggle() {
     startTransition(async () => {
       setOptimisticPublished(!optimisticPublished)
-      const result = await togglePublish(lang, country, slug)
+      const result = await togglePublish(clubId)
       if (result.success) {
-        toast(result.data.isPublished ? t.publishSuccess : t.unpublishSuccess)
+        toast(result.data.isPublished ? t.onlineSuccess : t.offlineSuccess)
       } else {
-        toast(t.error, { description: result.error })
+        toast.error(t.error, { description: result.error })
       }
     })
   }
@@ -55,9 +57,13 @@ export function PublishToggle({
         <p className="text-sm font-medium">{t.title}</p>
         {forceOffline ? (
           <p className="text-sm text-destructive">{t.forceOfflineWarning}</p>
+        ) : needsMorePhotos ? (
+          <p className="text-sm text-amber-600 dark:text-amber-400">
+            {t.minPhotosRequired.replace('{min}', String(MIN_PHOTOS)).replace('{count}', String(photoCount))}
+          </p>
         ) : (
           <p className="text-sm text-muted-foreground">
-            {optimisticPublished ? t.published : t.unpublished}
+            {optimisticPublished ? t.online : t.offline}
           </p>
         )}
       </div>
@@ -66,6 +72,10 @@ export function PublishToggle({
         onCheckedChange={handleToggle}
         disabled={disabled}
         aria-label={t.title}
+        className={optimisticPublished
+          ? 'data-[state=checked]:bg-green-600 dark:data-[state=checked]:bg-green-500'
+          : 'data-[state=unchecked]:bg-red-400 dark:data-[state=unchecked]:bg-red-500'
+        }
       />
     </div>
   )

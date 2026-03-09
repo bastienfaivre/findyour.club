@@ -1,20 +1,26 @@
 'use client'
 
-import { useEffect, useTransition } from 'react'
-import { useForm } from 'react-hook-form'
+import { useEffect, useState, useTransition } from 'react'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { clubProfileSaveSchema, type ClubProfileSaveInput } from '@/lib/schemas/club'
-import { saveClubProfile, type SaveClubProfileResult } from '@/app/[lang]/(country)/[country]/[club]/admin/actions'
+import { saveClubProfile, type SaveClubProfileResult } from '@/app/[lang]/(dashboard)/club/[clubId]/actions'
 import { useAdminDirty } from './AdminDirtyContext'
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes'
 import { SaveBar } from './SaveBar'
 import { UnsavedChangesDialog } from './UnsavedChangesDialog'
-import { LogoUpload } from './LogoUpload'
+import { LogoUpload, type LogoActions } from './LogoUpload'
+import { uploadLogo, persistLogo, deleteLogo, updateLogoAlt } from '@/app/[lang]/(dashboard)/club/[clubId]/actions'
 import { PhotoGallery } from './PhotoGallery'
+import { ProfilePreview } from './ProfilePreview'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { PhoneInput } from '@/components/ui/phone-input'
+import { Pencil, Eye } from 'lucide-react'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 import type { Translations } from '@/lib/i18n/translations/types'
 
 export interface ClubPhoto {
@@ -39,22 +45,41 @@ export interface ClubProfileData {
 }
 
 interface ClubProfileFormProps {
-  lang: string
-  country: string
-  slug: string
+  clubId: string
   translations: Translations['club']['admin']
+  clubSiteTranslations: {
+    contactCta: string
+    visitWebsite: string
+    goToPhoto: string
+    schedule: string
+    howToJoin: string
+    contactInfo: string
+    email: string
+    phone: string
+    address: string
+    photos: string
+  }
   initialData: ClubProfileData
 }
 
-export function ClubProfileForm({ lang, country, slug, translations: t, initialData }: ClubProfileFormProps) {
+export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations: cs, initialData }: ClubProfileFormProps) {
   const [isPending, startTransition] = useTransition()
   const { setIsDirty } = useAdminDirty()
   const p = t.clubProfile
 
+  const logoActions: LogoActions = {
+    upload: uploadLogo,
+    persist: persistLogo,
+    remove: deleteLogo,
+    updateAlt: updateLogoAlt,
+  }
+
   const form = useForm<ClubProfileSaveInput>({
     resolver: zodResolver(clubProfileSaveSchema),
+    mode: 'onTouched',
     defaultValues: {
       name: initialData.name,
+      email: initialData.email,
       description: initialData.description,
       schedule: initialData.schedule,
       howToJoin: initialData.howToJoin,
@@ -64,7 +89,10 @@ export function ClubProfileForm({ lang, country, slug, translations: t, initialD
     },
   })
 
-  const { register, formState: { errors, isDirty }, handleSubmit, trigger, reset } = form
+  const { register, formState: { errors, isDirty, isValid }, handleSubmit, reset, watch, control } = form
+  const [phoneKey, setPhoneKey] = useState(0)
+
+  const watchedValues = watch()
 
   // Sync form dirty state to context for sidebar, reset on unmount
   useEffect(() => {
@@ -76,10 +104,20 @@ export function ClubProfileForm({ lang, country, slug, translations: t, initialD
   const { showDialog, confirmNavigation, cancelNavigation } = useUnsavedChanges({ isDirty })
 
   const onSubmit = (data: ClubProfileSaveInput) => {
+    // Normalize empty strings to null for optional nullable fields
+    const normalized: ClubProfileSaveInput = {
+      ...data,
+      description: data.description || null,
+      schedule: data.schedule || null,
+      howToJoin: data.howToJoin || null,
+      contactPhone: data.contactPhone || null,
+      contactAddress: data.contactAddress || null,
+      externalWebsiteUrl: data.externalWebsiteUrl || null,
+    }
     startTransition(async () => {
-      const result: SaveClubProfileResult = await saveClubProfile(lang, country, slug, data)
+      const result: SaveClubProfileResult = await saveClubProfile(clubId, normalized)
       if (result.success) {
-        reset(data)
+        reset(normalized)
         toast(t.save.savedSuccessfully, {
           description: new Date(result.data.savedAt).toLocaleTimeString(),
         })
@@ -89,176 +127,237 @@ export function ClubProfileForm({ lang, country, slug, translations: t, initialD
     })
   }
 
-  return (
-    <>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <fieldset disabled={isPending} className="space-y-6">
-          <h1 className="text-2xl font-bold">{p.title}</h1>
+  const previewBlock = (
+    <ProfilePreview
+      formValues={watchedValues}
+      logoUrl={initialData.logoUrl}
+      logoAlt={initialData.logoAlt}
+      photos={initialData.photos}
+      translations={{
+        schedule: cs.schedule,
+        howToJoin: cs.howToJoin,
+        contactInfo: cs.contactInfo,
+        email: cs.email,
+        phone: cs.phone,
+        address: cs.address,
+        visitWebsite: cs.visitWebsite,
+        photos: cs.photos,
+        goToPhoto: cs.goToPhoto,
+        contactCta: cs.contactCta,
+        preview: t.clubProfile.preview,
+      }}
+    />
+  )
 
-          {/* Logo */}
-          <LogoUpload
-            lang={lang}
-            country={country}
-            slug={slug}
-            logoUrl={initialData.logoUrl}
-            logoAlt={initialData.logoAlt}
-            translations={p.logo}
-          />
+  const formBlock = (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <fieldset disabled={isPending} className="space-y-6">
 
-          {/* Club Name */}
-          <div className="space-y-2">
-            <Label htmlFor="name">{p.fields.name} <span className="text-destructive">*</span></Label>
-            <Input
-              id="name"
-              {...register('name')}
-              placeholder={p.placeholders.name}
-              maxLength={200}
-              aria-required="true"
-              aria-describedby={errors.name ? 'name-error' : undefined}
-              aria-invalid={!!errors.name}
-            />
-            {errors.name && (
-              <p id="name-error" className="text-sm text-destructive">{p.validation.nameRequired}</p>
-            )}
-          </div>
-
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">{p.fields.description}</Label>
-            <Textarea
-              id="description"
-              {...register('description')}
-              placeholder={p.placeholders.description}
-              maxLength={5000}
-              rows={4}
-              aria-describedby={errors.description ? 'description-error' : undefined}
-              aria-invalid={!!errors.description}
-            />
-            {errors.description && (
-              <p id="description-error" className="text-sm text-destructive">{p.validation.descriptionMaxLength}</p>
-            )}
-          </div>
-
-          {/* Schedule */}
-          <div className="space-y-2">
-            <Label htmlFor="schedule">{p.fields.schedule}</Label>
-            <Textarea
-              id="schedule"
-              {...register('schedule')}
-              placeholder={p.placeholders.schedule}
-              maxLength={2000}
-              rows={3}
-              aria-describedby={errors.schedule ? 'schedule-error' : undefined}
-              aria-invalid={!!errors.schedule}
-            />
-            {errors.schedule && (
-              <p id="schedule-error" className="text-sm text-destructive">{p.validation.scheduleMaxLength}</p>
-            )}
-          </div>
-
-          {/* How to Join */}
-          <div className="space-y-2">
-            <Label htmlFor="howToJoin">{p.fields.howToJoin}</Label>
-            <Textarea
-              id="howToJoin"
-              {...register('howToJoin')}
-              placeholder={p.placeholders.howToJoin}
-              maxLength={2000}
-              rows={3}
-              aria-describedby={errors.howToJoin ? 'howToJoin-error' : undefined}
-              aria-invalid={!!errors.howToJoin}
-            />
-            {errors.howToJoin && (
-              <p id="howToJoin-error" className="text-sm text-destructive">{p.validation.howToJoinMaxLength}</p>
-            )}
-          </div>
-
-          {/* Contact Email (read-only) */}
-          <div className="space-y-2">
-            <Label htmlFor="contactEmail">{p.fields.contactEmail}</Label>
-            <Input
-              id="contactEmail"
-              type="email"
-              value={initialData.email}
-              disabled
-              className="bg-muted"
-            />
-          </div>
-
-          {/* Contact Phone */}
-          <div className="space-y-2">
-            <Label htmlFor="contactPhone">{p.fields.contactPhone}</Label>
-            <Input
-              id="contactPhone"
-              type="tel"
-              {...register('contactPhone')}
-              placeholder={p.placeholders.contactPhone}
-              maxLength={20}
-              aria-describedby={errors.contactPhone ? 'contactPhone-error' : undefined}
-              aria-invalid={!!errors.contactPhone}
-            />
-            {errors.contactPhone && (
-              <p id="contactPhone-error" className="text-sm text-destructive">{p.validation.contactPhoneMaxLength}</p>
-            )}
-          </div>
-
-          {/* Contact Address */}
-          <div className="space-y-2">
-            <Label htmlFor="contactAddress">{p.fields.contactAddress}</Label>
-            <Textarea
-              id="contactAddress"
-              {...register('contactAddress')}
-              placeholder={p.placeholders.contactAddress}
-              maxLength={500}
-              rows={2}
-              aria-describedby={errors.contactAddress ? 'contactAddress-error' : undefined}
-              aria-invalid={!!errors.contactAddress}
-            />
-            {errors.contactAddress && (
-              <p id="contactAddress-error" className="text-sm text-destructive">{p.validation.contactAddressMaxLength}</p>
-            )}
-          </div>
-
-          {/* External Website URL */}
-          <div className="space-y-2">
-            <Label htmlFor="externalWebsiteUrl">{p.fields.externalWebsiteUrl}</Label>
-            <Input
-              id="externalWebsiteUrl"
-              type="url"
-              {...register('externalWebsiteUrl')}
-              placeholder={p.placeholders.externalWebsiteUrl}
-              onBlur={() => trigger('externalWebsiteUrl')}
-              aria-describedby={errors.externalWebsiteUrl ? 'externalWebsiteUrl-error' : undefined}
-              aria-invalid={!!errors.externalWebsiteUrl}
-            />
-            {errors.externalWebsiteUrl && (
-              <p id="externalWebsiteUrl-error" className="text-sm text-destructive">{p.validation.externalWebsiteUrlInvalid}</p>
-            )}
-          </div>
-
-          {/* Photos */}
-          <PhotoGallery
-            lang={lang}
-            country={country}
-            slug={slug}
-            photos={initialData.photos}
-            translations={p.photos}
-          />
-        </fieldset>
-
-        <SaveBar
-          isDirty={isDirty}
-          isPending={isPending}
-          translations={{
-            save: t.save.save,
-            discard: t.save.discard,
-            discardConfirmTitle: t.save.discardConfirmTitle,
-            discardConfirmDescription: t.save.discardConfirmDescription,
-            keepEditing: t.save.keepEditing,
-          }}
-          onDiscard={() => reset()}
+        {/* Logo */}
+        <LogoUpload
+          clubId={clubId}
+          logoUrl={initialData.logoUrl}
+          logoAlt={initialData.logoAlt}
+          translations={p.logo}
+          actions={logoActions}
         />
-      </form>
+
+        {/* Club Name */}
+        <div className="space-y-2">
+          <Label htmlFor="name">{p.fields.name} <span className="text-destructive">*</span></Label>
+          <Input
+            id="name"
+            {...register('name')}
+            placeholder={p.placeholders.name}
+            maxLength={200}
+            aria-required="true"
+            aria-describedby={errors.name ? 'name-error' : undefined}
+            aria-invalid={!!errors.name}
+          />
+          {errors.name && (
+            <p id="name-error" className="text-sm text-destructive">{p.validation.nameRequired}</p>
+          )}
+        </div>
+
+        {/* Description */}
+        <div className="space-y-2">
+          <Label htmlFor="description">{p.fields.description}</Label>
+          <Textarea
+            id="description"
+            {...register('description')}
+            placeholder={p.placeholders.description}
+            maxLength={5000}
+            rows={4}
+            aria-describedby={errors.description ? 'description-error' : undefined}
+            aria-invalid={!!errors.description}
+          />
+          {errors.description && (
+            <p id="description-error" className="text-sm text-destructive">{p.validation.descriptionMaxLength}</p>
+          )}
+        </div>
+
+        {/* Schedule */}
+        <div className="space-y-2">
+          <Label htmlFor="schedule">{p.fields.schedule}</Label>
+          <Textarea
+            id="schedule"
+            {...register('schedule')}
+            placeholder={p.placeholders.schedule}
+            maxLength={2000}
+            rows={3}
+            aria-describedby={errors.schedule ? 'schedule-error' : undefined}
+            aria-invalid={!!errors.schedule}
+          />
+          {errors.schedule && (
+            <p id="schedule-error" className="text-sm text-destructive">{p.validation.scheduleMaxLength}</p>
+          )}
+        </div>
+
+        {/* How to Join */}
+        <div className="space-y-2">
+          <Label htmlFor="howToJoin">{p.fields.howToJoin}</Label>
+          <Textarea
+            id="howToJoin"
+            {...register('howToJoin')}
+            placeholder={p.placeholders.howToJoin}
+            maxLength={2000}
+            rows={3}
+            aria-describedby={errors.howToJoin ? 'howToJoin-error' : undefined}
+            aria-invalid={!!errors.howToJoin}
+          />
+          {errors.howToJoin && (
+            <p id="howToJoin-error" className="text-sm text-destructive">{p.validation.howToJoinMaxLength}</p>
+          )}
+        </div>
+
+        {/* Contact Email */}
+        <div className="space-y-2">
+          <Label htmlFor="contactEmail">{p.fields.contactEmail}</Label>
+          <Input
+            id="contactEmail"
+            type="email"
+            {...register('email')}
+            placeholder={p.placeholders.contactEmail}
+            aria-describedby={errors.email ? 'email-error' : undefined}
+            aria-invalid={!!errors.email}
+          />
+          {errors.email && (
+            <p id="email-error" className="text-sm text-destructive">{p.validation.emailInvalid}</p>
+          )}
+        </div>
+
+        {/* Contact Phone */}
+        <div className="space-y-2">
+          <Label htmlFor="contactPhone">{p.fields.contactPhone}</Label>
+          <Controller
+            name="contactPhone"
+            control={control}
+            render={({ field }) => (
+              <PhoneInput
+                key={phoneKey}
+                id="contactPhone"
+                value={field.value ?? ''}
+                onChange={(val) => field.onChange(val ?? '')}
+                placeholder={p.placeholders.contactPhone}
+                disabled={isPending}
+                aria-describedby={errors.contactPhone ? 'contactPhone-error' : undefined}
+                aria-invalid={!!errors.contactPhone}
+              />
+            )}
+          />
+          {errors.contactPhone && (
+            <p id="contactPhone-error" className="text-sm text-destructive">{p.validation.contactPhoneInvalid}</p>
+          )}
+        </div>
+
+        {/* Contact Address */}
+        <div className="space-y-2">
+          <Label htmlFor="contactAddress">{p.fields.contactAddress}</Label>
+          <Textarea
+            id="contactAddress"
+            {...register('contactAddress')}
+            placeholder={p.placeholders.contactAddress}
+            maxLength={500}
+            rows={2}
+            aria-describedby={errors.contactAddress ? 'contactAddress-error' : undefined}
+            aria-invalid={!!errors.contactAddress}
+          />
+          {errors.contactAddress && (
+            <p id="contactAddress-error" className="text-sm text-destructive">{p.validation.contactAddressMaxLength}</p>
+          )}
+        </div>
+
+        {/* External Website URL */}
+        <div className="space-y-2">
+          <Label htmlFor="externalWebsiteUrl">{p.fields.externalWebsiteUrl}</Label>
+          <Input
+            id="externalWebsiteUrl"
+            {...register('externalWebsiteUrl')}
+            placeholder={p.placeholders.externalWebsiteUrl}
+            aria-describedby={errors.externalWebsiteUrl ? 'externalWebsiteUrl-error' : undefined}
+            aria-invalid={!!errors.externalWebsiteUrl}
+          />
+          {errors.externalWebsiteUrl && (
+            <p id="externalWebsiteUrl-error" className="text-sm text-destructive">{p.validation.externalWebsiteUrlInvalid}</p>
+          )}
+        </div>
+
+        {/* Photos */}
+        <PhotoGallery
+          clubId={clubId}
+          photos={initialData.photos}
+          translations={p.photos}
+        />
+      </fieldset>
+
+      <SaveBar
+        isDirty={isDirty}
+        isPending={isPending}
+        isValid={isValid}
+        translations={{
+          save: t.save.save,
+          discard: t.save.discard,
+          discardConfirmTitle: t.save.discardConfirmTitle,
+          discardConfirmDescription: t.save.discardConfirmDescription,
+          keepEditing: t.save.keepEditing,
+        }}
+        onDiscard={() => { reset(); setPhoneKey((k) => k + 1) }}
+      />
+    </form>
+  )
+
+  return (
+    <div className="@container flex flex-col h-full min-h-0">
+      <AdminPageTitle title={p.title} />
+      {/* Narrow container: tabbed with shadcn Tabs */}
+      <Tabs defaultValue="edit" className="flex flex-col flex-1 min-h-0 @[74rem]:hidden">
+        <TabsList className="mb-4">
+          <TabsTrigger value="edit">
+            <Pencil />
+            {p.editTab}
+          </TabsTrigger>
+          <TabsTrigger value="preview">
+            <Eye />
+            {p.preview}
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="edit" className="overflow-y-auto">
+          <div className="w-full max-w-xl min-w-0">{formBlock}</div>
+        </TabsContent>
+        <TabsContent value="preview" className="overflow-y-auto">
+          <div className="w-full">{previewBlock}</div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Wide container: side-by-side */}
+      <div className="hidden @[74rem]:flex gap-8 flex-1 min-h-0">
+        <div className="w-full max-w-xl min-w-0 overflow-y-auto">
+          {formBlock}
+        </div>
+        <div className="flex-1 min-w-0 overflow-y-auto">
+          {previewBlock}
+        </div>
+      </div>
 
       <UnsavedChangesDialog
         open={showDialog}
@@ -272,6 +371,6 @@ export function ClubProfileForm({ lang, country, slug, translations: t, initialD
         onConfirm={confirmNavigation}
         onCancel={cancelNavigation}
       />
-    </>
+    </div>
   )
 }

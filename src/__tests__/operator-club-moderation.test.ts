@@ -10,8 +10,11 @@ vi.mock('@/server/db', () => ({
       findUnique: vi.fn(),
       update: vi.fn(),
     },
-    operatorMessage: {
+    supportMessage: {
       create: vi.fn(),
+    },
+    conversationReadCursor: {
+      upsert: vi.fn(),
     },
     $transaction: vi.fn(async (ops: unknown[]) => ops),
   },
@@ -28,10 +31,10 @@ import { prisma } from '@/server/db'
 import { getAuthSession } from '@/server/auth'
 import { sendEmail } from '@/lib/email'
 import {
-  sendOperatorMessage,
+  sendSupportMessage,
   toggleForceOffline,
   liftForceOffline,
-} from '@/app/[lang]/admin/(protected)/clubs/[id]/actions'
+} from '@/app/[lang]/(dashboard)/admin/clubs/[id]/actions'
 import {
   buildOperatorMessageEmailHtml,
   buildForceOfflineEmailHtml,
@@ -55,21 +58,27 @@ const CLUB = {
   country: 'ch',
 }
 
-describe('sendOperatorMessage()', () => {
+describe('sendSupportMessage()', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(getAuthSession).mockResolvedValue(OPERATOR_SESSION as never)
     vi.mocked(prisma.club.findUnique).mockResolvedValue(CLUB as never)
-    vi.mocked(prisma.operatorMessage.create).mockResolvedValue({} as never)
+    vi.mocked(prisma.supportMessage.create).mockResolvedValue({} as never)
+    vi.mocked(prisma.conversationReadCursor.upsert).mockResolvedValue({} as never)
     vi.mocked(sendEmail).mockResolvedValue(undefined)
   })
 
-  it('creates OperatorMessage and sends email (happy path)', async () => {
-    const result = await sendOperatorMessage('club-1', 'Please update your description.')
+  it('creates SupportMessage and sends email (happy path)', async () => {
+    const result = await sendSupportMessage('club-1', 'Please update your description.')
 
     expect(result).toEqual({ success: true })
-    expect(prisma.operatorMessage.create).toHaveBeenCalledWith({
-      data: { clubId: 'club-1', message: 'Please update your description.' },
+    expect(prisma.supportMessage.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        clubId: 'club-1',
+        senderId: 'op-1',
+        senderRole: 'OPERATOR',
+        body: 'Please update your description.',
+      }),
     })
     expect(sendEmail).toHaveBeenCalledWith({
       to: 'admin@skiclub.ch',
@@ -81,39 +90,39 @@ describe('sendOperatorMessage()', () => {
   it('rejects non-operator users', async () => {
     vi.mocked(getAuthSession).mockResolvedValue(NON_OPERATOR_SESSION as never)
 
-    const result = await sendOperatorMessage('club-1', 'Hello')
+    const result = await sendSupportMessage('club-1', 'Hello')
 
     expect(result).toEqual({ success: false, error: 'Unauthorized.', code: 'UNAUTHORIZED' })
-    expect(prisma.operatorMessage.create).not.toHaveBeenCalled()
+    expect(prisma.supportMessage.create).not.toHaveBeenCalled()
   })
 
   it('rejects unauthenticated users', async () => {
     vi.mocked(getAuthSession).mockResolvedValue(null as never)
 
-    const result = await sendOperatorMessage('club-1', 'Hello')
+    const result = await sendSupportMessage('club-1', 'Hello')
 
     expect(result).toEqual({ success: false, error: 'Unauthorized.', code: 'UNAUTHORIZED' })
   })
 
   it('rejects empty message', async () => {
-    const result = await sendOperatorMessage('club-1', '   ')
+    const result = await sendSupportMessage('club-1', '   ')
 
     expect(result).toEqual({ success: false, error: 'Message is required.', code: 'VALIDATION' })
-    expect(prisma.operatorMessage.create).not.toHaveBeenCalled()
+    expect(prisma.supportMessage.create).not.toHaveBeenCalled()
   })
 
-  it('rejects message exceeding 1000 characters', async () => {
-    const longMessage = 'a'.repeat(1001)
+  it('rejects message exceeding 2000 characters', async () => {
+    const longMessage = 'a'.repeat(2001)
 
-    const result = await sendOperatorMessage('club-1', longMessage)
+    const result = await sendSupportMessage('club-1', longMessage)
 
-    expect(result).toEqual({ success: false, error: 'Message must be 1000 characters or less.', code: 'VALIDATION' })
+    expect(result).toEqual({ success: false, error: 'Message must be 2000 characters or less.', code: 'VALIDATION' })
   })
 
   it('returns NOT_FOUND when club does not exist', async () => {
     vi.mocked(prisma.club.findUnique).mockResolvedValue(null)
 
-    const result = await sendOperatorMessage('nonexistent', 'Hello')
+    const result = await sendSupportMessage('nonexistent', 'Hello')
 
     expect(result).toEqual({ success: false, error: 'Club not found.', code: 'NOT_FOUND' })
   })
@@ -121,10 +130,10 @@ describe('sendOperatorMessage()', () => {
   it('still succeeds if email delivery fails (DB is source of truth)', async () => {
     vi.mocked(sendEmail).mockRejectedValue(new Error('SMTP error'))
 
-    const result = await sendOperatorMessage('club-1', 'Hello')
+    const result = await sendSupportMessage('club-1', 'Hello')
 
     expect(result).toEqual({ success: true })
-    expect(prisma.operatorMessage.create).toHaveBeenCalled()
+    expect(prisma.supportMessage.create).toHaveBeenCalled()
   })
 })
 
@@ -134,7 +143,7 @@ describe('toggleForceOffline()', () => {
     vi.mocked(getAuthSession).mockResolvedValue(OPERATOR_SESSION as never)
     vi.mocked(prisma.club.findUnique).mockResolvedValue(CLUB as never)
     vi.mocked(prisma.club.update).mockResolvedValue({} as never)
-    vi.mocked(prisma.operatorMessage.create).mockResolvedValue({} as never)
+    vi.mocked(prisma.supportMessage.create).mockResolvedValue({} as never)
     vi.mocked(sendEmail).mockResolvedValue(undefined)
   })
 

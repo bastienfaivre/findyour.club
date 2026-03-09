@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server'
 vi.mock('@/server/auth', () => ({
   getAuthSession: vi.fn(),
 }))
-vi.mock('@/app/[lang]/auth/magic-link/actions', () => ({
+vi.mock('@/app/[lang]/(dashboard)/auth/magic-link/actions', () => ({
   verifyMagicLinkToken: vi.fn(),
 }))
 vi.mock('@/lib/setup-cookie', () => ({
@@ -13,8 +13,8 @@ vi.mock('@/lib/setup-cookie', () => ({
 }))
 
 import { getAuthSession } from '@/server/auth'
-import { verifyMagicLinkToken } from '@/app/[lang]/auth/magic-link/actions'
-import { GET } from '@/app/[lang]/auth/magic-link/route'
+import { verifyMagicLinkToken } from '@/app/[lang]/(dashboard)/auth/magic-link/actions'
+import { GET } from '@/app/[lang]/(dashboard)/auth/magic-link/route'
 
 const BASE = 'http://localhost'
 
@@ -100,13 +100,13 @@ describe('GET /auth/magic-link', () => {
       })
     })
 
-    it('redirects to /my-clubs when the user is already authenticated', async () => {
+    it('redirects to / when the user is already authenticated', async () => {
       vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'u1' } } as never)
 
       const response = await GET(makeRequest('stale-token'))
 
       expect(response.status).toBe(307)
-      expect(response.headers.get('location')).toBe(`${BASE}/my-clubs`)
+      expect(response.headers.get('location')).toBe(`${BASE}/`)
       expect(response.cookies.get('setup_session')).toBeUndefined()
     })
 

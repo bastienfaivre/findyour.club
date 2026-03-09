@@ -1,0 +1,409 @@
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import { getAuthSession } from '@/server/auth'
+import { prisma } from '@/server/db'
+import { getClubActiveMembership } from '@/lib/server/club-queries'
+import { clubProfileSaveSchema, type ClubProfileSaveInput } from '@/lib/schemas/club'
+import { generateUploadUrl, deleteObject, extractR2Key, getPublicUrl, ALLOWED_IMAGE_TYPES } from '@/lib/r2'
+
+export type ActionResult<T = undefined> =
+  | { success: true; data: T }
+  | { success: false; error: string; code?: string }
+
+// ── Auth guard helper ──
+
+type AuthGuardError = { ok: false; result: { success: false; error: string; code: string } }
+type AuthGuardSuccess = { ok: true; club: { id: string; name: string; slug: string; country: string }; membership: { id: string; role: string } }
+
+async function authGuard(clubId: string, requiredRole?: 'OWNER'): Promise<AuthGuardError | AuthGuardSuccess> {
+  const session = await getAuthSession()
+  if (!session?.user?.id) {
+    return { ok: false, result: { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' } }
+  }
+
+  const club = await prisma.club.findUnique({
+    where: { id: clubId },
+    select: { id: true, name: true, slug: true, country: true },
+  })
+  if (!club) {
+    return { ok: false, result: { success: false, error: 'Club not found.', code: 'NOT_FOUND' } }
+  }
+
+  const membership = await getClubActiveMembership(session.user.id, club.id)
+  if (!membership) {
+    return { ok: false, result: { success: false, error: 'Not a member of this club.', code: 'FORBIDDEN' } }
+  }
+
+  if (requiredRole && membership.role !== requiredRole) {
+    return { ok: false, result: { success: false, error: 'Insufficient permissions.', code: 'FORBIDDEN' } }
+  }
+
+  return { ok: true, club, membership }
+}
+
+function revalidateClubPaths(_club: { slug: string; country: string }) {
+  // Revalidate all language variants of the public club page
+  revalidatePath('/[lang]/[country]/[club]', 'page')
+  // Revalidate admin pages
+  revalidatePath('/[lang]/admin', 'layout')
+}
+
+// ── Toggle Publish ──
+
+export type TogglePublishResult = ActionResult<{ isPublished: boolean }>
+
+export async function togglePublish(clubId: string): Promise<TogglePublishResult> {
+  const guard = await authGuard(clubId, 'OWNER')
+  if (!guard.ok) return guard.result
+
+  const result = await prisma.$transaction(async (tx) => {
+    const club = await tx.club.findUnique({
+      where: { id: guard.club.id },
+      select: { isPublished: true, forceOffline: true },
+    })
+    if (!club) return { success: false as const, error: 'Club not found.', code: 'NOT_FOUND' }
+
+    if (club.forceOffline) {
+      return { success: false as const, error: 'Your page has been taken offline by the platform.', code: 'FORCE_OFFLINE' }
+    }
+
+    const newState = !club.isPublished
+
+    // Enforce minimum 5 photos before publishing
+    if (newState) {
+      const photoCount = await tx.clubPhoto.count({ where: { clubId: guard.club.id } })
+      if (photoCount < 5) {
+        return { success: false as const, error: `You need at least 5 photos to publish your page (currently ${photoCount}).`, code: 'MIN_PHOTOS' }
+      }
+    }
+
+    await tx.club.update({
+      where: { id: guard.club.id },
+      data: { isPublished: newState },
+    })
+
+    return { success: true as const, data: { isPublished: newState } }
+  })
+
+  if (result.success) {
+    revalidateClubPaths(guard.club)
+  }
+
+  return result
+}
+
+// ── Send Support Message (club admin → platform) ──
+
+export async function sendClubMessage(
+  clubId: string,
+  body: string,
+): Promise<ActionResult<undefined>> {
+  const guard = await authGuard(clubId)
+  if (!guard.ok) return guard.result
+
+  const session = await getAuthSession()
+  if (!session?.user?.id) {
+    return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' }
+  }
+
+  const trimmed = body.trim()
+  if (!trimmed) {
+    return { success: false, error: 'Message is required.', code: 'VALIDATION_ERROR' }
+  }
+  if (trimmed.length > 2000) {
+    return { success: false, error: 'Message must be 2000 characters or less.', code: 'VALIDATION_ERROR' }
+  }
+
+  await prisma.supportMessage.create({
+    data: {
+      clubId: guard.club.id,
+      senderId: session.user.id,
+      senderRole: 'CLUB_ADMIN',
+      body: trimmed,
+    },
+  })
+
+  // Update sender's own read cursor
+  await prisma.conversationReadCursor.upsert({
+    where: { clubId_userId: { clubId: guard.club.id, userId: session.user.id } },
+    update: { lastReadAt: new Date() },
+    create: { clubId: guard.club.id, userId: session.user.id, lastReadAt: new Date() },
+  })
+
+  revalidateClubPaths(guard.club)
+
+  return { success: true, data: undefined }
+}
+
+// ── Mark Conversation as Read ──
+
+export async function markConversationRead(
+  clubId: string,
+): Promise<ActionResult<undefined>> {
+  const guard = await authGuard(clubId)
+  if (!guard.ok) return guard.result
+
+  const session = await getAuthSession()
+  if (!session?.user?.id) {
+    return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' }
+  }
+
+  await prisma.conversationReadCursor.upsert({
+    where: { clubId_userId: { clubId: guard.club.id, userId: session.user.id } },
+    update: { lastReadAt: new Date() },
+    create: { clubId: guard.club.id, userId: session.user.id, lastReadAt: new Date() },
+  })
+
+  return { success: true, data: undefined }
+}
+
+// ── Save Club Profile (text fields) ──
+
+export type SaveClubProfileResult = ActionResult<{ savedAt: string }>
+
+export async function saveClubProfile(
+  clubId: string,
+  input: ClubProfileSaveInput,
+): Promise<SaveClubProfileResult> {
+  const guard = await authGuard(clubId)
+  if (!guard.ok) return guard.result
+
+  const parsed = clubProfileSaveSchema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: 'Invalid input.', code: 'VALIDATION_ERROR' }
+  }
+
+  await prisma.club.update({
+    where: { id: guard.club.id },
+    data: {
+      name: parsed.data.name,
+      email: parsed.data.email,
+      description: parsed.data.description || null,
+      schedule: parsed.data.schedule || null,
+      howToJoin: parsed.data.howToJoin || null,
+      contactPhone: parsed.data.contactPhone || null,
+      contactAddress: parsed.data.contactAddress || null,
+      externalWebsiteUrl: parsed.data.externalWebsiteUrl || null,
+    },
+  })
+
+  const savedAt = new Date().toISOString()
+  revalidateClubPaths(guard.club)
+
+  return { success: true, data: { savedAt } }
+}
+
+// ── Presigned Upload URL ──
+
+export type PresignedUrlResult = ActionResult<{ uploadUrl: string; key: string; publicUrl: string }>
+
+export async function getPresignedUploadUrl(
+  clubId: string,
+  contentType: string,
+): Promise<PresignedUrlResult> {
+  const guard = await authGuard(clubId)
+  if (!guard.ok) return guard.result
+
+  if (!ALLOWED_IMAGE_TYPES.includes(contentType as typeof ALLOWED_IMAGE_TYPES[number])) {
+    return { success: false, error: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.', code: 'INVALID_TYPE' }
+  }
+
+  const photoCount = await prisma.clubPhoto.count({ where: { clubId: guard.club.id } })
+  if (photoCount >= 10) {
+    return { success: false, error: 'Maximum 10 photos reached.', code: 'MAX_PHOTOS' }
+  }
+
+  const ext = contentType.split('/')[1] === 'jpeg' ? 'jpg' : contentType.split('/')[1]
+  const { uploadUrl, key } = await generateUploadUrl(guard.club.id, ext)
+  const publicUrl = getPublicUrl(key)
+
+  return { success: true, data: { uploadUrl, key, publicUrl } }
+}
+
+// ── Create Club Photo (after client upload) ──
+
+export type CreatePhotoResult = ActionResult<{ id: string; url: string; position: number }>
+
+export async function createClubPhoto(
+  clubId: string,
+  key: string,
+  alt: string,
+): Promise<CreatePhotoResult> {
+  const guard = await authGuard(clubId)
+  if (!guard.ok) return guard.result
+
+  // Validate key belongs to this club
+  if (!key.startsWith(`${guard.club.id}/`)) {
+    return { success: false, error: 'Invalid file key.', code: 'INVALID_KEY' }
+  }
+
+  // Validate alt text length
+  const trimmedAlt = alt.slice(0, 500)
+
+  // Use transaction to prevent race condition in position assignment AND enforce photo limit
+  const photo = await prisma.$transaction(async (tx) => {
+    const photoCount = await tx.clubPhoto.count({ where: { clubId: guard.club.id } })
+    if (photoCount >= 10) {
+      throw new Error('MAX_PHOTOS')
+    }
+
+    const maxPosition = await tx.clubPhoto.aggregate({
+      where: { clubId: guard.club.id },
+      _max: { position: true },
+    })
+
+    const position = (maxPosition._max.position ?? -1) + 1
+    const url = getPublicUrl(key)
+
+    return tx.clubPhoto.create({
+      data: {
+        clubId: guard.club.id,
+        url,
+        alt: trimmedAlt,
+        position,
+      },
+    })
+  }).catch((e: Error) => {
+    if (e.message === 'MAX_PHOTOS') return null
+    throw e
+  })
+
+  if (!photo) {
+    return { success: false, error: 'Maximum 10 photos reached.', code: 'MAX_PHOTOS' }
+  }
+
+  revalidateClubPaths(guard.club)
+
+  return { success: true, data: { id: photo.id, url: photo.url, position: photo.position } }
+}
+
+// ── Delete Club Photo ──
+
+export async function deleteClubPhoto(
+  clubId: string,
+  photoId: string,
+): Promise<ActionResult<undefined>> {
+  const guard = await authGuard(clubId)
+  if (!guard.ok) return guard.result
+
+  const photo = await prisma.clubPhoto.findFirst({
+    where: { id: photoId, clubId: guard.club.id },
+  })
+  if (!photo) {
+    return { success: false, error: 'Photo not found.', code: 'NOT_FOUND' }
+  }
+
+  // Best-effort R2 deletion — always remove DB record
+  try { await deleteObject(extractR2Key(photo.url)) } catch { /* R2 cleanup failed, orphaned object is acceptable */ }
+  await prisma.clubPhoto.delete({ where: { id: photoId, clubId: guard.club.id } })
+
+  revalidateClubPaths(guard.club)
+
+  return { success: true, data: undefined }
+}
+
+// ── Upload Logo ──
+
+export type UploadLogoResult = ActionResult<{ uploadUrl: string; key: string; publicUrl: string }>
+
+export async function uploadLogo(
+  clubId: string,
+  contentType: string,
+): Promise<UploadLogoResult> {
+  const guard = await authGuard(clubId)
+  if (!guard.ok) return guard.result
+
+  if (!ALLOWED_IMAGE_TYPES.includes(contentType as typeof ALLOWED_IMAGE_TYPES[number])) {
+    return { success: false, error: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.', code: 'INVALID_TYPE' }
+  }
+
+  const ext = contentType.split('/')[1] === 'jpeg' ? 'jpg' : contentType.split('/')[1]
+  const { uploadUrl, key } = await generateUploadUrl(guard.club.id, ext)
+  const publicUrl = getPublicUrl(key)
+
+  return { success: true, data: { uploadUrl, key, publicUrl } }
+}
+
+// ── Persist Logo (after client upload) ──
+
+export async function persistLogo(
+  clubId: string,
+  key: string,
+  alt: string,
+): Promise<ActionResult<undefined>> {
+  const guard = await authGuard(clubId)
+  if (!guard.ok) return guard.result
+
+  // Validate key belongs to this club
+  if (!key.startsWith(`${guard.club.id}/`)) {
+    return { success: false, error: 'Invalid file key.', code: 'INVALID_KEY' }
+  }
+
+  // Validate alt text length
+  const trimmedAlt = alt.slice(0, 500)
+
+  // Delete old logo from R2 if exists
+  const club = await prisma.club.findUnique({
+    where: { id: guard.club.id },
+    select: { logoUrl: true },
+  })
+  if (club?.logoUrl) {
+    try { await deleteObject(extractR2Key(club.logoUrl)) } catch { /* best-effort R2 cleanup */ }
+  }
+
+  await prisma.club.update({
+    where: { id: guard.club.id },
+    data: { logoUrl: getPublicUrl(key), logoAlt: trimmedAlt },
+  })
+
+  revalidateClubPaths(guard.club)
+
+  return { success: true, data: undefined }
+}
+
+// ── Delete Logo ──
+
+export async function deleteLogo(clubId: string): Promise<ActionResult<undefined>> {
+  const guard = await authGuard(clubId)
+  if (!guard.ok) return guard.result
+
+  const club = await prisma.club.findUnique({
+    where: { id: guard.club.id },
+    select: { logoUrl: true },
+  })
+
+  if (club?.logoUrl) {
+    try { await deleteObject(extractR2Key(club.logoUrl)) } catch { /* best-effort R2 cleanup */ }
+  }
+
+  await prisma.club.update({
+    where: { id: guard.club.id },
+    data: { logoUrl: null, logoAlt: null },
+  })
+
+  revalidateClubPaths(guard.club)
+
+  return { success: true, data: undefined }
+}
+
+// ── Update Logo Alt Text ──
+
+export async function updateLogoAlt(
+  clubId: string,
+  alt: string,
+): Promise<ActionResult<undefined>> {
+  const guard = await authGuard(clubId)
+  if (!guard.ok) return guard.result
+
+  const trimmedAlt = alt.slice(0, 500)
+
+  await prisma.club.update({
+    where: { id: guard.club.id },
+    data: { logoAlt: trimmedAlt },
+  })
+
+  revalidateClubPaths(guard.club)
+
+  return { success: true, data: undefined }
+}

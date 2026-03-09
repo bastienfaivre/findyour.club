@@ -2,10 +2,10 @@
 import { useState, useTransition } from 'react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { enrollTotp } from '@/app/[lang]/auth/totp-setup/actions'
+import { enrollTotp } from '@/app/[lang]/(dashboard)/account/totp-setup/actions'
 
 interface TotpSetupFormT {
   codeSetup: string
@@ -66,31 +66,33 @@ export function TotpSetupForm({ qrDataUrl, secret, t }: TotpSetupFormProps) {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="flex flex-col items-center space-y-4">
         {error && (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
-        <div className="space-y-2">
-          <Label htmlFor="code">{t.codeSetup}</Label>
-          <Input
-            id="code"
-            type="text"
-            inputMode="numeric"
-            pattern="\d{6}"
+        <div className="flex flex-col items-center space-y-2">
+          <Label>{t.codeSetup}</Label>
+          <InputOTP
             maxLength={6}
             value={code}
-            onChange={e => setCode(e.target.value.replace(/\D/g, ''))}
-            placeholder="123456"
-            required
+            onChange={setCode}
             disabled={isPending}
-            autoComplete="one-time-code"
-          />
+          >
+            <InputOTPGroup>
+              <InputOTPSlot index={0} />
+              <InputOTPSlot index={1} />
+              <InputOTPSlot index={2} />
+              <InputOTPSlot index={3} />
+              <InputOTPSlot index={4} />
+              <InputOTPSlot index={5} />
+            </InputOTPGroup>
+          </InputOTP>
         </div>
 
-        <Button type="submit" className="w-full" disabled={isPending || code.length !== 6}>
+        <Button type="submit" className="mx-auto" disabled={isPending || code.length !== 6}>
           {isPending ? t.verifying : t.activate2fa}
         </Button>
       </form>

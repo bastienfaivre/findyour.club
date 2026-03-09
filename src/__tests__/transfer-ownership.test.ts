@@ -5,7 +5,7 @@ vi.mock('@/server/auth', () => ({
 }))
 vi.mock('@/server/db', () => ({
   prisma: {
-    club: { findFirst: vi.fn() },
+    club: { findUnique: vi.fn() },
     clubMembership: {
       findFirst: vi.fn(),
       findUnique: vi.fn(),
@@ -17,16 +17,15 @@ vi.mock('@/server/db', () => ({
 
 import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
-import { transferOwnership } from '@/app/[lang]/(country)/[country]/[club]/settings/actions'
+import { transferOwnership } from '@/app/[lang]/(dashboard)/club/[clubId]/settings/actions'
 
-const COUNTRY = 'ch'
-const SLUG = 'test-club'
+const CLUB_ID = 'club-1'
 
 const OWNER_SESSION = {
   user: { id: 'owner-id', role: 'CLUB_ADMIN' },
 } as never
 
-const CLUB = { id: 'club-1', name: 'Test Club' }
+const CLUB = { id: 'club-1' }
 const CALLER_MEMBERSHIP = { id: 'caller-mem-1' }
 const TARGET_MEMBERSHIP = {
   id: 'target-mem-1',
@@ -40,7 +39,7 @@ describe('transferOwnership()', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(getAuthSession).mockResolvedValue(OWNER_SESSION)
-    vi.mocked(prisma.club.findFirst).mockResolvedValue(CLUB as never)
+    vi.mocked(prisma.club.findUnique).mockResolvedValue(CLUB as never)
     vi.mocked(prisma.clubMembership.findFirst).mockResolvedValue(CALLER_MEMBERSHIP as never)
     vi.mocked(prisma.clubMembership.findUnique).mockResolvedValue(TARGET_MEMBERSHIP as never)
     vi.mocked(prisma.clubMembership.update).mockResolvedValue({} as never)
@@ -48,25 +47,25 @@ describe('transferOwnership()', () => {
 
   it('returns UNAUTHORIZED when not authenticated', async () => {
     vi.mocked(getAuthSession).mockResolvedValue(null)
-    const result = await transferOwnership(COUNTRY, SLUG, TARGET_MEMBERSHIP.id)
+    const result = await transferOwnership(CLUB_ID, TARGET_MEMBERSHIP.id)
     expect(result).toMatchObject({ success: false, code: 'UNAUTHORIZED' })
   })
 
   it('returns UNAUTHORIZED when club is not found', async () => {
-    vi.mocked(prisma.club.findFirst).mockResolvedValue(null)
-    const result = await transferOwnership(COUNTRY, SLUG, TARGET_MEMBERSHIP.id)
+    vi.mocked(prisma.club.findUnique).mockResolvedValue(null)
+    const result = await transferOwnership(CLUB_ID, TARGET_MEMBERSHIP.id)
     expect(result).toMatchObject({ success: false, code: 'UNAUTHORIZED' })
   })
 
   it('returns FORBIDDEN when caller is not an ACTIVE OWNER', async () => {
     vi.mocked(prisma.clubMembership.findFirst).mockResolvedValue(null)
-    const result = await transferOwnership(COUNTRY, SLUG, TARGET_MEMBERSHIP.id)
+    const result = await transferOwnership(CLUB_ID, TARGET_MEMBERSHIP.id)
     expect(result).toMatchObject({ success: false, code: 'FORBIDDEN' })
   })
 
   it('returns NOT_FOUND when target membership does not exist', async () => {
     vi.mocked(prisma.clubMembership.findUnique).mockResolvedValue(null)
-    const result = await transferOwnership(COUNTRY, SLUG, 'nonexistent-id')
+    const result = await transferOwnership(CLUB_ID, 'nonexistent-id')
     expect(result).toMatchObject({ success: false, code: 'NOT_FOUND' })
   })
 
@@ -75,7 +74,7 @@ describe('transferOwnership()', () => {
       ...TARGET_MEMBERSHIP,
       clubId: 'other-club-id',
     } as never)
-    const result = await transferOwnership(COUNTRY, SLUG, TARGET_MEMBERSHIP.id)
+    const result = await transferOwnership(CLUB_ID, TARGET_MEMBERSHIP.id)
     expect(result).toMatchObject({ success: false, code: 'FORBIDDEN' })
   })
 
@@ -84,7 +83,7 @@ describe('transferOwnership()', () => {
       ...TARGET_MEMBERSHIP,
       userId: 'owner-id', // same as session.user.id
     } as never)
-    const result = await transferOwnership(COUNTRY, SLUG, TARGET_MEMBERSHIP.id)
+    const result = await transferOwnership(CLUB_ID, TARGET_MEMBERSHIP.id)
     expect(result).toMatchObject({ success: false, code: 'FORBIDDEN' })
   })
 
@@ -93,7 +92,7 @@ describe('transferOwnership()', () => {
       ...TARGET_MEMBERSHIP,
       role: 'OWNER',
     } as never)
-    const result = await transferOwnership(COUNTRY, SLUG, TARGET_MEMBERSHIP.id)
+    const result = await transferOwnership(CLUB_ID, TARGET_MEMBERSHIP.id)
     expect(result).toMatchObject({ success: false, code: 'FORBIDDEN' })
   })
 
@@ -102,7 +101,7 @@ describe('transferOwnership()', () => {
       ...TARGET_MEMBERSHIP,
       status: 'PENDING',
     } as never)
-    const result = await transferOwnership(COUNTRY, SLUG, TARGET_MEMBERSHIP.id)
+    const result = await transferOwnership(CLUB_ID, TARGET_MEMBERSHIP.id)
     expect(result).toMatchObject({ success: false, code: 'PENDING_MEMBER' })
     expect(result).toMatchObject({
       error: 'Cannot transfer ownership to a member who has not yet accepted their invitation.',
@@ -111,12 +110,12 @@ describe('transferOwnership()', () => {
 
   it('returns SERVER_ERROR when prisma.$transaction throws', async () => {
     vi.mocked(prisma.$transaction).mockRejectedValueOnce(new Error('DB connection lost'))
-    const result = await transferOwnership(COUNTRY, SLUG, TARGET_MEMBERSHIP.id)
+    const result = await transferOwnership(CLUB_ID, TARGET_MEMBERSHIP.id)
     expect(result).toMatchObject({ success: false, code: 'SERVER_ERROR' })
   })
 
   it('calls $transaction with two updates and returns success on happy path', async () => {
-    const result = await transferOwnership(COUNTRY, SLUG, TARGET_MEMBERSHIP.id)
+    const result = await transferOwnership(CLUB_ID, TARGET_MEMBERSHIP.id)
 
     expect(result).toMatchObject({ success: true })
     expect(prisma.$transaction).toHaveBeenCalledOnce()

@@ -14,9 +14,6 @@ vi.mock('@/lib/country', () => ({
   isValidCountry: vi.fn((country: string) => country === 'ch'),
   getCountryName: vi.fn(() => 'Switzerland'),
 }))
-vi.mock('@/components/app/auth/TotpEnrollmentBanner', () => ({
-  TotpEnrollmentBanner: vi.fn(() => null),
-}))
 vi.mock('next/image', () => ({
   default: vi.fn((_props: Record<string, unknown>) => null),
 }))
@@ -26,7 +23,7 @@ vi.mock('next/link', () => ({
 
 import { notFound } from 'next/navigation'
 import { prisma } from '@/server/db'
-import ClubPage from '@/app/[lang]/(country)/[country]/[club]/page'
+import ClubPage from '@/app/[lang]/(dashboard)/[country]/[club]/page'
 import { generateClubMetadata, generateClubJsonLd } from '@/components/app/seo/metadata'
 
 function makeParams(lang = 'en', country = 'ch', club = 'ski-club-valais') {
@@ -136,8 +133,6 @@ describe('ClubPage', () => {
       howToJoin: 'Fill out the form on our website',
       contactPhone: '+41 27 123 45 67',
     }))
-    expect(profileProps!.ctaLabel).toBe('Contact us')
-    expect(profileProps!.ctaHref).toBe('/en/ch/ski-club-valais/contact')
   })
 
   it('renders ProfilePage with monogram fallback when no logoUrl', async () => {

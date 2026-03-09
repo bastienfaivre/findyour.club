@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef, useSyncExternalStore } from 'react'
+import { useRef, useEffect, useState, useSyncExternalStore } from 'react'
 import Image from 'next/image'
 
 type Photo = {
@@ -12,6 +12,7 @@ type Photo = {
 type PhotoCarouselProps = {
   photos: Photo[]
   ariaLabel: string
+  goToPhotoLabel: string
 }
 
 function subscribeToReducedMotion(callback: () => void) {
@@ -29,10 +30,9 @@ function getReducedMotionServer() {
 }
 
 export function PhotoCarousel({ photos, ariaLabel }: PhotoCarouselProps) {
-  const [current, setCurrent] = useState(0)
+  const trackRef = useRef<HTMLDivElement>(null)
+  const offsetRef = useRef(0)
   const [isPaused, setIsPaused] = useState(false)
-  const touchStartX = useRef(0)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const prefersReducedMotion = useSyncExternalStore(
     subscribeToReducedMotion,
@@ -40,33 +40,30 @@ export function PhotoCarousel({ photos, ariaLabel }: PhotoCarouselProps) {
     getReducedMotionServer,
   )
 
-  const goTo = useCallback(
-    (index: number) => {
-      setCurrent((index + photos.length) % photos.length)
-    },
-    [photos.length],
-  )
-
-  const goNext = useCallback(() => goTo(current + 1), [current, goTo])
+  // Duplicate the photos so the marquee loops seamlessly
+  const items = photos.length > 0 ? [...photos, ...photos] : []
 
   useEffect(() => {
-    if (isPaused || prefersReducedMotion || photos.length <= 1) return
-    intervalRef.current = setInterval(goNext, 4000)
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current)
-    }
-  }, [isPaused, prefersReducedMotion, photos.length, goNext])
+    const track = trackRef.current
+    if (!track || photos.length <= 1 || prefersReducedMotion || isPaused) return
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX
-  }
+    let animationId: number
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const delta = touchStartX.current - e.changedTouches[0].clientX
-    if (Math.abs(delta) > 50) {
-      goTo(delta > 0 ? current + 1 : current - 1)
+    function step() {
+      offsetRef.current += 0.5
+      // Reset when we've scrolled past the first set of photos
+      const resetPoint = track!.scrollWidth / 2
+      if (offsetRef.current >= resetPoint) {
+        offsetRef.current -= resetPoint
+      }
+      track!.style.transform = `translateX(-${offsetRef.current}px)`
+      animationId = requestAnimationFrame(step)
     }
-  }
+
+    animationId = requestAnimationFrame(step)
+
+    return () => cancelAnimationFrame(animationId)
+  }, [isPaused, prefersReducedMotion, photos.length])
 
   if (photos.length === 0) return null
 
@@ -75,51 +72,26 @@ export function PhotoCarousel({ photos, ariaLabel }: PhotoCarouselProps) {
       className="relative overflow-hidden rounded-lg"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
       role="region"
       aria-roledescription="carousel"
       aria-label={ariaLabel}
     >
-      <div
-        className="flex"
-        style={{
-          transform: `translateX(-${current * 100}%)`,
-          transition: prefersReducedMotion ? 'none' : 'transform 500ms ease-in-out',
-        }}
-      >
-        {photos.map((photo) => (
-          <div key={photo.id} className="relative aspect-[16/9] w-full shrink-0">
+      <div ref={trackRef} className="flex gap-3 will-change-transform">
+        {items.map((photo, i) => (
+          <div
+            key={`${photo.id}-${i}`}
+            className="relative h-40 w-64 sm:h-48 sm:w-80 shrink-0 overflow-hidden rounded-lg"
+          >
             <Image
               src={photo.url}
               alt={photo.alt}
               fill
               className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 720px"
+              sizes="(max-width: 640px) 256px, 320px"
             />
           </div>
         ))}
       </div>
-
-      {photos.length > 1 && (
-        <div className="absolute bottom-0 left-1/2 flex -translate-x-1/2">
-          {photos.map((photo, i) => (
-            <button
-              key={photo.id}
-              type="button"
-              onClick={() => goTo(i)}
-              className="flex min-h-[44px] min-w-[44px] items-center justify-center"
-              aria-label={`Go to photo ${i + 1}`}
-            >
-              <span
-                className={`block h-2 w-2 rounded-full transition-colors ${
-                  i === current ? 'bg-white' : 'bg-white/50'
-                }`}
-              />
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   )
 }

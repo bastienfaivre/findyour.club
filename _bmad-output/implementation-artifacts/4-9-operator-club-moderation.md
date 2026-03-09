@@ -267,6 +267,7 @@ Claude Opus 4.6
 
 - 2026-03-08: Implemented operator club moderation — club list, detail/moderation page, server actions, email templates, client components, i18n, tests (17 new tests, 456 total passing)
 - 2026-03-08: Code review fixes — 6 issues resolved (3 HIGH, 2 MED, 1 LOW): transaction safety, i18n completeness, cache revalidation, accessibility, client bundle optimization, dialog descriptions
+- 2026-03-08: Shadcn dashboard pattern — platform admin layout updated with SidebarProvider + SidebarInset + PlatformAdminSidebar component (Dashboard, Applications, Clubs nav items). Admin pages stripped of redundant `<main>` wrappers. Platform admin layout now provides the dashboard shell instead of bare auth guards.
 
 ### File List
 

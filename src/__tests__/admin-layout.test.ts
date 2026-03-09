@@ -7,45 +7,86 @@ vi.mock('next/navigation', () => ({
 vi.mock('@/server/auth', () => ({
   getAuthSession: vi.fn(async () => null),
 }))
+vi.mock('@/server/db', () => ({
+  prisma: {
+    club: { findMany: vi.fn().mockResolvedValue([]) },
+    clubMembership: { findMany: vi.fn().mockResolvedValue([]) },
+    conversationReadCursor: { findMany: vi.fn().mockResolvedValue([]) },
+    supportMessage: { count: vi.fn().mockResolvedValue(0), groupBy: vi.fn().mockResolvedValue([]) },
+  },
+}))
+vi.mock('@/components/app/AppSidebar', () => ({
+  AppSidebar: vi.fn(() => null),
+}))
+vi.mock('@/components/ui/sidebar', () => ({
+  SidebarProvider: vi.fn(({ children }: { children: unknown }) => children),
+  SidebarInset: vi.fn(({ children }: { children: unknown }) => children),
+  SidebarTrigger: vi.fn(() => null),
+}))
+vi.mock('@/components/ui/separator', () => ({
+  Separator: vi.fn(() => null),
+}))
+vi.mock('@/components/app/club-admin/AdminDirtyContext', () => ({
+  AdminDirtyProvider: vi.fn(({ children }: { children: unknown }) => children),
+}))
+vi.mock('@/components/app/SearchStateContext', () => ({
+  SearchStateProvider: vi.fn(({ children }: { children: unknown }) => children),
+}))
+vi.mock('@/components/app/AdminSelectionContext', () => ({
+  AdminSelectionProvider: vi.fn(({ children }: { children: unknown }) => children),
+}))
+vi.mock('@/components/app/admin/AdminPageTitle', () => ({
+  PageTitleProvider: vi.fn(({ children }: { children: unknown }) => children),
+  PageTitleDisplay: vi.fn(() => null),
+}))
 
-import { redirect } from 'next/navigation'
 import { getAuthSession } from '@/server/auth'
-import AdminLayout from '@/app/[lang]/admin/(protected)/layout'
+import { prisma } from '@/server/db'
+import DashboardLayout from '@/app/[lang]/(dashboard)/layout'
 
 function makeParams(lang = 'en') {
   return Promise.resolve({ lang })
 }
 
-describe('AdminLayout operator guard', () => {
+describe('DashboardLayout (universal)', () => {
   beforeEach(() => {
     vi.resetAllMocks()
+    vi.mocked(prisma.club.findMany).mockResolvedValue([])
+    vi.mocked(prisma.clubMembership.findMany).mockResolvedValue([])
+    vi.mocked(prisma.conversationReadCursor.findMany).mockResolvedValue([])
+    vi.mocked(prisma.supportMessage.count).mockResolvedValue(0)
+    vi.mocked(prisma.supportMessage.groupBy).mockResolvedValue([])
   })
 
-  it('redirects to /{lang}/auth/login when there is no session', async () => {
+  it('renders for unauthenticated visitors (no redirect)', async () => {
     vi.mocked(getAuthSession).mockResolvedValue(null)
-    await expect(AdminLayout({ children: null, params: makeParams() })).rejects.toThrow('NEXT_REDIRECT:/en/auth/login')
-    expect(redirect).toHaveBeenCalledWith('/en/auth/login')
-  })
-
-  it('redirects to /{lang}/auth/login when session role is CLUB_ADMIN', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'u1', role: 'CLUB_ADMIN' } } as any)
-    await expect(AdminLayout({ children: null, params: makeParams() })).rejects.toThrow('NEXT_REDIRECT:/en/auth/login')
-    expect(redirect).toHaveBeenCalledWith('/en/auth/login')
-  })
-
-  it('renders children when session role is OPERATOR with TOTP verified', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'u1', role: 'OPERATOR', totpEnabled: false, totpVerified: true } } as any)
-    const result = await AdminLayout({ children: null, params: makeParams() })
-    expect(redirect).not.toHaveBeenCalled()
+    const result = await DashboardLayout({ children: null, params: makeParams() })
     expect(result).toBeTruthy()
   })
 
-  it('redirects to /{lang}/auth/totp when OPERATOR has TOTP enabled but not yet verified', async () => {
+  it('renders for authenticated users', async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'u1', role: 'OPERATOR', totpEnabled: true, totpVerified: false } } as any)
-    await expect(AdminLayout({ children: null, params: makeParams() })).rejects.toThrow('NEXT_REDIRECT:/en/auth/totp')
-    expect(redirect).toHaveBeenCalledWith('/en/auth/totp')
+    vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'u1', role: 'CLUB_ADMIN', totpEnabled: false, totpVerified: true } } as any)
+    vi.mocked(prisma.clubMembership.findMany).mockResolvedValue([
+      { club: { id: 'club-1', name: 'Test Club', slug: 'test-club', country: 'ch' } },
+    ] as never)
+    const result = await DashboardLayout({ children: null, params: makeParams() })
+    expect(result).toBeTruthy()
+  })
+
+  it('fetches club memberships for authenticated users', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'u1', role: 'OPERATOR', totpEnabled: false, totpVerified: true } } as any)
+    vi.mocked(prisma.clubMembership.findMany).mockResolvedValue([])
+    await DashboardLayout({ children: null, params: makeParams() })
+    expect(prisma.clubMembership.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { userId: 'u1', status: 'ACTIVE' } })
+    )
+  })
+
+  it('does not fetch memberships for unauthenticated visitors', async () => {
+    vi.mocked(getAuthSession).mockResolvedValue(null)
+    await DashboardLayout({ children: null, params: makeParams() })
+    expect(prisma.clubMembership.findMany).not.toHaveBeenCalled()
   })
 })

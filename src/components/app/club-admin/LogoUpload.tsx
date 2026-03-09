@@ -7,20 +7,33 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { uploadLogo, persistLogo, deleteLogo, updateLogoAlt } from '@/app/[lang]/(country)/[country]/[club]/admin/actions'
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_SIZE_BYTES } from '@/lib/r2'
 import type { Translations } from '@/lib/i18n/translations/types'
 
+type UploadResult =
+  | { success: true; data: { uploadUrl: string; key: string } }
+  | { success: false; error: string; [key: string]: unknown }
+
+type SimpleResult =
+  | { success: true; [key: string]: unknown }
+  | { success: false; error: string; [key: string]: unknown }
+
+export interface LogoActions {
+  upload: (clubId: string, contentType: string) => Promise<UploadResult>
+  persist: (clubId: string, key: string, alt: string) => Promise<SimpleResult>
+  remove: (clubId: string) => Promise<SimpleResult>
+  updateAlt: (clubId: string, alt: string) => Promise<SimpleResult>
+}
+
 interface LogoUploadProps {
-  lang: string
-  country: string
-  slug: string
+  clubId: string
   logoUrl: string | null
   logoAlt: string | null
   translations: Translations['club']['admin']['clubProfile']['logo']
+  actions: LogoActions
 }
 
-export function LogoUpload({ lang, country, slug, logoUrl, logoAlt, translations: t }: LogoUploadProps) {
+export function LogoUpload({ clubId, logoUrl, logoAlt, translations: t, actions }: LogoUploadProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isPending, startTransition] = useTransition()
@@ -42,21 +55,25 @@ export function LogoUpload({ lang, country, slug, logoUrl, logoAlt, translations
 
     setUploading(true)
     try {
-      const result = await uploadLogo(lang, country, slug, file.type)
+      const result = await actions.upload(clubId, file.type)
       if (!result.success) {
         toast.error(result.error)
         return
       }
 
       // Upload directly to R2
-      await fetch(result.data.uploadUrl, {
+      const uploadResponse = await fetch(result.data.uploadUrl, {
         method: 'PUT',
         body: file,
         headers: { 'Content-Type': file.type },
       })
+      if (!uploadResponse.ok) {
+        toast.error(t.errorUpload)
+        return
+      }
 
       // Persist in DB
-      const persistResult = await persistLogo(lang, country, slug, result.data.key, altText || file.name)
+      const persistResult = await actions.persist(clubId, result.data.key, altText || file.name)
       if (!persistResult.success) {
         toast.error(persistResult.error)
         return
@@ -64,7 +81,7 @@ export function LogoUpload({ lang, country, slug, logoUrl, logoAlt, translations
 
       router.refresh()
     } catch {
-      toast.error('Upload failed')
+      toast.error(t.errorUpload)
     } finally {
       setUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
@@ -73,7 +90,7 @@ export function LogoUpload({ lang, country, slug, logoUrl, logoAlt, translations
 
   const handleDelete = () => {
     startTransition(async () => {
-      const result = await deleteLogo(lang, country, slug)
+      const result = await actions.remove(clubId)
       if (result.success) {
         setAltText('')
         router.refresh()
@@ -86,7 +103,7 @@ export function LogoUpload({ lang, country, slug, logoUrl, logoAlt, translations
   const handleAltBlur = () => {
     if (logoUrl && altText !== (logoAlt ?? '')) {
       startTransition(async () => {
-        await updateLogoAlt(lang, country, slug, altText)
+        await actions.updateAlt(clubId, altText)
         router.refresh()
       })
     }

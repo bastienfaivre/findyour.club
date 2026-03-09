@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { startRegistration } from '@simplewebauthn/browser'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { deletePasskey } from '@/app/[lang]/auth/passkey/actions'
+import { deletePasskey } from '@/app/[lang]/(dashboard)/account/passkey/actions'
 import type { WebauthnCredential } from '@/generated/prisma/client'
 
 interface ManagePasskeysSectionT {

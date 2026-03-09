@@ -75,13 +75,6 @@ vi.mock('@/components/ui/sonner', () => ({
   })),
 }))
 
-vi.mock('@/components/app/auth/DevAuthPanel', () => ({
-  DevAuthPanel: vi.fn(() => ({
-    type: 'DevAuthPanel',
-    props: {},
-    key: null,
-  })),
-}))
 
 // ---------- Helpers ----------
 

@@ -1,6 +1,5 @@
 import type { MetadataRoute } from 'next'
 import { prisma } from '@/server/db'
-import { SUPPORTED_COUNTRIES } from '@/lib/country'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,12 +13,12 @@ const platformEntries: MetadataRoute.Sitemap = [
     changeFrequency: 'weekly' as const,
     priority: 1.0,
   },
-  ...SUPPORTED_COUNTRIES.map((country) => ({
-    url: `${BASE_URL}/en/${country}/`,
+  {
+    url: `${BASE_URL}/en/search`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.8,
-  })),
+  },
   {
     url: `${BASE_URL}/en/about`,
     lastModified: new Date(),

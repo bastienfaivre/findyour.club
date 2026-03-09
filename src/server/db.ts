@@ -18,7 +18,8 @@ const CLUB_SCOPED_READ_MODELS = new Set([
   'pageEvent',
   'contactSubmission',
   'clubPhoto',
-  'operatorMessage',
+  'supportMessage',
+  'conversationReadCursor',
   'supportTicket',
   'healthCheck',
 ])
@@ -52,7 +53,12 @@ function createPrismaClient() {
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   })
 
-  // Enforce clubId on all read/update/delete operations on club-scoped models
+  // Enforce clubId on all read/update/delete operations on club-scoped models.
+  // IMPORTANT: Interactive $transaction() callbacks (prisma.$transaction(async (tx) => ...))
+  // use a raw tx client that bypasses this middleware. You MUST manually include clubId
+  // in every where clause on club-scoped models inside interactive transactions.
+  // Batch transactions (prisma.$transaction([...])) ARE protected because each
+  // operation goes through the extended client.
   return client.$extends({
     query: {
       $allModels: {

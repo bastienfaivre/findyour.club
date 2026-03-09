@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { loginWithCredentials } from '@/app/[lang]/auth/login/actions'
+import { loginWithCredentials } from '@/app/[lang]/(dashboard)/auth/login/actions'
 
 interface LoginFormT {
   email: string
@@ -43,7 +43,7 @@ export function LoginForm({ callbackUrl, lang, t }: LoginFormProps) {
       if (result.totpEnabled) {
         router.push(`/${lang}/auth/totp`)
       } else {
-        router.push(callbackUrl ?? (result.role === 'OPERATOR' ? `/${lang}/admin` : `/${lang}/my-clubs`))
+        router.push(callbackUrl ?? `/${lang}/`)
       }
     })
   }

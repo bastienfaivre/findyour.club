@@ -1,5 +1,18 @@
 ---
 stepsCompleted: [step-01-validate-prerequisites, step-02-design-epics, step-03-create-stories, step-04-final-validation]
+lastEdited: '2026-03-09'
+editHistory:
+  - date: '2026-03-09'
+    changes: 'Added Epic 9 (Launch Readiness): Stories 9.1-9.4 covering dev infra image upload
+      fix, GDPR account deletion, data export, and operator club deletion. Marked Story 7.8
+      as superseded (replaced by threaded messaging). Marked Stories 8.2 and 8.4 as deferred
+      (depend on analytics infrastructure).'
+  - date: '2026-03-09'
+    changes: 'Dashboard migration sync: All route groups consolidated under (dashboard). Stories 3.7
+      and 3.8 marked as superseded (PublicLayout replaced by unified dashboard shell with AppSidebar).
+      Story 1.4 updated: /my-clubs removed, clubs visible in sidebar. Story 4.4 updated: AdminSidebar
+      replaced by AppSidebar. Story 4.9 updated: OperatorMessage evolved to threaded SupportMessage
+      system. Architectural assumptions updated throughout to reflect unified shell routing.'
 inputDocuments:
   - _bmad-output/planning-artifacts/prd.md
   - _bmad-output/planning-artifacts/architecture.md
@@ -158,7 +171,7 @@ NFR27: All platform-wide configurable variables adjustable via the admin dashboa
 - Version history: full JSONB page snapshots in `content_versions` table; N-version retention configurable
 - File storage: Cloudflare R2 (S3-compatible), presigned URLs, no bytes through Next.js server
 - Analytics: custom `page_events` table with irreversible ip_hash (SHA-256 + daily salt); 12-month retention
-- URL architecture: language, country, and club as path segments — `platform-name.com/{lang}/{country}/{club-slug}` (language and country are independent; no DNS provisioning per club)
+- URL architecture: all routes under unified `(dashboard)` route group — public club pages at `/{lang}/{country}/{club-slug}`, club admin at `/{lang}/club/{clubId}/`, operator admin at `/{lang}/admin/`, search at `/{lang}/search` (language and country are independent; no DNS provisioning per club)
 
 **Architecture — Authentication & Security:**
 
@@ -179,7 +192,7 @@ NFR27: All platform-wide configurable variables adjustable via the admin dashboa
 **Architecture — Frontend Patterns:**
 
 - TipTap (MIT) for rich text editing — imported via `dynamic(..., { ssr: false })` (CRITICAL: never at module level)
-- React Context for AuthContext; admin dashboard at dedicated route (`/{lang}/{country}/{club}/admin`)
+- React Context for AuthContext; unified dashboard shell with `AppSidebar` — club admin pages at `/{lang}/club/{clubId}/`, operator pages at `/{lang}/admin/`
 - Zod schemas as single source of truth for Server Actions, Route Handlers, and react-hook-form validation
 - API response contract: `{ success: true; data: T }` or `{ success: false; error: string; code?: string }`
 - All Server Actions begin with 3-step auth guard: session → role check → clubId from URL params (verified by ClubMembership in layout)
@@ -194,9 +207,8 @@ NFR27: All platform-wide configurable variables adjustable via the admin dashboa
 
 **UX — Edit Mode:**
 
-- Public pages: Dub.co-inspired centered layout with sticky top PublicNavbar and PublicFooter
-- Admin dashboard: standard shadcn dashboard layout (AdminSidebar + content area) at dedicated admin route
-- Mobile: hamburger drawer for both PublicNavbar and AdminSidebar
+- All pages render within a unified dashboard shell (`AppSidebar` + `SidebarInset`) with role-based sidebar sections
+- Mobile: collapsible sidebar drawer for all pages
 - Validate on blur, not on keystroke; inline error messages linked via aria-describedby
 - Skeleton loading within 100ms on all SPA-style transitions
 
@@ -265,7 +277,7 @@ NFR27: All platform-wide configurable variables adjustable via the admin dashboa
 ## Epic List
 
 ### Epic 1: Project Foundation & Core Infrastructure
-The development environment, database schema, authentication system, multi-club membership model, and deployment pipeline are operational. Developers can run the full stack locally; Club Admins can authenticate via magic link, TOTP, and passkeys, manage multiple clubs from a personal homepage, and Owners can invite Editors, transfer ownership, and revoke access; Platform Operators can authenticate through a dedicated admin interface.
+The development environment, database schema, authentication system, multi-club membership model, and deployment pipeline are operational. Developers can run the full stack locally; Club Admins can authenticate via magic link, TOTP, and passkeys, manage multiple clubs from the sidebar MY CLUBS section, and Owners can invite Editors, transfer ownership, and revoke access; Platform Operators can authenticate through the unified login page and access operator sidebar sections.
 **FRs covered:** FR28, FR29
 **NFRs addressed:** NFR6, NFR8–13, NFR14–15, NFR18–20, NFR25–27
 
@@ -279,7 +291,7 @@ The platform directory is the core product surface. Public Visitors can browse t
 **NFRs addressed:** NFR1, NFR2, NFR3, NFR21–24, NFR26
 
 ### Epic 4: Club Profile Setup & Moderation
-Rework the application form to collect club profile fields (description, schedule, contact info, how to join), seed the club profile on approval with optional operator message, build the simplified club admin dashboard with profile edit form and photo upload, implement publish/unpublish with operator force-offline override, render the single-page public club profile with photo carousel, and add operator club moderation tools (send message, force offline).
+Rework the application form to collect club profile fields (description, schedule, contact info, how to join), seed the club profile on approval with optional operator message, build club admin pages within the unified dashboard shell (`AppSidebar`) with profile edit form and photo upload, implement publish/unpublish with operator force-offline override, render the single-page public club profile with photo carousel, and add operator club moderation tools (threaded bidirectional messaging via `SupportMessage`, force offline).
 **FRs covered:** FR1, FR2, FR9, FR17, FR19, FR27, FR32, FR36, FR47, FR48, FR49, FR51, FR52, FR53, FR54, FR55, FR56, FR57
 **NFRs addressed:** NFR4, NFR21-24
 
@@ -293,7 +305,7 @@ Rework the application form to collect club profile fields (description, schedul
 **NFRs addressed:** ~~NFR7, NFR16~~ (deferred)
 
 ### Epic 7: Platform Operations & Health Monitoring
-The Platform Operator can view platform-wide metrics, monitor club site health, manage the support inbox, configure platform-wide operational variables without a deployment, view per-club analytics, and trust that template updates are silently applied to all clubs with zero downtime. Operator-to-club messaging is handled by the unified OperatorMessage system (Epic 4) — Story 7.7 (Operator Nudge) removed.
+The Platform Operator can view platform-wide metrics, monitor club site health, manage the support inbox, configure platform-wide operational variables without a deployment, view per-club analytics, and trust that template updates are silently applied to all clubs with zero downtime. Operator-club messaging is handled by the threaded SupportMessage system (Epic 4) — Story 7.7 (Operator Nudge) removed.
 **FRs covered:** FR34, FR35, FR37, FR38, FR39, FR45
 **NFRs addressed:** NFR4, NFR5, NFR15, NFR16, NFR25, NFR27
 
@@ -306,7 +318,7 @@ All GDPR/nDSG data rights are available: clubs can export their profile data and
 
 ## Epic 1: Project Foundation & Core Infrastructure
 
-The development environment, database schema, authentication system, multi-club membership model, and deployment pipeline are operational. Club Admins can authenticate via magic link, TOTP, and passkeys; navigate a personal homepage listing all their clubs; and manage membership (invite Editors, transfer ownership, revoke access). Platform Operators authenticate via a dedicated admin interface.
+The development environment, database schema, authentication system, multi-club membership model, and deployment pipeline are operational. Club Admins can authenticate via magic link, TOTP, and passkeys; see all their clubs in the sidebar MY CLUBS section; and manage membership (invite Editors, transfer ownership, revoke access). Platform Operators authenticate via the unified login page and access operator sidebar sections.
 
 ### Story 1.1: Project Scaffold & Development Environment
 
@@ -386,7 +398,7 @@ So that I can securely log into my club's edit mode without a default password e
 
 **Given** the Club Admin completes password setup,
 **When** the form is submitted successfully,
-**Then** a session is created and they are redirected to `/my-clubs` (personal homepage); if TOTP is not yet enrolled, a persistent non-dismissible banner on every club page prompts enrollment — the QR code screen is accessed from that banner's link.
+**Then** a session is created and they are redirected to `/{lang}/` (the dashboard homepage); their clubs appear in the sidebar under the MY CLUBS section; if TOTP is not yet enrolled, a persistent non-dismissible banner on every club page prompts enrollment — the QR code screen is accessed from that banner's link.
 
 **Given** a Club Admin session exists but TOTP is not yet enrolled,
 **When** they access any authenticated page,
@@ -394,46 +406,42 @@ So that I can securely log into my club's edit mode without a default password e
 
 **Given** a Club Admin has TOTP enrolled,
 **When** they log in with their password on the standard login page,
-**Then** they are redirected to a TOTP challenge page; a valid 6-digit code is required before the session is fully established; on success they are redirected to `/my-clubs`.
+**Then** they are redirected to a TOTP challenge page; a valid 6-digit code is required before the session is fully established; on success they are redirected to `/{lang}/` (the dashboard homepage).
 
 **Given** an incorrect TOTP code is submitted,
 **Then** an inline error is shown and subsequent attempts from the same IP are rate-limited via the in-memory sliding window limiter.
 
 ---
 
-### Story 1.4: Personal Homepage & Club Membership Guard
+### Story 1.4: Dashboard Homepage & Club Membership Guard
 
 As a Club Admin,
-I want a personal homepage (`/my-clubs`) that lists every club I manage with a role indicator, and a server-side membership check on every club edit route,
-So that I can navigate to any of my clubs in one place and be blocked from accessing clubs I am not a member of.
+I want my clubs to appear in the sidebar under a MY CLUBS section with role indicators, and a server-side membership check on every club edit route,
+So that I can navigate to any of my clubs from the sidebar and be blocked from accessing clubs I am not a member of.
 
 **Acceptance Criteria:**
 
-**Given** an authenticated Club Admin navigates to `/my-clubs`,
-**When** the page loads,
-**Then** all clubs where they hold an `ACTIVE` `ClubMembership` are listed with a role badge (`Owner` or `Editor`); each entry links to that club's admin URL.
-
-**Given** an authenticated Club Admin has exactly one active membership,
-**When** they navigate to `/my-clubs`,
-**Then** they are automatically redirected to that club's admin URL — the club picker is skipped entirely.
+**Given** an authenticated Club Admin is on any dashboard page,
+**When** the sidebar renders,
+**Then** all clubs where they hold an `ACTIVE` `ClubMembership` are listed under the MY CLUBS sidebar section with a role badge (`Owner` or `Editor`); each entry links to that club's admin URL at `/{lang}/club/{clubId}/`.
 
 **Given** an authenticated Club Admin has no active memberships,
-**When** they navigate to `/my-clubs`,
-**Then** an empty-state message is displayed: "You are not a member of any club — contact the platform operator."
+**When** the sidebar renders,
+**Then** the MY CLUBS section shows an empty-state message: "You are not a member of any club — contact the platform operator."
 
-**Given** any authenticated user visits a club edit URL (`/[lang]/ch/[club]/...`),
-**When** the club layout renders,
-**Then** the server performs a `ClubMembership.findFirst({ where: { userId, clubSlug, status: ACTIVE } })` lookup; if no active membership exists the user is redirected to `/my-clubs`.
+**Given** any authenticated user visits a club edit URL (`/{lang}/club/{clubId}/...`),
+**When** the club layout (`club/[clubId]/layout.tsx`) renders,
+**Then** the server performs a `ClubMembership.findFirst({ where: { userId, clubId, status: ACTIVE } })` lookup; if no active membership exists the user is redirected to `/{lang}/` (the dashboard homepage).
 
 **Given** the session object,
 **Then** it never includes `clubId`; the active club is always resolved from the URL path and verified via `ClubMembership` at layout render time — never from stored session data.
 
 **Given** every successful authentication event (password setup, TOTP enrollment, TOTP challenge, regular login without TOTP),
-**Then** the user is redirected to `/my-clubs` — never directly to a specific club edit URL.
+**Then** the user is redirected to `/{lang}/` (the dashboard homepage) — never directly to a specific club edit URL.
 
 **Given** `pnpm prisma db seed` is run,
 **When** the seed completes,
-**Then** `prisma/seed.ts` creates `ClubMembership` records (`role: OWNER, status: ACTIVE`) linking each seeded club admin user to their respective sample club — the `/my-clubs` page and membership guard are fully exercisable against seeded data without any manual DB intervention.
+**Then** `prisma/seed.ts` creates `ClubMembership` records (`role: OWNER, status: ACTIVE`) linking each seeded club admin user to their respective sample club — the sidebar MY CLUBS section and membership guard are fully exercisable against seeded data without any manual DB intervention.
 
 > **Dev note — seed carry-over from Story 1.2:** The `prisma/seed.ts` was not updated when the architect introduced the `ClubMembership` model (ADR-001). The schema is correct; only the seed data is missing. Updating the seed is the **first task** of this story.
 
@@ -443,34 +451,34 @@ So that I can navigate to any of my clubs in one place and be blocked from acces
 
 
 As a Platform Operator,
-I want to authenticate via a dedicated login page with password and TOTP, with all `/admin/*` routes protected by `proxy.ts`,
-So that I can securely access the platform admin dashboard, fully isolated from club admin sessions.
+I want to authenticate via the unified login page with password and TOTP, with all `/admin/*` routes protected by a layout guard,
+So that I can securely access the operator sections of the dashboard, fully isolated from club admin sessions.
 
 **Acceptance Criteria:**
 
-**Given** the operator login page at `/admin/login`,
+**Given** the login page at `/{lang}/auth/login`,
 **When** the Platform Operator submits their email and correct password,
-**Then** they are presented with a TOTP challenge; submitting a valid code establishes an operator session.
+**Then** they are presented with a TOTP challenge; submitting a valid code establishes an operator session; operator-specific sidebar sections (Applications, Clubs, Messages) become visible in the `AppSidebar`.
 
 **Given** a valid operator session,
-**When** any `/admin/*` route is accessed,
-**Then** `proxy.ts` allows access and the operator dashboard renders.
+**When** any `/{lang}/admin/*` route is accessed,
+**Then** the admin layout guard allows access and the operator dashboard sections render within the unified dashboard shell.
 
 **Given** no session or a Club Admin session,
-**When** any `/admin/*` route is accessed,
-**Then** `proxy.ts` redirects to `/admin/login` — no dashboard content is served.
+**When** any `/{lang}/admin/*` route is accessed,
+**Then** the layout guard redirects to `/{lang}/auth/login` — no dashboard content is served.
 
 **Given** a Club Admin with an active membership for Club A only,
 **When** they attempt to access Club B's edit route,
-**Then** the club layout membership guard blocks access — no active `ClubMembership` exists for Club B — and redirects to `/my-clubs`.
+**Then** the club layout membership guard blocks access — no active `ClubMembership` exists for Club B — and redirects to `/{lang}/` (the dashboard homepage).
 
 **Given** a public visitor (no session),
-**When** they attempt to access a club's admin URL (`/{lang}/{country}/{club}/admin`),
-**Then** `proxy.ts` redirects to the platform login page.
+**When** they attempt to access a club's admin URL (`/{lang}/club/{clubId}/`),
+**Then** the layout guard redirects to `/{lang}/auth/login`.
 
 **Given** the seeded operator account,
-**When** logging into `/admin/login` with the seeded credentials,
-**Then** login succeeds and the operator dashboard is accessible.
+**When** logging into `/{lang}/auth/login` with the seeded credentials,
+**Then** login succeeds and the operator sidebar sections are accessible.
 
 ---
 
@@ -514,11 +522,11 @@ So that I can delegate content editing without sharing my credentials.
 
 **Given** the invited person clicks the accept link and is a new user,
 **When** they complete password setup and TOTP enrollment,
-**Then** their `ClubMembership` status is atomically updated to `ACTIVE` in the same transaction that completes credential setup; they are then redirected to `/my-clubs`.
+**Then** their `ClubMembership` status is atomically updated to `ACTIVE` in the same transaction that completes credential setup; they are then redirected to `/{lang}/` (the dashboard homepage) where the new club appears in the sidebar.
 
 **Given** the invited person clicks the accept link and is an already-authenticated existing user,
 **When** they land on the accept page,
-**Then** their `ClubMembership` status is updated to `ACTIVE` immediately and they are redirected to `/my-clubs` where the new club appears in their list.
+**Then** their `ClubMembership` status is updated to `ACTIVE` immediately and they are redirected to `/{lang}/` (the dashboard homepage) where the new club appears in the sidebar under MY CLUBS.
 
 **Given** an invite accept link is accessed more than 7 days after issuance,
 **Then** the link is expired; the user sees a clear error message instructing them to ask the Club Owner to resend the invitation.
@@ -569,7 +577,7 @@ So that former collaborators can no longer edit my club's content.
 
 **Given** revocation is confirmed,
 **When** the `revokeMembership` Server Action executes,
-**Then** the `ClubMembership.status` is updated to `REVOKED`; on the revoked member's next request to any route under `/[lang]/ch/[club]/`, the club layout membership guard detects no active membership and redirects them to `/my-clubs`.
+**Then** the `ClubMembership.status` is updated to `REVOKED`; on the revoked member's next request to any route under `/{lang}/club/{clubId}/`, the club layout membership guard detects no active membership and redirects them to `/{lang}/` (the dashboard homepage); the club is removed from their sidebar.
 
 **Given** a Club Owner attempts to revoke the last active `OWNER` membership for a club,
 **Then** the action is rejected: "A club must always have at least one active Owner."
@@ -884,6 +892,8 @@ So that the interface is comfortable to use in any lighting condition without ma
 
 ### Story 3.7: Public Layout Shell — Top Navbar, Centered Container & Footer
 
+> **SUPERSEDED** — This story was implemented but subsequently replaced by the Dashboard Migration (see docs/DASHBOARD_MIGRATION_PLAN.md). The PublicLayout, PublicNavbar, PublicFooter, and MobileNavMenu components have been removed. All pages now render within the unified dashboard shell (`AppSidebar` + `SidebarInset`). No action needed — this story's intent (consistent layout) is fulfilled by the dashboard shell.
+
 As a Public Visitor,
 I want all public pages to share a consistent layout with a sticky top navbar, centered content, and a standard footer,
 So that the platform feels cohesive and professionally designed across every public surface.
@@ -913,11 +923,13 @@ So that the platform feels cohesive and professionally designed across every pub
 - `PublicLayout` component: `src/components/layout/public-layout.tsx`
 - `PublicNavbar` component: `src/components/layout/public-navbar.tsx` — accepts `title`, `navItems`, `ctaLabel`, `ctaHref` props
 - `PublicFooter` component: `src/components/layout/public-footer.tsx`
-- Used by all public route groups: `src/app/[lang]/(platform)/layout.tsx` and `src/app/[lang]/(country)/[country]/layout.tsx`
+- ~~Used by all public route groups: `src/app/[lang]/(platform)/layout.tsx` and `src/app/[lang]/(country)/[country]/layout.tsx`~~ Superseded: all pages now use `src/app/[lang]/(dashboard)/layout.tsx` with `AppSidebar`
 
 ---
 
 ### Story 3.8: Refactor Existing Public Pages to New Layout
+
+> **SUPERSEDED** — This story was implemented but subsequently replaced by the Dashboard Migration. Pages were moved from `(platform)/` to `(dashboard)/` route group. The `PublicLayout` wrapper referenced here no longer exists. All pages now render within the unified dashboard shell.
 
 As a Public Visitor,
 I want the platform homepage, country directory, and club public site to use the new consistent layout,
@@ -952,15 +964,15 @@ So that the design is cohesive across all public surfaces with proper centering,
 
 **Technical notes:**
 - Remove the `ClubSidebarNav` from club public routes — navigation moves to `PublicNavbar`
-- The club layout at `src/app/[lang]/(country)/[country]/[club]/layout.tsx` passes club name and active pages to `PublicLayout`
-- Platform layout at `src/app/[lang]/(platform)/layout.tsx` passes platform name and platform nav items to `PublicLayout`
+- ~~The club layout at `src/app/[lang]/(country)/[country]/[club]/layout.tsx` passes club name and active pages to `PublicLayout`~~ Superseded: club pages at `src/app/[lang]/(dashboard)/[country]/[club]/`
+- ~~Platform layout at `src/app/[lang]/(platform)/layout.tsx` passes platform name and platform nav items to `PublicLayout`~~ Superseded: all pages under `src/app/[lang]/(dashboard)/layout.tsx`
 - Existing `PoweredByBanner` component can be simplified or removed — its content moves into `PublicFooter`
 
 ---
 
 ## Epic 4: Club Profile Setup & Moderation
 
-Rework the application and approval flows to collect and seed club profile data, build the simplified club admin dashboard with profile editing and photo upload, implement two-flag visibility control (publish/unpublish + operator force-offline), render the single-page public club profile with photo carousel, and add operator moderation tools. This epic touches existing Epic 2 and Epic 3 code to align with the MVP scope pivot.
+Rework the application and approval flows to collect and seed club profile data, build club admin pages within the unified dashboard shell (`AppSidebar`) with profile editing and photo upload, implement two-flag visibility control (publish/unpublish + operator force-offline), render the single-page public club profile with photo carousel, and add operator moderation tools with threaded bidirectional messaging. This epic touches existing Epic 2 and Epic 3 code to align with the MVP scope pivot.
 
 ### Story 4.1: Schema Migration — Profile Fields, Visibility, ClubPhoto, OperatorMessage
 
@@ -1040,7 +1052,7 @@ So that clubs are ready to review and publish immediately after the admin comple
 
 **Given** the operator confirms approval with a message,
 **When** the `approveApplication` Server Action executes,
-**Then** an `OperatorMessage` record is created for the new club in the same transaction; the message text is included in the acceptance email as a dedicated section (FR57); the message will appear as a banner in the admin dashboard on first login (FR55).
+**Then** a `SupportMessage` record is created for the new club in the same transaction; the message text is included in the acceptance email as a dedicated section (FR57); the message will appear in the club's message thread on first login (FR55).
 
 **Given** the existing approval flow (Story 2.3),
 **Then** slug generation, magic link creation, and email dispatch remain unchanged; only the club record creation is extended with profile fields and optional operator message.
@@ -1052,26 +1064,26 @@ So that clubs are ready to review and publish immediately after the admin comple
 ### Story 4.4: Club Admin Dashboard Shell
 
 As a Club Admin,
-I want a dedicated admin dashboard with simplified sidebar navigation,
-So that I have a clean, focused interface to manage my club profile and settings.
+I want my club's admin pages integrated into the unified dashboard shell with sidebar navigation,
+So that I have a clean, focused interface to manage my club profile and settings without leaving the main application.
 
 **Acceptance Criteria:**
 
-**Given** an authenticated Club Admin navigates to `/{lang}/{country}/{club}/admin`,
+**Given** an authenticated Club Admin navigates to `/{lang}/club/{clubId}/`,
 **When** the page loads,
-**Then** a standard shadcn dashboard layout renders with an `AdminSidebar`: club name/logo at top, navigation items (Club Profile, Settings), and a "View public page" link in the footer that opens the public club URL in a new tab (FR2).
+**Then** the unified dashboard shell renders with the `AppSidebar` showing the club under the MY CLUBS section with collapsible sub-items (Profile, Settings, Messages), and a "View public page" link that opens the public club URL in a new tab (FR2).
 
-**Given** the admin URL,
+**Given** the club admin URL,
 **When** an unauthenticated visitor or a user who is not a member of the club attempts to access it,
-**Then** `proxy.ts` redirects them to the platform login page — the admin dashboard is never served to unauthorized users.
+**Then** the layout guard redirects them to `/{lang}/auth/login` — the club admin pages are never served to unauthorized users.
 
-**Given** the admin dashboard on a mobile viewport,
-**Then** the sidebar collapses to a hamburger menu that opens as a `Sheet` drawer from the left; all navigation items remain accessible.
+**Given** the dashboard on a mobile viewport,
+**Then** the `AppSidebar` collapses and is accessible via a trigger button; all navigation items remain accessible.
 
 **Given** a Club Admin who is authenticated and visits their club's public URL,
 **Then** the public site renders normally with no admin chrome — complete separation between public and admin views.
 
-**Given** the admin dashboard,
+**Given** the club admin section,
 **Then** the default view (landing page) is the Club Profile section.
 
 ---
@@ -1086,7 +1098,7 @@ So that I never accidentally publish unfinished content or lose work unexpectedl
 
 **Given** any edit has been made in the admin dashboard,
 **When** the change occurs,
-**Then** the amber unsaved-changes dot appears on the Save button area and is mirrored on the active `AdminSidebar` item; the Save button becomes active (FR17).
+**Then** the amber unsaved-changes dot appears on the Save button area and is mirrored on the active `AppSidebar` item; the Save button becomes active (FR17).
 
 **Given** the Club Admin attempts to navigate away (close tab, browser back, or click another sidebar item) with unsaved changes,
 **When** the navigation is attempted,
@@ -1167,16 +1179,15 @@ So that I publish only when I'm ready and can respond to operator feedback promp
 **Given** `forceOffline = true` (operator override active),
 **Then** the publish toggle is disabled with a message: "Your page has been taken offline by the platform. Check your messages for details." The Club Admin cannot change `isPublished` until the operator lifts the override (FR51, FR52).
 
-**Given** the club has unread `OperatorMessage` records (`readAt IS NULL`),
-**When** the admin dashboard loads,
-**Then** a persistent banner appears at the top of the content area showing the most recent unread message; a "View all messages" link shows all messages if there are multiple (FR55).
+**Given** the club has unread `SupportMessage` records,
+**When** the club admin views the sidebar,
+**Then** an unread indicator appears on the Messages sub-item under the club in the MY CLUBS section; navigating to `/{lang}/club/{clubId}/messages` opens the `ChatThread` showing the full bidirectional conversation with the operator (FR55).
 
-**Given** the Club Admin reads/acknowledges an operator message,
-**When** they dismiss the banner or click "Mark as read",
-**Then** the `readAt` timestamp is set on the `OperatorMessage` record; the banner disappears (or shows the next unread message if any).
+**Given** the Club Admin reads messages in the `ChatThread`,
+**Then** the `ConversationReadCursor` is updated to mark messages as read; the unread indicator clears.
 
-**Given** the club has no unread operator messages,
-**Then** no banner is displayed.
+**Given** the club has no unread messages,
+**Then** no unread indicator is displayed on the Messages sub-item.
 
 ---
 
@@ -1218,29 +1229,33 @@ So that I can quickly decide whether to join and know how to get in touch.
 ### Story 4.9: Operator Club Moderation
 
 As a Platform Operator,
-I want to send messages to club admins and force club pages offline when needed,
+I want to exchange threaded messages with club admins and force club pages offline when needed,
 So that I can maintain content quality standards across the platform and communicate moderation decisions clearly.
 
 **Acceptance Criteria:**
 
-**Given** the operator navigates to a club's detail view in the platform admin dashboard,
+**Given** the operator navigates to `/{lang}/admin/clubs` in the dashboard,
 **When** the view loads,
-**Then** the operator sees: the club's current profile content, visibility status (`isPublished`, `forceOffline`), a "Send message" action, and a "Force offline" / "Lift offline" toggle.
+**Then** the `ClubQueue` component lists all clubs; selecting a club shows the `ClubDetail` panel with: the club's current profile content, visibility status (`isPublished`, `forceOffline`), and a "Force offline" / "Lift offline" toggle.
 
-**Given** the operator clicks "Send message",
-**When** the message dialog appears,
-**Then** a free-text textarea is shown; on submit, the `sendOperatorMessage` Server Action creates an `OperatorMessage` record and sends a standalone email to the club admin via Resend (FR54, FR56).
+**Given** the operator navigates to `/{lang}/admin/messages`,
+**When** the view loads,
+**Then** the `ConversationQueue` component lists all message threads with clubs; selecting a thread opens a `ChatThread` component showing the full bidirectional conversation; both the operator and club admin can send messages (via `SupportMessage` + `ConversationReadCursor` models).
+
+**Given** the operator sends a message in a `ChatThread`,
+**When** submitted,
+**Then** a `SupportMessage` record is created and a notification email is sent to the club admin via Resend; the club admin can reply from `/{lang}/club/{clubId}/messages`.
 
 **Given** the operator toggles "Force offline" on a club that is currently live,
 **When** the action is confirmed,
-**Then** a mandatory message field appears — the operator must explain why; the `forceOffline` Server Action sets `forceOffline = true` on the club, creates an `OperatorMessage` with the reason, sends a moderation email, and invalidates the club page cache; the club page immediately becomes invisible to visitors (FR52).
+**Then** a mandatory message field appears — the operator must explain why; the `forceOffline` Server Action sets `forceOffline = true` on the club, creates a `SupportMessage` with the reason, sends a moderation email, and invalidates the club page cache; the club page immediately becomes invisible to visitors (FR52).
 
 **Given** the operator toggles "Lift offline" on a force-offline club,
 **When** the action is confirmed,
 **Then** `forceOffline` is set to `false`; the club admin regains control of `isPublished`; if the club was previously published (`isPublished = true`), the page becomes visible again immediately (FR53).
 
 **Given** the operator sends a message or forces a club offline,
-**Then** the `OperatorMessage` record persists in the database regardless of email delivery status — the DB is the source of truth, email is the notification channel (ADR-004).
+**Then** the `SupportMessage` record persists in the database regardless of email delivery status — the DB is the source of truth, email is the notification channel (ADR-004).
 
 **Given** the operator views the club list in the admin dashboard,
 **Then** clubs with `forceOffline = true` are visually flagged (e.g., a red badge or indicator) so the operator can track which clubs are currently under moderation.
@@ -1529,7 +1544,7 @@ So that I can get help with issues or questions about my club's website.
 
 ## Epic 7: Platform Operations & Health Monitoring
 
-Platform Operators have full operational visibility — they can manage the club registry, monitor system health, enforce usage limits, view privacy-safe analytics, and control platform-wide flags. Note: operator-to-club messaging and club page moderation (force offline) are handled by the unified OperatorMessage system in Epic 4 (Stories 4.7, 4.9) — Story 7.7 (Operator Nudge) has been removed from this epic.
+Platform Operators have full operational visibility — they can manage the club registry, monitor system health, enforce usage limits, view privacy-safe analytics, and control platform-wide flags. Note: operator-club messaging and club page moderation (force offline) are handled by the threaded SupportMessage system in Epic 4 (Stories 4.7, 4.9) — Story 7.7 (Operator Nudge) has been removed from this epic.
 
 ### Story 7.1: Operator Dashboard — Club Registry Management
 
@@ -1686,36 +1701,11 @@ So that I can proactively identify and address site issues before club admins or
 
 ---
 
-### ~~Story 7.7: Operator Nudge — Club Admin Notification~~ _(Removed — replaced by unified OperatorMessage system in Epic 4, Stories 4.7 and 4.9)_
+### ~~Story 7.7: Operator Nudge — Club Admin Notification~~ _(Removed — replaced by threaded SupportMessage system in Epic 4, Stories 4.7 and 4.9)_
 
 ---
 
-### Story 7.8: Operator Support Inbox
-
-As a Platform Operator,
-I want to view, manage, and respond to club admin support requests from a dedicated inbox,
-So that I can handle support tickets efficiently without relying solely on email threads.
-
-**Acceptance Criteria:**
-
-**Given** the operator navigates to `/admin/support`,
-**When** the page loads,
-**Then** a paginated list of all support tickets is shown with: club name, subject, status (open/closed), submitted date, last updated; tickets are sorted newest first; an open-ticket count badge is shown in the admin nav (FR37).
-
-**Given** the ticket list,
-**Then** open and closed tickets are visually distinguished; the operator can filter by status (All / Open / Closed).
-
-**Given** the operator clicks a ticket,
-**When** the detail view opens,
-**Then** the full ticket is shown: club name, club admin email, subject, message body, submission date, any file attachment, and a reply thread of previous replies.
-
-**Given** the operator composes a reply and submits,
-**When** the `replyToTicket` Server Action executes,
-**Then** Resend dispatches an email to the club admin's registered address with the reply text; `reply-to` is set to the operator platform email; the reply is saved to a `ticket_replies` table with: `ticketId`, `operatorId`, `body`, `sentAt`.
-
-**Given** the operator changes ticket status (open → closed or closed → open),
-**When** confirmed,
-**Then** the `support_tickets` record is updated; the status badge updates immediately (optimistic UI); the status change is logged to `audit_log`.
+### ~~Story 7.8: Operator Support Inbox~~ _(SUPERSEDED — replaced by threaded SupportMessage system in Epic 4, Stories 4.7 and 4.9. The ConversationQueue component already provides the operator inbox.)_
 
 ---
 
@@ -1775,7 +1765,7 @@ So that my association can exercise its right to erasure under GDPR.
 
 ---
 
-### Story 8.2: GDPR Visitor Data Requests & Automated Retention
+### Story 8.2: GDPR Visitor Data Requests & Automated Retention _(Deferred — depends on analytics/page_events infrastructure from Story 7.3)_
 
 As a Platform Operator,
 I want automated data retention enforcement and a process for handling visitor data requests,
@@ -1829,7 +1819,7 @@ So that I can exercise my right to data portability and migrate my content if ne
 
 ---
 
-### Story 8.4: Cookie Consent Mechanism
+### Story 8.4: Cookie Consent Mechanism _(Deferred — not needed at MVP since no analytics cookies are set; revisit when Story 7.3 is implemented)_
 
 As a visitor on the platform site or any club site,
 I want to be informed about cookie usage and give or decline consent before any non-essential cookies are set,
@@ -1862,6 +1852,122 @@ So that my privacy choices are respected and the platform meets its GDPR/nDSG ob
 
 **Given** the consent banner and preferences modal,
 **Then** they meet WCAG 2.1 AA: fully keyboard-accessible, screen-reader compatible, minimum 44px touch targets on all interactive elements.
+
+---
+
+## Epic 9: Launch Readiness — Dev Infra & GDPR Compliance
+
+This epic covers the remaining blockers before going live with the first ~10 clubs: fixing the local development image upload pipeline, implementing GDPR right-to-erasure (account + club deletion), and GDPR data portability (club data export). These are prerequisites for accepting real user data.
+
+### Story 9.1: Local Dev Image Upload Pipeline
+
+As a Developer,
+I want `docker compose up` to fully provision MinIO (bucket creation, public read policy, CORS) automatically,
+So that image upload works out of the box without manual setup steps.
+
+**Acceptance Criteria:**
+
+**Given** the developer runs `docker compose -f docker-compose.dev.yml up`,
+**When** the MinIO container is healthy,
+**Then** a `minio-init` sidecar service automatically creates the `website-template` bucket (if it doesn't exist), sets the `download` anonymous policy for public reads, and exits successfully.
+
+**Given** a browser-based upload from `http://localhost:3000`,
+**When** the client PUTs to the presigned MinIO URL on `http://localhost:9000`,
+**Then** the CORS preflight succeeds (MinIO is configured with `MINIO_API_CORS_ALLOW_ORIGIN=http://localhost:3000`); the upload completes with HTTP 200.
+
+**Given** the `.env.example` file,
+**Then** it documents all required R2/MinIO variables (`R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL`, `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`) with working default values for local dev.
+
+**Given** the `next.config.ts` `images.remotePatterns`,
+**Then** it includes `localhost` for local dev; a code comment documents that the production R2 hostname must be added before deployment.
+
+**Implementation notes:** This story is already implemented — `docker-compose.dev.yml` has the `minio-init` service and `MINIO_API_CORS_ALLOW_ORIGIN` env var. Marking as done.
+
+---
+
+### Story 9.2: GDPR Right-to-Erasure — Account & Club Deletion
+
+As a Club Admin,
+I want to delete my account and all associated data from the platform,
+So that I can exercise my right to erasure under GDPR.
+
+**Acceptance Criteria:**
+
+**Given** the Club Admin navigates to `/{lang}/account`,
+**When** they view the account settings page,
+**Then** a "Delete my account" section is visible at the bottom of the page.
+
+**Given** the Club Admin clicks "Delete my account",
+**When** the confirmation dialog opens,
+**Then** it lists exactly what will be deleted: user account, all club memberships, and for each club where they are OWNER with no other OWNER — the club itself including: profile data, all R2 objects (logo + photos), all club photos, all support messages, and the club's URL path.
+
+**Given** the Club Admin is the sole OWNER of one or more clubs,
+**When** they attempt to delete their account,
+**Then** the dialog warns that those clubs will be permanently deleted; the admin must type the club name(s) to confirm (double-confirmation for destructive action).
+
+**Given** the Club Admin is an EDITOR (not OWNER) of a club,
+**When** they delete their account,
+**Then** only their membership record is removed; the club itself is unaffected.
+
+**Given** the Club Admin confirms deletion,
+**When** the `deleteAccount` Server Action executes,
+**Then** within a single Prisma transaction: all R2 objects for owned clubs are deleted (best-effort, failures logged); all `ClubPhoto` records for owned clubs are deleted; all `SupportMessage` records for owned clubs are deleted; all `ConversationReadCursor` records for owned clubs are deleted; all `ClubMembership` records (across all clubs) are deleted; all owned `Club` records are deleted; all `Session` records for the user are deleted; all `Account` records (OAuth) are deleted; the `User` record is deleted.
+
+**Given** deletion completes,
+**Then** the user's session cookie is cleared; they are redirected to `/{lang}/auth/login`; any subsequent request with their old session returns HTTP 401.
+
+**Given** the deletion fails mid-way,
+**Then** the Prisma transaction rolls back — no partial deletion. R2 deletions that already succeeded are orphaned (acceptable — no user data leak since the objects are just images with random keys).
+
+---
+
+### Story 9.3: GDPR Data Portability — Club Data Export
+
+As a Club Admin,
+I want to export all my club's data in a machine-readable format,
+So that I can exercise my right to data portability under GDPR.
+
+**Acceptance Criteria:**
+
+**Given** the Club Admin navigates to `/{lang}/club/{clubId}/settings`,
+**When** they view the settings page,
+**Then** an "Export data" button is visible.
+
+**Given** the Club Admin clicks "Export data",
+**When** the confirmation dialog opens,
+**Then** it explains what will be exported: club profile (name, description, schedule, contact info, how to join, activity type, canton, location), logo metadata and URL, photo metadata and URLs, and support message history.
+
+**Given** the Club Admin confirms the export,
+**When** the `exportClubData` Server Action executes,
+**Then** `clubId` is resolved from URL params (verified by the club layout membership check); a JSON file is generated containing all club-scoped data; the file is delivered as a browser download (`Content-Disposition: attachment`).
+
+**Given** the generated export,
+**Then** it contains: `version` (export schema version), `exportedAt` (ISO timestamp), `club` (all profile fields), `logo` (URL + alt text), `photos` (array of URL + alt + position), `messages` (array of support messages with sender role, body, timestamp); no raw file binaries — only metadata and R2 URLs.
+
+**Given** the Club Admin has EDITOR role (not OWNER),
+**When** they attempt to export,
+**Then** the action is denied — only OWNER can export club data.
+
+---
+
+### Story 9.4: Operator — Delete Club
+
+As a Platform Operator,
+I want to delete a club and all its associated data from the operator dashboard,
+So that I can remove clubs that violate platform policies or at the club admin's request.
+
+**Acceptance Criteria:**
+
+**Given** the operator views a club detail page at `/{lang}/admin/clubs/{id}`,
+**When** they click "Delete club",
+**Then** a confirmation dialog shows the club name and lists what will be deleted: club profile, all R2 objects, all photos, all memberships, all support messages.
+
+**Given** the operator confirms deletion,
+**When** the `deleteClub` Server Action executes,
+**Then** within a single Prisma transaction: all R2 objects are deleted (best-effort); all `ClubPhoto`, `SupportMessage`, `ConversationReadCursor`, `ClubMembership` records are deleted; the `Club` record is deleted. User accounts of club members are NOT deleted (they may belong to other clubs).
+
+**Given** the deletion completes,
+**Then** the operator is redirected to the clubs list; a success toast confirms the deletion; the club's public URL returns HTTP 404.
 
 ---
 

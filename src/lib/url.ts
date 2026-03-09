@@ -1,4 +1,3 @@
-export function buildClubAdminUrl(host: string, lang: string, country: string, slug: string): string {
-  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
-  return `${protocol}://${host}/${lang}/${country}/${slug}`
+export function buildClubAdminUrl(lang: string, clubId: string): string {
+  return `/${lang}/club/${clubId}`
 }

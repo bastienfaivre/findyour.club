@@ -16,9 +16,9 @@ vi.mock('@/server/db', () => ({
 }))
 
 import { prisma } from '@/server/db'
-import HomePage from '@/app/[lang]/(platform)/page'
-import AboutPage from '@/app/[lang]/(platform)/about/page'
-import SupportPage from '@/app/[lang]/(platform)/support/page'
+import HomePage from '@/app/[lang]/(dashboard)/page'
+import AboutPage from '@/app/[lang]/(dashboard)/about/page'
+import SupportPage from '@/app/[lang]/(dashboard)/support/page'
 import { generatePlatformMetadata, generateDirectoryMetadata } from '@/components/app/seo/metadata'
 import { CountryButton } from '@/components/app/directory/CountryButton'
 
@@ -35,6 +35,26 @@ function findText(node: unknown): string {
     return findText(el.props.children)
   }
   return ''
+}
+
+function findProps(node: unknown, targetProp: string): unknown {
+  if (node === null || node === undefined || typeof node !== 'object') return undefined
+  if (Array.isArray(node)) {
+    for (const item of node) {
+      const found = findProps(item, targetProp)
+      if (found !== undefined) return found
+    }
+    return undefined
+  }
+  if ('props' in (node as Record<string, unknown>)) {
+    const el = node as { props: Record<string, unknown> }
+    if (targetProp in el.props) return el.props[targetProp]
+    for (const value of Object.values(el.props)) {
+      const found = findProps(value, targetProp)
+      if (found !== undefined) return found
+    }
+  }
+  return undefined
 }
 
 describe('generatePlatformMetadata', () => {
@@ -102,7 +122,7 @@ describe('CountryButton', () => {
       lang: 'en',
     })
 
-    expect(result.props.href).toBe('/en/ch')
+    expect(result.props.href).toBe('/en/search?country=ch')
     expect(result.props['aria-label']).toBe('Explore clubs in Switzerland')
   })
 
@@ -115,7 +135,7 @@ describe('CountryButton', () => {
       lang: 'fr',
     })
 
-    expect(result.props.href).toBe('/fr/ch')
+    expect(result.props.href).toBe('/fr/search?country=ch')
     expect(result.props['aria-label']).toBe('Explorer les clubs en Suisse')
     const text = findText(result)
     expect(text).toContain('Suisse')
@@ -152,10 +172,10 @@ describe('HomePage', () => {
       if (callCount === 1) {
         return Promise.resolve(countryData)
       }
-      // Second call: activityTypeId groupBy
+      // Second call: activityType groupBy
       return Promise.resolve([
-        { activityTypeId: 'skiing', _count: { id: 2 } },
-        { activityTypeId: 'football', _count: { id: 1 } },
+        { activityType: 'skiing', _count: { id: 2 } },
+        { activityType: 'football', _count: { id: 1 } },
       ])
     }) as never)
   }
@@ -167,13 +187,12 @@ describe('HomePage', () => {
     expect(result).toBeTruthy()
 
     const text = findText(result)
-    expect(text).toContain('Find your club')
+    expect(findProps(result, 'prefix')).toBe('Find your')
 
     // Stats bar shows raw number + label
     expect(text).toContain('3')
-    expect(text).toContain('Associations')
+    expect(text).toContain('Clubs')
     expect(text).toContain('Activity types')
-    expect(text).toContain('CHF 0')
 
     // Section labels
     expect(text).toContain('Available now')
@@ -185,9 +204,9 @@ describe('HomePage', () => {
 
     const result = await HomePage({ params: makeParams() })
     const text = findText(result)
-    expect(text).toContain('Find your club')
+    expect(findProps(result, 'prefix')).toBe('Find your')
     // Stats bar shows "0" for both associations and countries counts
-    expect(text).toContain('0Associations')
+    expect(text).toContain('0Clubs')
     expect(text).toContain('0Countries')
   })
 
@@ -195,8 +214,7 @@ describe('HomePage', () => {
     setupGroupByMock([])
 
     const result = await HomePage({ params: makeParams('pt') })
-    const text = findText(result)
-    expect(text).toContain('Find your club')
+    expect(findProps(result, 'prefix')).toBe('Find your')
   })
 })
 

@@ -71,7 +71,11 @@ export function useUnsavedChanges({
 
   // popstate — handles browser back/forward buttons
   useEffect(() => {
-    if (!isDirty) return
+    if (!isDirty) {
+      // Reset ref when form becomes clean so a new entry is pushed next time
+      popstatePushedRef.current = false
+      return
+    }
 
     const handlePopState = () => {
       if (!isDirtyRef.current) return
@@ -83,7 +87,6 @@ export function useUnsavedChanges({
     }
 
     // Push one extra history entry so popstate fires before actually leaving.
-    // Use a ref to avoid stacking entries on repeated isDirty toggles.
     if (!popstatePushedRef.current) {
       window.history.pushState(null, '', window.location.href)
       popstatePushedRef.current = true
