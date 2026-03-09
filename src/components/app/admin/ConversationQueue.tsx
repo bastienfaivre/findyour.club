@@ -38,7 +38,9 @@ export function ConversationQueue({ conversations, sendAction, markReadAction, l
   function handleSelect(clubId: string) {
     setSelectedClubId(clubId)
     setActiveTab('detail')
-    markReadAction(clubId)
+    markReadAction(clubId).catch(() => {
+      // Best-effort — badge will reappear on next load if this fails
+    })
   }
 
   async function handleSend(body: string) {

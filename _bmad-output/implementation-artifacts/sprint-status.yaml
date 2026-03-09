@@ -102,7 +102,8 @@ development_status:
   6-1-public-contact-form-email-relay: deferred
   6-2-email-relay-health-monitoring: deferred
   6-3-club-admin-view-contact-form-submissions: deferred
-  6-4-platform-support-request-form: backlog
+  # 6-4 superseded — threaded SupportMessage system (Epic 4, Stories 4.7/4.9) already provides club-admin↔operator messaging
+  6-4-platform-support-request-form: superseded
   epic-6-retrospective: optional
 
   # ─── Epic 7: Platform Operations & Health Monitoring ───
@@ -127,9 +128,15 @@ development_status:
   epic-8-retrospective: optional
 
   # ─── Epic 9: Launch Readiness — Dev Infra & GDPR Compliance ───
-  epic-9: in-progress
+  epic-9: done
   9-1-local-dev-image-upload-pipeline: done
   9-2-gdpr-right-to-erasure-account-club-deletion: done
   9-3-gdpr-data-portability-club-data-export: done
   9-4-operator-delete-club: done
   epic-9-retrospective: optional
+
+  # ─── Epic 10: Platform Configuration & Operational Controls ───
+  epic-10: backlog
+  10-1-registration-kill-switch: backlog
+  10-2-scheduled-maintenance-mode-visitor-announcement: backlog
+  epic-10-retrospective: optional

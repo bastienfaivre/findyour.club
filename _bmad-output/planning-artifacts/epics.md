@@ -1518,27 +1518,7 @@ So that I can respond to visitors who have reached out to my association.
 
 ---
 
-### Story 6.4: Platform Support Request Form
-
-As a Club Admin,
-I want to submit a support request to the platform operator,
-So that I can get help with issues or questions about my club's website.
-
-**Acceptance Criteria:**
-
-**Given** the Club Admin is authenticated and navigates to the support section,
-**When** they view the support request form,
-**Then** the form shows fields for: Subject, Message, and an optional file attachment; their club name and email are pre-populated from session data and are read-only (FR30).
-
-**Given** the Club Admin fills in the required fields and submits,
-**When** the form is submitted,
-**Then** the request is stored in a `support_tickets` table with the `clubId`, subject, message, and timestamp; the operator receives a notification email via Resend containing the club name, submitted email, subject, and a link to the admin panel.
-
-**Given** the operator receives the notification,
-**Then** the operator can reply directly to the club admin's registered email (reply-to is set to the club admin's email).
-
-**Given** the Club Admin submits a duplicate request within 5 minutes,
-**Then** the system silently deduplicates or shows a warning: "You submitted a similar request recently" — prevents accidental double-submissions.
+### ~~Story 6.4: Platform Support Request Form~~ _(SUPERSEDED — replaced by threaded SupportMessage system in Epic 4, Stories 4.7 and 4.9. Club admins already have a direct messaging channel to the operator via the ChatThread and ConversationQueue components.)_
 
 ---
 
@@ -1998,3 +1978,85 @@ So that visitors can reach my club at my own branded URL instead of the platform
 **Given** the Club Admin removes their custom domain,
 **When** confirmed,
 **Then** the `customDomain` field is cleared; Nginx routing falls back to the platform path URL within one deployment cycle; the removed domain record is deleted.
+
+---
+
+## Epic 10: Platform Configuration & Operational Controls
+
+The Platform Operator can control critical platform-wide operational settings from the admin dashboard without code deployments. A single `PlatformConfig` row in the database stores all operational flags and values, cached and revalidated on write. At MVP this covers two essential controls: pausing new club registrations and scheduling maintenance windows with visitor-facing announcements.
+
+**FRs covered:** FR38 (partial)
+**NFRs addressed:** NFR15 (zero-downtime operations)
+
+### Story 10.1: Registration Kill-Switch
+
+As a Platform Operator,
+I want to enable or disable new club registrations from the admin dashboard,
+So that I can pause the application pipeline when needed (capacity, holidays, abuse) without a code deployment.
+
+**Acceptance Criteria:**
+
+**Given** the database,
+**When** the schema migration runs,
+**Then** a `PlatformConfig` model is created with a singleton row pattern (single row, `id = 'default'`); the model includes at minimum: `registrationEnabled Boolean @default(true)`, `maintenanceScheduledAt DateTime?`, `maintenanceMessage String?`; a seed ensures the singleton row exists.
+
+**Given** the operator navigates to `/{lang}/admin/settings`,
+**When** the page loads,
+**Then** a "Platform Settings" page is displayed showing a "Club Registrations" section with a clearly labeled toggle switch reflecting the current `registrationEnabled` state.
+
+**Given** the operator toggles registrations off and saves,
+**When** the server action executes,
+**Then** the `PlatformConfig.registrationEnabled` field is set to `false`; a success toast confirms the change.
+
+**Given** registrations are disabled,
+**When** an unauthenticated visitor navigates to the apply page (`/{lang}/apply`),
+**Then** the application form is replaced by a friendly message: "Club registrations are currently paused. Please check back later." — no form fields are rendered, no submission is possible.
+
+**Given** registrations are disabled,
+**When** an authenticated user navigates to the apply page,
+**Then** the same "registrations paused" message is shown — the kill-switch applies universally regardless of auth state.
+
+**Given** the operator toggles registrations back on,
+**When** a visitor navigates to the apply page,
+**Then** the application form renders normally and submissions are accepted.
+
+**Given** the `PlatformConfig` row does not exist (e.g., fresh database),
+**Then** the system defaults to `registrationEnabled = true` — registrations are open by default; the apply page works without requiring manual config setup.
+
+---
+
+### Story 10.2: Scheduled Maintenance Mode with Visitor Announcement
+
+As a Platform Operator,
+I want to schedule a maintenance window from the admin dashboard and have a banner automatically appear on the platform to inform visitors,
+So that visitors are aware of upcoming downtime and I can coordinate maintenance without surprise outages.
+
+**Acceptance Criteria:**
+
+**Given** the operator navigates to `/{lang}/admin/settings`,
+**When** the page loads,
+**Then** a "Scheduled Maintenance" section is displayed with: a date-time picker for the maintenance start time, a text field for a custom message (e.g., "Platform maintenance for infrastructure upgrades"), and a "Clear schedule" button if a maintenance is currently scheduled.
+
+**Given** the operator sets a maintenance date/time and message and saves,
+**When** the server action executes,
+**Then** `PlatformConfig.maintenanceScheduledAt` is set to the chosen UTC timestamp and `PlatformConfig.maintenanceMessage` stores the custom message; a success toast confirms the schedule.
+
+**Given** a maintenance is scheduled and `maintenanceScheduledAt` is in the future,
+**When** any visitor (authenticated or not) loads the platform homepage (`/{lang}/`),
+**Then** a dismissible announcement banner is displayed at the top of the page showing: the custom message and the scheduled date/time formatted in the visitor's locale (using the `[lang]` parameter); e.g., "Scheduled maintenance on March 15, 2026 at 14:00 — Platform maintenance for infrastructure upgrades".
+
+**Given** the announcement banner is shown,
+**When** the visitor dismisses it (close button),
+**Then** the banner stays hidden for that session (stored in sessionStorage); it reappears on the next session or if the scheduled time changes.
+
+**Given** `maintenanceScheduledAt` is in the past (maintenance window has passed),
+**Then** the banner is not displayed; the operator should clear the schedule manually or the system ignores past dates.
+
+**Given** the operator clicks "Clear schedule",
+**When** confirmed,
+**Then** `maintenanceScheduledAt` and `maintenanceMessage` are set to `null`; the banner immediately stops appearing on the homepage.
+
+**Given** no maintenance is scheduled (`maintenanceScheduledAt` is null),
+**Then** no banner is rendered — zero visual impact on the homepage.
+
+**Implementation notes:** The actual taking-offline of the platform during maintenance is handled at the infrastructure level (Docker/Nginx). This story only covers the scheduling UI and the visitor-facing announcement. The banner is a client component that reads the config via a lightweight API route or server component prop — no polling, just rendered on page load.

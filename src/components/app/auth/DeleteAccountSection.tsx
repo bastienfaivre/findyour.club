@@ -55,6 +55,12 @@ export function DeleteAccountSection({ lang, t }: DeleteAccountSectionProps) {
       setError(null)
       setConfirmText('')
       const result = await getAccountDeletionInfo()
+      if (!result) {
+        // Session expired — close dialog and bail
+        setLoading(false)
+        setOpen(false)
+        return
+      }
       setInfo(result)
       setLoading(false)
     }

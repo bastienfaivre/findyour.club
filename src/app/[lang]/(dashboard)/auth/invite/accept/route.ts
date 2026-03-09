@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic'
-
 import { createHash } from 'crypto'
 import { type NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/server/db'

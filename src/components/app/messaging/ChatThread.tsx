@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Send } from 'lucide-react'
@@ -51,7 +52,11 @@ export function ChatThread({ messages, sendAction, isOperator, translations: t }
     if (!body) return
     setDraft('')
     startTransition(async () => {
-      await sendAction(body)
+      const result = await sendAction(body)
+      if (!result.success) {
+        setDraft(body) // Restore draft so the user can retry
+        toast.error(result.error ?? 'Failed to send message')
+      }
       router.refresh()
     })
   }
