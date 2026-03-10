@@ -99,7 +99,7 @@ export async function CategoryLanding({
 
   // Build breadcrumbs
   const breadcrumbs = [
-    { name: 'Clashware', url: `${BASE_URL}/${lang}` },
+    { name: 'findyour.club', url: `${BASE_URL}/${lang}` },
     { name: countryName, url: `${BASE_URL}/${lang}/${country}` },
   ]
   if (cantonName && canton) {

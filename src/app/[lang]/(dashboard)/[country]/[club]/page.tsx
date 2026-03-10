@@ -17,6 +17,7 @@ import { ProfilePage } from '@/components/app/club-profile/ProfilePage'
 import { ACCENT_COLORS } from '@/components/app/club-site/accent-colors'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 import { CategoryLanding } from '@/components/app/seo/CategoryLanding'
+import { SharePrompt } from '@/components/app/club-site/SharePrompt'
 
 type Props = {
   params: Promise<{ lang: string; country: string; club: string }>
@@ -144,7 +145,7 @@ export default async function ClubPage({ params }: Props) {
   })
 
   const breadcrumbJsonLd = generateBreadcrumbJsonLd([
-    { name: 'Clashware', url: `${BASE_URL}/${lang}` },
+    { name: 'findyour.club', url: `${BASE_URL}/${lang}` },
     { name: countryName, url: `${BASE_URL}/${lang}/${country}` },
     ...(activityTypeLabel && club.activityType
       ? [{ name: activityTypeLabel, url: `${BASE_URL}/${lang}/${country}/${club.activityType}` }]
@@ -192,6 +193,15 @@ export default async function ClubPage({ params }: Props) {
           visitWebsite: t.clubSite.visitWebsite,
           photos: t.clubSite.photos,
           goToPhoto: t.clubSite.goToPhoto,
+        }}
+      />
+      <SharePrompt
+        clubName={club.name}
+        clubUrl={`${BASE_URL}/${lang}/${country}/${club.slug}`}
+        translations={{
+          sharePrompt: t.clubSite.sharePrompt,
+          shareButton: t.clubSite.shareButton,
+          linkCopied: t.clubSite.linkCopied,
         }}
       />
     </div>

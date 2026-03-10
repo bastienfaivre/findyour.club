@@ -883,8 +883,8 @@ async function main() {
       {
         name: 'Extreme Sports Zurich',
         country: 'ch',
-        otherDescription: 'Paragliding, base jumping, and wingsuit association.',
-        description: 'Association de sports extrêmes centrée sur les disciplines aériennes : parapente, base jump et wingsuit.',
+        otherDescription: 'Paragliding, base jumping, and wingsuit club.',
+        description: 'Club de sports extrêmes centré sur les disciplines aériennes : parapente, base jump et wingsuit.',
         email: 'fly@extreme-zurich.ch',
         desiredSlug: 'extreme-sports-zurich',
         status: 'REJECTED',

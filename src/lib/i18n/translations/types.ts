@@ -233,6 +233,15 @@ export type Translations = {
   apply: {
     title: string
     subtitle: string
+    benefits: {
+      free: string
+      verified: string
+      simple: string
+      visible: string
+    }
+    noCatch: string
+    reviewCommitment: string
+    cta: string
     fields: {
       name: string
       email: string
@@ -293,6 +302,7 @@ export type Translations = {
     admin: {
       sidebar: {
         clubProfile: string
+        promote: string
         messages: string
         settings: string
         viewPublicPage: string
@@ -386,6 +396,15 @@ export type Translations = {
         exportData: string
         exportDescription: string
       }
+      promote: {
+        title: string
+        description: string
+        badge: string
+        badgeDescription: string
+        qrCard: string
+        qrCardDescription: string
+        download: string
+      }
       save: {
         save: string
         discard: string
@@ -438,6 +457,7 @@ export type Translations = {
     headlineRotatingWords: string[]
     tagline: string
     philosophy: string
+    trustLine: string
     stats: {
       /** Use {count} as placeholder */
       clubs: string
@@ -448,10 +468,14 @@ export type Translations = {
     exploreCountry: string
     availableNow: string
     comingSoon: string
-    associations: string
+    clubsLabel: string
     /** Label for the countries stat (standalone, not a template) */
     countriesLabel: string
     activityTypes: string
+    launchLabel: string
+    launchValue: string
+    bootstrapMessage: string
+    bootstrapShare: string
     marketingSpend: string
     marketingSpendValue: string
     about: {
@@ -460,9 +484,19 @@ export type Translations = {
     }
     support: {
       title: string
-      donationHeadline: string
-      donationText: string
-      supportFormPlaceholder: string
+      intro: string
+      costBreakdownTitle: string
+      costsDisclaimer: string
+      domain: string
+      server: string
+      totalPerYear: string
+      fundedUntil: string
+      /** Use {date} as placeholder for the funded-until date */
+      fundedUntilDate: string
+      contributorsTitle: string
+      contributorsIntro: string
+      helpTitle: string
+      helpText: string
     }
   }
   directory: {
@@ -484,6 +518,8 @@ export type Translations = {
     clubCount: string
     /** Use {name}, {activity}, {location} as placeholders */
     clubAriaLabel: string
+    verifiedBadge: string
+    verifiedDetail: string
   }
   clubSite: {
     contactCta: string
@@ -503,6 +539,9 @@ export type Translations = {
     address: string
     photos: string
     goToPhoto: string
+    sharePrompt: string
+    shareButton: string
+    linkCopied: string
   }
   layout: {
     skipToContent: string
@@ -516,6 +555,11 @@ export type Translations = {
   }
   theme: { toggleTheme: string; light: string; dark: string; system: string }
   seo: {
+    homeDescription: string
+    searchDescription: string
+    aboutDescription: string
+    supportDescription: string
+    applyDescription: string
     clubsIn: string
     /** Use {country} as placeholder */
     countryDescription: string

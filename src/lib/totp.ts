@@ -12,7 +12,7 @@ export function generateTotpSecret(): string {
 /**
  * Build the otpauth:// URI for QR code encoding.
  */
-export function generateTotpUri(secret: string, email: string, issuer = 'Clashware'): string {
+export function generateTotpUri(secret: string, email: string, issuer = 'findyour.club'): string {
   return generateURI({ secret, label: email, issuer })
 }
 

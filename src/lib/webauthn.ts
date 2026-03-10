@@ -3,7 +3,7 @@ import { encrypt, decrypt } from '@/lib/crypto'
 export function getWebAuthnConfig() {
   return {
     rpID: process.env.WEBAUTHN_RP_ID ?? 'localhost',
-    rpName: process.env.WEBAUTHN_RP_NAME ?? 'Clashware',
+    rpName: process.env.WEBAUTHN_RP_NAME ?? 'findyour.club',
     origin: process.env.WEBAUTHN_ORIGIN ?? 'http://localhost:3000',
   }
 }

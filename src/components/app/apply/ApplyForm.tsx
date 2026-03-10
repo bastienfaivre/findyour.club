@@ -264,7 +264,7 @@ export function ApplyForm({ lang, t, activityTypes, countries }: Props) {
         </div>
       )}
 
-      {/* Association Name */}
+      {/* Club Name */}
       <div className="space-y-2">
         <Label htmlFor="name">{t.apply.fields.name}<RequiredMark /></Label>
         <Input

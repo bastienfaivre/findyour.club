@@ -21,7 +21,7 @@ describe('generateTotpUri()', () => {
     const secret = generateTotpSecret()
     const uri = generateTotpUri(secret, 'admin@example.com')
     expect(uri).toMatch(/^otpauth:\/\/totp\//)
-    expect(uri).toContain('Clashware')
+    expect(uri).toContain('findyour.club')
   })
 
   it('uses custom issuer when provided', () => {

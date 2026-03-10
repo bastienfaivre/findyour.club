@@ -3,6 +3,7 @@ import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { getAuthSession } from '@/server/auth'
 import { TotpForm } from '@/components/app/auth/TotpForm'
+import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 
 interface TotpChallengePageProps {
   params: Promise<{ lang: string }>
@@ -25,6 +26,7 @@ export default async function TotpChallengePage({ params }: TotpChallengePagePro
 
   return (
     <div className="flex-1 flex items-center justify-center p-4">
+      <AdminPageTitle title={t.auth.twoFactor} />
       <div className="max-w-md w-full space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-semibold">{t.auth.twoFactor}</h1>

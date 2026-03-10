@@ -20,7 +20,7 @@ vi.mock('@/server/db', () => ({
 vi.mock('@/lib/totp', () => ({
   verifyTotpCode: vi.fn(),
   generateTotpSecret: vi.fn(() => 'FAKESECRETBASE32'),
-  generateTotpUri: vi.fn(() => 'otpauth://totp/Clashware:test'),
+  generateTotpUri: vi.fn(() => 'otpauth://totp/findyour.club:test'),
   generateTotpCode: vi.fn(),
 }))
 vi.mock('@/lib/setup-cookie', () => ({

@@ -3,6 +3,7 @@ import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { prisma } from '@/server/db'
 import { ClubProfileForm } from '@/components/app/club-admin/ClubProfileForm'
+import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 
 interface ClubAdminPageProps {
   params: Promise<{ lang: string; clubId: string }>
@@ -40,6 +41,8 @@ export default async function ClubAdminPage({ params }: ClubAdminPageProps) {
   if (!club) notFound()
 
   return (
+    <>
+    <AdminPageTitle title={t.club.admin.clubProfile.title} />
     <ClubProfileForm
       clubId={clubId}
       translations={t.club.admin}
@@ -69,5 +72,6 @@ export default async function ClubAdminPage({ params }: ClubAdminPageProps) {
         photos: club.photos,
       }}
     />
+    </>
   )
 }

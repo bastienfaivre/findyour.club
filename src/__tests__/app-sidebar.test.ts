@@ -153,7 +153,7 @@ const defaultTranslations = {
   layout: {
     privacy: 'Privacy',
     terms: 'Terms',
-    copyright: '\u00a9 {year} Clashware',
+    copyright: '\u00a9 {year} findyour.club',
   },
   theme: { toggleTheme: 'Toggle theme', light: 'Light', dark: 'Dark', system: 'System' },
   auth: { accountSettings: 'Account Settings', logout: 'Logout' },

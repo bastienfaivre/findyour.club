@@ -205,7 +205,7 @@ describe('HomePage', () => {
     const result = await HomePage({ params: makeParams() })
     const text = findText(result)
     expect(findProps(result, 'prefix')).toBe('Find your')
-    // Stats bar shows "0" for both associations and countries counts
+    // Stats bar shows "0" for both clubs and countries counts
     expect(text).toContain('0Clubs')
     expect(text).toContain('0Countries')
   })

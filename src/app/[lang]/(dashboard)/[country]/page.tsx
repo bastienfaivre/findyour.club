@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const countryName = getCountryName(country, uiLang)
 
   return generateCategoryMetadata({
-    title: `${t.seo.clubsIn} ${countryName} — Clashware`,
+    title: `${t.seo.clubsIn} ${countryName}`,
     description: t.seo.countryDescription.replace('{country}', countryName),
     lang,
     country,
@@ -92,7 +92,7 @@ export default async function CountryLandingPage({ params }: Props) {
   ])
 
   const breadcrumbJsonLd = generateBreadcrumbJsonLd([
-    { name: 'Clashware', url: `${BASE_URL}/${lang}` },
+    { name: 'findyour.club', url: `${BASE_URL}/${lang}` },
     { name: countryName, url: `${BASE_URL}/${lang}/${country}` },
   ])
 

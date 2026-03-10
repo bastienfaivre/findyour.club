@@ -57,6 +57,12 @@ export function generatePlatformMetadata({
       url: alternates.canonical,
       type: 'website',
       locale: LOCALE_MAP[lang] ?? lang,
+      siteName: 'findyour.club',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: typeof title === 'string' ? title : 'findyour.club',
+      description,
     },
     alternates,
     robots: 'index, follow',
@@ -91,6 +97,12 @@ export function generateDirectoryMetadata({
       url: alternates.canonical,
       type: 'website',
       locale: LOCALE_MAP[lang] ?? lang,
+      siteName: 'findyour.club',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: typeof title === 'string' ? title : 'findyour.club',
+      description,
     },
     alternates,
     robots: 'index, follow',
@@ -142,7 +154,14 @@ export function generateClubMetadata({
       url: alternates.canonical,
       type: 'website',
       locale: LOCALE_MAP[lang] ?? lang,
+      siteName: 'findyour.club',
       ...(clubLogoUrl ? { images: [{ url: clubLogoUrl }] } : {}),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: typeof title === 'string' ? title : clubName,
+      description,
+      ...(clubLogoUrl ? { images: [clubLogoUrl] } : {}),
     },
     alternates,
     robots: 'index, follow',
@@ -182,6 +201,12 @@ export function generateCategoryMetadata({
       url: alternates.canonical,
       type: 'website',
       locale: LOCALE_MAP[lang] ?? lang,
+      siteName: 'findyour.club',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: typeof title === 'string' ? title : 'findyour.club',
+      description,
     },
     alternates,
     robots: 'index, follow',
@@ -276,7 +301,7 @@ export function generateWebSiteJsonLd(lang: string): Record<string, unknown> {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'Clashware',
+    name: 'findyour.club',
     url: `${BASE_URL}/${lang}`,
     potentialAction: {
       '@type': 'SearchAction',
@@ -296,9 +321,9 @@ export function generatePlatformOrgJsonLd(): Record<string, unknown> {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Clashware',
+    name: 'findyour.club',
     url: BASE_URL,
-    description: 'Find your club — the open directory for sports clubs and associations.',
+    description: 'Find your club — the open directory for sports clubs.',
   }
 }
 

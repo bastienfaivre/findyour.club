@@ -100,10 +100,14 @@ export function AppSidebar({
 
   return (
     <Sidebar>
-      <SidebarHeader className="h-14 flex-row items-center border-b border-sidebar-border px-4">
+      <SidebarHeader className="h-14 flex-row items-center justify-between border-b border-sidebar-border px-4">
         <Link href={basePath} className="text-sm font-bold truncate">
-          Clashware
+          findyour.club
         </Link>
+        <div className="flex items-center gap-1">
+          <ThemeToggle translations={t.theme} />
+          <LanguageSwitcher currentLang={lang} />
+        </div>
       </SidebarHeader>
       <SidebarContent>
         {/* Public navigation — always visible */}
@@ -240,6 +244,13 @@ export function AppSidebar({
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
                               <SidebarMenuSubItem>
+                                <SidebarMenuSubButton asChild isActive={isItemActive(pathname, `${clubPath}/promote`, false)}>
+                                  <Link href={`${clubPath}/promote`}>
+                                    <span>{t.club.sidebar.promote}</span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                              <SidebarMenuSubItem>
                                 <SidebarMenuSubButton asChild isActive={isItemActive(pathname, `${clubPath}/settings`, false)}>
                                   <Link href={`${clubPath}/settings`}>
                                     <span>{t.club.sidebar.settings}</span>
@@ -316,21 +327,13 @@ export function AppSidebar({
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <Link href={`/${lang}/privacy`} className="hover:text-foreground">{t.layout.privacy}</Link>
-            <Link href={`/${lang}/terms`} className="hover:text-foreground">{t.layout.terms}</Link>
-          </div>
-        </div>
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-muted-foreground">
-            {t.layout.copyright.replace('{year}', new Date().getFullYear().toString())}
-          </p>
-          <div className="flex items-center gap-1">
-            <ThemeToggle translations={t.theme} />
-            <LanguageSwitcher currentLang={lang} dropUp />
-          </div>
-        </div>
+        <p className="text-xs text-muted-foreground">
+          {t.layout.copyright.replace('{year}', new Date().getFullYear().toString())}
+          {' · '}
+          <Link href={`/${lang}/privacy`} className="hover:text-foreground">{t.layout.privacy}</Link>
+          {' · '}
+          <Link href={`/${lang}/terms`} className="hover:text-foreground">{t.layout.terms}</Link>
+        </p>
       </SidebarFooter>
     </Sidebar>
   )

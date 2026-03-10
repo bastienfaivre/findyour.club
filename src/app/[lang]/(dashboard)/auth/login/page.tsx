@@ -4,6 +4,7 @@ import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { LoginForm } from '@/components/app/auth/LoginForm'
 import { PasskeyButton } from '@/components/app/auth/PasskeyButton'
+import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 
 interface LoginPageProps {
   params: Promise<{ lang: string }>
@@ -27,6 +28,7 @@ export default async function LoginPage({ params, searchParams }: LoginPageProps
 
   return (
     <div className="flex-1 flex items-center justify-center p-4">
+      <AdminPageTitle title={t.auth.signIn} />
       <div className="max-w-md w-full space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-semibold">{t.auth.signIn}</h1>

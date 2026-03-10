@@ -418,7 +418,7 @@ describe('rejectApplication()', () => {
     expect(sendEmail).toHaveBeenCalledWith({
       to: 'admin@skiclub.ch',
       subject: 'Regarding your application for Ski Club Valais',
-      html: expect.stringContaining('non-profit associations'),
+      html: expect.stringContaining('non-profit clubs'),
     })
     expect(prisma.application.updateMany).toHaveBeenCalledWith({
       where: { id: 'app-1', status: 'PENDING' },
@@ -646,18 +646,18 @@ describe('buildRejectionEmailHtml()', () => {
     const { buildRejectionEmailHtml } = await import('@/lib/email-templates')
     const html = buildRejectionEmailHtml({
       clubName: 'Ski Club Valais',
-      rejectionReason: 'Not a registered association',
+      rejectionReason: 'Not a registered club',
     })
 
     expect(html).toContain('Ski Club Valais')
-    expect(html).toContain('Not a registered association')
+    expect(html).toContain('Not a registered club')
   })
 
   it('uses default explanation when no reason provided', async () => {
     const { buildRejectionEmailHtml } = await import('@/lib/email-templates')
     const html = buildRejectionEmailHtml({ clubName: 'Test Club' })
 
-    expect(html).toContain('non-profit associations')
+    expect(html).toContain('non-profit clubs')
     expect(html).toContain('real-world community activities')
   })
 

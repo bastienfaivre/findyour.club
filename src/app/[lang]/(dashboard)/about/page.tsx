@@ -3,6 +3,7 @@ import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { generatePlatformMetadata } from '@/components/app/seo/metadata'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
+import { YouTubeEmbed } from '@/components/app/YouTubeEmbed'
 
 type Props = {
   params: Promise<{ lang: string }>
@@ -14,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = getTranslations(uiLang)
   return generatePlatformMetadata({
     title: t.platform.about.title,
-    description: t.platform.philosophy,
+    description: t.seo.aboutDescription,
     path: `/${lang}/about`,
     lang,
   })
@@ -35,6 +36,9 @@ export default async function AboutPage({ params }: Props) {
         <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
           {t.platform.about.content}
         </p>
+        <div className="mt-8">
+          <YouTubeEmbed videoId="dQw4w9WgXcQ" title="About findyour.club" />
+        </div>
       </div>
     </div>
   )

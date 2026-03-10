@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
 import { countryCodeToFlag } from '@/lib/country'
 import { LocationTypeahead } from '@/components/app/admin/LocationTypeahead'
@@ -261,16 +262,14 @@ export function DirectoryFilters({
               <X className="size-3" />
             </Badge>
           )}
-          <a
-            href={`/${lang}/search`}
-            onClick={(e) => {
-              e.preventDefault()
-              resetFilters()
-            }}
-            className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
+          <Button
+            variant="link"
+            size="sm"
+            className="text-muted-foreground"
+            onClick={resetFilters}
           >
             {labels.resetFilters}
-          </a>
+          </Button>
         </div>
       )}
 

@@ -5,6 +5,7 @@ import { getTranslations } from '@/lib/i18n/translations'
 import { generatePlatformMetadata } from '@/components/app/seo/metadata'
 import { ClubCard, ClubCardSkeleton } from '@/components/app/directory/ClubCard'
 import { DirectoryFilters } from '@/components/app/directory/DirectoryFilters'
+import { VerifiedBadge } from '@/components/app/directory/VerifiedBadge'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 import { prisma } from '@/server/db'
 import {
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = getTranslations(uiLang)
   return generatePlatformMetadata({
     title: t.nav.search,
-    description: t.platform.philosophy,
+    description: t.seo.searchDescription,
     path: `/${lang}/search`,
     lang,
   })
@@ -143,9 +144,12 @@ export default async function SearchPage({ params, searchParams }: Props) {
         />
       </Suspense>
 
-      <p className="mt-4 text-sm text-muted-foreground">
-        {t.directory.clubCount.replace('{count}', String(clubs.length))}
-      </p>
+      <div className="mt-4 flex items-center justify-between gap-4">
+        <p className="text-sm text-muted-foreground">
+          {t.directory.clubCount.replace('{count}', String(clubs.length))}
+        </p>
+        <VerifiedBadge label={t.directory.verifiedBadge} detail={t.directory.verifiedDetail} />
+      </div>
 
       {clubs.length === 0 ? (
         <div className="mt-12 text-center">

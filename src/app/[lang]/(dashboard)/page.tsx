@@ -8,7 +8,7 @@ import {
 } from '@/components/app/seo/metadata'
 import { CountryButton } from '@/components/app/directory/CountryButton'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
-import { Card, CardContent } from '@/components/ui/card'
+import { SharePlatformButton } from '@/components/app/SharePlatformButton'
 import { RotatingWords } from '@/components/app/RotatingWords'
 import { prisma } from '@/server/db'
 import {
@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = getTranslations(uiLang)
   return generatePlatformMetadata({
     title: t.platform.headline,
-    description: t.platform.philosophy,
+    description: t.seo.homeDescription,
     path: `/${lang}`,
     lang,
   })
@@ -39,24 +39,15 @@ export default async function HomePage({ params }: Props) {
   const uiLang = resolveUILang(lang)
   const t = getTranslations(uiLang)
 
-  const [clubsByCountry, activityTypesCount] = await Promise.all([
-    prisma.club.groupBy({
-      by: ['country'],
-      where: { status: 'ACTIVE', isPublished: true, forceOffline: false },
-      _count: { id: true },
-    }),
-    prisma.club.groupBy({
-      by: ['activityType'],
-      where: { status: 'ACTIVE', isPublished: true, forceOffline: false, activityType: { not: null } },
-    }),
-  ])
+  const clubsByCountry = await prisma.club.groupBy({
+    by: ['country'],
+    where: { status: 'ACTIVE', isPublished: true, forceOffline: false },
+    _count: { id: true },
+  })
 
   const countryClubCounts = new Map(
     clubsByCountry.map((g) => [g.country, g._count.id])
   )
-
-  const totalClubs = clubsByCountry.reduce((sum, g) => sum + g._count.id, 0)
-  const totalCountries = clubsByCountry.length
 
   const countries = SUPPORTED_COUNTRIES.map((code) => ({
     code,
@@ -95,29 +86,18 @@ export default async function HomePage({ params }: Props) {
           <p className="mt-4 text-base text-muted-foreground">
             {t.platform.tagline}
           </p>
-          <p className="mt-1 text-base font-medium text-foreground">
-            {t.platform.philosophy}
-          </p>
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="mx-auto grid max-w-xl grid-cols-3 gap-2 sm:gap-4">
-        {[
-          { value: totalClubs, label: t.platform.associations },
-          { value: totalCountries, label: t.platform.countriesLabel },
-          { value: activityTypesCount.length, label: t.platform.activityTypes },
-        ].map((stat) => (
-          <Card key={stat.label}>
-            <CardContent className="flex flex-col items-center gap-1 py-0">
-              <span className="text-2xl font-extrabold">{stat.value}</span>
-              <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                {stat.label}
-              </span>
-            </CardContent>
-          </Card>
-        ))}
-      </section>
+      {/* Bootstrap message */}
+      <div className="mx-auto max-w-lg rounded-lg border border-green-200 bg-green-50 p-5 text-center dark:border-green-900 dark:bg-green-950/30">
+        <p className="text-sm font-medium text-green-800 dark:text-green-300">
+          {t.platform.bootstrapMessage}
+        </p>
+        <div className="mt-3">
+          <SharePlatformButton label={t.platform.bootstrapShare} copiedMessage={t.clubSite.linkCopied} />
+        </div>
+      </div>
 
       {/* Countries */}
       <section className="py-8 sm:py-16 lg:py-24 text-center">
@@ -155,6 +135,10 @@ export default async function HomePage({ params }: Props) {
             />
           ))}
         </div>
+
+        <p className="mt-8 text-sm text-muted-foreground">
+          {t.platform.trustLine}
+        </p>
       </section>
     </>
   )

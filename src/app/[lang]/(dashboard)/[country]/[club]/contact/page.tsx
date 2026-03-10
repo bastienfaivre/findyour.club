@@ -6,6 +6,7 @@ import { isValidCountry } from '@/lib/country'
 import { getClubPublicData } from '@/lib/server/club-queries'
 import { generateClubMetadata } from '@/components/app/seo/metadata'
 import { ACCENT_COLORS } from '@/components/app/club-site/accent-colors'
+import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 
 type Props = {
   params: Promise<{ lang: string; country: string; club: string }>
@@ -58,6 +59,7 @@ export default async function ContactPage({ params }: Props) {
         '--primary-foreground': accentColor.primaryForeground,
       } as React.CSSProperties}
     >
+      <AdminPageTitle title={`${club.name} — ${t.clubSite.contact}`} backHref={`/${lang}/${country}/${slug}`} />
       <h1 className="text-2xl font-bold mb-6">{t.clubSite.contact}</h1>
       <div className="rounded-lg border bg-card p-6 text-card-foreground">
         <p className="text-muted-foreground">

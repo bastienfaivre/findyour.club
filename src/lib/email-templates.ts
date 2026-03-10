@@ -58,7 +58,7 @@ interface RejectionEmailParams {
 export function buildRejectionEmailHtml({ clubName, rejectionReason }: RejectionEmailParams): string {
   const explanation = rejectionReason
     ? escapeHtml(rejectionReason)
-    : 'After careful review, we were unable to approve your application at this time. Our platform focuses on non-profit associations engaged in real-world community activities.'
+    : 'After careful review, we were unable to approve your application at this time. Our platform focuses on non-profit clubs engaged in real-world community activities.'
 
   return `<!DOCTYPE html>
 <html>

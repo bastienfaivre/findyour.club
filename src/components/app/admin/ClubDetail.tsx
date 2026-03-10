@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import Image from 'next/image'
-import { Loader2, Pencil, Eye, X } from 'lucide-react'
+import { Loader2, Pencil, Eye, X, Download } from 'lucide-react'
 import type { Translations } from '@/lib/i18n/translations/types'
 import { extractClubEditableFields } from '@/lib/schemas/club'
 import type { ClubEditableFields } from '@/lib/schemas/club'
@@ -287,6 +287,27 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
           ) : (
             <ForceOfflineDialog clubId={club.id} clubName={club.name} clubs={tc} common={t.common} />
           )}
+        </div>
+      </section>
+
+      <Separator />
+
+      {/* Promote */}
+      <section className="space-y-3">
+        <h3 className="text-sm font-medium">{t.club.admin.promote.title}</h3>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" size="sm">
+            <a href={`/api/club/${club.id}/badge`} download="badge.png">
+              <Download className="mr-2 h-4 w-4" />
+              {t.club.admin.promote.badge}
+            </a>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <a href={`/api/club/${club.id}/qr-card`} download="qr-card.png">
+              <Download className="mr-2 h-4 w-4" />
+              {t.club.admin.promote.qrCard}
+            </a>
+          </Button>
         </div>
       </section>
 

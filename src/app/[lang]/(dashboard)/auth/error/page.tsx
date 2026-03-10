@@ -1,13 +1,14 @@
 import Link from 'next/link'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
+import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 
 interface AuthErrorPageProps {
   params: Promise<{ lang: string }>
   searchParams: Promise<{ error?: string }>
 }
 
-const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL ?? 'support@clashware.io'
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL ?? 'contact@findyour.club'
 
 export default async function AuthErrorPage({ params, searchParams }: AuthErrorPageProps) {
   const { lang } = await params
@@ -28,6 +29,7 @@ export default async function AuthErrorPage({ params, searchParams }: AuthErrorP
 
   return (
     <div className="flex-1 flex items-center justify-center p-4">
+      <AdminPageTitle title={t.auth.errorTitle} />
       <div className="max-w-md w-full text-center space-y-4">
         <h1 className="text-2xl font-semibold">{t.auth.errorTitle}</h1>
         <p className="text-muted-foreground">{message}</p>
