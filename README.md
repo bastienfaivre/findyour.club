@@ -1,8 +1,8 @@
-# Clashware — Website Template
+# findyour.club
 
-Multi-tenant club website platform. Each club gets a public site at `localhost:3000/{country}/{club-slug}`. The platform directory lives at the root (`localhost:3000`).
+Multi-tenant club website platform. Each club gets a public site at `/{lang}/{country}/{club-slug}`. The platform directory lives at the root (`/{lang}`).
 
-**Stack:** Next.js 16 · TypeScript · Tailwind CSS v4 · Prisma v7 · PostgreSQL 16 · Auth.js v4 · shadcn/ui · pnpm
+**Stack:** Next.js 16 · React 19 · TypeScript · Tailwind CSS v4 · Prisma 7 · PostgreSQL 16 · Auth.js v4 · shadcn/ui · Vitest · pnpm
 
 ---
 
@@ -45,20 +45,33 @@ The app is now available at:
 
 | Surface | URL |
 |---|---|
-| Platform directory | http://localhost:3000 |
-| Club site | http://localhost:3000/{country}/{club-slug} |
-| Operator dashboard | http://localhost:3000/admin |
+| Platform home | http://localhost:3000/en |
+| Country directory | http://localhost:3000/en/ch |
+| Club site | http://localhost:3000/en/ch/{club-slug} |
+| Club admin dashboard | http://localhost:3000/en/club/{clubId} |
+| Operator dashboard | http://localhost:3000/en/admin |
 | MinIO console | http://localhost:9001 |
 | Mailpit inbox | http://localhost:8025 |
 
 ### URL routing
 
-Country and club are resolved from URL path segments — no subdomain configuration required:
+Language, country, and club are resolved from URL path segments — no subdomain configuration required:
 
 ```
-localhost:3000/ch/ski-club-valais  →  country=ch, club=ski-club-valais
-localhost:3000                     →  platform directory
-localhost:3000/admin               →  operator dashboard
+/en/ch/ski-club-valais           → lang=en, country=ch, club=ski-club-valais
+/fr/ch                           → lang=fr, country directory (Switzerland)
+/en                              → platform home
+/en/admin                        → operator dashboard
+/en/club/{clubId}                → club admin dashboard
+```
+
+---
+
+## Testing
+
+```bash
+pnpm test            # Run tests once
+pnpm test:watch      # Run tests in watch mode
 ```
 
 ---
@@ -67,7 +80,7 @@ localhost:3000/admin               →  operator dashboard
 
 ```bash
 # Build the standalone Docker image
-docker build -t website-template:latest .
+docker build -t findyour-club:latest .
 
 # Start the full prod stack (PostgreSQL + Next.js + Nginx + Certbot)
 docker compose -f docker-compose.prod.yml up -d
@@ -79,13 +92,13 @@ Requires `.env.production` with real credentials (see `.env.example` for all var
 
 ## CI/CD
 
-GitHub Actions runs on every push to `main`:
+GitHub Actions runs on every push/PR to `main`:
 
 ```
 lint → typecheck → audit → build
 ```
 
-Each stage must pass before the next runs.
+Each stage must pass before the next runs. See [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 ---
 
@@ -94,17 +107,52 @@ Each stage must pass before the next runs.
 ```
 src/
   app/
-    (platform)/     # Platform routes — localhost:3000/
-    (country)/      # Club routes    — localhost:3000/{country}/{club-slug}
-    admin/          # Operator dashboard (Story 1.5+)
-    api/            # API routes
+    [lang]/
+      (dashboard)/
+        [country]/        # Country directory + club pages
+        club/[clubId]/    # Club admin dashboard (settings, messages, promote)
+        admin/            # Operator dashboard (applications, clubs, messages)
+        auth/             # Authentication (login, TOTP, passkey, setup)
+        account/          # Account settings (password, 2FA)
+        search/           # Club search
+        apply/            # Club application form
+        about/            # About page
+        support/          # Support page
+    api/
+      auth/               # NextAuth + passkey endpoints
+      club/[clubId]/      # QR card, badge, export
+      locations/          # Location search
   server/
-    db.ts           # Prisma client singleton (only instantiation point)
-    auth.ts         # Auth.js config + getAuthSession() wrapper
+    db.ts                 # Prisma client singleton + multi-tenant middleware
+    auth.ts               # Auth.js config + session helpers
   lib/
-    country.ts      # Country code validation (URL path param)
-    schemas/        # Zod schemas per domain
+    i18n/                 # Translations (EN, FR, DE, IT)
+    server/               # Server-side query functions
+    schemas/              # Zod validation schemas
+    email.ts              # Email (Resend / SMTP)
+    r2.ts                 # R2/S3 storage client
+    crypto.ts             # AES-256-GCM encryption
+    og-image.tsx          # Dynamic OG image generation
   components/
-    ui/             # shadcn/ui components (managed by shadcn CLI — do not edit)
-    app/            # Product components
+    ui/                   # shadcn/ui components (managed by CLI — do not edit)
+    app/                  # Product components
+  hooks/                  # Custom React hooks
+  types/                  # TypeScript type extensions
+  __tests__/              # Unit tests (Vitest)
+prisma/
+  schema.prisma           # Data model
+  seed.ts                 # Development seed data
 ```
+
+---
+
+## Key Features
+
+- **Multi-tenant:** Each club gets isolated pages, members, settings, and analytics
+- **Multi-language:** EN, FR, DE, IT with server-side i18n
+- **Multi-country:** Switzerland fully supported; more countries planned
+- **Authentication:** Password + TOTP + Passkey (WebAuthn) via Auth.js
+- **Content management:** Rich text, image galleries, calendars, documents per club page
+- **Security:** AES-256 encrypted contact forms, Cloudflare Turnstile CAPTCHA, multi-tenant middleware, audit logging
+- **Storage:** Cloudflare R2 / S3-compatible (MinIO in dev)
+- **Email:** Resend (production) + SMTP (Mailpit in dev)

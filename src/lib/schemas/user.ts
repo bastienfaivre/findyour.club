@@ -31,8 +31,3 @@ export const changePasswordSchema = z.object({
   message: 'Passwords do not match',
   path: ['confirmPassword'],
 })
-
-export type LoginInput = z.infer<typeof loginSchema>
-export type SetupPasswordInput = z.infer<typeof setupPasswordSchema>
-export type TotpVerifyInput = z.infer<typeof totpVerifySchema>
-export type ChangePasswordInput = z.infer<typeof changePasswordSchema>
