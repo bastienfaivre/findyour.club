@@ -40,7 +40,7 @@ export default async function RootLayout({
       <body className="antialiased" suppressHydrationWarning>
         <ThemeProvider>
           {children}
-          <Toaster position="bottom-right" duration={3000} />
+          <Toaster position="bottom-right" duration={3000} containerAriaLabel="Notifications" />
         </ThemeProvider>
       </body>
     </html>

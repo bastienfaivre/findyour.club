@@ -18,6 +18,8 @@ import { ACCENT_COLORS } from '@/components/app/club-site/accent-colors'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 import { CategoryLanding } from '@/components/app/seo/CategoryLanding'
 import { SharePrompt } from '@/components/app/club-site/SharePrompt'
+import Link from 'next/link'
+import { ChevronRight } from 'lucide-react'
 
 type Props = {
   params: Promise<{ lang: string; country: string; club: string }>
@@ -161,6 +163,13 @@ export default async function ClubPage({ params }: Props) {
       } as React.CSSProperties}
     >
       <AdminPageTitle title={club.name} backHref={`/${lang}/search?country=${country}`} />
+      <nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Link href={`/${lang}`} className="hover:underline">{t.nav.home}</Link>
+        <ChevronRight className="size-3" />
+        <Link href={`/${lang}/${country}`} className="hover:underline">{countryName}</Link>
+        <ChevronRight className="size-3" />
+        <span className="text-foreground">{club.name}</span>
+      </nav>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Send } from 'lucide-react'
+import { Send, MessageSquare } from 'lucide-react'
 
 export type ChatMessage = {
   id: string
@@ -82,9 +82,12 @@ export function ChatThread({ messages, sendAction, isOperator, translations: t }
   return (
     <div className="flex flex-col h-full min-h-0">
       {/* Messages area */}
-      <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
+      <div ref={scrollRef} role="log" aria-live="polite" className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
         {messages.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-8">{t.empty}</p>
+          <div className="flex flex-col items-center justify-center text-muted-foreground text-center py-8">
+            <MessageSquare className="size-8 mb-2 opacity-50" />
+            <p className="text-sm">{t.empty}</p>
+          </div>
         )}
         {messages.map((msg) => {
           const self = isSelf(msg)

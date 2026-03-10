@@ -4,6 +4,17 @@ import { useRouter } from 'next/navigation'
 import { startRegistration } from '@simplewebauthn/browser'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { deletePasskey } from '@/app/[lang]/(dashboard)/account/passkey/actions'
 import type { WebauthnCredential } from '@/generated/prisma/client'
 
@@ -25,9 +36,10 @@ interface ManagePasskeysSectionProps {
   passkeys: Pick<WebauthnCredential, 'credentialId' | 'deviceType' | 'createdAt'>[]
   lang: string
   t: ManagePasskeysSectionT
+  commonT: { confirm: string; cancel: string }
 }
 
-export function ManagePasskeysSection({ passkeys, lang, t }: ManagePasskeysSectionProps) {
+export function ManagePasskeysSection({ passkeys, lang, t, commonT }: ManagePasskeysSectionProps) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [isAdding, setIsAdding] = useState(false)
@@ -65,9 +77,7 @@ export function ManagePasskeysSection({ passkeys, lang, t }: ManagePasskeysSecti
   }
 
   function handleRemove(credentialId: string) {
-    if (!confirm(t.passkeyConfirmRemove)) return
     setError(null)
-
     startTransition(async () => {
       const result = await deletePasskey(credentialId)
       if (!result.success) {
@@ -98,14 +108,29 @@ export function ManagePasskeysSection({ passkeys, lang, t }: ManagePasskeysSecti
                   {t.passkeyAdded.replace('{date}', new Date(pk.createdAt).toLocaleDateString(lang))}
                 </span>
               </div>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => handleRemove(pk.credentialId)}
-                disabled={isPending}
-              >
-                {t.remove}
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    disabled={isPending}
+                  >
+                    {t.remove}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t.remove}</AlertDialogTitle>
+                    <AlertDialogDescription>{t.passkeyConfirmRemove}</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{commonT.cancel}</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => handleRemove(pk.credentialId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      {commonT.confirm}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </li>
           ))}
         </ul>

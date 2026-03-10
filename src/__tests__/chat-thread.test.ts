@@ -49,6 +49,11 @@ vi.mock('lucide-react', () => ({
     props: { className },
     key: null,
   })),
+  MessageSquare: vi.fn(({ className }: { className?: string }) => ({
+    type: 'MessageSquare',
+    props: { className },
+    key: null,
+  })),
 }))
 
 import { ChatThread } from '@/components/app/messaging/ChatThread'

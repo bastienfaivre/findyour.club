@@ -109,6 +109,10 @@ export default async function AdminMessagesPage({ params }: AdminMessagesPagePro
         translations={{
           admin: t.admin.messages,
           chat: t.club.admin.messages,
+          searchPlaceholder: t.admin.searchPlaceholder,
+          showingCount: t.admin.showingCount,
+          showMore: t.admin.showMore,
+          noResults: t.directory.noResults,
         }}
       />
     </div>

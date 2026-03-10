@@ -9,6 +9,7 @@ import {
 } from '@/components/app/seo/metadata'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 import { ClubCard } from '@/components/app/directory/ClubCard'
+import { PaginatedGrid } from '@/components/app/directory/PaginatedGrid'
 import { prisma } from '@/server/db'
 
 type CategoryLandingProps = {
@@ -241,7 +242,10 @@ export async function CategoryLanding({
             </p>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <PaginatedGrid
+            showingLabel={t.admin.showingCount}
+            showMoreLabel={t.admin.showMore}
+          >
             {clubs.map((club) => {
               const actName = club.activityType
                 ? (t.activityTypes[club.activityType] ?? club.activityType)
@@ -266,7 +270,7 @@ export async function CategoryLanding({
                 />
               )
             })}
-          </div>
+          </PaginatedGrid>
         )}
       </section>
     </div>

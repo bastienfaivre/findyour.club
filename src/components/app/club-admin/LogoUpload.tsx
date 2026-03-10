@@ -7,6 +7,17 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_SIZE_BYTES } from '@/lib/r2'
 import type { Translations } from '@/lib/i18n/translations/types'
 
@@ -141,16 +152,29 @@ export function LogoUpload({ clubId, logoUrl, logoAlt, translations: t, actions 
               {uploading ? t.uploading : t.change}
             </Button>
             {logoUrl && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleDelete}
-                disabled={isLoading}
-                className="min-h-[44px] min-w-[44px] text-destructive"
-              >
-                {t.remove}
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isLoading}
+                    className="min-h-[44px] min-w-[44px] text-destructive"
+                  >
+                    {t.remove}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t.remove}</AlertDialogTitle>
+                    <AlertDialogDescription>{t.remove}?</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel />
+                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90" />
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
           <input

@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import { List, MessageSquare } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { List, MessageSquare, Inbox, Search, SearchX } from 'lucide-react'
 import { ChatThread, type ChatMessage } from '@/components/app/messaging/ChatThread'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { useAdminSelection } from '@/components/app/AdminSelectionContext'
 import { cn } from '@/lib/utils'
@@ -26,12 +28,27 @@ interface ConversationQueueProps {
   translations: {
     admin: Translations['admin']['messages']
     chat: Translations['club']['admin']['messages']
+    searchPlaceholder: string
+    showingCount: string
+    showMore: string
+    noResults: string
   }
 }
 
 export function ConversationQueue({ conversations, sendAction, markReadAction, locale, translations: t }: ConversationQueueProps) {
   const { selectedConversationId: selectedClubId, setSelectedConversationId: setSelectedClubId } = useAdminSelection()
   const [activeTab, setActiveTab] = useState<'list' | 'detail'>(selectedClubId ? 'detail' : 'list')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [pageSize, setPageSize] = useState(20)
+
+  const filteredConversations = useMemo(() => {
+    const query = searchQuery.toLowerCase().trim()
+    if (!query) return conversations
+    return conversations.filter((c) => c.clubName.toLowerCase().includes(query))
+  }, [conversations, searchQuery])
+
+  const paginatedConversations = filteredConversations.slice(0, pageSize)
+  const hasMore = filteredConversations.length > pageSize
 
   const selected = conversations.find((c) => c.clubId === selectedClubId)
 
@@ -49,13 +66,46 @@ export function ConversationQueue({ conversations, sendAction, markReadAction, l
   }
 
   const listBlock = (
-    <ConversationList conversations={conversations} selectedId={selectedClubId} onSelect={handleSelect} noConversations={t.admin.noConversations} locale={locale} />
+    <div className="space-y-3">
+      {conversations.length > 0 && (
+        <div className="relative">
+          <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setPageSize(20) }}
+            placeholder={t.searchPlaceholder}
+            className="pl-9"
+          />
+        </div>
+      )}
+      <ConversationList
+        conversations={paginatedConversations}
+        selectedId={selectedClubId}
+        onSelect={handleSelect}
+        noConversations={searchQuery ? t.noResults : t.admin.noConversations}
+        noResultsIcon={!!searchQuery}
+        locale={locale}
+      />
+      {filteredConversations.length > 0 && (
+        <div className="flex flex-col items-center gap-2 pt-2">
+          {hasMore && (
+            <Button variant="outline" className="w-full" onClick={() => setPageSize((s) => s + 20)}>
+              {t.showMore}
+            </Button>
+          )}
+          <p className="text-xs text-muted-foreground">
+            {t.showingCount.replace('{shown}', String(paginatedConversations.length)).replace('{total}', String(filteredConversations.length))}
+          </p>
+        </div>
+      )}
+    </div>
   )
 
   const detailBlock = selected ? (
     <ChatThread messages={selected.messages} sendAction={handleSend} isOperator translations={t.chat} />
   ) : (
-    <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
+    <div className="flex flex-col items-center justify-center h-48 text-sm text-muted-foreground">
+      <MessageSquare className="size-8 mb-2 opacity-40" />
       {t.admin.selectConversation}
     </div>
   )
@@ -100,16 +150,24 @@ function ConversationList({
   selectedId,
   onSelect,
   noConversations,
+  noResultsIcon,
   locale,
 }: {
   conversations: ConversationEntry[]
   selectedId: string | null
   onSelect: (id: string) => void
   noConversations: string
+  noResultsIcon?: boolean
   locale: string
 }) {
   if (conversations.length === 0) {
-    return <p className="text-sm text-muted-foreground py-4">{noConversations}</p>
+    const Icon = noResultsIcon ? SearchX : Inbox
+    return (
+      <div className="flex flex-col items-center py-8 text-muted-foreground">
+        <Icon className="size-8 mb-2 opacity-50" />
+        <p className="text-sm">{noConversations}</p>
+      </div>
+    )
   }
 
   return (

@@ -129,6 +129,12 @@ export default async function DashboardLayout({ children, params }: DashboardLay
       <AdminDirtyProvider>
         <PageTitleProvider>
           <SidebarProvider>
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:text-sm focus:font-medium focus:shadow-lg"
+            >
+              {t.layout.skipToContent}
+            </a>
             <AppSidebar
               lang={lang}
               isAuthenticated={isAuthenticated}
@@ -151,7 +157,7 @@ export default async function DashboardLayout({ children, params }: DashboardLay
               <Separator orientation="vertical" className="mr-2 !h-4" />
               <PageTitleDisplay />
             </header>
-            <div className="flex-1 flex flex-col overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <div id="main-content" className="flex-1 flex flex-col overflow-y-auto p-4 sm:p-6 lg:p-8">
               {children}
             </div>
           </SidebarInset>

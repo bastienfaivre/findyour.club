@@ -64,7 +64,7 @@ export default async function AccountPage({ params }: AccountPageProps) {
           removing: t.auth.form.removing,
           disable2fa: t.auth.form.disable2fa,
           totpConfirmDisable: t.auth.form.totpConfirmDisable,
-        }} />
+        }} commonT={{ confirm: t.common.confirm, cancel: t.common.cancel }} />
       </section>
 
       <section className="space-y-4">
@@ -82,7 +82,7 @@ export default async function AccountPage({ params }: AccountPageProps) {
           passkeyStartFailed: t.auth.form.passkeyStartFailed,
           passkeyCompleteFailed: t.auth.form.passkeyCompleteFailed,
           passkeyRegistrationFailed: t.auth.form.passkeyRegistrationFailed,
-        }} />
+        }} commonT={{ confirm: t.common.confirm, cancel: t.common.cancel }} />
       </section>
 
       <DeleteAccountSection lang={lang} t={t.auth.deleteAccount} />

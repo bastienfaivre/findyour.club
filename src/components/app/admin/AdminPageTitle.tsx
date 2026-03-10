@@ -39,15 +39,14 @@ export function AdminPageTitle({ title, backHref }: { title: string; backHref?: 
 
 export function PageTitleDisplay() {
   const { state: { title, backHref } } = usePageTitle()
-  if (!title) return null
   return (
-    <span className="flex items-center gap-2 min-w-0">
-      {backHref && (
+    <span className="flex items-center gap-2 min-w-0" aria-live="polite" aria-atomic="true">
+      {title && backHref && (
         <Link href={backHref} className="shrink-0 text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" />
         </Link>
       )}
-      <span className="text-sm font-medium truncate">{title}</span>
+      {title && <span className="text-sm font-medium truncate">{title}</span>}
     </span>
   )
 }

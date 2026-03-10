@@ -10,9 +10,11 @@ import {
 } from '@/components/app/seo/metadata'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 import { ClubCard } from '@/components/app/directory/ClubCard'
+import { PaginatedGrid } from '@/components/app/directory/PaginatedGrid'
 import { prisma } from '@/server/db'
 import { ACTIVITY_TYPES } from '@/lib/activity-types'
 import Link from 'next/link'
+import { ChevronRight } from 'lucide-react'
 
 type Props = {
   params: Promise<{ lang: string; country: string }>
@@ -101,6 +103,11 @@ export default async function CountryLandingPage({ params }: Props) {
   return (
     <div>
       <AdminPageTitle title={`${t.seo.clubsIn} ${countryName}`} />
+      <nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Link href={`/${lang}`} className="hover:underline">{t.nav.home}</Link>
+        <ChevronRight className="size-3" />
+        <span className="text-foreground">{countryName}</span>
+      </nav>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c') }}
@@ -153,7 +160,10 @@ export default async function CountryLandingPage({ params }: Props) {
         <h2 className="text-lg font-semibold mb-3">
           {t.directory.clubCount.replace('{count}', String(clubs.length))}
         </h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <PaginatedGrid
+          showingLabel={t.admin.showingCount}
+          showMoreLabel={t.admin.showMore}
+        >
           {clubs.map((club) => {
             const activityName = club.activityType
               ? (t.activityTypes[club.activityType] ?? club.activityType)
@@ -178,7 +188,7 @@ export default async function CountryLandingPage({ params }: Props) {
               />
             )
           })}
-        </div>
+        </PaginatedGrid>
       </section>
     </div>
   )

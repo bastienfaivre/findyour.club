@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { List, FileSearch, X } from 'lucide-react'
+import { List, FileSearch, X, Building2 as Building2Icon, SearchX, Search } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import type { Translations } from '@/lib/i18n/translations/types'
 import { useAdminSelection } from '@/components/app/AdminSelectionContext'
 import { ClubDetail } from './ClubDetail'
@@ -67,9 +69,12 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
   const [filterCountry, setFilterCountry] = useState<string>(ALL)
   const [filterActivity, setFilterActivity] = useState<string>(ALL)
   const [filterStatus, setFilterStatus] = useState<StatusFilter>(ALL)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [pageSize, setPageSize] = useState(20)
 
-  // Apply client-side filters
+  // Apply client-side filters + text search
   const filteredClubs = useMemo(() => {
+    const query = searchQuery.toLowerCase().trim()
     return clubs.filter((club) => {
       if (filterCountry !== ALL && club.country !== filterCountry) return false
       if (filterActivity !== ALL && club.activityType !== filterActivity) return false
@@ -78,9 +83,13 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
         if (filterStatus === 'online' && (!club.isPublished || club.forceOffline)) return false
         if (filterStatus === 'offline' && (club.isPublished || club.forceOffline)) return false
       }
+      if (query && !club.name.toLowerCase().includes(query)) return false
       return true
     })
-  }, [clubs, filterCountry, filterActivity, filterStatus])
+  }, [clubs, filterCountry, filterActivity, filterStatus, searchQuery])
+
+  const paginatedClubs = filteredClubs.slice(0, pageSize)
+  const hasMore = filteredClubs.length > pageSize
 
   const selectedClub = filteredClubs.find((c) => c.id === selectedId) ?? null
 
@@ -98,7 +107,7 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
     return activityTypes.filter((at) => slugs.has(at.slug))
   }, [clubs, activityTypes])
 
-  const hasFilters = filterCountry !== ALL || filterActivity !== ALL || filterStatus !== ALL
+  const hasFilters = filterCountry !== ALL || filterActivity !== ALL || filterStatus !== ALL || searchQuery !== ''
 
   const handleSelect = (id: string) => {
     setSelectedId(id)
@@ -109,7 +118,12 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
   const td = t.directory
 
   if (clubs.length === 0) {
-    return <p className="text-muted-foreground">{tc.noClubs}</p>
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+        <Building2Icon className="size-10 mb-3 opacity-50" />
+        <p>{tc.noClubs}</p>
+      </div>
+    )
   }
 
   const activeCountryLabel = availableCountries.find((c) => c.code === filterCountry)?.label
@@ -120,6 +134,15 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
 
   const filtersBlock = (
     <div className="space-y-3 mb-4">
+      <div className="relative">
+        <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+        <Input
+          value={searchQuery}
+          onChange={(e) => { setSearchQuery(e.target.value); setPageSize(20) }}
+          placeholder={t.admin.searchPlaceholder}
+          className="pl-9"
+        />
+      </div>
       <div className="flex flex-wrap gap-2">
         <Select value={filterCountry} onValueChange={setFilterCountry}>
           <SelectTrigger aria-label={tc.country} className="w-auto min-w-[140px]">
@@ -203,7 +226,7 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
           )}
           <button
             type="button"
-            onClick={() => { setFilterCountry(ALL); setFilterActivity(ALL); setFilterStatus(ALL) }}
+            onClick={() => { setFilterCountry(ALL); setFilterActivity(ALL); setFilterStatus(ALL); setSearchQuery('') }}
             className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
           >
             {td.resetFilters}
@@ -216,40 +239,55 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
   const listBlock = (
     <div className="space-y-2">
       {filteredClubs.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-4">{td.noResults}</p>
+        <div className="flex flex-col items-center py-8 text-muted-foreground">
+          <SearchX className="size-8 mb-2 opacity-50" />
+          <p className="text-sm">{td.noResults}</p>
+        </div>
       ) : (
-        filteredClubs.map((club) => {
-          const activityLabel = club.activityType
-            ? (t.activityTypes[club.activityType] ?? club.activityType)
-            : null
+        <>
+          {paginatedClubs.map((club) => {
+            const activityLabel = club.activityType
+              ? (t.activityTypes[club.activityType] ?? club.activityType)
+              : null
 
-          return (
-            <button
-              key={club.id}
-              type="button"
-              onClick={() => handleSelect(club.id)}
-              className={cn(
-                'w-full text-left rounded-lg border p-3 transition-colors',
-                selectedId === club.id
-                  ? 'border-primary bg-accent'
-                  : 'hover:bg-muted/50'
-              )}
-            >
-              <p className="font-medium truncate">{club.name}</p>
-              <div className="flex flex-wrap items-center gap-2 mt-1">
-                {activityLabel && (
-                  <Badge variant="secondary" className="text-xs">{activityLabel}</Badge>
+            return (
+              <button
+                key={club.id}
+                type="button"
+                onClick={() => handleSelect(club.id)}
+                className={cn(
+                  'w-full text-left rounded-lg border p-3 transition-colors',
+                  selectedId === club.id
+                    ? 'border-primary bg-accent'
+                    : 'hover:bg-muted/50'
                 )}
-                <span className="text-xs text-muted-foreground">{club.country.toUpperCase()}</span>
-                {club.isPublished && !club.forceOffline ? (
-                  <Badge variant="success" className="ml-auto text-xs">{tc.online}</Badge>
-                ) : (
-                  <Badge variant="destructive" className="ml-auto text-xs">{tc.offline}</Badge>
-                )}
-              </div>
-            </button>
-          )
-        })
+              >
+                <p className="font-medium truncate">{club.name}</p>
+                <div className="flex flex-wrap items-center gap-2 mt-1">
+                  {activityLabel && (
+                    <Badge variant="secondary" className="text-xs">{activityLabel}</Badge>
+                  )}
+                  <span className="text-xs text-muted-foreground">{club.country.toUpperCase()}</span>
+                  {club.isPublished && !club.forceOffline ? (
+                    <Badge variant="success" className="ml-auto text-xs">{tc.online}</Badge>
+                  ) : (
+                    <Badge variant="destructive" className="ml-auto text-xs">{tc.offline}</Badge>
+                  )}
+                </div>
+              </button>
+            )
+          })}
+          <div className="flex flex-col items-center gap-2 pt-4">
+            {hasMore && (
+              <Button variant="outline" className="w-full" onClick={() => setPageSize((s) => s + 20)}>
+                {t.admin.showMore}
+              </Button>
+            )}
+            <p className="text-xs text-muted-foreground">
+              {t.admin.showingCount.replace('{shown}', String(paginatedClubs.length)).replace('{total}', String(filteredClubs.length))}
+            </p>
+          </div>
+        </>
       )}
     </div>
   )
@@ -264,7 +302,8 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
       locale={locale}
     />
   ) : (
-    <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
+    <div className="flex flex-col items-center justify-center h-48 text-sm text-muted-foreground">
+      <FileSearch className="size-8 mb-2 opacity-40" />
       {tc.selectClub}
     </div>
   )

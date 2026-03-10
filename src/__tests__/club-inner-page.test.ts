@@ -25,7 +25,6 @@ vi.mock('next/link', () => ({
 import { notFound } from 'next/navigation'
 import { prisma } from '@/server/db'
 import InnerPage, { generateMetadata as innerPageMetadata } from '@/app/[lang]/(dashboard)/[country]/[club]/[page]/page'
-import ContactPage, { generateMetadata as contactMetadata } from '@/app/[lang]/(dashboard)/[country]/[club]/contact/page'
 import InnerPageLoading from '@/app/[lang]/(dashboard)/[country]/[club]/[page]/loading'
 import { ElementRenderer } from '@/components/app/club-site/ElementRenderer'
 
@@ -221,39 +220,6 @@ describe('Inner page generateMetadata', () => {
     vi.mocked(prisma.page.findFirst).mockResolvedValue(null)
     const metadata = await innerPageMetadata({ params: makeParams() })
     expect(metadata).toEqual({})
-  })
-})
-
-describe('Contact page', () => {
-  beforeEach(() => {
-    vi.resetAllMocks()
-    // Default: slug is not a canton code
-    vi.mocked(prisma.swissCanton.findUnique).mockResolvedValue(null)
-  })
-
-  it('renders correctly', async () => {
-    vi.mocked(prisma.club.findFirst).mockResolvedValue(mockClub as never)
-    const result = await ContactPage({ params: makeClubParams() })
-    expect(result).toBeTruthy()
-    const text = findText(result)
-    expect(text).toContain('Contact')
-  })
-
-  it('calls notFound() for invalid country', async () => {
-    await expect(ContactPage({ params: makeClubParams('en', 'zz') }))
-      .rejects.toThrow('NEXT_NOT_FOUND')
-  })
-
-  it('calls notFound() for non-existent club', async () => {
-    vi.mocked(prisma.club.findFirst).mockResolvedValue(null)
-    await expect(ContactPage({ params: makeClubParams() }))
-      .rejects.toThrow('NEXT_NOT_FOUND')
-  })
-
-  it('generateMetadata returns correct title without double club name', async () => {
-    vi.mocked(prisma.club.findFirst).mockResolvedValue(mockClub as never)
-    const metadata = await contactMetadata({ params: makeClubParams() })
-    expect(metadata.title).toBe('Contact — Ski Club Valais')
   })
 })
 

@@ -114,6 +114,10 @@ export type Translations = {
     overviewTitle: string
     welcome: string
     welcomeMessage: string
+    searchPlaceholder: string
+    /** Use {shown} and {total} as placeholders */
+    showingCount: string
+    showMore: string
     applications: {
       title: string
       reviewTab: string
@@ -552,6 +556,7 @@ export type Translations = {
     legalLinks: string
     privacy: string
     terms: string
+    toggleSidebar: string
   }
   theme: { toggleTheme: string; light: string; dark: string; system: string }
   seo: {

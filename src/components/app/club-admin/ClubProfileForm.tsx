@@ -305,6 +305,7 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
         {/* Photos */}
         <PhotoGallery
           clubId={clubId}
+          clubName={initialData.name}
           photos={initialData.photos}
           translations={p.photos}
         />

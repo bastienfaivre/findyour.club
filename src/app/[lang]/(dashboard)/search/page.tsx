@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
+import { SearchX } from 'lucide-react'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { generatePlatformMetadata } from '@/components/app/seo/metadata'
 import { ClubCard, ClubCardSkeleton } from '@/components/app/directory/ClubCard'
+import { PaginatedGrid } from '@/components/app/directory/PaginatedGrid'
 import { DirectoryFilters } from '@/components/app/directory/DirectoryFilters'
 import { VerifiedBadge } from '@/components/app/directory/VerifiedBadge'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
@@ -152,9 +154,10 @@ export default async function SearchPage({ params, searchParams }: Props) {
       </div>
 
       {clubs.length === 0 ? (
-        <div className="mt-12 text-center">
-          <p className="text-muted-foreground">{t.directory.noResults}</p>
-          <p className="mt-1 text-sm text-muted-foreground">
+        <div className="mt-12 flex flex-col items-center text-center text-muted-foreground">
+          <SearchX className="size-10 mb-3 opacity-50" />
+          <p>{t.directory.noResults}</p>
+          <p className="mt-1 text-sm">
             {t.directory.noResultsHint}
           </p>
         </div>
@@ -168,7 +171,10 @@ export default async function SearchPage({ params, searchParams }: Props) {
             </div>
           }
         >
-          <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <PaginatedGrid
+            showingLabel={t.admin.showingCount}
+            showMoreLabel={t.admin.showMore}
+          >
             {clubs.map((club) => {
               const activitySlug = club.activityType
               const activityName = activitySlug
@@ -202,7 +208,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
                 />
               )
             })}
-          </div>
+          </PaginatedGrid>
         </Suspense>
       )}
     </div>

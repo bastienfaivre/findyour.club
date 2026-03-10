@@ -18,15 +18,17 @@ import type { Translations } from '@/lib/i18n/translations/types'
 
 interface PhotoGalleryProps {
   clubId: string
+  clubName: string
   photos: ClubPhoto[]
   translations: Translations['club']['admin']['clubProfile']['photos']
 }
 
-export function PhotoGallery({ clubId, photos, translations: t }: PhotoGalleryProps) {
+export function PhotoGallery({ clubId, clubName, photos, translations: t }: PhotoGalleryProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isPending, startTransition] = useTransition()
   const [uploadingCount, setUploadingCount] = useState(0)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   const atLimit = photos.length >= 10
 
@@ -72,7 +74,7 @@ export function PhotoGallery({ clubId, photos, translations: t }: PhotoGalleryPr
         }
 
         // Create DB record
-        const createResult = await createClubPhoto(clubId, urlResult.data.key, file.name)
+        const createResult = await createClubPhoto(clubId, urlResult.data.key, `${clubName} showcase image`)
         if (!createResult.success) {
           toast.error(createResult.error)
         }
@@ -125,15 +127,28 @@ export function PhotoGallery({ clubId, photos, translations: t }: PhotoGalleryPr
                 className="object-cover"
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               />
-              <button
-                type="button"
-                onClick={() => handleDelete(photo.id)}
-                disabled={isLoading}
-                className="absolute right-1 top-1 flex h-11 w-11 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-destructive text-destructive-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring"
-                aria-label={t.delete}
-              >
-                <X className="h-4 w-4" />
-              </button>
+              {confirmDeleteId === photo.id ? (
+                <button
+                  type="button"
+                  onClick={() => { setConfirmDeleteId(null); handleDelete(photo.id) }}
+                  onBlur={() => setConfirmDeleteId(null)}
+                  disabled={isLoading}
+                  className="absolute right-1 top-1 rounded-full bg-destructive px-2 py-1 text-xs font-medium text-destructive-foreground ring-2 ring-ring"
+                  autoFocus
+                >
+                  {t.deleteConfirm}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirmDeleteId(photo.id)}
+                  disabled={isLoading}
+                  className="absolute right-1 top-1 flex h-11 w-11 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-destructive text-destructive-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring"
+                  aria-label={t.delete}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
           ))}
         </div>

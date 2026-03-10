@@ -180,7 +180,7 @@ describe('HomePage', () => {
     }) as never)
   }
 
-  it('renders with headline, stats bar, country buttons, and coming soon section', async () => {
+  it('renders with headline, country buttons, and coming soon section', async () => {
     setupGroupByMock([{ country: 'ch', _count: { id: 3 } }])
 
     const result = await HomePage({ params: makeParams() })
@@ -189,14 +189,11 @@ describe('HomePage', () => {
     const text = findText(result)
     expect(findProps(result, 'prefix')).toBe('Find your')
 
-    // Stats bar shows raw number + label
-    expect(text).toContain('3')
-    expect(text).toContain('Clubs')
-    expect(text).toContain('Activity types')
-
     // Section labels
     expect(text).toContain('Available now')
     expect(text).toContain('Coming soon')
+    // Trust line
+    expect(text).toContain('Free for all clubs')
   })
 
   it('handles zero clubs gracefully', async () => {
@@ -205,9 +202,8 @@ describe('HomePage', () => {
     const result = await HomePage({ params: makeParams() })
     const text = findText(result)
     expect(findProps(result, 'prefix')).toBe('Find your')
-    // Stats bar shows "0" for both clubs and countries counts
-    expect(text).toContain('0Clubs')
-    expect(text).toContain('0Countries')
+    // Page renders without errors even with no clubs
+    expect(text).toContain('Available now')
   })
 
   it('resolves unsupported language to English fallback', async () => {
@@ -234,17 +230,16 @@ describe('AboutPage', () => {
 })
 
 describe('SupportPage', () => {
-  it('renders support page with donation section and placeholder', async () => {
+  it('renders support page with costs and transparency content', async () => {
     const result = await SupportPage({ params: makeParams() })
     const text = findText(result)
-    expect(text).toContain('Support')
-    expect(text).toContain('Help us keep this platform running')
-    expect(text).toContain('contact form is coming soon')
+    expect(text).toContain('Costs & Transparency')
+    expect(text).toContain('Help us keep going')
   })
 
   it('renders in German with translated content', async () => {
     const result = await SupportPage({ params: makeParams('de') })
     const text = findText(result)
-    expect(text).toContain('Unterstützung')
+    expect(text).toContain('Kosten & Transparenz')
   })
 })

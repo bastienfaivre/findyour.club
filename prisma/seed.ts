@@ -818,6 +818,113 @@ async function main() {
   })
   console.log('✓ Pages created for Turnverein Bern')
 
+  // ─── Bulk Clubs (for testing search & pagination) ────────────────────
+  const bulkAdmin = await prisma.user.upsert({
+    where: { email: 'bulk@platform-name.com' },
+    update: { passwordHash: adminPasswordHash },
+    create: {
+      email: 'bulk@platform-name.com',
+      name: 'Bulk Admin',
+      role: 'CLUB_ADMIN',
+      passwordHash: adminPasswordHash,
+      totpEnabled: false,
+    },
+  })
+
+  const bulkLocations = [
+    await createSwissLocation('10001', '3920', 'VS', { fr: 'Zermatt', de: 'Zermatt', it: 'Zermatt', en: 'Zermatt' }),
+    await createSwissLocation('10002', '3800', 'BE', { fr: 'Interlaken', de: 'Interlaken', it: 'Interlaken', en: 'Interlaken' }),
+    await createSwissLocation('10003', '6900', 'TI', { fr: 'Lugano', de: 'Lugano', it: 'Lugano', en: 'Lugano' }),
+    await createSwissLocation('10004', '7500', 'GR', { fr: 'Saint-Moritz', de: 'St. Moritz', it: 'San Maurizio', en: 'St. Moritz' }),
+    await createSwissLocation('10005', '2000', 'NE', { fr: 'Neuchâtel', de: 'Neuenburg', it: 'Neuchâtel', en: 'Neuchâtel' }),
+    await createSwissLocation('10006', '1700', 'FR', { fr: 'Fribourg', de: 'Freiburg', it: 'Friburgo', en: 'Fribourg' }),
+    await createSwissLocation('10007', '9000', 'SG', { fr: 'Saint-Gall', de: 'St. Gallen', it: 'San Gallo', en: 'St. Gallen' }),
+    await createSwissLocation('10008', '6000', 'LU', { fr: 'Lucerne', de: 'Luzern', it: 'Lucerna', en: 'Lucerne' }),
+    await createSwissLocation('10009', '8200', 'SH', { fr: 'Schaffhouse', de: 'Schaffhausen', it: 'Sciaffusa', en: 'Schaffhausen' }),
+    await createSwissLocation('10010', '4500', 'SO', { fr: 'Soleure', de: 'Solothurn', it: 'Soletta', en: 'Solothurn' }),
+  ]
+
+  const bulkActivities = ['skiing', 'football', 'mountaineering', 'rowing', 'gymnastics', 'yoga', 'swimming', 'chess'] as const
+  const accentColors = ['blue', 'green', 'violet', 'orange', 'rose', 'red', 'sky', 'amber'] as const
+
+  const bulkClubDefs: Array<{ name: string; slug: string; activity: string; locIdx: number; published: boolean; forceOffline: boolean }> = [
+    { name: 'Tennisclub Interlaken', slug: 'tennisclub-interlaken', activity: 'other', locIdx: 1, published: true, forceOffline: false },
+    { name: 'Ruderclub Lugano', slug: 'ruderclub-lugano', activity: 'rowing', locIdx: 2, published: true, forceOffline: false },
+    { name: 'FC Zermatt', slug: 'fc-zermatt', activity: 'football', locIdx: 0, published: true, forceOffline: false },
+    { name: 'Schachclub Neuchâtel', slug: 'schachclub-neuchatel', activity: 'chess', locIdx: 4, published: true, forceOffline: false },
+    { name: 'Yoga Fribourg', slug: 'yoga-fribourg', activity: 'yoga', locIdx: 5, published: true, forceOffline: false },
+    { name: 'Schwimmverein St. Gallen', slug: 'schwimmverein-st-gallen', activity: 'swimming', locIdx: 6, published: true, forceOffline: false },
+    { name: 'Bergclub St. Moritz', slug: 'bergclub-st-moritz', activity: 'mountaineering', locIdx: 3, published: true, forceOffline: false },
+    { name: 'Turnverein Luzern', slug: 'turnverein-luzern', activity: 'gymnastics', locIdx: 7, published: true, forceOffline: false },
+    { name: 'Ski Club Schaffhausen', slug: 'ski-club-schaffhausen', activity: 'skiing', locIdx: 8, published: true, forceOffline: false },
+    { name: 'FC Solothurn United', slug: 'fc-solothurn-united', activity: 'football', locIdx: 9, published: true, forceOffline: false },
+    { name: 'Aviron Neuchâtel', slug: 'aviron-neuchatel', activity: 'rowing', locIdx: 4, published: true, forceOffline: false },
+    { name: 'Yoga Lugano Centro', slug: 'yoga-lugano-centro', activity: 'yoga', locIdx: 2, published: true, forceOffline: false },
+    { name: 'Schachverein Interlaken', slug: 'schachverein-interlaken', activity: 'chess', locIdx: 1, published: true, forceOffline: false },
+    { name: 'Alpenclub Zermatt', slug: 'alpenclub-zermatt', activity: 'mountaineering', locIdx: 0, published: true, forceOffline: false },
+    { name: 'FC Fribourg City', slug: 'fc-fribourg-city', activity: 'football', locIdx: 5, published: true, forceOffline: false },
+    { name: 'Schwimmclub Luzern', slug: 'schwimmclub-luzern', activity: 'swimming', locIdx: 7, published: true, forceOffline: false },
+    { name: 'Turnverein Schaffhausen', slug: 'turnverein-schaffhausen', activity: 'gymnastics', locIdx: 8, published: true, forceOffline: false },
+    { name: 'Ski Club Solothurn', slug: 'ski-club-solothurn', activity: 'skiing', locIdx: 9, published: true, forceOffline: false },
+    { name: 'Ruderverein St. Gallen', slug: 'ruderverein-st-gallen', activity: 'rowing', locIdx: 6, published: true, forceOffline: false },
+    { name: 'Yoga St. Moritz', slug: 'yoga-st-moritz', activity: 'yoga', locIdx: 3, published: true, forceOffline: false },
+    { name: 'Bergfreunde Fribourg', slug: 'bergfreunde-fribourg', activity: 'mountaineering', locIdx: 5, published: true, forceOffline: false },
+    { name: 'FC Lugano Amateurs', slug: 'fc-lugano-amateurs', activity: 'football', locIdx: 2, published: true, forceOffline: false },
+    { name: 'Turnverein Neuchâtel', slug: 'turnverein-neuchatel', activity: 'gymnastics', locIdx: 4, published: false, forceOffline: false },
+    { name: 'Schwimmverein Zermatt', slug: 'schwimmverein-zermatt', activity: 'swimming', locIdx: 0, published: false, forceOffline: false },
+    { name: 'Schachclub Solothurn', slug: 'schachclub-solothurn', activity: 'chess', locIdx: 9, published: true, forceOffline: false },
+    { name: 'Ski Club Interlaken', slug: 'ski-club-interlaken', activity: 'skiing', locIdx: 1, published: true, forceOffline: false },
+    { name: 'Aviron Lugano', slug: 'aviron-lugano', activity: 'rowing', locIdx: 2, published: true, forceOffline: false },
+    { name: 'Yoga Schaffhausen', slug: 'yoga-schaffhausen', activity: 'yoga', locIdx: 8, published: true, forceOffline: false },
+    { name: 'Bergclub Solothurn', slug: 'bergclub-solothurn', activity: 'mountaineering', locIdx: 9, published: true, forceOffline: false },
+    { name: 'FC Interlaken Sport', slug: 'fc-interlaken-sport', activity: 'football', locIdx: 1, published: true, forceOffline: false },
+    { name: 'Turnverein St. Moritz', slug: 'turnverein-st-moritz', activity: 'gymnastics', locIdx: 3, published: true, forceOffline: false },
+    { name: 'Schwimmclub Neuchâtel', slug: 'schwimmclub-neuchatel', activity: 'swimming', locIdx: 4, published: true, forceOffline: false },
+    { name: 'Schachclub Fribourg', slug: 'schachclub-fribourg', activity: 'chess', locIdx: 5, published: true, forceOffline: false },
+    { name: 'Ski Club Lugano', slug: 'ski-club-lugano', activity: 'skiing', locIdx: 2, published: true, forceOffline: false },
+    { name: 'Ruderclub Solothurn', slug: 'ruderclub-solothurn', activity: 'rowing', locIdx: 9, published: true, forceOffline: false },
+    { name: 'Yoga Interlaken', slug: 'yoga-interlaken', activity: 'yoga', locIdx: 1, published: true, forceOffline: false },
+    { name: 'Bergclub Luzern', slug: 'bergclub-luzern', activity: 'mountaineering', locIdx: 7, published: true, forceOffline: false },
+    { name: 'FC St. Gallen Ost', slug: 'fc-st-gallen-ost', activity: 'football', locIdx: 6, published: true, forceOffline: false },
+    { name: 'Turnverein Zermatt', slug: 'turnverein-zermatt', activity: 'gymnastics', locIdx: 0, published: true, forceOffline: true },
+    { name: 'Schwimmclub Schaffhausen', slug: 'schwimmclub-schaffhausen', activity: 'swimming', locIdx: 8, published: true, forceOffline: false },
+    { name: 'Schachclub St. Moritz', slug: 'schachclub-st-moritz', activity: 'chess', locIdx: 3, published: false, forceOffline: false },
+    { name: 'Ski Club Fribourg', slug: 'ski-club-fribourg', activity: 'skiing', locIdx: 5, published: true, forceOffline: false },
+    { name: 'Ruderclub Interlaken', slug: 'ruderclub-interlaken', activity: 'rowing', locIdx: 1, published: true, forceOffline: false },
+    { name: 'Bergclub Schaffhausen', slug: 'bergclub-schaffhausen', activity: 'mountaineering', locIdx: 8, published: true, forceOffline: false },
+    { name: 'FC Neuchâtel Jeunesse', slug: 'fc-neuchatel-jeunesse', activity: 'football', locIdx: 4, published: true, forceOffline: false },
+  ]
+
+  for (const def of bulkClubDefs) {
+    const loc = bulkLocations[def.locIdx]
+    const club = await prisma.club.upsert({
+      where: { slug_country: { slug: def.slug, country: 'ch' } },
+      update: { locationId: loc.id },
+      create: {
+        name: def.name,
+        slug: def.slug,
+        country: 'ch',
+        status: 'ACTIVE',
+        activityType: def.activity,
+        locationId: loc.id,
+        email: `info@${def.slug}.ch`,
+        description: `${def.name} — a community sports club.`,
+        isPublished: def.published,
+        forceOffline: def.forceOffline,
+        accentColor: accentColors[def.locIdx % accentColors.length],
+        defaultLanguage: def.locIdx <= 1 || def.locIdx === 4 || def.locIdx === 5 ? 'fr' : 'de',
+        storageUsedBytes: BigInt(0),
+        storageLimitBytes: BigInt(5368709120),
+      },
+    })
+    await prisma.clubMembership.upsert({
+      where: { userId_clubId: { userId: bulkAdmin.id, clubId: club.id } },
+      update: {},
+      create: { userId: bulkAdmin.id, clubId: club.id, role: 'OWNER', status: 'ACTIVE', invitedBy: null, joinedAt: new Date() },
+    })
+  }
+  console.log(`✓ Bulk clubs created (${bulkClubDefs.length} clubs across 10 locations)`)
+
   // ─── Applications (complete data) ─────────────────────────────────────
   // Create locations for applications
   const locationMontreux = await createSwissLocation('5886', '1820', 'VD', {

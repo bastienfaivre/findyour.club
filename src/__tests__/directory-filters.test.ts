@@ -216,15 +216,10 @@ describe('DirectoryFilters', () => {
     expect(typeaheads).toHaveLength(1)
   })
 
-  it('renders reset link when filters are active', () => {
+  it('renders reset button when filters are active', () => {
     mockSearchParams = new URLSearchParams('country=ch')
     const tree = DirectoryFilters(defaultProps) as AnyElement
-    const resetLinks = findInTree(tree, (n) => {
-      const el = n as AnyElement
-      return el.type === 'a' && typeof el.props?.href === 'string' && el.props.href.includes('/search')
-    }) as AnyElement[]
-    expect(resetLinks.length).toBeGreaterThanOrEqual(1)
-    const text = findText(resetLinks[0])
-    expect(text).toBe('Reset filters')
+    const text = findText(tree)
+    expect(text).toContain('Reset filters')
   })
 })

@@ -334,6 +334,11 @@ export function AppSidebar({
           {' · '}
           <Link href={`/${lang}/terms`} className="hover:text-foreground">{t.layout.terms}</Link>
         </p>
+        <p className="text-[10px] text-muted-foreground/60 hidden md:block">
+          <kbd className="rounded border border-border px-1 py-0.5 text-[10px] font-mono">⌘</kbd>{' '}
+          <kbd className="rounded border border-border px-1 py-0.5 text-[10px] font-mono">B</kbd>{' '}
+          {t.layout.toggleSidebar}
+        </p>
       </SidebarFooter>
     </Sidebar>
   )

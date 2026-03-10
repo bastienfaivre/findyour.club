@@ -109,6 +109,9 @@ export const it: Translations = {
     overviewTitle: 'Panoramica',
     welcome: 'Benvenuto',
     welcomeMessage: 'Bentornato! Usa la barra laterale per navigare.',
+    searchPlaceholder: 'Cerca per nome…',
+    showingCount: '{shown} di {total}',
+    showMore: 'Mostra di più',
     applications: {
       title: 'Candidature in attesa',
       reviewTab: 'Revisione',
@@ -536,6 +539,7 @@ export const it: Translations = {
     legalLinks: 'Note legali',
     privacy: 'Privacy',
     terms: 'Termini',
+    toggleSidebar: 'mostra/nascondi menu',
   },
   theme: { toggleTheme: 'Cambia tema', light: 'Chiaro', dark: 'Scuro', system: 'Sistema' },
   seo: {

@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 
 interface AdminDirtyContextValue {
   isDirty: boolean
@@ -15,6 +15,16 @@ const AdminDirtyContext = createContext<AdminDirtyContextValue>({
 export function AdminDirtyProvider({ children }: { children: ReactNode }) {
   const [isDirty, setIsDirty] = useState(false)
   const value = useMemo(() => ({ isDirty, setIsDirty }), [isDirty])
+
+  useEffect(() => {
+    if (!isDirty) return
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty])
+
   return (
     <AdminDirtyContext.Provider value={value}>
       {children}

@@ -109,6 +109,9 @@ export const de: Translations = {
     overviewTitle: 'Übersicht',
     welcome: 'Willkommen',
     welcomeMessage: 'Willkommen zurück! Verwende die Seitenleiste zur Navigation.',
+    searchPlaceholder: 'Nach Name suchen…',
+    showingCount: '{shown} von {total}',
+    showMore: 'Mehr anzeigen',
     applications: {
       title: 'Ausstehende Bewerbungen',
       reviewTab: 'Prüfung',
@@ -536,6 +539,7 @@ export const de: Translations = {
     legalLinks: 'Rechtliches',
     privacy: 'Datenschutz',
     terms: 'Nutzungsbedingungen',
+    toggleSidebar: 'Seitenleiste ein-/ausblenden',
   },
   theme: { toggleTheme: 'Design wechseln', light: 'Hell', dark: 'Dunkel', system: 'System' },
   seo: {

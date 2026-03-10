@@ -4,6 +4,17 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { removeTotp } from '@/app/[lang]/(dashboard)/account/actions'
 
 interface ManageTotpSectionT {
@@ -22,17 +33,16 @@ interface ManageTotpSectionProps {
   totpEnabled: boolean
   lang: string
   t: ManageTotpSectionT
+  commonT: { confirm: string; cancel: string }
 }
 
-export function ManageTotpSection({ totpEnabled, lang, t }: ManageTotpSectionProps) {
+export function ManageTotpSection({ totpEnabled, lang, t, commonT }: ManageTotpSectionProps) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   function handleRemove() {
-    if (!confirm(t.totpConfirmDisable)) return
     setError(null)
-
     startTransition(async () => {
       const result = await removeTotp()
       if (!result.success) {
@@ -70,13 +80,25 @@ export function ManageTotpSection({ totpEnabled, lang, t }: ManageTotpSectionPro
         </Button>
 
         {totpEnabled && (
-          <Button
-            variant="destructive"
-            onClick={handleRemove}
-            disabled={isPending}
-          >
-            {isPending ? t.removing : t.disable2fa}
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" disabled={isPending}>
+                {isPending ? t.removing : t.disable2fa}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t.disable2fa}</AlertDialogTitle>
+                <AlertDialogDescription>{t.totpConfirmDisable}</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{commonT.cancel}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleRemove} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  {commonT.confirm}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
       </div>
     </div>

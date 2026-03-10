@@ -26,6 +26,7 @@ vi.mock('@/lib/i18n/translations', () => ({
     },
     country: { ch: 'Switzerland', fr: 'France', de: 'Germany' },
     activityTypes: {} as Record<string, string>,
+    admin: { showingCount: 'Showing {shown} of {total}', showMore: 'Show more' },
   })),
 }))
 vi.mock('@/lib/i18n', () => ({
@@ -45,6 +46,9 @@ vi.mock('@/components/app/directory/ClubCard', () => ({
 }))
 vi.mock('@/components/app/directory/DirectoryFilters', () => ({
   DirectoryFilters: vi.fn(() => null),
+}))
+vi.mock('@/components/app/directory/PaginatedGrid', () => ({
+  PaginatedGrid: vi.fn(({ children }: { children: unknown }) => children),
 }))
 vi.mock('@/components/app/admin/AdminPageTitle', () => ({
   AdminPageTitle: vi.fn(() => null),

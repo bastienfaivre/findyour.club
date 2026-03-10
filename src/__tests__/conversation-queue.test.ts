@@ -11,8 +11,13 @@ vi.mock('react', async () => {
     useState: (init: unknown) => {
       // activeTab state
       if (init === 'list' || init === 'detail') return [init, mockSetActiveTab]
+      // searchQuery state (string '')
+      if (init === '') return ['', vi.fn()]
+      // pageSize state (number 20)
+      if (init === 20) return [20, vi.fn()]
       return [init, vi.fn()]
     },
+    useMemo: (fn: () => unknown) => fn(),
   }
 })
 
@@ -66,6 +71,22 @@ vi.mock('@/components/ui/badge', () => ({
   Badge: vi.fn(({ children, ...props }: { children: unknown; [key: string]: unknown }) => ({
     type: 'Badge',
     props: { ...props, children },
+    key: null,
+  })),
+}))
+
+vi.mock('@/components/ui/button', () => ({
+  Button: vi.fn(({ children, ...props }: { children: unknown; [key: string]: unknown }) => ({
+    type: 'Button',
+    props: { ...props, children },
+    key: null,
+  })),
+}))
+
+vi.mock('@/components/ui/input', () => ({
+  Input: vi.fn((props: Record<string, unknown>) => ({
+    type: 'Input',
+    props,
     key: null,
   })),
 }))
@@ -144,6 +165,10 @@ const defaultTranslations = {
     empty: 'No messages yet',
     unreadBadge: '{count} new',
   },
+  searchPlaceholder: 'Search by name…',
+  showingCount: 'Showing {shown} of {total}',
+  showMore: 'Show more',
+  noResults: 'No results',
 }
 
 function makeConversation(overrides: Partial<ConversationEntry> & { clubId: string }): ConversationEntry {

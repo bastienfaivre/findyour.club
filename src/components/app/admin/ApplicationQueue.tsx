@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { List, FileSearch, X } from 'lucide-react'
+import { List, FileSearch, X, Inbox, SearchX, Search } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import type { Application, Location, SwissLocation, SwissLocationTranslation } from '@/generated/prisma/client'
 import type { Translations } from '@/lib/i18n/translations/types'
 import { useAdminSelection } from '@/components/app/AdminSelectionContext'
@@ -50,18 +52,25 @@ export function ApplicationQueue({ applications, activityTypes, countries, canto
   const [filterCountry, setFilterCountry] = useState<string>(ALL)
   const [filterCanton, setFilterCanton] = useState<string>(ALL)
   const [filterActivity, setFilterActivity] = useState<string>(ALL)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [pageSize, setPageSize] = useState(20)
 
   const visibleApplications = applications.filter((a) => visibleIds.has(a.id))
 
-  // Apply client-side filters
+  // Apply client-side filters + text search
   const filteredApplications = useMemo(() => {
+    const query = searchQuery.toLowerCase().trim()
     return visibleApplications.filter((app) => {
       if (filterCountry !== ALL && app.country !== filterCountry) return false
       if (filterCanton !== ALL && app.location?.swissLocation?.cantonCode !== filterCanton) return false
       if (filterActivity !== ALL && app.activityType !== filterActivity) return false
+      if (query && !app.name.toLowerCase().includes(query)) return false
       return true
     })
-  }, [visibleApplications, filterCountry, filterCanton, filterActivity])
+  }, [visibleApplications, filterCountry, filterCanton, filterActivity, searchQuery])
+
+  const paginatedApplications = filteredApplications.slice(0, pageSize)
+  const hasMore = filteredApplications.length > pageSize
 
   const selectedApplication = filteredApplications.find((a) => a.id === selectedId) ?? null
 
@@ -92,7 +101,7 @@ export function ApplicationQueue({ applications, activityTypes, countries, canto
     return activityTypes.filter((at) => slugs.has(at.slug))
   }, [visibleApplications, activityTypes])
 
-  const hasFilters = filterCountry !== ALL || filterCanton !== ALL || filterActivity !== ALL
+  const hasFilters = filterCountry !== ALL || filterCanton !== ALL || filterActivity !== ALL || searchQuery !== ''
 
   const handleCountryChange = (v: string) => {
     setFilterCountry(v)
@@ -119,7 +128,12 @@ export function ApplicationQueue({ applications, activityTypes, countries, canto
   const td = t.directory
 
   if (visibleApplications.length === 0) {
-    return <p className="text-muted-foreground">{ta.empty}</p>
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+        <Inbox className="size-10 mb-3 opacity-50" />
+        <p>{ta.empty}</p>
+      </div>
+    )
   }
 
   const activeCountryLabel = availableCountries.find((c) => c.code === filterCountry)?.label
@@ -128,6 +142,15 @@ export function ApplicationQueue({ applications, activityTypes, countries, canto
 
   const filtersBlock = (
     <div className="space-y-3 mb-4">
+      <div className="relative">
+        <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+        <Input
+          value={searchQuery}
+          onChange={(e) => { setSearchQuery(e.target.value); setPageSize(20) }}
+          placeholder={t.admin.searchPlaceholder}
+          className="pl-9"
+        />
+      </div>
       <div className="flex flex-wrap gap-2">
         <Select value={filterCountry} onValueChange={handleCountryChange}>
           <SelectTrigger aria-label={ta.country} className="w-auto min-w-[140px]">
@@ -213,7 +236,7 @@ export function ApplicationQueue({ applications, activityTypes, countries, canto
           )}
           <button
             type="button"
-            onClick={() => { setFilterCountry(ALL); setFilterCanton(ALL); setFilterActivity(ALL) }}
+            onClick={() => { setFilterCountry(ALL); setFilterCanton(ALL); setFilterActivity(ALL); setSearchQuery('') }}
             className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
           >
             {td.resetFilters}
@@ -226,37 +249,52 @@ export function ApplicationQueue({ applications, activityTypes, countries, canto
   const listBlock = (
     <div className="space-y-2">
       {filteredApplications.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-4">{td.noResults}</p>
+        <div className="flex flex-col items-center py-8 text-muted-foreground">
+          <SearchX className="size-8 mb-2 opacity-50" />
+          <p className="text-sm">{td.noResults}</p>
+        </div>
       ) : (
-        filteredApplications.map((app) => {
-          const activityLabel = app.activityType
-            ? (t.activityTypes[app.activityType] ?? app.activityType)
-            : app.otherDescription ?? null
-          const date = new Date(app.submittedAt).toLocaleDateString(locale)
+        <>
+          {paginatedApplications.map((app) => {
+            const activityLabel = app.activityType
+              ? (t.activityTypes[app.activityType] ?? app.activityType)
+              : app.otherDescription ?? null
+            const date = new Date(app.submittedAt).toLocaleDateString(locale)
 
-          return (
-            <button
-              key={app.id}
-              type="button"
-              onClick={() => handleSelect(app.id)}
-              className={cn(
-                'w-full text-left rounded-lg border p-3 transition-colors',
-                selectedId === app.id
-                  ? 'border-primary bg-accent'
-                  : 'hover:bg-muted/50'
-              )}
-            >
-              <p className="font-medium truncate">{app.name}</p>
-              <div className="flex flex-wrap items-center gap-2 mt-1">
-                {activityLabel && (
-                  <Badge variant="secondary" className="text-xs">{activityLabel}</Badge>
+            return (
+              <button
+                key={app.id}
+                type="button"
+                onClick={() => handleSelect(app.id)}
+                className={cn(
+                  'w-full text-left rounded-lg border p-3 transition-colors',
+                  selectedId === app.id
+                    ? 'border-primary bg-accent'
+                    : 'hover:bg-muted/50'
                 )}
-                <span className="text-xs text-muted-foreground">{app.country.toUpperCase()}</span>
-                <span className="text-xs text-muted-foreground">{date}</span>
-              </div>
-            </button>
-          )
-        })
+              >
+                <p className="font-medium truncate">{app.name}</p>
+                <div className="flex flex-wrap items-center gap-2 mt-1">
+                  {activityLabel && (
+                    <Badge variant="secondary" className="text-xs">{activityLabel}</Badge>
+                  )}
+                  <span className="text-xs text-muted-foreground">{app.country.toUpperCase()}</span>
+                  <span className="text-xs text-muted-foreground">{date}</span>
+                </div>
+              </button>
+            )
+          })}
+          <div className="flex flex-col items-center gap-2 pt-4">
+            {hasMore && (
+              <Button variant="outline" className="w-full" onClick={() => setPageSize((s) => s + 20)}>
+                {t.admin.showMore}
+              </Button>
+            )}
+            <p className="text-xs text-muted-foreground">
+              {t.admin.showingCount.replace('{shown}', String(paginatedApplications.length)).replace('{total}', String(filteredApplications.length))}
+            </p>
+          </div>
+        </>
       )}
     </div>
   )
@@ -272,7 +310,8 @@ export function ApplicationQueue({ applications, activityTypes, countries, canto
       onActionComplete={handleActionComplete}
     />
   ) : (
-    <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
+    <div className="flex flex-col items-center justify-center h-48 text-sm text-muted-foreground">
+      <FileSearch className="size-8 mb-2 opacity-40" />
       {ta.selectApplication}
     </div>
   )

@@ -7,6 +7,8 @@ interface ClubAvatarProps {
   logoAlt?: string | null
   size?: 'sm' | 'md' | 'lg'
   className?: string
+  /** Use neutral colors unaffected by accent color overrides */
+  neutralFallback?: boolean
 }
 
 const sizeClasses = {
@@ -15,13 +17,18 @@ const sizeClasses = {
   lg: 'size-24 text-4xl',
 } as const
 
-export function ClubAvatar({ name, logoUrl, logoAlt, size = 'md', className }: ClubAvatarProps) {
+export function ClubAvatar({ name, logoUrl, logoAlt, size = 'md', className, neutralFallback }: ClubAvatarProps) {
   return (
     <Avatar className={cn(sizeClasses[size], className)}>
       {logoUrl && (
         <AvatarImage src={logoUrl} alt={logoAlt ?? name} />
       )}
-      <AvatarFallback className="bg-primary text-primary-foreground font-bold">
+      <AvatarFallback className={cn(
+        'font-bold',
+        neutralFallback
+          ? 'bg-foreground text-background'
+          : 'bg-primary text-primary-foreground',
+      )}>
         {name.charAt(0).toUpperCase()}
       </AvatarFallback>
     </Avatar>

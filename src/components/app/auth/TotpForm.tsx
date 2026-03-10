@@ -1,5 +1,5 @@
 'use client'
-import { useState, useTransition } from 'react'
+import { useRef, useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 import { Label } from '@/components/ui/label'
@@ -16,18 +16,31 @@ export function TotpForm({ t }: { t: TotpFormT }) {
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const submittedRef = useRef(false)
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+  function submit(value: string) {
+    if (value.length !== 6 || isPending || submittedRef.current) return
+    submittedRef.current = true
     setError(null)
 
     startTransition(async () => {
-      const result = await verifyTotpChallenge({ code })
+      const result = await verifyTotpChallenge({ code: value })
       if (result && !result.success) {
         setError(result.error)
         setCode('')
       }
+      submittedRef.current = false
     })
+  }
+
+  function handleChange(value: string) {
+    setCode(value)
+    if (value.length === 6) submit(value)
+  }
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    submit(code)
   }
 
   return (
@@ -43,7 +56,7 @@ export function TotpForm({ t }: { t: TotpFormT }) {
         <InputOTP
           maxLength={6}
           value={code}
-          onChange={setCode}
+          onChange={handleChange}
           disabled={isPending}
           autoFocus
         >

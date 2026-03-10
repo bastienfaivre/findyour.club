@@ -109,6 +109,9 @@ export const en: Translations = {
     overviewTitle: 'Overview',
     welcome: 'Welcome',
     welcomeMessage: 'Welcome back! Use the sidebar to navigate.',
+    searchPlaceholder: 'Search by name…',
+    showingCount: 'Showing {shown} of {total}',
+    showMore: 'Show more',
     applications: {
       title: 'Pending Applications',
       reviewTab: 'Review',
@@ -536,6 +539,7 @@ export const en: Translations = {
     legalLinks: 'Legal',
     privacy: 'Privacy',
     terms: 'Terms',
+    toggleSidebar: 'toggle sidebar',
   },
   theme: { toggleTheme: 'Toggle theme', light: 'Light', dark: 'Dark', system: 'System' },
   seo: {
