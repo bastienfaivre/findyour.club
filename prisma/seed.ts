@@ -844,7 +844,7 @@ async function main() {
     await createSwissLocation('10010', '4500', 'SO', { fr: 'Soleure', de: 'Solothurn', it: 'Soletta', en: 'Solothurn' }),
   ]
 
-  const bulkActivities = ['skiing', 'football', 'mountaineering', 'rowing', 'gymnastics', 'yoga', 'swimming', 'chess'] as const
+  const _bulkActivities = ['skiing', 'football', 'mountaineering', 'rowing', 'gymnastics', 'yoga', 'swimming', 'chess'] as const
   const accentColors = ['blue', 'green', 'violet', 'orange', 'rose', 'red', 'sky', 'amber'] as const
 
   const bulkClubDefs: Array<{ name: string; slug: string; activity: string; locIdx: number; published: boolean; forceOffline: boolean }> = [

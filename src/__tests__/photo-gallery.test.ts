@@ -68,7 +68,7 @@ function makePhotos(count: number) {
 }
 
 function render(photos: ReturnType<typeof makePhotos>) {
-  return PhotoGallery({ clubId: 'club-1', photos, translations })
+  return PhotoGallery({ clubId: 'club-1', clubName: 'Test Club', photos, translations })
 }
 
 describe('PhotoGallery', () => {

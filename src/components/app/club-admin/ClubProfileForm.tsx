@@ -92,6 +92,7 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
   const { register, formState: { errors, isDirty, isValid }, handleSubmit, reset, watch, control } = form
   const [phoneKey, setPhoneKey] = useState(0)
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- watch() is intentionally used for live preview
   const watchedValues = watch()
 
   // Sync form dirty state to context for sidebar, reset on unmount

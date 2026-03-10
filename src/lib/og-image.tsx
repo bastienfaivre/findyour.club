@@ -322,7 +322,7 @@ export function generateQrCardImage({
         >
           {clubName}
         </div>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {/* eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text */}
         <img
           src={qrDataUrl}
           width={400}

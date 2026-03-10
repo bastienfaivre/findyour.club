@@ -32,7 +32,7 @@ function makeParams(lang = 'en', country = 'ch', club = 'ski-club-valais', page 
   return Promise.resolve({ lang, country, club, page })
 }
 
-function makeClubParams(lang = 'en', country = 'ch', club = 'ski-club-valais') {
+function _makeClubParams(lang = 'en', country = 'ch', club = 'ski-club-valais') {
   return Promise.resolve({ lang, country, club })
 }
 
