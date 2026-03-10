@@ -500,6 +500,15 @@ export const en: Translations = {
     terms: 'Terms',
   },
   theme: { toggleTheme: 'Toggle theme', light: 'Light', dark: 'Dark', system: 'System' },
+  seo: {
+    clubsIn: 'Clubs in',
+    countryDescription: 'Browse all clubs and associations in {country}. Find your community by activity type or region.',
+    activityDescription: 'Find {activity} clubs in {country}. Browse all local associations and find out how to join.',
+    cantonDescription: 'Discover clubs and associations in {canton}, {country}. Browse by activity type and join your community.',
+    cantonActivityDescription: 'Find {activity} clubs in {canton}, {country}. View schedules, contact info, and learn how to join.',
+    browseByActivity: 'Browse by activity',
+    browseByRegion: 'Browse by region',
+  },
   activityTypes: {
     skiing: 'Skiing',
     football: 'Football',

@@ -19,6 +19,11 @@ classification:
 lastEdited: '2026-03-09'
 editHistory:
   - date: '2026-03-09'
+    changes: 'MVP scope refinement: Deferred Epic 7 entirely (Platform Operations & Health Monitoring)
+      — FR34 (metrics), FR35 (health monitoring), FR39 (template migration), FR45 (analytics)
+      moved to post-MVP. FR38 (platform config) partially retained via Epic 10. FR42 (cookie
+      consent) deferred — no non-essential cookies at MVP. Active MVP epics: 1, 2, 3, 4, 9, 10.'
+  - date: '2026-03-09'
     changes: 'Dashboard migration sync: Updated technical architecture references to reflect unified
       dashboard shell. All pages now render within single (dashboard) route group with AppSidebar.
       Search page replaces country directory. Club admin at /{lang}/club/{clubId}/. Messaging
@@ -724,21 +729,21 @@ multi-page sites, but the application layer enforces a single profile page for M
 - **FR31:** Platform Operator can view and manage a queue of pending club applications
 - **FR32:** Platform Operator can approve an application with an optional operator message (bundled in acceptance email), triggering automatic URL path provisioning
 - **FR33:** Platform Operator can reject an application with an explanatory email to the applicant
-- **FR34:** Platform Operator can view platform-wide metrics (clubs live, uptime, performance scores, storage)
-- **FR35:** Platform Operator can monitor site health status across all hosted club sites
+- **FR34:** ~~Deferred to post-MVP~~ Platform Operator can view platform-wide metrics (clubs live, uptime, performance scores, storage)
+- **FR35:** ~~Deferred to post-MVP~~ Platform Operator can monitor site health status across all hosted club sites
 - **FR36:** Platform Operator can send an operator message to any club admin (see FR54-FR57 for unified message system)
 - **FR37:** Platform Operator can view and respond to club admin support requests (implemented as threaded bidirectional messaging via SupportMessage model + ChatThread component, not a simple ticket inbox)
 - **FR38:** Platform Operator can configure platform-wide operational variables including the per-club page limit
-- **FR39:** System applies template version updates to all club sites automatically without downtime or any action required from club admins
+- **FR39:** ~~Deferred to post-MVP~~ System applies template version updates to all club sites automatically without downtime or any action required from club admins
 
 ### Compliance & Data Rights
 
 - **FR40:** Club Admin can export all their club's content data in a portable standard format
 - **FR41:** Club Admin can request deletion of their club's data from the platform
-- **FR42:** System presents a cookie consent mechanism to users on the platform site and on club sites where applicable
+- **FR42:** ~~Deferred to post-MVP~~ System presents a cookie consent mechanism to users on the platform site and on club sites where applicable (no non-essential cookies at MVP)
 - **FR43:** System automatically generates and maintains SEO metadata for all club site pages without requiring any admin configuration
 - **FR44:** ~~Deferred to post-MVP~~ Club Admin can view stored contact form submissions received for their site
-- **FR45:** Platform Operator can view detailed per-club analytics (traffic, page views, edit events, login events)
+- **FR45:** ~~Deferred to post-MVP~~ Platform Operator can view detailed per-club analytics (traffic, page views, edit events, login events)
 - **FR46:** ~~Deferred to post-MVP~~ Club Admin can select an accent color for their club site from a curated palette of 8 presets (Zinc, Blue, Green, Red, Violet, Orange, Rose, Yellow)
 
 ### Platform Funding

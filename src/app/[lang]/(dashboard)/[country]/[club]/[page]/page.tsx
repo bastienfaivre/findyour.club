@@ -2,30 +2,55 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
-import { isValidCountry } from '@/lib/country'
+import { isValidCountry, getCountryName } from '@/lib/country'
+import { isValidActivityType } from '@/lib/activity-types'
+import { isValidCanton } from '@/lib/server/canton-queries'
 import { getClubPublicData } from '@/lib/server/club-queries'
 import { getPageBySlug } from '@/lib/server/page-queries'
-import { generateClubMetadata } from '@/components/app/seo/metadata'
+import { generateClubMetadata, generateCategoryMetadata } from '@/components/app/seo/metadata'
 import { ElementRenderer } from '@/components/app/club-site/ElementRenderer'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 import { ACCENT_COLORS } from '@/components/app/club-site/accent-colors'
+import { CategoryLanding } from '@/components/app/seo/CategoryLanding'
 
 type Props = {
   params: Promise<{ lang: string; country: string; club: string; page: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { lang, country, club: slug, page: pageSlug } = await params
+  const { lang, country, club: parentSlug, page: pageSlug } = await params
   if (!isValidCountry(country)) return {}
 
-  const club = await getClubPublicData(slug, country)
+  const uiLang = resolveUILang(lang)
+  const t = getTranslations(uiLang)
+  const countryName = getCountryName(country, uiLang)
+
+  // Canton + activity type landing page
+  if (await isValidCanton(parentSlug.toUpperCase())) {
+    if (isValidActivityType(pageSlug)) {
+      const activityLabel = t.activityTypes[pageSlug] ?? pageSlug
+      return generateCategoryMetadata({
+        title: `${activityLabel} — ${parentSlug.toUpperCase()}, ${countryName}`,
+        description: t.seo.cantonActivityDescription
+          .replace('{activity}', activityLabel)
+          .replace('{canton}', parentSlug.toUpperCase())
+          .replace('{country}', countryName),
+        lang,
+        country,
+        canton: parentSlug,
+        activity: pageSlug,
+      })
+    }
+    return {}
+  }
+
+  // Regular club inner page
+  const club = await getClubPublicData(parentSlug, country)
   if (!club) return {}
 
   const page = await getPageBySlug(pageSlug, club.id)
   if (!page) return {}
 
-  const uiLang = resolveUILang(lang)
-  const t = getTranslations(uiLang)
   const activityTypeLabel = club.activityType
     ? t.activityTypes[club.activityType] ?? null
     : null
@@ -44,11 +69,32 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function InnerPage({ params }: Props) {
-  const { lang, country, club: slug, page: pageSlug } = await params
+  const { lang, country, club: parentSlug, page: pageSlug } = await params
 
   if (!isValidCountry(country)) notFound()
 
-  const club = await getClubPublicData(slug, country)
+  const uiLang = resolveUILang(lang)
+  const countryName = getCountryName(country, uiLang)
+
+  // Canton + activity type landing page
+  if (await isValidCanton(parentSlug.toUpperCase())) {
+    if (isValidActivityType(pageSlug)) {
+      return (
+        <CategoryLanding
+          lang={lang}
+          uiLang={uiLang}
+          country={country}
+          countryName={countryName}
+          canton={parentSlug.toUpperCase()}
+          activity={pageSlug}
+        />
+      )
+    }
+    notFound()
+  }
+
+  // Regular club inner page
+  const club = await getClubPublicData(parentSlug, country)
   if (!club) notFound()
 
   const page = await getPageBySlug(pageSlug, club.id)
@@ -64,7 +110,7 @@ export default async function InnerPage({ params }: Props) {
         '--primary-foreground': accentColor.primaryForeground,
       } as React.CSSProperties}
     >
-      <AdminPageTitle title={`${club.name} — ${page.label}`} backHref={`/${lang}/${country}/${slug}`} />
+      <AdminPageTitle title={`${club.name} — ${page.label}`} backHref={`/${lang}/${country}/${parentSlug}`} />
       <h1 className="text-2xl font-bold mb-6">{page.label}</h1>
       {page.elements.length > 0 ? (
         <div className="flex flex-col gap-4">

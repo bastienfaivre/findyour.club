@@ -500,6 +500,15 @@ export const it: Translations = {
     terms: 'Termini',
   },
   theme: { toggleTheme: 'Cambia tema', light: 'Chiaro', dark: 'Scuro', system: 'Sistema' },
+  seo: {
+    clubsIn: 'Club in',
+    countryDescription: 'Sfoglia tutti i club e le associazioni in {country}. Trova la tua comunità per tipo di attività o regione.',
+    activityDescription: 'Trova club di {activity} in {country}. Sfoglia le associazioni locali e scopri come iscriverti.',
+    cantonDescription: 'Scopri club e associazioni nel cantone di {canton}, {country}. Sfoglia per tipo di attività e unisciti alla tua comunità.',
+    cantonActivityDescription: 'Trova club di {activity} nel cantone di {canton}, {country}. Consulta orari, contatti e modalità di iscrizione.',
+    browseByActivity: 'Sfoglia per attività',
+    browseByRegion: 'Sfoglia per regione',
+  },
   activityTypes: {
     skiing: 'Sci',
     football: 'Calcio',

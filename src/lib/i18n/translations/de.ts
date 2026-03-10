@@ -500,6 +500,15 @@ export const de: Translations = {
     terms: 'Nutzungsbedingungen',
   },
   theme: { toggleTheme: 'Design wechseln', light: 'Hell', dark: 'Dunkel', system: 'System' },
+  seo: {
+    clubsIn: 'Vereine in',
+    countryDescription: 'Durchsuchen Sie alle Vereine und Verbände in der {country}. Finden Sie Ihre Gemeinschaft nach Aktivitätstyp oder Region.',
+    activityDescription: '{activity}-Vereine in der {country} finden. Lokale Verbände durchsuchen und erfahren, wie Sie beitreten können.',
+    cantonDescription: 'Entdecken Sie Vereine und Verbände im Kanton {canton}, {country}. Nach Aktivitätstyp durchsuchen und Ihrer Gemeinschaft beitreten.',
+    cantonActivityDescription: '{activity}-Vereine im Kanton {canton}, {country} finden. Zeitpläne, Kontaktdaten und Beitrittsinformationen ansehen.',
+    browseByActivity: 'Nach Aktivität durchsuchen',
+    browseByRegion: 'Nach Region durchsuchen',
+  },
   activityTypes: {
     skiing: 'Skifahren',
     football: 'Fussball',

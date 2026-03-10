@@ -88,6 +88,7 @@ export function PhotoCarousel({ photos, ariaLabel }: PhotoCarouselProps) {
               fill
               className="object-cover"
               sizes="(max-width: 640px) 256px, 320px"
+              priority={i === 0}
             />
           </div>
         ))}

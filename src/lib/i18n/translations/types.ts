@@ -515,5 +515,18 @@ export type Translations = {
     terms: string
   }
   theme: { toggleTheme: string; light: string; dark: string; system: string }
+  seo: {
+    clubsIn: string
+    /** Use {country} as placeholder */
+    countryDescription: string
+    /** Use {activity} and {country} as placeholders */
+    activityDescription: string
+    /** Use {canton} and {country} as placeholders */
+    cantonDescription: string
+    /** Use {activity}, {canton}, and {country} as placeholders */
+    cantonActivityDescription: string
+    browseByActivity: string
+    browseByRegion: string
+  }
   activityTypes: Record<string, string>
 }

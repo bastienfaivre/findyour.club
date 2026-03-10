@@ -8,6 +8,7 @@ vi.mock('@/server/db', () => ({
   prisma: {
     club: { findFirst: vi.fn() },
     page: { findFirst: vi.fn() },
+    swissCanton: { findUnique: vi.fn() },
   },
 }))
 vi.mock('@/lib/country', () => ({
@@ -103,6 +104,8 @@ function setupClubMock(club = mockClub) {
 describe('ClubPage', () => {
   beforeEach(() => {
     vi.resetAllMocks()
+    // Default: slug is not a canton code
+    vi.mocked(prisma.swissCanton.findUnique).mockResolvedValue(null)
   })
 
   it('calls notFound() for non-existent club slug', async () => {
@@ -212,7 +215,7 @@ describe('ClubPage', () => {
     const scriptEl = scripts[0] as { props: { type: string; dangerouslySetInnerHTML: { __html: string } } }
     expect(scriptEl.props.type).toBe('application/ld+json')
     const jsonLd = JSON.parse(scriptEl.props.dangerouslySetInnerHTML.__html)
-    expect(jsonLd['@type']).toBe('Organization')
+    expect(jsonLd['@type']).toEqual(['SportsClub', 'LocalBusiness'])
     expect(jsonLd.name).toBe('Ski Club Valais')
   })
 
@@ -291,7 +294,7 @@ describe('generateClubJsonLd', () => {
       countryName: 'Suisse',
     })
     expect(jsonLd['@context']).toBe('https://schema.org')
-    expect(jsonLd['@type']).toBe('Organization')
+    expect(jsonLd['@type']).toEqual(['SportsClub', 'LocalBusiness'])
     expect(jsonLd.name).toBe('Ski Club Valais')
     expect(jsonLd.logo).toBe('https://example.com/logo.png')
     expect(jsonLd.description).toBe('Welcome!')

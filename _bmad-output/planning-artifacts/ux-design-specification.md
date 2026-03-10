@@ -5,6 +5,9 @@ workflowStatus: complete
 completedDate: 2026-02-26
 inputDocuments:
   - _bmad-output/planning-artifacts/prd.md
+editHistory:
+  - date: 2026-03-09
+    changes: 'Updated to reflect dashboard migration and MVP scope pivot'
 ---
 
 # UX Design Specification website-template
@@ -134,7 +137,7 @@ Eliminated entirely vs. competitors: theme editors, hosting dashboards, plugin m
 
 ### Inspiring Products Analysis
 
-**Dub.co (primary reference — public pages):** Clean, centered layout with generous margins and a sticky top navbar. Breathable spacing, minimal ornamentation, content-first hierarchy. Sets the standard for our public page layout: platform homepage, country directory, and club public sites all follow this pattern.
+**Dub.co (design inspiration — visual language):** Clean, breathable spacing, minimal ornamentation, content-first hierarchy. The visual language informed the design direction, though the actual implementation uses a unified dashboard shell (AppSidebar) for all surfaces rather than Dub.co's top-navbar layout.
 
 **shadcn/ui Dashboard (primary reference — admin):** The canonical shadcn dashboard example (ui.shadcn.com/examples/dashboard) is the direct reference for both the club admin dashboard and the platform operator dashboard. Sidebar navigation, form-based content management, clean data display.
 
@@ -145,9 +148,8 @@ Eliminated entirely vs. competitors: theme editors, hosting dashboards, plugin m
 ### Transferable UX Patterns
 
 **Layout Patterns:**
-- **Dub.co's centered layout** → All public pages: `max-w-[1200px]` centered container, generous side margins, sticky top navbar, content breathes
-- **Dub.co's top navbar** → Contextual title left, nav links center, CTA right — consistent structure across all public pages
-- **shadcn dashboard sidebar** → Club admin and operator dashboards: persistent sidebar with section navigation
+- **Unified dashboard shell (AppSidebar)** → All pages (public, club admin, operator) share a single sidebar-based layout with role-based sections. Visitors see public navigation; club admins see their club management sections; operators see admin tools. This replaced the original two-layout approach (Dub.co top-navbar for public + shadcn sidebar for admin).
+- **Centered content area** → Content within the dashboard shell uses `max-w-[1200px]` centered container with generous margins where appropriate
 
 **Editing Patterns:**
 - **Standard form-based editing** → Club admin dashboard: each sidebar item opens an edit form for that section — familiar from any CMS or settings panel
@@ -173,13 +175,13 @@ Eliminated entirely vs. competitors: theme editors, hosting dashboards, plugin m
 ### Design Inspiration Strategy
 
 **Adopt directly:**
-- Dub.co's centered, breathable layout for all public pages
-- shadcn dashboard pattern for club admin and operator dashboards
+- shadcn dashboard pattern as the unified shell for all surfaces (AppSidebar)
+- Dub.co's visual language — breathable spacing, content-first hierarchy — applied within the dashboard content area
 - Linear's responsiveness and minimal chrome standard for the admin dashboard
 
 **Adapt for our constraints:**
-- Dub.co's navbar → contextual title changes per page (platform name / country / club name)
-- shadcn dashboard → narrowed to ~8 sidebar items; no settings bloat
+- Unified AppSidebar → role-based sections serve visitors, club admins, and operators in one layout
+- shadcn dashboard → narrowed to focused sidebar items per role; no settings bloat
 - Squarespace's visual standard → achieved through platform-controlled template, not through admin style choices
 
 **Avoid entirely:**
@@ -413,47 +415,41 @@ Six initial directions (D1–D6) were explored covering layout approaches, infor
 
 ### Chosen Direction
 
-**All Public Pages (Platform Homepage, Country Directory, Club Public Site):**
+> **Note (2026-03-09):** The original design specified two separate layouts — a Dub.co-inspired top-navbar layout for public pages and a shadcn sidebar layout for admin pages. During implementation, these were consolidated into a **unified dashboard shell** (`AppSidebar`) serving all pages with role-based sidebar sections. The design rationale (clean separation of concerns, familiar patterns) is preserved, but the implementation uses a single layout component.
 
-Dub.co-inspired layout — clean, breathable, centered. All public surfaces share the same layout shell:
+**Unified Dashboard Shell (All Surfaces):**
 
-- **Sticky top navbar:** Contextual title on the left (platform name / country name / club name depending on page), navigation links centered, primary CTA on the right. Consistent structure across all public pages — only the title changes.
-- **Centered content area:** `max-w-[1200px]` (~75rem) with generous horizontal margins (`mx-auto px-6 lg:px-8`). Content breathes — never touches viewport edges on desktop.
-- **Standard multi-column footer:** Platform links, legal links, "Powered by" attribution (on club pages), and a subtle dark/light mode toggle.
-- **Airy visual weight:** Generous vertical spacing between sections. Minimal ornamentation. Content-first hierarchy.
+A single `AppSidebar` component serves all pages — public browsing, club admin, and operator admin — with role-based sidebar sections:
 
-The platform homepage shows the declarative headline, country buttons, and aggregate stats. The country page shows filters and the club grid. The club public site shows the hero section (logo, name, welcome text, CTA) on the home page and content on inner pages — all within the same centered shell.
-
-**Club Admin Dashboard (Surface 04):**
-
-Standard shadcn dashboard layout (reference: ui.shadcn.com/examples/dashboard):
-
-- **Persistent left sidebar:** Club name/logo at top, navigation items for each editable section (Home, Pages, Calendar, Gallery, Documents, Contact, Settings), footer with "View public site" link (opens in new tab).
-- **Content area:** Edit forms for the selected section. Standard form layouts with explicit save.
-- **Dedicated admin route:** `/{lang}/{country}/{club}/admin/...` — completely separate from the public URL. No `?edit=true` URL param, no in-place editing overlay.
+- **AppSidebar:** Persistent left sidebar with sections that adapt based on the user's role and context. Visitors see public navigation and search; authenticated club admins see their club management sections (MY CLUBS); operators see admin tools (Applications, Clubs, Messages). All within one consistent shell.
+- **Content area:** Renders public club pages, edit forms, operator queues, or search results depending on the active route.
+- **Club admin route:** `/{lang}/club/{clubId}` — uses clubId directly (no country/slug in the admin path).
+- **Operator admin routes:** `/{lang}/admin/applications`, `/{lang}/admin/clubs`, `/{lang}/admin/messages`.
+- **Search/directory:** `/{lang}/search?country=ch&activity=...` — master-detail search page replaces the old country directory pattern.
 - **Amber-500 unsaved-changes indicator** in sidebar and on save button when dirty.
-
-**Platform Operator Dashboard (Surface 05):**
-
-Same shadcn dashboard pattern as the club admin — persistent sidebar with operator-specific navigation (Applications, Clubs, Metrics, Support, Settings). Content area shows queue, metrics, and management views.
 
 ### Design Rationale
 
-Two distinct visual languages for two distinct contexts:
+A unified dashboard shell with role-based sections:
 
-1. **Public = Dub.co:** Centered, breathable, premium. The top navbar provides consistent navigation without the visual weight of a sidebar. Generous margins signal quality and calm. This applies uniformly to all public surfaces — platform, country, and club — creating a cohesive visitor experience.
+1. **One layout, multiple contexts:** The `AppSidebar` adapts its navigation sections based on the user's role — visitors see public browsing tools, club admins see their club management sections, operators see admin queues. This eliminates the need for separate layout components (the original PublicLayout + AdminSidebar approach) while preserving clear context separation through sidebar content.
 
-2. **Admin = shadcn dashboard:** Functional, familiar, dense. The sidebar provides efficient navigation between admin sections. Club admins (non-technical volunteers) encounter a conventional dashboard they've seen in other tools — no novel interaction patterns to learn. The separation from the public view eliminates mode confusion entirely.
+2. **Familiar dashboard pattern:** Club admins (non-technical volunteers) encounter a conventional sidebar dashboard they've seen in other tools — no novel interaction patterns to learn. The sidebar provides efficient navigation between admin sections.
+
+3. **Simplified routing:** Club admin URLs use `/{lang}/club/{clubId}` directly (no country/slug needed in admin paths). Public club URLs use `/{lang}/{country}/{club-slug}` for SEO. The search page at `/{lang}/search` replaces per-country directory pages.
 
 The previous in-place editing paradigm (editing directly on the live URL, Notion-style) was conceptually elegant but introduced complexity: mode signals, EditFieldCard overlays, LivePreviewPanel, dirty-state management on the live page, `?edit=true` URL param. The dashboard approach is simpler to build, simpler to use, and clearer in its separation of concerns.
 
 ### Implementation Approach
 
 - Shared Tailwind + shadcn/ui component library across all surfaces
-- Path-based routing: `/{lang}/{country}` (e.g. `platform-name.com/fr/ch`) with country-specific search field schemas; `{lang}` and `{country}` are independent segments
-- Public layout shell: shared `PublicLayout` component (top navbar + centered container + footer) used by all public routes
-- Club admin dashboard: dedicated `/{lang}/{country}/{club}/admin` route group with shadcn sidebar layout
-- Platform operator dashboard: dedicated admin route group with the same sidebar layout pattern
+- Unified dashboard shell: `AppSidebar` component (`src/components/app/AppSidebar.tsx`) serves all pages with role-based sidebar sections
+- Path-based routing: `/{lang}` prefix on all routes; `{lang}` = visitor's preferred language, `{country}` = geographic context fixed by club location (independent segments)
+- Public club URLs: `/{lang}/{country}/{club-slug}` (SEO-friendly, server-rendered)
+- Club admin URLs: `/{lang}/club/{clubId}` (uses clubId directly, no country/slug)
+- Search/directory: `/{lang}/search?country=ch&activity=...` (master-detail search page)
+- Operator admin: `/{lang}/admin/applications`, `/{lang}/admin/clubs`, `/{lang}/admin/messages`
+- Auth pages: `/{lang}/auth/login`, `/{lang}/auth/setup`, `/{lang}/auth/totp` (within dashboard shell)
 - Dark/light mode: `next-themes` with `enableSystem` as default; subtle toggle in footer; follows OS preference dynamically
 
 ---
@@ -466,35 +462,34 @@ The previous in-place editing paradigm (editing directly on the live URL, Notion
 
 **Entry point:** Acceptance email → admin dashboard link
 
+> **Note (2026-03-09 — MVP scope pivot):** The original journey included multi-page CMS steps (custom pages, element picker, Calendar/Gallery/Documents elements, Contact page sub-blocks). These are ALL deferred to post-MVP. The MVP journey is streamlined: login, review pre-populated profile fields from application, upload photos, save, publish.
+
 ```mermaid
 flowchart TD
     A([Email: Acceptance + Dashboard Link]) --> B[Click dashboard link]
-    B --> C[Admin dashboard loads\nshadcn sidebar visible]
-    C --> D[Sidebar: Home selected\nConfigure identity form\nclub name · logo · welcome text]
-    D --> E{Amber dot visible\nUnsaved changes}
-    E --> F[Save]
-    F --> G[Confirmation toast]
-    G --> H{Add custom pages?}
-    H -->|Yes| I[Sidebar: Pages section\nName page + choose elements\nCalendar · Gallery · Rich text · Documents]
-    I --> J{Add more elements?}
-    J -->|Yes| I
-    J -->|No| K{Add more pages?\nmax 5 total}
-    K -->|Yes| I
-    K -->|No| L[Sidebar: Contact section\nConfigure form · map · phone · subjects]
-    H -->|No| L
-    L --> M[Save]
-    M --> N[Click View public site\nin sidebar footer → new tab]
-    N --> O{Satisfied?}
-    O -->|Yes| P[Copy URL / share]
-    P --> Q([Setup complete — zero ongoing obligation])
-    O -->|Needs changes| R[Return to dashboard tab]
-    R --> D
+    B --> C[Dashboard loads\nAppSidebar visible\nclub admin sections shown]
+    C --> D[Club profile form loads\nPre-populated from application:\nclub name · activity · description]
+    D --> E[Review and refine profile fields\nAdd/update logo · welcome text]
+    E --> F[Upload photos via PhotoGallery]
+    F --> G{Amber dot visible\nUnsaved changes}
+    G --> H[Click Save via SaveBar]
+    H --> I[Confirmation toast]
+    I --> J[Preview via ProfilePreview\nlive preview of public appearance]
+    J --> K{Satisfied?}
+    K -->|Yes| L[Click PublishToggle\nSite goes live]
+    L --> M[Copy public URL / share]
+    M --> N([Setup complete — zero ongoing obligation])
+    K -->|Needs changes| O[Return to profile form]
+    O --> E
 ```
 
 **Key moments:**
-- Amber unsaved dot is the single persistent signal between edits and save
-- "View public site" opens a new tab for verification — clean separation
-- No wizard, no onboarding checklist — the dashboard sections ARE the setup
+- Profile fields are pre-populated from the application — admin refines, not starts from scratch
+- PhotoGallery provides a dedicated upload experience for club images
+- ProfilePreview shows a live preview of how the public page will look
+- SaveBar with amber unsaved dot is the persistent signal between edits and save
+- PublishToggle is the explicit action to make the site visible to visitors
+- No wizard, no onboarding checklist — the profile form IS the setup
 
 ---
 
@@ -529,18 +524,20 @@ flowchart TD
 
 **Persona:** Thomas, 28 — recently relocated, searching for a club
 
+> **Note (2026-03-09):** The contact form referenced in this journey is deferred to post-MVP. In the MVP, visitor-to-club contact happens through the platform's messaging system (ChatThread / ConversationQueue) or external channels listed on the club profile.
+
 **Entry points:** Search engine query OR platform directory
 
 ```mermaid
 flowchart TD
     A([Search: 'badminton club Lausanne']) --> B{Landing surface}
-    B -->|Direct club site in SERP| C[Club site: Home\ntop navbar with club name\nlogo · name · welcome text · CTA]
-    B -->|Platform directory in SERP| D[platform-name.com/fr/ch\nCountry page\ntop navbar with country name]
+    B -->|Direct club site in SERP| C[Club site: Home\nAppSidebar with club context\nlogo · name · welcome text · CTA]
+    B -->|Platform directory in SERP| D[Search page\n/{lang}/search?country=ch\nAppSidebar with filters]
     D --> E[Filter: Activity type + Canton]
     E --> F[Club listing]
     F --> C
     C --> G{Want more info?}
-    G -->|Yes| H[Navigate inner pages via top navbar\nCalendar · About · Gallery\nSPA-style with loading skeleton]
+    G -->|Yes| H[Navigate inner pages via sidebar\nCalendar · About · Gallery\nSPA-style with loading skeleton]
     H --> I{Contact intent formed?}
     G -->|Direct intent| I
     I -->|Yes| J[Go to Contact page]
@@ -592,6 +589,8 @@ flowchart TD
 
 **Persona:** The founder — single operator, low-volume dashboard
 
+> **Note (2026-03-09):** Stories 7.1-7.6 and 7.9 (Platform Operations — metrics, health monitoring, analytics dashboards) are deferred to post-MVP. The MVP operator experience focuses on application review, club management, and support messaging. References to metrics panels, site health flags, and Lighthouse scores in this journey are post-MVP scope.
+
 **Entry point:** Platform admin login
 
 ```mermaid
@@ -601,7 +600,7 @@ flowchart TD
     C -->|Yes| D[Review: name · type · description]
     D --> E{Decision}
     E -->|Approve| F[Click Approve]
-    F --> G[Auto: subdomain provisioned + acceptance email]
+    F --> G[Auto: URL path provisioned + acceptance email]
     G --> H([Club admin receives login link])
     E -->|Reject| I[Click Reject]
     I --> J[Templated rejection email sent]
@@ -628,7 +627,7 @@ flowchart TD
 **Navigation Patterns:**
 - **Email-as-authenticated-gateway:** Acceptance email + dashboard link is the entry point for club admin setup — no username discovery flow, no password reset friction on first use
 - **Footer "Powered by" as acquisition loop:** Every public club site footer is an entry point to the platform directory — visitor becomes applicant; applicant becomes club admin
-- **Dashboard = admin context, Top navbar = public context:** Complete visual separation — admins work in a shadcn dashboard at a dedicated route; visitors browse centered, breathable public pages with a top navbar. No mode confusion possible.
+- **Unified AppSidebar with role-based sections:** All users share the same dashboard shell — the sidebar adapts its sections based on authentication state and role. Club admins see their club management sections; operators see admin queues; visitors see public navigation and search.
 
 **Decision Patterns:**
 - **Philosophy-first self-selection:** Platform homepage shows philosophy before the Apply CTA — misaligned applicants exit before consuming operator review time
@@ -678,56 +677,42 @@ Components required by the product that have no equivalent in shadcn/ui — each
 
 #### PublicNavbar
 
-**Purpose:** Sticky top navigation bar shared across all public pages (platform homepage, country directory, club public site). Provides consistent navigation and contextual page identity.
-
-**Anatomy:**
-- **Left:** Contextual title — platform name (on platform pages), country name (on country page), or club name/logo (on club pages)
-- **Center:** Navigation links — page-specific (e.g., club inner pages on club sites; About, Support on platform pages)
-- **Right:** Primary CTA button (e.g., "Apply" on platform pages, "Contact" on club pages)
-- Sticky positioning: remains visible on scroll
-
-**States:**
-- `default` — transparent or subtle background; becomes opaque on scroll
-- `mobile` — hamburger menu; navigation links collapse into a `Sheet` drawer
-
-**Variants:** Platform / Country / Club — only the title and nav links change; structure is identical
-
-**Accessibility:** `<nav>` landmark; `aria-label="Main navigation"`; hamburger button with `aria-expanded`, `aria-controls`; all links keyboard-navigable
+> **SUPERSEDED (2026-03-09):** This component was replaced by the unified `AppSidebar`. The original design specified a Dub.co-inspired sticky top navbar for public pages. The actual implementation uses `AppSidebar` for all surfaces, with role-based sidebar sections providing navigation for both public and admin contexts.
 
 ---
 
 #### PublicFooter
 
-**Purpose:** Standard multi-column footer shared across all public pages. Contains platform links, legal links, and a subtle dark/light mode toggle.
-
-**Anatomy:**
-- Multi-column link groups (Platform, Legal, Social)
-- "Powered by [Platform]" attribution (on club pages)
-- Subtle dark/light mode toggle icon button
-- Copyright line
-
-**States:** Light / Dark mode variants via CSS tokens
-
-**Accessibility:** `<footer>` landmark; theme toggle has `aria-label="Toggle dark mode"`; all links keyboard-navigable
+> **SUPERSEDED (2026-03-09):** This component was replaced by the unified dashboard shell. Footer content (legal links, "Powered by" attribution, theme toggle) is handled within the `AppSidebar` layout.
 
 ---
 
 #### AdminSidebar
 
-**Purpose:** Persistent left sidebar for the club admin dashboard (shadcn dashboard pattern). Contains navigation for all editable sections of the club site.
+> **SUPERSEDED (2026-03-09):** This component was replaced by `AppSidebar`, which serves all pages (public, club admin, operator) with role-based sidebar sections.
+
+---
+
+#### AppSidebar
+
+**Purpose:** Unified sidebar navigation component serving all pages. Adapts its sections based on user authentication state, role, and active context (visitor, club admin, operator).
 
 **Anatomy:**
-- Club name/logo lockup at top
-- Navigation items: Home, Pages, Calendar, Gallery, Documents, Contact, Settings (Version History, Accent Color, Account)
-- Active item highlighted with accent color
-- Footer: "View public site" link (opens new tab)
+- **Public sections:** Platform navigation, search, activity browsing
+- **MY CLUBS section:** Listed clubs the user is a member of (visible when authenticated with club memberships)
+- **Club admin sections:** ClubProfileForm, PhotoGallery, settings (visible when in club admin context)
+- **Operator sections:** Applications, Clubs, Messages (visible for operator role)
+- **Account section:** Account settings, TOTP setup
+- Footer: contextual links
 
 **States:**
-- `default` — standard sidebar
+- `default` — persistent sidebar on desktop
 - `mobile` — collapses to hamburger; opens as `Sheet` drawer
-- `dirty` — amber dot appears next to the active section name when unsaved changes exist
+- `dirty` — amber dot appears when unsaved changes exist (via `AdminDirtyContext`)
 
-**Accessibility:** `<nav>` landmark; `aria-current="page"` on active item; hamburger button `aria-expanded`, `aria-controls`
+**Context providers:** `SearchStateContext`, `AdminSelectionContext`, `AdminDirtyContext`, `PageTitleProvider`
+
+**Accessibility:** `<nav>` landmark; `aria-current="page"` on active item; hamburger button `aria-expanded`, `aria-controls`; all links keyboard-navigable
 
 ---
 
@@ -752,6 +737,8 @@ Components required by the product that have no equivalent in shadcn/ui — each
 ---
 
 #### AccentColorPicker
+
+> **Deferred to post-MVP (2026-03-09).** Not included in the MVP component set.
 
 **Purpose:** 8-preset swatch selector in the club admin dashboard Settings section, allowing club admins to choose an accent color without risking inaccessible choices.
 
@@ -839,7 +826,7 @@ Components required by the product that have no equivalent in shadcn/ui — each
 
 #### CountryButton
 
-**Purpose:** Large country selector on the platform homepage linking to the country subdomain.
+**Purpose:** Large country selector on the platform homepage linking to the search page filtered by country.
 
 **Anatomy:**
 - Country flag icon (decorative)
@@ -859,7 +846,7 @@ Components required by the product that have no equivalent in shadcn/ui — each
 
 **Token compliance:** All custom components consume only CSS custom property tokens (`--background`, `--foreground`, `--primary`, `--border`, etc.) — never hardcoded color values. This ensures light/dark mode and accent color switching work automatically across all components.
 
-**Amber signal discipline:** The amber-500 unsaved-changes indicator is used in exactly two places: the dot on the Save button area and the mirrored dot on the AdminSidebar active item. No other component uses amber or any warm color. This uniqueness is what makes it instantly legible.
+**Amber signal discipline:** The amber-500 unsaved-changes indicator is used in exactly two places: the dot on the SaveBar and the mirrored dot on the AppSidebar active item. No other component uses amber or any warm color. This uniqueness is what makes it instantly legible.
 
 **Radix for accessibility:** All interactive overlay components (Dialog, Sheet, Popover, Tooltip, DropdownMenu) use Radix UI primitives — keyboard focus trapping, ARIA roles, and escape-key dismissal are handled by the primitive, not reimplemented.
 
@@ -869,33 +856,47 @@ Components required by the product that have no equivalent in shadcn/ui — each
 
 #### Phase 1 — MVP Critical
 
+> **Updated 2026-03-09** to reflect dashboard migration and MVP scope pivot. PublicNavbar, PublicFooter, AdminSidebar, ContactForm, and AccentColorPicker are removed (superseded or deferred). Actual MVP components listed below.
+
 | Component | Required For |
 |---|---|
-| PublicNavbar | All public pages — top navigation (platform, country, club) |
-| PublicFooter | All public pages — footer with links and theme toggle |
+| AppSidebar | Unified dashboard shell — all pages (public, club admin, operator) |
+| ClubProfileForm | Club admin — profile editing (pre-populated from application) |
+| ProfilePreview | Club admin — live preview of public appearance |
+| PhotoGallery | Club admin — photo upload and management |
+| SaveBar | Club admin — persistent save action with unsaved-changes indicator |
+| PublishToggle | Club admin — make site visible to visitors |
 | ClubHeroSection | Club site public — home page render |
-| AdminSidebar | Club admin dashboard — sidebar navigation |
 | ImageUploadField | Club admin — logo + gallery uploads |
-| ContactForm | Public visitor — contact path (core conversion) |
 | ClubCard | Public visitor — directory browsing |
+| SearchFilterBar | Search page — country + activity filter |
+| ApplicationQueue | Platform operator — application list view |
+| ApplicationDetail | Platform operator — application review + approve/reject |
+| ClubQueue | Platform operator — club list management |
+| ClubDetail | Platform operator — club detail view + ForceOfflineDialog |
+| ForceOfflineDialog | Platform operator — force a club offline |
+| LocationTypeahead | Platform operator — location search for club assignment |
+| ChatThread | Messaging — bidirectional threaded conversation |
+| ConversationQueue | Messaging — conversation list for operator support |
 | CountryButton | Platform homepage — country navigation |
-| SearchFilterBar | Country directory — canton + activity filter |
-| ApplicationQueueItem | Platform operator — approve/reject flow |
-| AccentColorPicker | Club admin — identity setup (dashboard Settings) |
 
-#### Phase 2 — Supporting
+#### Phase 2 — Post-MVP
+
+> **Updated 2026-03-09.** Includes components deferred from MVP scope plus originally planned Phase 2 components. Epic 7 operator metrics/health monitoring (Stories 7.1-7.6, 7.9) are deferred to post-MVP.
 
 | Component | Required For |
 |---|---|
+| ContactForm | Public visitor — contact path (deferred from MVP) |
+| AccentColorPicker | Club admin — identity setup (deferred from MVP) |
 | CalendarEventCard + Form | Calendar page element |
 | GalleryGrid | Image/Video Gallery page element |
 | DocumentLibraryItem | Documents library page element |
 | ElementPicker | Page builder — adding elements to custom pages |
 | PageNavItem | Admin dashboard — add/remove page affordances |
 | VersionHistoryEntry | Admin dashboard Settings — version list + restore |
-| SupportTicketItem | Operator dashboard — support queue |
 | PlatformStatBadge | Platform homepage — aggregate statistics |
-| ClubHealthIndicator | Operator dashboard — site health status |
+| ClubHealthIndicator | Operator dashboard — site health status (Epic 7, post-MVP) |
+| OperatorMetricsDashboard | Operator dashboard — analytics and metrics (Epic 7, post-MVP) |
 
 ---
 
@@ -980,19 +981,17 @@ shadcn/ui button variants mapped to product intent:
 
 ### Navigation Patterns
 
-**Public pages — top navbar (desktop):**
-- Sticky at top; full-width with centered content constrained to `max-w-[1200px]`
-- Left: contextual title (platform name / country / club name+logo)
-- Center: navigation links (page-specific)
-- Right: primary CTA button
-- Becomes opaque/blurred on scroll
+**All pages — AppSidebar (desktop):**
+- Persistent left sidebar with role-based sections
+- Public navigation, search, MY CLUBS, operator tools — visible based on auth state and role
+- Content area renders routes within the sidebar offset
 
-**Public pages — top navbar (mobile):**
-- Sticky at top; title left, hamburger right
-- Navigation links collapse into a `Sheet` drawer from the right
+**All pages — AppSidebar (mobile):**
+- Collapses to hamburger icon
+- Opens as a full-height `Sheet` drawer from the left
 - Closes on navigation or backdrop tap
 
-**Club admin dashboard sidebar (desktop):**
+**Club admin dashboard (desktop):**
 - Persistent left sidebar; width: ~240px
 - Club name/logo at top
 - Navigation items for each editable section
@@ -1009,7 +1008,7 @@ shadcn/ui button variants mapped to product intent:
 - Not used on flat navigation structures
 
 **Admin dashboard entry point:**
-- Authenticated club admins access the dashboard via direct URL (`/{lang}/{country}/{club}/admin`)
+- Authenticated club admins access the dashboard via direct URL (`/{lang}/club/{clubId}`)
 - Login flow redirects to the dashboard after authentication
 - No "Edit" button on the public site — complete separation of concerns
 
@@ -1073,7 +1072,7 @@ shadcn/ui button variants mapped to product intent:
 ### Admin Dashboard Editing Patterns
 
 **Context signal:**
-- The admin dashboard is a completely separate route (`/{lang}/{country}/{club}/admin/...`) — there is no mode ambiguity
+- The admin dashboard is a completely separate route (`/{lang}/club/{clubId}`) — there is no mode ambiguity
 - The shadcn sidebar layout is the visual signal that the admin is in the management context
 
 **Edit flow:**
@@ -1124,8 +1123,8 @@ shadcn/ui button variants mapped to product intent:
 
 | Surface | Mobile | Tablet | Desktop |
 |---|---|---|---|
-| All public pages | Top navbar with hamburger; single-column centered content; stacked footer | Top navbar with links; centered content; wider margins | Sticky top navbar; centered content at max-w-[1200px]; generous side margins |
-| Club admin dashboard | Sidebar as hamburger drawer; edit forms full-width | Narrow sidebar or drawer; forms with more horizontal space | Persistent sidebar (~240px) + content area with edit forms |
+| All pages (unified shell) | AppSidebar as hamburger drawer; single-column content | Narrow sidebar or drawer; content with more horizontal space | Persistent AppSidebar (~240px) + content area |
+| Club admin (within shell) | Edit forms full-width; sidebar in drawer | Forms with more horizontal space | Persistent sidebar + content area with edit forms |
 | Platform homepage | Country buttons wrap to 2-column grid; stats stacked | 3-column button grid | 4–5 column button grid; stats in a row |
 | Country directory | Filter bar stacks vertically; club cards single column | 2-column club grid | 3-column club grid; filter bar horizontal |
 | Platform operator dashboard | Sidebar as hamburger; metrics stacked; queue full-width | Narrow sidebar or drawer; metrics 2-column | Persistent sidebar; metrics grid; queue table |
@@ -1184,7 +1183,7 @@ Using Tailwind CSS default breakpoints (mobile-first):
 - Semantic HTML structure: `<main>`, `<nav>`, `<aside>`, `<article>`, `<section>`, headings hierarchy (one `<h1>` per page)
 - ARIA landmarks on every surface
 - `aria-live="polite"` on the unsaved-changes indicator and toast region
-- `aria-current="page"` on active nav item in PublicNavbar and AdminSidebar
+- `aria-current="page"` on active nav item in AppSidebar
 - `aria-label` on all icon-only buttons
 - `aria-expanded` + `aria-controls` on hamburger toggle
 - `aria-required` on required form fields
@@ -1243,7 +1242,7 @@ Using Tailwind CSS default breakpoints (mobile-first):
 
 **Semantic HTML:**
 - `<main>` wraps primary content on every page
-- `<nav>` for PublicNavbar, AdminSidebar, and platform site nav — never a `<div>` with `role="navigation"`
+- `<nav>` for AppSidebar and all navigation landmarks — never a `<div>` with `role="navigation"`
 - `<section>` with `aria-labelledby` for named content regions
 - Heading hierarchy: `<h1>` for page/club name, `<h2>` for major sections, `<h3>` for sub-sections — no skipping levels
 

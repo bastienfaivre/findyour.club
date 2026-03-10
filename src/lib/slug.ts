@@ -6,6 +6,7 @@
  */
 
 export const RESERVED_SLUGS = new Set([
+  // Platform routes
   'admin',
   'api',
   'auth',
@@ -27,6 +28,19 @@ export const RESERVED_SLUGS = new Set([
   'privacy',
   'status',
   'health',
+  // Activity type slugs (used for SEO category landing pages)
+  'skiing',
+  'football',
+  'mountaineering',
+  'rowing',
+  'gymnastics',
+  'yoga',
+  'swimming',
+  'chess',
+  // Swiss canton codes (used for SEO region landing pages)
+  'zh', 'be', 'lu', 'ur', 'sz', 'ow', 'nw', 'gl', 'zg', 'fr',
+  'so', 'bs', 'bl', 'sh', 'ar', 'ai', 'sg', 'gr', 'ag', 'tg',
+  'ti', 'vd', 'vs', 'ne', 'ge', 'ju',
 ])
 
 /**

@@ -1,7 +1,11 @@
 import type { Metadata } from 'next'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
-import { generatePlatformMetadata } from '@/components/app/seo/metadata'
+import {
+  generatePlatformMetadata,
+  generateWebSiteJsonLd,
+  generatePlatformOrgJsonLd,
+} from '@/components/app/seo/metadata'
 import { CountryButton } from '@/components/app/directory/CountryButton'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 import { Card, CardContent } from '@/components/ui/card'
@@ -65,9 +69,20 @@ export default async function HomePage({ params }: Props) {
     name: getComingSoonCountryName(code, uiLang),
   }))
 
+  const webSiteJsonLd = generateWebSiteJsonLd(lang)
+  const orgJsonLd = generatePlatformOrgJsonLd()
+
   return (
     <>
       <AdminPageTitle title={t.nav.home} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteJsonLd).replace(/</g, '\\u003c') }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd).replace(/</g, '\\u003c') }}
+      />
       {/* Hero */}
       <section className="py-8 sm:py-16 lg:py-24 text-center">
         <div>

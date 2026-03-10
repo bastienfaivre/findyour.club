@@ -3,6 +3,13 @@ stepsCompleted: [step-01-validate-prerequisites, step-02-design-epics, step-03-c
 lastEdited: '2026-03-09'
 editHistory:
   - date: '2026-03-09'
+    changes: 'MVP scope refinement: Deferred Epic 7 entirely (Platform Operations & Health Monitoring).
+      FR34, FR35, FR39, FR42, FR45 moved to post-MVP. FR38 partially retained via Epic 10.
+      Marked Stories 8.1 and 8.3 as superseded by 9.2 and 9.3. Updated FR Coverage Map with
+      FR48-FR57, fixed stale mappings (FR19→Epic 4, FR30→Epic 4, FR36→Epic 4, FR37→Epic 4,
+      FR40/FR41→Epic 9). Updated FR inventory descriptions to match current PRD. Added Status
+      column to coverage map. Active MVP epics: 1, 2, 3, 4, 9, 10.'
+  - date: '2026-03-09'
     changes: 'Added Epic 9 (Launch Readiness): Stories 9.1-9.4 covering dev infra image upload
       fix, GDPR account deletion, data export, and operator club deletion. Marked Story 7.8
       as superseded (replaced by threaded messaging). Marked Stories 8.2 and 8.4 as deferred
@@ -29,70 +36,82 @@ This document provides the complete epic and story breakdown for website-templat
 
 ### Functional Requirements
 
-**Club Site Configuration & Navigation**
+**Club Profile & Admin Dashboard**
 
-FR1: Club Admin can configure their site's core identity elements (name, logo, welcome text)
-FR2: Club Admin can access a dedicated admin dashboard to manage their club site content, with a link to preview the public view
-FR3: Club Admin can activate and deactivate optional pages in their site's navigation
-FR4: Club Admin can create custom pages with user-defined navigation labels
-FR5: Club Admin can configure one level of sub-pages within their site's navigation
-FR6: System prevents Club Admin from removing anchor pages (Home and Contact)
-FR7: System enforces a configurable maximum page count per club site
+FR1: Club Admin can configure their club's profile: name, logo, description, schedule/availability (free text), contact info (email, phone, address), "how to join" (free text), optional external website link
+FR2: Club Admin can access a dedicated admin dashboard to manage their club profile, with a link to preview the public page
+FR3: ~~Deferred to post-MVP~~ Club Admin can activate and deactivate optional pages in their site's navigation
+FR4: ~~Deferred to post-MVP~~ Club Admin can create custom pages with user-defined navigation labels
+FR5: ~~Deferred to post-MVP~~ Club Admin can configure one level of sub-pages within their site's navigation
+FR6: ~~Deferred to post-MVP~~ System prevents Club Admin from removing anchor pages (Home and Contact)
+FR7: ~~Deferred to post-MVP~~ System enforces a configurable maximum page count per club site
 FR8: ~~Deferred to post-MVP~~ Club Admin can set up and manage a custom domain for their site
-FR9: System provisions a URL path for each approved club immediately upon acceptance
-FR46: Club Admin can select an accent color for their site from a curated palette of 8 presets
-FR47: Club Admin can configure an external website link on their club site that directs visitors to the club's own website
+FR9: System provisions a URL path for each approved club immediately upon acceptance (path-based routing)
+FR47: Club Admin can configure an external website link on their club profile that directs visitors to the club's own website
+FR48: Club Admin can upload 5-10 photos displayed as an auto-scrolling carousel on the public club page (pause on hover); photos uploaded via presigned URL to object storage
+FR49: Club Admin can publish or unpublish their club page (offline by default after approval)
+
+**Club Page Visibility & Moderation**
+
+FR51: System uses a two-flag visibility model: admin-controlled `isPublished` and operator-controlled `forceOffline`; club page is visible only when `isPublished = true` AND `forceOffline = false`
+FR52: Platform Operator can force a club page offline; when forced offline, the Club Admin cannot republish until the operator lifts the override
+FR53: Platform Operator can lift a force-offline override, restoring the Club Admin's ability to publish
+FR54: Platform Operator can send an operator message to any club (free text); messages are stored in the database and sent via email
+FR55: Operator messages appear as a persistent banner in the Club Admin dashboard until read/acknowledged
+FR56: Operator messages use a single unified model regardless of context (application review or post-live moderation)
+FR57: When approving an application with an operator message, the message is bundled into the approval email (not sent as a separate email)
 
 **Content Editing & Element Library**
 
-FR10: Club Admin can add, configure, and remove elements on custom pages using a visual element picker
-FR11: Club Admin can configure Contact page sub-blocks (contact form, map, phone number, email address, predefined message subjects) independently
-FR12: Club Admin can create, edit, and delete calendar events on a Calendar page
-FR13: Club Admin can upload and manage images and videos in a Gallery page
-FR14: Club Admin can upload and manage documents and PDFs in a Documents library page
-FR15: Club Admin can add and edit rich text content on custom pages
-FR16: Club Admin can add and edit inline images on custom pages
-FR17: Club Admin can explicitly save changes to their site
-FR18: Club Admin can view their site's version history and restore a previous version
+FR10: ~~Deferred to post-MVP~~ Club Admin can add, configure, and remove elements on custom pages using a visual element picker
+FR11: ~~Deferred to post-MVP~~ Club Admin can configure Contact page sub-blocks (contact form, map, phone number, email address, predefined message subjects) independently
+FR12: ~~Deferred to post-MVP~~ Club Admin can create, edit, and delete calendar events on a Calendar page
+FR13: ~~Deferred to post-MVP~~ Club Admin can upload and manage images and videos in a Gallery page
+FR14: ~~Deferred to post-MVP~~ Club Admin can upload and manage documents and PDFs in a Documents library page
+FR15: ~~Deferred to post-MVP~~ Club Admin can add and edit rich text content on custom pages
+FR16: ~~Deferred to post-MVP~~ Club Admin can add and edit inline images on custom pages
+FR17: Club Admin can explicitly save changes to their club profile
+FR18: ~~Deferred to post-MVP~~ Club Admin can view their site's version history and restore a previous version
 FR19: System displays file constraints (size limits, accepted formats) inline at the point of upload
 
 **Public Discovery & Contact**
 
 FR20: Public Visitor can browse a directory of all member associations on the platform site
 FR21: Public Visitor can filter the directory by country, activity type, and location
-FR22: Public Visitor can view any club's public website without authentication
-FR23: Public Visitor can submit a contact message through a club's contact form
-FR24: System delivers contact form submissions to the club's registered email address with reply-to set to the sender's address
-FR25: Public Visitor can navigate from any club site to the platform directory via a footer link
-FR26: System displays a platform attribution link in the footer of every hosted club site
+FR22: Public Visitor can view any club's public page without authentication
+FR23: ~~Deferred to post-MVP~~ Public Visitor can submit a contact message through a club's contact form
+FR24: ~~Deferred to post-MVP~~ System delivers contact form submissions to the club's registered email address with reply-to set to the sender's address
+FR25: Public Visitor can navigate from any club page to the platform search page via the sidebar
+FR26: System displays a platform attribution link in the footer of every club page
 
 **Application & Access**
 
-FR27: Club Applicant can submit an application to join the platform providing association name, activity type, description, and optionally their existing website URL
+FR27: Club Applicant can submit an application providing association name, activity type, description, schedule/availability, contact info (email, phone, address), "how to join" instructions, and optionally their existing website URL — these fields seed the club profile upon approval (no photo upload at application time)
 FR28: Club Admin can authenticate and access their site's edit mode via the platform site login
 FR29: Platform Operator can authenticate via a dedicated platform-level admin interface separate from club sites
-FR30: Club Admin can submit a support request to the platform team from the platform site
+FR30: Club Admin can submit a support request to the platform team (via threaded SupportMessage system)
 
 **Platform Operations**
 
 FR31: Platform Operator can view and manage a queue of pending club applications
-FR32: Platform Operator can approve an application, triggering automatic URL path provisioning and an acceptance email to the applicant
+FR32: Platform Operator can approve an application with an optional operator message (bundled in acceptance email), triggering automatic URL path provisioning
 FR33: Platform Operator can reject an application with an explanatory email to the applicant
-FR34: Platform Operator can view platform-wide metrics (clubs live, uptime, performance scores, storage)
-FR35: Platform Operator can monitor site health status across all hosted club sites
-FR36: Platform Operator can send a notification to a club admin regarding a detected site issue
-FR37: Platform Operator can view and respond to club admin support requests
-FR38: Platform Operator can configure platform-wide operational variables including the per-club page limit
-FR39: System applies template version updates to all club sites automatically without downtime or any action required from club admins
+FR34: ~~Deferred to post-MVP~~ Platform Operator can view platform-wide metrics (clubs live, uptime, performance scores, storage)
+FR35: ~~Deferred to post-MVP~~ Platform Operator can monitor site health status across all hosted club sites
+FR36: Platform Operator can send an operator message to any club admin (see FR54-FR57 for unified message system)
+FR37: Platform Operator can view and respond to club admin support requests (threaded bidirectional messaging via SupportMessage + ChatThread)
+FR38: Platform Operator can configure platform-wide operational variables (MVP: registration kill-switch + maintenance mode via Epic 10)
+FR39: ~~Deferred to post-MVP~~ System applies template version updates to all club sites automatically without downtime
 
 **Compliance & Data Rights**
 
 FR40: Club Admin can export all their club's content data in a portable standard format
 FR41: Club Admin can request deletion of their club's data from the platform
-FR42: System presents a cookie consent mechanism to users on the platform site and on club sites where applicable
+FR42: ~~Deferred to post-MVP~~ System presents a cookie consent mechanism (no non-essential cookies at MVP)
 FR43: System automatically generates and maintains SEO metadata for all club site pages without requiring any admin configuration
-FR44: Club Admin can view stored contact form submissions received for their site
-FR45: Platform Operator can view detailed per-club analytics (traffic, page views, edit events, login events, contact form submission counts)
+FR44: ~~Deferred to post-MVP~~ Club Admin can view stored contact form submissions received for their site
+FR45: ~~Deferred to post-MVP~~ Platform Operator can view detailed per-club analytics (traffic, page views, edit events, login events)
+FR46: ~~Deferred to post-MVP~~ Club Admin can select an accent color for their club site from a curated palette of 8 presets
 
 **Platform Funding**
 
@@ -223,56 +242,65 @@ NFR27: All platform-wide configurable variables adjustable via the admin dashboa
 
 ### FR Coverage Map
 
-| FR | Epic | Description |
-|---|---|---|
-| FR1 | Epic 4 | Club identity configuration |
-| FR2 | Epic 4 | Edit/public view toggle |
-| FR3 | Epic 4 | Activate/deactivate optional pages |
-| FR4 | Epic 4 | Create custom pages |
-| FR5 | Epic 4 | Sub-page configuration |
-| FR6 | Epic 4 | Anchor page protection |
-| FR7 | Epic 4 | Configurable page limit enforcement |
-| FR8 | Post-MVP | Custom domain management (deferred) |
-| FR9 | Epic 2 | Subdomain provisioning on acceptance |
-| FR46 | Epic 4 | Accent color picker (MVP) |
-| FR10 | Epic 5 | Element picker for custom pages |
-| FR11 | Epic 5 | Contact page sub-blocks |
-| FR12 | Epic 5 | Calendar event management |
-| FR13 | Epic 5 | Gallery management |
-| FR14 | Epic 5 | Documents library management |
-| FR15 | Epic 5 | Rich text content editing |
-| FR16 | Epic 5 | Inline image editing |
-| FR17 | Epic 4 | Explicit save |
-| FR18 | Epic 4 | Version history & restore |
-| FR19 | Epic 5 | Inline file constraint display |
-| FR20 | Epic 3 | Directory browsing |
-| FR21 | Epic 3 | Directory filtering |
-| FR22 | Epic 3 | Public club site access (no auth) |
-| FR23 | Epic 6 | Contact form submission |
-| FR24 | Epic 6 | Contact form email relay |
-| FR25 | Epic 3 | Footer link → platform directory |
-| FR26 | Epic 3 | Platform attribution footer |
-| FR27 | Epic 2 | Club application form |
-| FR28 | Epic 1 | Club Admin authentication |
-| FR29 | Epic 1 | Platform Operator authentication |
-| FR30 | Epic 6 | Support request from platform site |
-| FR31 | Epic 2 | Application queue management |
-| FR32 | Epic 2 | Application approval + provisioning |
-| FR33 | Epic 2 | Application rejection + email |
-| FR34 | Epic 7 | Platform-wide metrics |
-| FR35 | Epic 7 | Site health monitoring |
-| FR36 | Epic 7 | Operator nudge to club admin |
-| FR37 | Epic 7 | Support inbox management |
-| FR38 | Epic 7 | Platform variable configuration |
-| FR39 | Epic 7 | Silent template migration |
-| FR40 | Epic 8 | Club data export |
-| FR41 | Epic 8 | Club data deletion |
-| FR42 | Epic 8 | Cookie consent mechanism |
-| FR43 | Epic 3 | Automated SEO metadata |
-| FR44 | Epic 6 | Contact submission storage & view |
-| FR45 | Epic 7 | Per-club analytics view |
-| FR47 | Epic 4 | External website link configuration |
-| FR50 | Epic 3 | Donation/support page |
+| FR | Epic | Description | Status |
+|---|---|---|---|
+| FR1 | Epic 4 | Club profile configuration (name, logo, description, schedule, contact, how to join, external link) | MVP |
+| FR2 | Epic 4 | Admin dashboard with public preview link | MVP |
+| FR3 | Post-MVP | Activate/deactivate optional pages | Deferred |
+| FR4 | Post-MVP | Create custom pages | Deferred |
+| FR5 | Post-MVP | Sub-page configuration | Deferred |
+| FR6 | Post-MVP | Anchor page protection | Deferred |
+| FR7 | Post-MVP | Configurable page limit enforcement | Deferred |
+| FR8 | Post-MVP | Custom domain management | Deferred |
+| FR9 | Epic 2 | URL path provisioning on acceptance | MVP |
+| FR10 | Epic 5 | Element picker for custom pages | Deferred |
+| FR11 | Epic 5 | Contact page sub-blocks | Deferred |
+| FR12 | Epic 5 | Calendar event management | Deferred |
+| FR13 | Epic 5 | Gallery management | Deferred |
+| FR14 | Epic 5 | Documents library management | Deferred |
+| FR15 | Epic 5 | Rich text content editing | Deferred |
+| FR16 | Epic 5 | Inline image editing | Deferred |
+| FR17 | Epic 4 | Explicit save | MVP |
+| FR18 | Post-MVP | Version history & restore | Deferred |
+| FR19 | Epic 4 | Inline file constraint display (photo upload) | MVP |
+| FR20 | Epic 3 | Directory browsing | MVP |
+| FR21 | Epic 3 | Directory filtering (country, activity, location) | MVP |
+| FR22 | Epic 3 | Public club page access (no auth) | MVP |
+| FR23 | Epic 6 | Contact form submission | Deferred |
+| FR24 | Epic 6 | Contact form email relay | Deferred |
+| FR25 | Epic 3 | Navigation to platform search page via sidebar | MVP |
+| FR26 | Epic 3 | Platform attribution footer | MVP |
+| FR27 | Epic 4 | Application with profile fields seeding club profile | MVP |
+| FR28 | Epic 1 | Club Admin authentication (magic link + TOTP) | MVP |
+| FR29 | Epic 1 | Platform Operator authentication | MVP |
+| FR30 | Epic 4 | Support request (via threaded SupportMessage system) | MVP |
+| FR31 | Epic 2 | Application queue management | MVP |
+| FR32 | Epic 4 | Application approval with optional operator message | MVP |
+| FR33 | Epic 2 | Application rejection + email | MVP |
+| FR34 | Epic 7 | Platform-wide metrics | Deferred |
+| FR35 | Epic 7 | Site health monitoring | Deferred |
+| FR36 | Epic 4 | Operator messaging to club admin (SupportMessage) | MVP |
+| FR37 | Epic 4 | Support request management (threaded bidirectional messaging) | MVP |
+| FR38 | Epic 10 | Platform-wide variable configuration (registration, maintenance) | MVP (partial) |
+| FR39 | Epic 7 | Silent template migration | Deferred |
+| FR40 | Epic 9 | Club data export (GDPR portability) | MVP |
+| FR41 | Epic 9 | Club data deletion (GDPR erasure) | MVP |
+| FR42 | Post-MVP | Cookie consent mechanism (no non-essential cookies at MVP) | Deferred |
+| FR43 | Epic 3 | Automated SEO metadata | MVP |
+| FR44 | Epic 6 | Contact submission storage & view | Deferred |
+| FR45 | Epic 7 | Per-club analytics view | Deferred |
+| FR46 | Post-MVP | Accent color picker | Deferred |
+| FR47 | Epic 4 | External website link configuration | MVP |
+| FR48 | Epic 4 | Photo carousel (5-10 images, presigned URL to R2) | MVP |
+| FR49 | Epic 4 | Publish/unpublish toggle (offline by default) | MVP |
+| FR50 | Epic 3 | Donation/support page | MVP |
+| FR51 | Epic 4 | Two-flag visibility model (isPublished + forceOffline) | MVP |
+| FR52 | Epic 4 | Operator force-offline (locks admin publishing) | MVP |
+| FR53 | Epic 4 | Operator lift force-offline override | MVP |
+| FR54 | Epic 4 | Operator messages (DB + email notification) | MVP |
+| FR55 | Epic 4 | Operator message unread indicator in sidebar | MVP |
+| FR56 | Epic 4 | Unified message model (SupportMessage) | MVP |
+| FR57 | Epic 4 | Approval message bundled in acceptance email | MVP |
 
 ## Epic List
 
@@ -304,14 +332,14 @@ Rework the application form to collect club profile fields (description, schedul
 **FRs covered:** ~~FR23, FR24, FR44~~ (deferred), FR30 (MVP)
 **NFRs addressed:** ~~NFR7, NFR16~~ (deferred)
 
-### Epic 7: Platform Operations & Health Monitoring
-The Platform Operator can view platform-wide metrics, monitor club site health, manage the support inbox, configure platform-wide operational variables without a deployment, view per-club analytics, and trust that template updates are silently applied to all clubs with zero downtime. Operator-club messaging is handled by the threaded SupportMessage system (Epic 4) — Story 7.7 (Operator Nudge) removed.
-**FRs covered:** FR34, FR35, FR37, FR38, FR39, FR45
-**NFRs addressed:** NFR4, NFR5, NFR15, NFR16, NFR25, NFR27
+### Epic 7: Platform Operations & Health Monitoring _(Deferred to post-MVP)_
+~~The Platform Operator can view platform-wide metrics, monitor club site health, manage the support inbox, configure platform-wide operational variables without a deployment, view per-club analytics, and trust that template updates are silently applied to all clubs with zero downtime.~~ Entire epic deferred to post-MVP. Operator-club messaging remains in scope via the threaded SupportMessage system (Epic 4). Basic platform configuration (registration kill-switch, maintenance mode) covered by Epic 10. Stories below preserved for reference.
+**FRs covered:** ~~FR34, FR35, FR37, FR38, FR39, FR45~~ (all deferred; FR37 covered by Epic 4, FR38 partially by Epic 10)
+**NFRs addressed:** ~~NFR4, NFR5, NFR15, NFR16, NFR25, NFR27~~ (deferred)
 
-### Epic 8: Data Compliance
-All GDPR/nDSG data rights are available: clubs can export their profile data and photos and request deletion. A cookie consent mechanism is presented where legally required. Data retention policies are enforced automatically. Custom domain support (FR8) is deferred to post-MVP.
-**FRs covered:** FR40, FR41, FR42
+### Epic 8: Data Compliance _(Partially superseded)_
+GDPR/nDSG data rights (export, deletion) are covered by Epic 9 (Stories 9.2, 9.3). Cookie consent (FR42) deferred — no non-essential cookies at MVP. Stories 8.1 and 8.3 superseded by 9.2 and 9.3 respectively. Stories 8.2 and 8.4 deferred (depend on analytics infrastructure).
+**FRs covered:** ~~FR40, FR41~~ (superseded by Epic 9), ~~FR42~~ (deferred)
 **NFRs addressed:** NFR6 (TLS encryption)
 
 ---
@@ -1526,7 +1554,7 @@ So that I can respond to visitors who have reached out to my association.
 
 Platform Operators have full operational visibility — they can manage the club registry, monitor system health, enforce usage limits, view privacy-safe analytics, and control platform-wide flags. Note: operator-club messaging and club page moderation (force offline) are handled by the threaded SupportMessage system in Epic 4 (Stories 4.7, 4.9) — Story 7.7 (Operator Nudge) has been removed from this epic.
 
-### Story 7.1: Operator Dashboard — Club Registry Management
+### ~~Story 7.1: Operator Dashboard — Club Registry Management~~ _(Deferred to post-MVP with Epic 7)_
 
 As a Platform Operator,
 I want to view and manage all registered clubs in an admin dashboard,
@@ -1555,7 +1583,7 @@ So that I can oversee the platform's club population and take administrative act
 
 ---
 
-### Story 7.2: Operator Dashboard — Site Metrics & Usage Limits
+### ~~Story 7.2: Operator Dashboard — Site Metrics & Usage Limits~~ _(Deferred to post-MVP with Epic 7)_
 
 As a Platform Operator,
 I want to monitor per-club site metrics and enforce configurable usage limits,
@@ -1577,7 +1605,7 @@ So that the platform stays performant and fair across all member associations.
 
 ---
 
-### Story 7.3: Privacy-Safe Analytics — Page View Tracking
+### ~~Story 7.3: Privacy-Safe Analytics — Page View Tracking~~ _(Deferred to post-MVP with Epic 7)_
 
 As a Platform Operator,
 I want privacy-safe page view analytics across all club sites,
@@ -1602,7 +1630,7 @@ So that I can understand platform usage without compromising visitor privacy.
 
 ---
 
-### Story 7.4: Feature Flags & Platform-Wide Configuration
+### ~~Story 7.4: Feature Flags & Platform-Wide Configuration~~ _(Deferred to post-MVP with Epic 7)_
 
 As a Platform Operator,
 I want to manage feature flags and platform-wide configuration from an admin panel,
@@ -1628,7 +1656,7 @@ So that I can control rollouts and adjust platform behaviour without code deploy
 
 ---
 
-### Story 7.5: Audit Log Viewer
+### ~~Story 7.5: Audit Log Viewer~~ _(Deferred to post-MVP with Epic 7)_
 
 As a Platform Operator,
 I want to view a log of all significant administrative actions,
@@ -1653,7 +1681,7 @@ So that I have a clear audit trail for governance and incident response.
 
 ---
 
-### Story 7.6: Operator Dashboard — Site Health Status
+### ~~Story 7.6: Operator Dashboard — Site Health Status~~ _(Deferred to post-MVP with Epic 7)_
 
 As a Platform Operator,
 I want to view health status indicators for all club sites,
@@ -1689,7 +1717,7 @@ So that I can proactively identify and address site issues before club admins or
 
 ---
 
-### Story 7.9: Template Versioning & Silent Migration
+### ~~Story 7.9: Template Versioning & Silent Migration~~ _(Deferred to post-MVP with Epic 7)_
 
 As a Platform Operator,
 I want club sites to automatically receive template updates silently after each deployment,
@@ -1721,7 +1749,7 @@ So that all clubs benefit from improvements and fixes without any action require
 
 Club Admins can export their data (GDPR portability) and request account deletion (GDPR right-to-erasure). A cookie consent mechanism is presented where legally required. Data retention policies are applied automatically.
 
-### Story 8.1: GDPR Right-to-Erasure — Club Data Deletion
+### ~~Story 8.1: GDPR Right-to-Erasure — Club Data Deletion~~ _(SUPERSEDED — replaced by Story 9.2 which covers both account and club deletion with refined acceptance criteria.)_
 
 As a Club Admin,
 I want to request deletion of my club's data from the platform,
@@ -1770,7 +1798,7 @@ So that the platform is compliant with GDPR data minimisation and right-to-acces
 
 ---
 
-### Story 8.3: Club Admin — Data Export (GDPR Portability)
+### ~~Story 8.3: Club Admin — Data Export (GDPR Portability)~~ _(SUPERSEDED — replaced by Story 9.3 which covers club data export with refined acceptance criteria.)_
 
 As a Club Admin,
 I want to export all my club's content data in a portable, machine-readable format,

@@ -14,6 +14,7 @@ vi.mock('@/server/db', () => ({
   prisma: {
     club: { findFirst: vi.fn() },
     clubMembership: { findFirst: vi.fn() },
+    swissCanton: { findUnique: vi.fn() },
   },
 }))
 
@@ -33,10 +34,18 @@ vi.mock('@/components/app/admin/AdminPageTitle', () => ({
   AdminPageTitle: vi.fn(() => null),
 }))
 vi.mock('@/components/app/seo/metadata', () => ({
+  generateClubMetadata: vi.fn(() => ({})),
   generateClubJsonLd: vi.fn(() => ({})),
+  generateBreadcrumbJsonLd: vi.fn(() => ({})),
+  generateCategoryMetadata: vi.fn(() => ({})),
+  BASE_URL: 'http://localhost:3000',
+}))
+vi.mock('@/components/app/seo/CategoryLanding', () => ({
+  CategoryLanding: vi.fn(() => null),
 }))
 
 import { notFound } from 'next/navigation'
+import { prisma } from '@/server/db'
 import { getClubPublicData } from '@/lib/server/club-queries'
 import ClubPage from '@/app/[lang]/(dashboard)/[country]/[club]/page'
 
@@ -68,6 +77,8 @@ function makeParams(slug = 'ski-club-valais', country = 'ch', lang = 'fr') {
 describe('ClubPage (public access)', () => {
   beforeEach(() => {
     vi.resetAllMocks()
+    // Default: slug is not a canton code
+    vi.mocked(prisma.swissCanton.findUnique).mockResolvedValue(null)
   })
 
   it('calls notFound() when club does not exist in DB', async () => {

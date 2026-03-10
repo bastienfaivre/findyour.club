@@ -8,6 +8,7 @@ vi.mock('@/server/db', () => ({
   prisma: {
     club: { findFirst: vi.fn() },
     page: { findFirst: vi.fn() },
+    swissCanton: { findUnique: vi.fn() },
   },
 }))
 vi.mock('@/lib/country', () => ({
@@ -117,6 +118,8 @@ function setupMocks(club = mockClub, page: typeof mockPage | null = mockPage) {
 describe('InnerPage route', () => {
   beforeEach(() => {
     vi.resetAllMocks()
+    // Default: slug is not a canton code
+    vi.mocked(prisma.swissCanton.findUnique).mockResolvedValue(null)
   })
 
   it('renders page elements for a valid page slug', async () => {
@@ -191,6 +194,8 @@ describe('ElementRenderer', () => {
 describe('Inner page generateMetadata', () => {
   beforeEach(() => {
     vi.resetAllMocks()
+    // Default: slug is not a canton code
+    vi.mocked(prisma.swissCanton.findUnique).mockResolvedValue(null)
   })
 
   it('returns correct title and canonical URL with page slug', async () => {
@@ -222,6 +227,8 @@ describe('Inner page generateMetadata', () => {
 describe('Contact page', () => {
   beforeEach(() => {
     vi.resetAllMocks()
+    // Default: slug is not a canton code
+    vi.mocked(prisma.swissCanton.findUnique).mockResolvedValue(null)
   })
 
   it('renders correctly', async () => {
