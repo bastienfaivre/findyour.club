@@ -91,6 +91,15 @@ const DEFAULT_FIELDS: ApplicationEditableFields = {
   contactAddress: 'Rue de la Gare 1, 1950 Sion',
   howToJoin: 'Send us an email',
   externalWebsiteUrl: 'https://skiclub-valais.ch',
+  instagramUrl: null,
+  facebookUrl: null,
+  xUrl: null,
+  tiktokUrl: null,
+  discordUrl: null,
+  youtubeUrl: null,
+  whatsappUrl: null,
+  telegramUrl: null,
+  githubUrl: null,
   desiredSlug: 'ski-club-valais',
 }
 

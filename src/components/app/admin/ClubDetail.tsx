@@ -8,6 +8,7 @@ import { Loader2, Pencil, Eye, X, Download } from 'lucide-react'
 import type { Translations } from '@/lib/i18n/translations/types'
 import { extractClubEditableFields } from '@/lib/schemas/club'
 import type { ClubEditableFields } from '@/lib/schemas/club'
+import { SOCIAL_PLATFORMS } from '@/lib/social-platforms'
 import { updateClubFields, operatorDeleteClubPhoto, operatorDeleteClubLogo, operatorUploadClubLogo, operatorPersistClubLogo, operatorUpdateClubLogoAlt, operatorDeleteClub } from '@/app/[lang]/(dashboard)/admin/clubs/[id]/actions'
 import type { ClubListItem } from './ClubQueue'
 import type { ActivityTypeOption, CountryOption } from './types'
@@ -107,6 +108,15 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
         contactAddress: fields.contactAddress?.trim() || null,
         howToJoin: fields.howToJoin?.trim() || null,
         externalWebsiteUrl: fields.externalWebsiteUrl?.trim() || null,
+        instagramUrl: fields.instagramUrl?.trim() || null,
+        facebookUrl: fields.facebookUrl?.trim() || null,
+        xUrl: fields.xUrl?.trim() || null,
+        tiktokUrl: fields.tiktokUrl?.trim() || null,
+        discordUrl: fields.discordUrl?.trim() || null,
+        youtubeUrl: fields.youtubeUrl?.trim() || null,
+        whatsappUrl: fields.whatsappUrl?.trim() || null,
+        telegramUrl: fields.telegramUrl?.trim() || null,
+        githubUrl: fields.githubUrl?.trim() || null,
         slug: fields.slug.trim(),
       }
       const result = await updateClubFields(club.id, trimmedFields)
@@ -216,6 +226,21 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
           <Label htmlFor="club-externalWebsiteUrl">{tc.profileFields.externalWebsiteUrl}</Label>
           <Input id="club-externalWebsiteUrl" value={fields.externalWebsiteUrl ?? ''} onChange={(e) => updateField('externalWebsiteUrl', e.target.value)} />
         </div>
+
+        {/* Social Media Links */}
+        <fieldset className="space-y-3">
+          <Label>{tc.profileFields.socialLinks}</Label>
+          {SOCIAL_PLATFORMS.map(({ key, label, icon: Icon }) => (
+            <div key={key} className="flex items-center gap-2">
+              <Icon className="h-5 w-5 shrink-0 text-muted-foreground" />
+              <Input
+                placeholder={label}
+                value={(fields[key] as string) ?? ''}
+                onChange={(e) => updateField(key, e.target.value)}
+              />
+            </div>
+          ))}
+        </fieldset>
 
         <div className="space-y-2">
           <Label htmlFor="club-slug">{tc.slug} <span className="text-destructive">*</span></Label>
@@ -372,6 +397,15 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
         contactPhone: fields.contactPhone || null,
         contactAddress: fields.contactAddress || null,
         externalWebsiteUrl: fields.externalWebsiteUrl || null,
+        instagramUrl: fields.instagramUrl || null,
+        facebookUrl: fields.facebookUrl || null,
+        xUrl: fields.xUrl || null,
+        tiktokUrl: fields.tiktokUrl || null,
+        discordUrl: fields.discordUrl || null,
+        youtubeUrl: fields.youtubeUrl || null,
+        whatsappUrl: fields.whatsappUrl || null,
+        telegramUrl: fields.telegramUrl || null,
+        githubUrl: fields.githubUrl || null,
       }}
       logoUrl={club.logoUrl}
       logoAlt={null}

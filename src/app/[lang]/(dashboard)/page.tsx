@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
+import { ClipboardPen } from 'lucide-react'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import {
@@ -9,6 +11,7 @@ import {
 import { CountryButton } from '@/components/app/directory/CountryButton'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 import { SharePlatformButton } from '@/components/app/SharePlatformButton'
+import { Button } from '@/components/ui/button'
 import { RotatingWords } from '@/components/app/RotatingWords'
 import { prisma } from '@/server/db'
 import {
@@ -94,8 +97,19 @@ export default async function HomePage({ params }: Props) {
         <p className="text-sm font-medium text-green-800 dark:text-green-300">
           {t.platform.bootstrapMessage}
         </p>
-        <div className="mt-3">
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
           <SharePlatformButton label={t.platform.bootstrapShare} copiedMessage={t.clubSite.linkCopied} />
+          <Button
+            variant="outline"
+            size="sm"
+            asChild
+            className="border-green-300 text-green-800 hover:bg-green-100 dark:border-green-800 dark:text-green-200 dark:hover:bg-green-900/40"
+          >
+            <Link href={`/${lang}/apply`}>
+              <ClipboardPen className="mr-2 h-3.5 w-3.5" />
+              {t.platform.bootstrapListClub}
+            </Link>
+          </Button>
         </div>
       </div>
 

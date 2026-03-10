@@ -185,6 +185,15 @@ export async function saveClubProfile(
       contactPhone: parsed.data.contactPhone || null,
       contactAddress: parsed.data.contactAddress || null,
       externalWebsiteUrl: parsed.data.externalWebsiteUrl || null,
+      instagramUrl: parsed.data.instagramUrl || null,
+      facebookUrl: parsed.data.facebookUrl || null,
+      xUrl: parsed.data.xUrl || null,
+      tiktokUrl: parsed.data.tiktokUrl || null,
+      discordUrl: parsed.data.discordUrl || null,
+      youtubeUrl: parsed.data.youtubeUrl || null,
+      whatsappUrl: parsed.data.whatsappUrl || null,
+      telegramUrl: parsed.data.telegramUrl || null,
+      githubUrl: parsed.data.githubUrl || null,
     },
   })
 

@@ -1,6 +1,6 @@
 # Authentication System
 
-This document describes the complete authentication architecture for the Clashware website template.
+This document describes the complete authentication architecture for findyour.club.
 It covers every flow, the cookie/session state model, and the result of an adversarial security review.
 
 ---

@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import type { Translations } from '@/lib/i18n/translations/types'
 import { extractEditableFields } from '@/lib/schemas/application'
 import type { ApplicationEditableFields } from '@/lib/schemas/application'
+import { SOCIAL_PLATFORMS } from '@/lib/social-platforms'
 import { approveApplication, rejectApplication } from '@/app/[lang]/(dashboard)/admin/applications/actions'
 import type { ApplicationWithRelations } from './ApplicationQueue'
 import type { ActivityTypeOption, CountryOption } from './types'
@@ -95,6 +96,15 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
         contactAddress: fields.contactAddress?.trim() || null,
         howToJoin: fields.howToJoin?.trim() || null,
         externalWebsiteUrl: fields.externalWebsiteUrl?.trim() || null,
+        instagramUrl: fields.instagramUrl?.trim() || null,
+        facebookUrl: fields.facebookUrl?.trim() || null,
+        xUrl: fields.xUrl?.trim() || null,
+        tiktokUrl: fields.tiktokUrl?.trim() || null,
+        discordUrl: fields.discordUrl?.trim() || null,
+        youtubeUrl: fields.youtubeUrl?.trim() || null,
+        whatsappUrl: fields.whatsappUrl?.trim() || null,
+        telegramUrl: fields.telegramUrl?.trim() || null,
+        githubUrl: fields.githubUrl?.trim() || null,
         desiredSlug: fields.desiredSlug.trim(),
       }
       const result = await approveApplication(application.id, trimmedFields, message.trim() || undefined)
@@ -219,6 +229,21 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
           <Input id="app-externalWebsiteUrl" value={fields.externalWebsiteUrl ?? ''} onChange={(e) => updateField('externalWebsiteUrl', e.target.value)} />
         </div>
 
+        {/* Social Media Links */}
+        <fieldset className="space-y-3">
+          <Label>{ta.profileFields.socialLinks}</Label>
+          {SOCIAL_PLATFORMS.map(({ key, label, icon: Icon }) => (
+            <div key={key} className="flex items-center gap-2">
+              <Icon className="h-5 w-5 shrink-0 text-muted-foreground" />
+              <Input
+                placeholder={label}
+                value={(fields[key] as string) ?? ''}
+                onChange={(e) => updateField(key, e.target.value)}
+              />
+            </div>
+          ))}
+        </fieldset>
+
         <div className="space-y-2">
           <Label htmlFor="app-slug">{ta.desiredSlug} <span className="text-destructive">*</span></Label>
           <Input id="app-slug" value={fields.desiredSlug} onChange={(e) => updateField('desiredSlug', e.target.value)} maxLength={60} />
@@ -270,6 +295,15 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
         contactPhone: fields.contactPhone || null,
         contactAddress: fields.contactAddress || null,
         externalWebsiteUrl: fields.externalWebsiteUrl || null,
+        instagramUrl: fields.instagramUrl || null,
+        facebookUrl: fields.facebookUrl || null,
+        xUrl: fields.xUrl || null,
+        tiktokUrl: fields.tiktokUrl || null,
+        discordUrl: fields.discordUrl || null,
+        youtubeUrl: fields.youtubeUrl || null,
+        whatsappUrl: fields.whatsappUrl || null,
+        telegramUrl: fields.telegramUrl || null,
+        githubUrl: fields.githubUrl || null,
       }}
       logoUrl={null}
       logoAlt={null}

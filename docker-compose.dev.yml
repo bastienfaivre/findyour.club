@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-website_template_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-findyour_club_dev}
     ports:
       - "5432:5432"
     volumes:
@@ -49,7 +49,7 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
-      R2_BUCKET_NAME: ${R2_BUCKET_NAME:-website-template}
+      R2_BUCKET_NAME: ${R2_BUCKET_NAME:-findyour-club}
 
   mailpit:
     image: axllent/mailpit:v1.21

@@ -1,5 +1,9 @@
 import { z } from 'zod'
 import { isValidPhoneNumber } from 'libphonenumber-js'
+import type { SocialFieldKey } from '@/lib/social-platforms'
+import { SOCIAL_FIELD_KEYS } from '@/lib/social-platforms'
+
+const optionalUrl = z.union([z.string().url(), z.literal('')]).nullable()
 
 export const clubProfileSaveSchema = z.object({
   name: z.string().trim().min(1).max(200),
@@ -11,10 +15,29 @@ export const clubProfileSaveSchema = z.object({
     message: 'invalidPhone',
   }).nullable(),
   contactAddress: z.string().max(500).nullable(),
-  externalWebsiteUrl: z.union([z.string().url(), z.literal('')]).nullable(),
+  externalWebsiteUrl: optionalUrl,
+  instagramUrl: optionalUrl,
+  facebookUrl: optionalUrl,
+  xUrl: optionalUrl,
+  tiktokUrl: optionalUrl,
+  discordUrl: optionalUrl,
+  youtubeUrl: optionalUrl,
+  whatsappUrl: optionalUrl,
+  telegramUrl: optionalUrl,
+  githubUrl: optionalUrl,
 })
 
 export type ClubProfileSaveInput = z.infer<typeof clubProfileSaveSchema>
+
+export type SocialLinks = Record<SocialFieldKey, string | null>
+
+export function extractSocialLinks(record: Partial<Record<SocialFieldKey, string | null>>): SocialLinks {
+  const links = {} as SocialLinks
+  for (const key of SOCIAL_FIELD_KEYS) {
+    links[key] = record[key] ?? null
+  }
+  return links
+}
 
 /**
  * Central definition of all operator-editable club fields.
@@ -31,6 +54,15 @@ export interface ClubEditableFields {
   contactPhone: string | null
   contactAddress: string | null
   externalWebsiteUrl: string | null
+  instagramUrl: string | null
+  facebookUrl: string | null
+  xUrl: string | null
+  tiktokUrl: string | null
+  discordUrl: string | null
+  youtubeUrl: string | null
+  whatsappUrl: string | null
+  telegramUrl: string | null
+  githubUrl: string | null
   slug: string
 }
 
@@ -49,6 +81,15 @@ export function extractClubEditableFields(club: {
   contactPhone: string | null
   contactAddress: string | null
   externalWebsiteUrl: string | null
+  instagramUrl?: string | null
+  facebookUrl?: string | null
+  xUrl?: string | null
+  tiktokUrl?: string | null
+  discordUrl?: string | null
+  youtubeUrl?: string | null
+  whatsappUrl?: string | null
+  telegramUrl?: string | null
+  githubUrl?: string | null
   location?: {
     swissLocation?: {
       swisstopoId: string
@@ -78,6 +119,7 @@ export function extractClubEditableFields(club: {
     contactPhone: club.contactPhone,
     contactAddress: club.contactAddress,
     externalWebsiteUrl: club.externalWebsiteUrl,
+    ...extractSocialLinks(club),
     slug: club.slug,
   }
 }

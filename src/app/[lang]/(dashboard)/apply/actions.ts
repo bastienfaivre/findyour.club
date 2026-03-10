@@ -26,7 +26,7 @@ export async function submitApplication(data: unknown): Promise<SubmitApplicatio
       return { success: false, error: 'Invalid form data.', code: 'VALIDATION_ERROR' }
     }
 
-    const { name, email, country, activityType, otherDescription, location, description, schedule, contactPhone, contactAddress, howToJoin, externalWebsiteUrl, desiredSlug, turnstileToken } = parsed.data
+    const { name, email, country, activityType, otherDescription, location, description, schedule, contactPhone, contactAddress, howToJoin, externalWebsiteUrl, instagramUrl, facebookUrl, xUrl, tiktokUrl, discordUrl, youtubeUrl, whatsappUrl, telegramUrl, githubUrl, desiredSlug, turnstileToken } = parsed.data
 
     const turnstileValid = await verifyTurnstileToken(turnstileToken)
     if (!turnstileValid) {
@@ -54,6 +54,15 @@ export async function submitApplication(data: unknown): Promise<SubmitApplicatio
         contactAddress,
         howToJoin,
         externalWebsiteUrl: externalWebsiteUrl || null,
+        instagramUrl: instagramUrl || null,
+        facebookUrl: facebookUrl || null,
+        xUrl: xUrl || null,
+        tiktokUrl: tiktokUrl || null,
+        discordUrl: discordUrl || null,
+        youtubeUrl: youtubeUrl || null,
+        whatsappUrl: whatsappUrl || null,
+        telegramUrl: telegramUrl || null,
+        githubUrl: githubUrl || null,
         desiredSlug,
       },
     })

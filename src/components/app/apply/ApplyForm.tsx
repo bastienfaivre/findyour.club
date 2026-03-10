@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { applicationSchema, slugRegex, type ApplicationInput } from '@/lib/schemas/application'
+import { SOCIAL_PLATFORMS } from '@/lib/social-platforms'
 import { submitApplication, type SubmitApplicationResult } from '@/app/[lang]/(dashboard)/apply/actions'
 import type { Translations } from '@/lib/i18n/translations'
 import type { SupportedLanguage } from '@/lib/i18n'
@@ -567,6 +568,25 @@ export function ApplyForm({ lang, t, activityTypes, countries }: Props) {
           </p>
         )}
       </div>
+
+      {/* Social Media Links */}
+      <fieldset className="space-y-3">
+        <legend className="text-sm font-medium">{t.apply.fields.socialLinks}</legend>
+        {SOCIAL_PLATFORMS.map((platform) => {
+          const Icon = platform.icon
+          return (
+            <div key={platform.key} className="flex items-center gap-2">
+              <Icon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <Input
+                id={`apply-${platform.key}`}
+                {...register(platform.key)}
+                placeholder={platform.placeholder}
+                aria-label={platform.label}
+              />
+            </div>
+          )
+        })}
+      </fieldset>
 
       {/* Desired URL Slug */}
       <SlugField

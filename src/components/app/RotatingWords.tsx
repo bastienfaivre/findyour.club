@@ -32,21 +32,47 @@ function pickColor(excludeIndex: number) {
 export function RotatingWords({ prefix, words, interval = 2500 }: RotatingWordsProps) {
   const [index, setIndex] = useState(0)
   const [phase, setPhase] = useState<Phase>('visible')
-  const [maxWidth, setMaxWidth] = useState<number | undefined>(undefined)
+  const [wordWidths, setWordWidths] = useState<number[]>([])
   const [colorIndex, setColorIndex] = useState(0)
+  const [isWrapped, setIsWrapped] = useState(false)
   const measureRef = useRef<HTMLSpanElement>(null)
+  const prefixRef = useRef<HTMLSpanElement>(null)
+  const rotatingRef = useRef<HTMLSpanElement>(null)
+  const containerRef = useRef<HTMLSpanElement>(null)
 
-  // Measure the widest word once on mount to lock the container width
+  // Measure each word's width on mount
   useEffect(() => {
     const el = measureRef.current
     if (!el) return
-    let widest = 0
-    for (const child of Array.from(el.children)) {
-      widest = Math.max(widest, (child as HTMLElement).offsetWidth)
-    }
+    const widths = Array.from(el.children).map((child) => (child as HTMLElement).offsetWidth)
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time measurement on mount, no cascading risk
-    setMaxWidth(widest)
+    setWordWidths(widths)
   }, [])
+
+  // Detect whether prefix + widest word would overflow a single line
+  useEffect(() => {
+    const container = containerRef.current
+    const prefixEl = prefixRef.current
+    if (!container || !prefixEl || !wordWidths.length) return
+
+    function checkWrap() {
+      const parent = container!.parentElement
+      if (!parent) return
+      const availableWidth = parent.clientWidth
+      const prefixWidth = prefixEl!.offsetWidth
+      const maxWordWidth = Math.max(...wordWidths)
+      // Approximate space character width using font size * 0.3
+      const fontSize = parseFloat(getComputedStyle(prefixEl!).fontSize)
+      const spaceWidth = fontSize * 0.3
+      const wouldOverflow = prefixWidth + spaceWidth + maxWordWidth > availableWidth
+      setIsWrapped(window.innerWidth < 640 || wouldOverflow)
+    }
+
+    checkWrap()
+    const observer = new ResizeObserver(checkWrap)
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [wordWidths])
 
   const next = useCallback(() => {
     setPhase('exit')
@@ -77,7 +103,7 @@ export function RotatingWords({ prefix, words, interval = 2500 }: RotatingWordsP
         : { transform: 'translateY(0)', opacity: 1 }
 
   return (
-    <span>
+    <span ref={containerRef} className={isWrapped ? 'inline-flex flex-col items-center' : 'inline'}>
       {/* Hidden measurer — renders all words offscreen to find the widest */}
       <span
         ref={measureRef}
@@ -89,10 +115,14 @@ export function RotatingWords({ prefix, words, interval = 2500 }: RotatingWordsP
         ))}
       </span>
 
-      {prefix}{' '}
+      <span ref={prefixRef}>{prefix}</span>{' '}
       <span
-        className="relative inline-flex overflow-hidden align-bottom"
-        style={maxWidth ? { width: maxWidth } : undefined}
+        ref={rotatingRef}
+        className="relative inline-flex overflow-hidden align-bottom transition-[width] duration-350 ease-in-out"
+        style={{
+          ...(wordWidths.length ? { width: isWrapped ? wordWidths[index] : Math.max(...wordWidths) } : {}),
+          ...(isWrapped ? { justifyContent: 'center' } : {}),
+        }}
       >
         <span
           className="inline-block transition-all duration-350 ease-in-out whitespace-nowrap"

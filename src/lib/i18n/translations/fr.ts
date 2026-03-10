@@ -150,6 +150,7 @@ export const fr: Translations = {
         contactAddress: 'Adresse',
         howToJoin: 'Comment nous rejoindre',
         externalWebsiteUrl: 'Site web',
+        socialLinks: 'Réseaux sociaux',
       },
       operatorMessage: {
         label: "Message pour l'administrateur du club",
@@ -203,6 +204,7 @@ export const fr: Translations = {
         contactAddress: 'Adresse',
         howToJoin: 'Comment rejoindre',
         externalWebsiteUrl: 'Site web',
+        socialLinks: 'Réseaux sociaux',
       },
       photoSection: 'Photos',
       deletePhoto: 'Supprimer la photo',
@@ -245,6 +247,7 @@ export const fr: Translations = {
       contactPhone: 'Téléphone de contact',
       contactAddress: 'Adresse de contact',
       externalWebsiteUrl: 'Site web',
+      socialLinks: 'Réseaux sociaux',
       desiredSlug: 'Slug URL souhaité',
       otherDescription: "Décris ton type d'activité",
     },
@@ -311,6 +314,7 @@ export const fr: Translations = {
           contactPhone: 'Téléphone de contact',
           contactAddress: 'Adresse de contact',
           externalWebsiteUrl: 'Site web',
+          socialLinks: 'Réseaux sociaux',
         },
         placeholders: {
           name: 'ex. Ski Club du Valais',
@@ -467,6 +471,7 @@ export const fr: Translations = {
     launchValue: 'Mars 2026',
     bootstrapMessage: 'On vient de lancer ! Aide-nous à grandir en partageant findyour.club avec les clubs de ta région. Plus il y a de clubs, plus c\'est facile pour tout le monde de trouver sa communauté.',
     bootstrapShare: 'Partager findyour.club',
+    bootstrapListClub: 'Inscrire ton club',
     marketingSpend: 'Budget marketing',
     marketingSpendValue: 'CHF 0',
     about: {

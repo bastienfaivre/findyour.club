@@ -1,5 +1,8 @@
 import { Mail, Phone, MapPin, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { SOCIAL_PLATFORMS, type SocialFieldKey } from '@/lib/social-platforms'
+
+type SocialLinks = Partial<Record<SocialFieldKey, string | null>>
 
 type ContactInfoProps = {
   email?: string | null
@@ -7,6 +10,7 @@ type ContactInfoProps = {
   address?: string | null
   websiteUrl?: string | null
   websiteLabel: string
+  socialLinks?: SocialLinks
   translations: {
     email: string
     phone: string
@@ -20,8 +24,16 @@ export function ContactInfo({
   address,
   websiteUrl,
   websiteLabel,
+  socialLinks,
   translations,
 }: ContactInfoProps) {
+  const activeSocials = socialLinks
+    ? SOCIAL_PLATFORMS.filter((p) => {
+        const url = socialLinks[p.key]
+        return url && /^https?:\/\//i.test(url)
+      })
+    : []
+
   return (
     <div className="space-y-3">
       {email && (
@@ -70,6 +82,26 @@ export function ContactInfo({
               {websiteLabel}
             </a>
           </Button>
+        </div>
+      )}
+
+      {activeSocials.length > 0 && (
+        <div className="flex flex-wrap gap-3 pt-2">
+          {activeSocials.map((platform) => {
+            const Icon = platform.icon
+            return (
+              <a
+                key={platform.key}
+                href={socialLinks![platform.key]!}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={platform.label}
+                className="text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <Icon className="h-5 w-5" aria-hidden="true" />
+              </a>
+            )
+          })}
         </div>
       )}
     </div>

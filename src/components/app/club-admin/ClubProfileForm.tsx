@@ -22,6 +22,7 @@ import { Pencil, Eye } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 import type { Translations } from '@/lib/i18n/translations/types'
+import { SOCIAL_PLATFORMS } from '@/lib/social-platforms'
 
 export interface ClubPhoto {
   id: string
@@ -39,6 +40,15 @@ export interface ClubProfileData {
   contactPhone: string | null
   contactAddress: string | null
   externalWebsiteUrl: string | null
+  instagramUrl: string | null
+  facebookUrl: string | null
+  xUrl: string | null
+  tiktokUrl: string | null
+  discordUrl: string | null
+  youtubeUrl: string | null
+  whatsappUrl: string | null
+  telegramUrl: string | null
+  githubUrl: string | null
   logoUrl: string | null
   logoAlt: string | null
   photos: ClubPhoto[]
@@ -86,6 +96,15 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
       contactPhone: initialData.contactPhone,
       contactAddress: initialData.contactAddress,
       externalWebsiteUrl: initialData.externalWebsiteUrl,
+      instagramUrl: initialData.instagramUrl,
+      facebookUrl: initialData.facebookUrl,
+      xUrl: initialData.xUrl,
+      tiktokUrl: initialData.tiktokUrl,
+      discordUrl: initialData.discordUrl,
+      youtubeUrl: initialData.youtubeUrl,
+      whatsappUrl: initialData.whatsappUrl,
+      telegramUrl: initialData.telegramUrl,
+      githubUrl: initialData.githubUrl ?? '',
     },
   })
 
@@ -114,6 +133,15 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
       contactPhone: data.contactPhone || null,
       contactAddress: data.contactAddress || null,
       externalWebsiteUrl: data.externalWebsiteUrl || null,
+      instagramUrl: data.instagramUrl || null,
+      facebookUrl: data.facebookUrl || null,
+      xUrl: data.xUrl || null,
+      tiktokUrl: data.tiktokUrl || null,
+      discordUrl: data.discordUrl || null,
+      youtubeUrl: data.youtubeUrl || null,
+      whatsappUrl: data.whatsappUrl || null,
+      telegramUrl: data.telegramUrl || null,
+      githubUrl: data.githubUrl || null,
     }
     startTransition(async () => {
       const result: SaveClubProfileResult = await saveClubProfile(clubId, normalized)
@@ -302,6 +330,27 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
             <p id="externalWebsiteUrl-error" className="text-sm text-destructive">{p.validation.externalWebsiteUrlInvalid}</p>
           )}
         </div>
+
+        {/* Social Media Links */}
+        <fieldset className="space-y-3">
+          <legend className="text-sm font-medium">{p.fields.socialLinks}</legend>
+          {SOCIAL_PLATFORMS.map((platform) => {
+            const Icon = platform.icon
+            return (
+              <div key={platform.key} className="flex items-center gap-2">
+                <Icon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <Input
+                  id={platform.key}
+                  {...register(platform.key)}
+                  placeholder={platform.placeholder}
+                  aria-label={platform.label}
+                  aria-describedby={errors[platform.key] ? `${platform.key}-error` : undefined}
+                  aria-invalid={!!errors[platform.key]}
+                />
+              </div>
+            )
+          })}
+        </fieldset>
 
         {/* Photos */}
         <PhotoGallery

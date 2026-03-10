@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import { SUPPORTED_COUNTRIES } from '@/lib/country'
 import { ACTIVITY_TYPES } from '@/lib/activity-types'
+import { SOCIAL_FIELD_KEYS } from '@/lib/social-platforms'
+import { extractSocialLinks } from '@/lib/schemas/club'
 
 export const locationSchema = z.object({
   swisstopoId: z.string().min(1).max(20),
@@ -14,6 +16,8 @@ export type LocationInput = z.infer<typeof locationSchema>
 // Slug: lowercase alphanumeric + hyphens, no leading/trailing/consecutive hyphens
 export const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
+const optionalUrl = z.union([z.string().url(), z.literal('')]).optional()
+
 export const applicationSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(200),
   email: z.string().max(254).email('Invalid email address'),
@@ -26,7 +30,16 @@ export const applicationSchema = z.object({
   contactPhone: z.string().max(30).optional(),
   contactAddress: z.string().max(500).optional(),
   howToJoin: z.string().trim().min(1, 'How to join is required').max(1000),
-  externalWebsiteUrl: z.union([z.string().url(), z.literal('')]).optional(),
+  externalWebsiteUrl: optionalUrl,
+  instagramUrl: optionalUrl,
+  facebookUrl: optionalUrl,
+  xUrl: optionalUrl,
+  tiktokUrl: optionalUrl,
+  discordUrl: optionalUrl,
+  youtubeUrl: optionalUrl,
+  whatsappUrl: optionalUrl,
+  telegramUrl: optionalUrl,
+  githubUrl: optionalUrl,
   desiredSlug: z.string().trim().min(1, 'Desired URL slug is required').max(60).regex(slugRegex, 'Only lowercase letters, numbers, and hyphens allowed'),
   turnstileToken: z.string().min(1, 'Bot protection is required'),
 }).refine(
@@ -51,6 +64,15 @@ export interface ApplicationEditableFields {
   contactPhone: string | null
   contactAddress: string | null
   externalWebsiteUrl: string | null
+  instagramUrl: string | null
+  facebookUrl: string | null
+  xUrl: string | null
+  tiktokUrl: string | null
+  discordUrl: string | null
+  youtubeUrl: string | null
+  whatsappUrl: string | null
+  telegramUrl: string | null
+  githubUrl: string | null
   desiredSlug: string
 }
 
@@ -68,6 +90,15 @@ export function extractEditableFields(app: {
   contactPhone: string | null
   contactAddress: string | null
   externalWebsiteUrl: string | null
+  instagramUrl?: string | null
+  facebookUrl?: string | null
+  xUrl?: string | null
+  tiktokUrl?: string | null
+  discordUrl?: string | null
+  youtubeUrl?: string | null
+  whatsappUrl?: string | null
+  telegramUrl?: string | null
+  githubUrl?: string | null
   desiredSlug: string | null
   location?: {
     swissLocation?: {
@@ -98,6 +129,7 @@ export function extractEditableFields(app: {
     contactPhone: app.contactPhone,
     contactAddress: app.contactAddress,
     externalWebsiteUrl: app.externalWebsiteUrl,
+    ...extractSocialLinks(app),
     desiredSlug: app.desiredSlug ?? '',
   }
 }

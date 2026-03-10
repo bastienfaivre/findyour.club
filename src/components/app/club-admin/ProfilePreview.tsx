@@ -63,6 +63,7 @@ export function ProfilePreview({ formValues, logoUrl, logoAlt, photos, translati
                 address={formValues.contactAddress}
                 websiteUrl={formValues.externalWebsiteUrl}
                 websiteLabel={t.visitWebsite}
+                socialLinks={formValues}
                 translations={{
                   email: t.email,
                   phone: t.phone,

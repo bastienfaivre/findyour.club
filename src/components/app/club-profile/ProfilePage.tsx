@@ -2,6 +2,7 @@ import { ClubHeroSection } from '@/components/app/club-site/ClubHeroSection'
 import { PhotoCarousel } from './PhotoCarousel'
 import { ProfileSection } from './ProfileSection'
 import { ContactInfo } from './ContactInfo'
+import type { SocialFieldKey } from '@/lib/social-platforms'
 
 type ProfilePageProps = {
   club: {
@@ -16,7 +17,7 @@ type ProfilePageProps = {
     contactAddress: string | null
     externalWebsiteUrl: string | null
     photos: Array<{ id: string; url: string; alt: string }>
-  }
+  } & Partial<Record<SocialFieldKey, string | null>>
   translations: {
     schedule: string
     howToJoin: string
@@ -64,6 +65,7 @@ export function ProfilePage({ club, translations }: ProfilePageProps) {
             address={club.contactAddress}
             websiteUrl={club.externalWebsiteUrl}
             websiteLabel={translations.visitWebsite}
+            socialLinks={club}
             translations={{
               email: translations.email,
               phone: translations.phone,

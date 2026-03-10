@@ -150,6 +150,7 @@ export const it: Translations = {
         contactAddress: 'Indirizzo',
         howToJoin: 'Come partecipare',
         externalWebsiteUrl: 'Sito web',
+        socialLinks: 'Social media',
       },
       operatorMessage: {
         label: "Messaggio per l'amministratore del club",
@@ -203,6 +204,7 @@ export const it: Translations = {
         contactAddress: 'Indirizzo',
         howToJoin: 'Come partecipare',
         externalWebsiteUrl: 'Sito web',
+        socialLinks: 'Social media',
       },
       photoSection: 'Foto',
       deletePhoto: 'Elimina foto',
@@ -245,6 +247,7 @@ export const it: Translations = {
       contactPhone: 'Telefono di contatto',
       contactAddress: 'Indirizzo di contatto',
       externalWebsiteUrl: 'Sito web',
+      socialLinks: 'Social media',
       desiredSlug: 'Slug URL desiderato',
       otherDescription: 'Descrivi il tuo tipo di attività',
     },
@@ -311,6 +314,7 @@ export const it: Translations = {
           contactPhone: 'Telefono di contatto',
           contactAddress: 'Indirizzo di contatto',
           externalWebsiteUrl: 'Sito web',
+          socialLinks: 'Social media',
         },
         placeholders: {
           name: 'es. Sci Club Vallese',
@@ -467,6 +471,7 @@ export const it: Translations = {
     launchValue: 'Marzo 2026',
     bootstrapMessage: 'Abbiamo appena lanciato! Aiutaci a crescere condividendo findyour.club con i club della tua zona. Più club si uniscono, più sarà facile per tutti trovare la propria comunità.',
     bootstrapShare: 'Condividi findyour.club',
+    bootstrapListClub: 'Registra il tuo club',
     marketingSpend: 'Spese di marketing',
     marketingSpendValue: 'CHF 0',
     about: {

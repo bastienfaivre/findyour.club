@@ -159,6 +159,7 @@ export type Translations = {
         contactAddress: string
         howToJoin: string
         externalWebsiteUrl: string
+        socialLinks: string
       }
       operatorMessage: {
         label: string
@@ -214,6 +215,7 @@ export type Translations = {
         contactAddress: string
         howToJoin: string
         externalWebsiteUrl: string
+        socialLinks: string
       }
       photoSection: string
       deleteClub: string
@@ -259,6 +261,7 @@ export type Translations = {
       contactPhone: string
       contactAddress: string
       externalWebsiteUrl: string
+      socialLinks: string
       desiredSlug: string
       otherDescription: string
     }
@@ -325,6 +328,7 @@ export type Translations = {
           contactPhone: string
           contactAddress: string
           externalWebsiteUrl: string
+          socialLinks: string
         }
         placeholders: {
           name: string
@@ -480,6 +484,7 @@ export type Translations = {
     launchValue: string
     bootstrapMessage: string
     bootstrapShare: string
+    bootstrapListClub: string
     marketingSpend: string
     marketingSpendValue: string
     about: {

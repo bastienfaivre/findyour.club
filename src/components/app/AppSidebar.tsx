@@ -38,6 +38,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarSeparator,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { LanguageSwitcher } from '@/components/app/LanguageSwitcher'
@@ -93,15 +94,18 @@ export function AppSidebar({
   const { isDirty } = useAdminDirty()
   const pathname = usePathname()
   const { searchQuery } = useSearchState()
+  const { setOpenMobile } = useSidebar()
   const [dismissedClubs, setDismissedClubs] = useState<Set<string>>(new Set())
   const basePath = `/${lang}`
+
+  const closeMobileSidebar = () => setOpenMobile(false)
 
   const searchHref = searchQuery ? `${basePath}/search?${searchQuery}` : `${basePath}/search`
 
   return (
     <Sidebar>
       <SidebarHeader className="h-14 flex-row items-center justify-between border-b border-sidebar-border px-4">
-        <Link href={basePath} className="text-sm font-bold truncate">
+        <Link href={basePath} className="text-sm font-bold truncate" onClick={closeMobileSidebar}>
           findyour.club
         </Link>
         <div className="flex items-center gap-1">
@@ -109,7 +113,8 @@ export function AppSidebar({
           <LanguageSwitcher currentLang={lang} />
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events */}
+      <SidebarContent onClick={(e) => { if ((e.target as HTMLElement).closest('a')) closeMobileSidebar() }}>
         {/* Public navigation — always visible */}
         <SidebarGroup>
           <SidebarGroupContent>

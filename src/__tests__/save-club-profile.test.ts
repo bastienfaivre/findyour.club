@@ -38,6 +38,15 @@ const validInput = {
   contactPhone: null,
   contactAddress: null,
   externalWebsiteUrl: null,
+  instagramUrl: null,
+  facebookUrl: null,
+  xUrl: null,
+  tiktokUrl: null,
+  discordUrl: null,
+  youtubeUrl: null,
+  whatsappUrl: null,
+  telegramUrl: null,
+  githubUrl: null,
 }
 
 describe('saveClubProfile', () => {

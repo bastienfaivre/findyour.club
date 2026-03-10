@@ -33,6 +33,15 @@ export type ClubListItem = {
   contactPhone: string | null
   contactAddress: string | null
   externalWebsiteUrl: string | null
+  instagramUrl: string | null
+  facebookUrl: string | null
+  xUrl: string | null
+  tiktokUrl: string | null
+  discordUrl: string | null
+  youtubeUrl: string | null
+  whatsappUrl: string | null
+  telegramUrl: string | null
+  githubUrl: string | null
   isPublished: boolean
   forceOffline: boolean
   activityType: string | null

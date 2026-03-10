@@ -190,6 +190,15 @@ export default async function ClubPage({ params }: Props) {
           contactPhone: club.contactPhone,
           contactAddress: club.contactAddress,
           externalWebsiteUrl: club.externalWebsiteUrl,
+          instagramUrl: club.instagramUrl,
+          facebookUrl: club.facebookUrl,
+          xUrl: club.xUrl,
+          tiktokUrl: club.tiktokUrl,
+          discordUrl: club.discordUrl,
+          youtubeUrl: club.youtubeUrl,
+          whatsappUrl: club.whatsappUrl,
+          telegramUrl: club.telegramUrl,
+          githubUrl: club.githubUrl,
           photos: club.photos,
         }}
         translations={{

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest'
 
 beforeAll(() => {
-  process.env.R2_PUBLIC_URL = 'http://localhost:9000/website-template'
+  process.env.R2_PUBLIC_URL = 'http://localhost:9000/findyour-club'
 })
 
 vi.mock('@/server/auth', () => ({
@@ -19,7 +19,7 @@ vi.mock('next/cache', () => ({
 const mockClubPhoto = {
   count: vi.fn().mockResolvedValue(0),
   aggregate: vi.fn().mockResolvedValue({ _max: { position: null } }),
-  create: vi.fn().mockResolvedValue({ id: 'photo-1', url: 'http://localhost:9000/website-template/club-1/test.jpg', alt: 'test', position: 0 }),
+  create: vi.fn().mockResolvedValue({ id: 'photo-1', url: 'http://localhost:9000/findyour-club/club-1/test.jpg', alt: 'test', position: 0 }),
   findFirst: vi.fn(),
   delete: vi.fn().mockResolvedValue({}),
 }
@@ -40,8 +40,8 @@ vi.mock('@/server/db', () => ({
 vi.mock('@/lib/r2', () => ({
   generateUploadUrl: vi.fn().mockResolvedValue({ uploadUrl: 'https://presigned-url.example.com', key: 'club-1/abc.jpg' }),
   deleteObject: vi.fn().mockResolvedValue(undefined),
-  getPublicUrl: vi.fn((key: string) => `http://localhost:9000/website-template/${key}`),
-  extractR2Key: vi.fn((url: string) => url.replace('http://localhost:9000/website-template/', '')),
+  getPublicUrl: vi.fn((key: string) => `http://localhost:9000/findyour-club/${key}`),
+  extractR2Key: vi.fn((url: string) => url.replace('http://localhost:9000/findyour-club/', '')),
   ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp'],
   MAX_IMAGE_SIZE_BYTES: 5242880,
 }))
@@ -188,7 +188,7 @@ describe('deleteClubPhoto', () => {
     vi.mocked(prisma.clubPhoto.findFirst).mockResolvedValue({
       id: 'photo-1',
       clubId: 'club-1',
-      url: 'http://localhost:9000/website-template/club-1/test.jpg',
+      url: 'http://localhost:9000/findyour-club/club-1/test.jpg',
       alt: 'test',
       position: 0,
       createdAt: new Date(),

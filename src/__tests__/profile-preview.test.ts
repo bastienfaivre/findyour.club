@@ -98,6 +98,15 @@ const baseFormValues = {
   contactPhone: null as string | null,
   contactAddress: null as string | null,
   externalWebsiteUrl: null as string | null,
+  instagramUrl: null as string | null,
+  facebookUrl: null as string | null,
+  xUrl: null as string | null,
+  tiktokUrl: null as string | null,
+  discordUrl: null as string | null,
+  youtubeUrl: null as string | null,
+  whatsappUrl: null as string | null,
+  telegramUrl: null as string | null,
+  githubUrl: null as string | null,
 }
 
 describe('ProfilePreview', () => {

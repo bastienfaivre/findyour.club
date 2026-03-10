@@ -57,6 +57,15 @@ export const getClubPublicData = cache(async (slug: string, country: string) =>
       contactPhone: true,
       contactAddress: true,
       externalWebsiteUrl: true,
+      instagramUrl: true,
+      facebookUrl: true,
+      xUrl: true,
+      tiktokUrl: true,
+      discordUrl: true,
+      youtubeUrl: true,
+      whatsappUrl: true,
+      telegramUrl: true,
+      githubUrl: true,
       activityType: true,
       location: {
         select: {

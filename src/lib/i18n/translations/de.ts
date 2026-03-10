@@ -150,6 +150,7 @@ export const de: Translations = {
         contactAddress: 'Adresse',
         howToJoin: 'So trittst du bei',
         externalWebsiteUrl: 'Webseite',
+        socialLinks: 'Soziale Medien',
       },
       operatorMessage: {
         label: 'Nachricht an den Vereinsadministrator',
@@ -203,6 +204,7 @@ export const de: Translations = {
         contactAddress: 'Adresse',
         howToJoin: 'Wie beitreten',
         externalWebsiteUrl: 'Webseite',
+        socialLinks: 'Soziale Medien',
       },
       photoSection: 'Fotos',
       deletePhoto: 'Foto löschen',
@@ -245,6 +247,7 @@ export const de: Translations = {
       contactPhone: 'Kontakttelefon',
       contactAddress: 'Kontaktadresse',
       externalWebsiteUrl: 'Webseite',
+      socialLinks: 'Soziale Medien',
       desiredSlug: 'Gewünschter URL-Slug',
       otherDescription: 'Beschreibe deinen Aktivitätstyp',
     },
@@ -311,6 +314,7 @@ export const de: Translations = {
           contactPhone: 'Kontakttelefon',
           contactAddress: 'Kontaktadresse',
           externalWebsiteUrl: 'Webseite',
+          socialLinks: 'Soziale Medien',
         },
         placeholders: {
           name: 'z. B. Skiclub Wallis',
@@ -467,6 +471,7 @@ export const de: Translations = {
     launchValue: 'März 2026',
     bootstrapMessage: 'Wir sind gerade gestartet! Hilf uns zu wachsen, indem du findyour.club mit Vereinen in deiner Gegend teilst. Je mehr Vereine mitmachen, desto einfacher wird es für alle, ihre Gemeinschaft zu finden.',
     bootstrapShare: 'findyour.club teilen',
+    bootstrapListClub: 'Deinen Verein eintragen',
     marketingSpend: 'Marketingausgaben',
     marketingSpendValue: 'CHF 0',
     about: {

@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-website_template_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-findyour_club_dev}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -17,7 +17,7 @@ services:
     env_file: .env.production
 
   nextjs:
-    image: website-template:latest
+    image: findyour-club:latest
     restart: unless-stopped
     ports: []  # Not exposed directly — Nginx handles all traffic on 80/443
     env_file: .env.production
