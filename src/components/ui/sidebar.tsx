@@ -67,7 +67,16 @@ function SidebarProvider({
   onOpenChange?: (open: boolean) => void
 }) {
   const isMobile = useIsMobile()
-  const [openMobile, setOpenMobile] = React.useState(false)
+  const [openMobile, setOpenMobile] = React.useState(() => {
+    if (typeof window !== 'undefined') {
+      const keep = sessionStorage.getItem('sidebar-keep-open')
+      if (keep) {
+        sessionStorage.removeItem('sidebar-keep-open')
+        return true
+      }
+    }
+    return false
+  })
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.

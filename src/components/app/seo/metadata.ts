@@ -134,10 +134,9 @@ export function generateClubMetadata({
   pageTitle,
   pageSlug,
 }: ClubMetadataOptions): Metadata {
-  const baseTitle = activityTypeLabel
-    ? `${clubName} — ${activityTypeLabel}`
-    : clubName
-  const title = pageTitle ? `${pageTitle} — ${clubName}` : baseTitle
+  const title = pageTitle
+    ? `${pageTitle} — ${clubName} — findyour.club`
+    : `${clubName} — findyour.club`
   const description = clubDescription.length > 160
     ? clubDescription.slice(0, 157) + '...'
     : clubDescription

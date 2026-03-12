@@ -9,9 +9,10 @@ const PLATFORM_URL = 'https://findyour.club'
 type SharePlatformButtonProps = {
   label: string
   copiedMessage: string
+  className?: string
 }
 
-export function SharePlatformButton({ label, copiedMessage }: SharePlatformButtonProps) {
+export function SharePlatformButton({ label, copiedMessage, className }: SharePlatformButtonProps) {
   async function handleShare() {
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
@@ -30,9 +31,9 @@ export function SharePlatformButton({ label, copiedMessage }: SharePlatformButto
       variant="outline"
       size="sm"
       onClick={handleShare}
-      className="border-green-300 text-green-800 hover:bg-green-100 dark:border-green-800 dark:text-green-200 dark:hover:bg-green-900/40"
+      className={className ?? "border-green-300 text-green-800 hover:bg-green-100 dark:border-green-800 dark:text-green-200 dark:hover:bg-green-900/40"}
     >
-      <Share2 className="mr-2 h-3.5 w-3.5" />
+      <Share2 className="h-3.5 w-3.5" />
       {label}
     </Button>
   )

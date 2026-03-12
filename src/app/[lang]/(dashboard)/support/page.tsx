@@ -16,7 +16,7 @@ type Props = {
  */
 const COSTS = {
   domain: 22.95,
-  server: 64.80,
+  server: 70.05,
 }
 const TOTAL_PER_YEAR = COSTS.domain + COSTS.server
 
@@ -48,10 +48,10 @@ const CONTRIBUTORS: Contributor[] = [
     name: 'Clashware Sàrl',
     url: 'https://clashware.com/',
     roles: {
-      en: 'Funded the first year (CHF 87.75)',
-      fr: 'A financé la première année (CHF 87.75)',
-      de: 'Hat das erste Jahr finanziert (CHF 87.75)',
-      it: 'Ha finanziato il primo anno (CHF 87.75)',
+      en: 'Funded the first year (CHF 93.00)',
+      fr: 'A financé la première année (CHF 93.00)',
+      de: 'Hat das erste Jahr finanziert (CHF 93.00)',
+      it: 'Ha finanziato il primo anno (CHF 93.00)',
     },
   },
 ]
@@ -79,13 +79,13 @@ export default async function SupportPage({ params }: Props) {
   return (
     <div className="py-8 sm:py-16 lg:py-24">
       <AdminPageTitle title={t.nav.support} />
-      <div className="max-w-2xl space-y-10">
+      <div className="max-w-xl space-y-10">
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             {s.title}
           </h1>
-          <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+          <p className="mt-4 text-lg leading-relaxed text-muted-foreground text-justify">
             {s.intro}
           </p>
         </div>

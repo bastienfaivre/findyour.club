@@ -1,5 +1,5 @@
 export type Translations = {
-  nav: { home: string; search: string; apply: string; myClubs: string; platform: string; login: string; logout: string; about: string; support: string }
+  nav: { home: string; search: string; apply: string; myClubs: string; platform: string; login: string; logout: string; about: string; roadmap: string; support: string }
   common: { loading: string; error: string; save: string; cancel: string; submit: string; confirm: string }
   language: { label: string; fr: string; de: string; it: string; en: string }
   auth: {
@@ -16,6 +16,16 @@ export type Translations = {
     signedInAs: string
     changePassword: string
     passkeys: string
+    profile: {
+      title: string
+      description: string
+      firstName: string
+      lastName: string
+      phone: string
+      preferredLanguage: string
+      saving: string
+      saved: string
+    }
     errorTitle: string
     returnToSignIn: string
     errors: {
@@ -94,38 +104,30 @@ export type Translations = {
       button: string
       dialogTitle: string
       dialogDescription: string
+      consequences: string[]
       /** Use {clubs} as placeholder for the list of club names */
-      clubsWarning: string
+      clubsBlockingNote: string
       editorOnlyNote: string
       noClubsNote: string
-      confirmLabel: string
-      /** Use {names} as placeholder for the club names to type */
-      confirmHint: string
+      acknowledge: string
       deleting: string
       confirm: string
       cancel: string
     }
   }
-  myClubs: {
-    noClubs: string
-  }
   admin: {
-    dashboardTitle: string
-    overviewTitle: string
-    welcome: string
-    welcomeMessage: string
     searchPlaceholder: string
     /** Use {shown} and {total} as placeholders */
     showingCount: string
     showMore: string
     applications: {
       title: string
-      reviewTab: string
+      empty: string
       selectApplication: string
+      reviewTab: string
       editTab: string
       previewTab: string
       allCountries: string
-      empty: string
       name: string
       activityType: string
       description: string
@@ -135,16 +137,12 @@ export type Translations = {
       location: string
       country: string
       showMore: string
-      showLess: string
       approve: string
       reject: string
       /** Use {name} as placeholder for the club name */
       approveConfirm: string
       rejectTitle: string
       rejectDescription: string
-      rejectReason: string
-      rejectReasonPlaceholder: string
-      approved: string
       /** Use {email} as placeholder for the applicant email */
       approvedWithEmail: string
       rejected: string
@@ -161,6 +159,10 @@ export type Translations = {
         externalWebsiteUrl: string
         socialLinks: string
       }
+      applicantSection: string
+      clubSection: string
+      existingClubs: string
+      noExistingClubs: string
       operatorMessage: {
         label: string
         placeholder: string
@@ -227,13 +229,88 @@ export type Translations = {
       clubDeleted: string
       deletePhoto: string
       noPhotos: string
+      members: string
+      noMembers: string
+    }
+    users: {
+      title: string
+      selectUser: string
+      noUsers: string
+      firstName: string
+      lastName: string
+      email: string
+      phone: string
+      preferredLanguage: string
+      role: string
+      operator: string
+      clubAdmin: string
+      managedClubs: string
+      noManagedClubs: string
+      owner: string
+      editor: string
     }
     messages: {
       title: string
       noConversations: string
-      /** Use {clubName} as placeholder */
-      lastMessage: string
       selectConversation: string
+    }
+    settings: {
+      title: string
+      description: string
+      saved: string
+      // Email toggles
+      emailToggles: string
+      emailTogglesDescription: string
+      applicationRejected: string
+      applicationRejectedDescription: string
+      operatorMessage: string
+      operatorMessageDescription: string
+      forceOffline: string
+      forceOfflineDescription: string
+      alwaysEnabled: string
+      applicationApproved: string
+      applicationApprovedDescription: string
+      editorInvited: string
+      editorInvitedDescription: string
+      // Platform controls
+      platformControls: string
+      platformControlsDescription: string
+      registrationsEnabled: string
+      registrationsEnabledDescription: string
+      maintenanceBanner: string
+      maintenanceBannerDescription: string
+      maintenanceBannerPlaceholder: string
+      // Rate limits
+      rateLimits: string
+      rateLimitsDescription: string
+      applicationsPerHour: string
+      applicationsPerHourDescription: string
+      loginAttemptsPerHour: string
+      loginAttemptsPerHourDescription: string
+      supportMessagesPerHour: string
+      supportMessagesPerHourDescription: string
+      invitationsPerHour: string
+      invitationsPerHourDescription: string
+      perHour: string
+      // Club limits
+      clubLimits: string
+      clubLimitsDescription: string
+      maxEditorsPerClub: string
+      maxEditorsPerClubDescription: string
+      maxPhotosPerClub: string
+      maxPhotosPerClubDescription: string
+      maxImageSizeMb: string
+      maxImageSizeMbDescription: string
+      maxDescriptionLength: string
+      maxDescriptionLengthDescription: string
+      maxScheduleLength: string
+      maxScheduleLengthDescription: string
+      maxHowToJoinLength: string
+      maxHowToJoinLengthDescription: string
+      imageTransactionsPerDay: string
+      imageTransactionsPerDayDescription: string
+      chars: string
+      perDay: string
     }
   }
   apply: {
@@ -247,10 +324,24 @@ export type Translations = {
     }
     noCatch: string
     reviewCommitment: string
+    registrationsClosed: string
     cta: string
+    steps: {
+      aboutYou: string
+      aboutYourClub: string
+      next: string
+      back: string
+    }
     fields: {
-      name: string
+      firstName: string
+      lastName: string
       email: string
+      phone: string
+      preferredLanguage: string
+      name: string
+      clubEmail: string
+      sameAsMyEmail: string
+      sameAsMyPhone: string
       country: string
       activityType: string
       location: string
@@ -265,9 +356,18 @@ export type Translations = {
       desiredSlug: string
       otherDescription: string
     }
+    helpers: {
+      description: string
+      schedule: string
+      howToJoin: string
+    }
     placeholders: {
-      name: string
+      firstName: string
+      lastName: string
       email: string
+      phone: string
+      name: string
+      clubEmail: string
       activityType: string
       otherDescription: string
       location: string
@@ -280,15 +380,20 @@ export type Translations = {
     }
     requiredLegend: string
     validation: {
-      nameRequired: string
+      firstNameRequired: string
+      lastNameRequired: string
       emailInvalid: string
+      preferredLanguageRequired: string
+      nameRequired: string
       activityTypeRequired: string
       locationRequired: string
       descriptionRequired: string
       descriptionMaxLength: string
       howToJoinRequired: string
+      scheduleRequired: string
       scheduleMaxLength: string
-      contactPhoneMaxLength: string
+      applicantPhoneInvalid: string
+      contactPhoneInvalid: string
       contactAddressMaxLength: string
       externalWebsiteUrlInvalid: string
       desiredSlugRequired: string
@@ -330,6 +435,11 @@ export type Translations = {
           externalWebsiteUrl: string
           socialLinks: string
         }
+        helpers: {
+          description: string
+          schedule: string
+          howToJoin: string
+        }
         placeholders: {
           name: string
           description: string
@@ -343,8 +453,11 @@ export type Translations = {
         validation: {
           nameRequired: string
           emailInvalid: string
+          descriptionRequired: string
           descriptionMaxLength: string
+          scheduleRequired: string
           scheduleMaxLength: string
+          howToJoinRequired: string
           howToJoinMaxLength: string
           contactPhoneInvalid: string
           contactAddressMaxLength: string
@@ -359,6 +472,7 @@ export type Translations = {
           altRequired: string
           uploading: string
           errorType: string
+          /** Use {sizeMb} as placeholder */
           errorSize: string
           errorUpload: string
         }
@@ -367,12 +481,13 @@ export type Translations = {
           add: string
           delete: string
           deleteConfirm: string
+          /** Use {max} as placeholder */
           maxReached: string
-          /** Use {count} for current count and {min} for minimum */
-          minRequired: string
+          /** Use {max} and {sizeMb} as placeholders */
           constraints: string
           uploading: string
           errorType: string
+          /** Use {sizeMb} as placeholder */
           errorSize: string
           errorUpload: string
         }
@@ -384,8 +499,6 @@ export type Translations = {
         onlineSuccess: string
         offlineSuccess: string
         forceOfflineWarning: string
-        /** Use {count} as placeholder for the current photo count and {min} for the minimum */
-        minPhotosRequired: string
         error: string
       }
       messages: {
@@ -395,6 +508,7 @@ export type Translations = {
         you: string
         platform: string
         empty: string
+        loadOlder: string
         /** Use {count} as placeholder */
         unreadBadge: string
       }
@@ -403,10 +517,30 @@ export type Translations = {
         placeholder: string
         exportData: string
         exportDescription: string
+        exportPreparing: string
+        exportDoNotClose: string
+        exportError: string
+        deleteClub: {
+          title: string
+          description: string
+          button: string
+          /** Use {clubName} as placeholder */
+          dialogTitle: string
+          dialogDescription: string
+          consequences: string[]
+          exportReminder: string
+          /** Use {clubName} as placeholder */
+          confirmHint: string
+          acknowledge: string
+          deleting: string
+          confirm: string
+          cancel: string
+        }
       }
       promote: {
         title: string
         description: string
+        comingSoon: string
         badge: string
         badgeDescription: string
         qrCard: string
@@ -457,6 +591,14 @@ export type Translations = {
       inviteAsEditor: string
       /** Use {email} as placeholder */
       inviteSent: string
+      cancelInvite: string
+      /** Use {email} as placeholder */
+      cancelInviteConfirm: string
+      inviteCancelled: string
+      /** Use {current} and {max} as placeholders */
+      editorCount: string
+      /** Use {max} as placeholder */
+      editorLimitReached: string
     }
   }
   platform: {
@@ -464,32 +606,41 @@ export type Translations = {
     headlinePrefix: string
     headlineRotatingWords: string[]
     tagline: string
-    philosophy: string
+    taglineBullets: {
+      intro: string
+      whoLabel: string
+      whoText: string
+      whatLabel: string
+      whatText: string
+      whenLabel: string
+      whenText: string
+      howLabel: string
+      howText: string
+      closing: string
+    }
     trustLine: string
     stats: {
       /** Use {count} as placeholder */
       clubs: string
-      /** Use {count} as placeholder */
-      countries: string
     }
     /** Use {country} as placeholder */
     exploreCountry: string
     availableNow: string
     comingSoon: string
-    clubsLabel: string
-    /** Label for the countries stat (standalone, not a template) */
-    countriesLabel: string
     activityTypes: string
-    launchLabel: string
-    launchValue: string
     bootstrapMessage: string
     bootstrapShare: string
     bootstrapListClub: string
-    marketingSpend: string
-    marketingSpendValue: string
+    searchCityPlaceholder: string
+    searchCityButton: string
     about: {
       title: string
-      content: string
+      content: string[]
+      author: string
+    }
+    roadmap: {
+      title: string
+      content: string[]
     }
     support: {
       title: string
@@ -509,10 +660,6 @@ export type Translations = {
     }
   }
   directory: {
-    /** Use {country} as placeholder */
-    title: string
-    /** Use {country} as placeholder */
-    description: string
     filterCountry: string
     filterCanton: string
     filterCity: string
@@ -529,17 +676,13 @@ export type Translations = {
     clubAriaLabel: string
     verifiedBadge: string
     verifiedDetail: string
+    shareCtaMessage: string
+    listCtaMessage: string
   }
   clubSite: {
     contactCta: string
     visitWebsite: string
-    home: string
-    contact: string
-    editSite: string
-    menu: string
-    navigation: string
-    poweredBy: string
-    poweredByAriaLabel: string
+    description: string
     schedule: string
     howToJoin: string
     contactInfo: string
@@ -548,27 +691,126 @@ export type Translations = {
     address: string
     photos: string
     goToPhoto: string
-    sharePrompt: string
     shareButton: string
     linkCopied: string
   }
   layout: {
     skipToContent: string
-    mainNavigation: string
-    openMenu: string
     copyright: string
-    platformLinks: string
-    legalLinks: string
     privacy: string
     terms: string
     toggleSidebar: string
   }
   theme: { toggleTheme: string; light: string; dark: string; system: string }
+  privacy: {
+    title: string
+    lastUpdated: string
+    intro: string
+    operator: {
+      title: string
+      content: string
+    }
+    dataCollected: {
+      title: string
+      visitors: {
+        title: string
+        items: string[]
+      }
+      applicants: {
+        title: string
+        items: string[]
+      }
+      clubAdmins: {
+        title: string
+        items: string[]
+      }
+    }
+    usage: {
+      title: string
+      items: string[]
+    }
+    security: {
+      title: string
+      items: string[]
+    }
+    thirdParty: {
+      title: string
+      content: string
+      items: string[]
+    }
+    cookies: {
+      title: string
+      content: string
+    }
+    retention: {
+      title: string
+      content: string
+    }
+    rights: {
+      title: string
+      content: string
+      items: string[]
+    }
+    contact: {
+      title: string
+      content: string
+    }
+  }
+  terms: {
+    title: string
+    lastUpdated: string
+    intro: string
+    acceptance: {
+      title: string
+      content: string
+    }
+    service: {
+      title: string
+      content: string
+    }
+    accounts: {
+      title: string
+      content: string
+      items: string[]
+    }
+    clubContent: {
+      title: string
+      content: string
+      items: string[]
+    }
+    moderation: {
+      title: string
+      content: string
+    }
+    intellectualProperty: {
+      title: string
+      content: string
+    }
+    liability: {
+      title: string
+      content: string
+    }
+    termination: {
+      title: string
+      content: string
+    }
+    changes: {
+      title: string
+      content: string
+    }
+    contact: {
+      title: string
+      content: string
+    }
+  }
   seo: {
     homeDescription: string
     searchDescription: string
     aboutDescription: string
+    roadmapDescription: string
     supportDescription: string
+    privacyDescription: string
+    termsDescription: string
     applyDescription: string
     clubsIn: string
     /** Use {country} as placeholder */
@@ -583,4 +825,59 @@ export type Translations = {
     browseByRegion: string
   }
   activityTypes: Record<string, string>
+  emails: {
+    footer: {
+      noreply: string
+      contact: string
+      copyright: string
+    }
+    acceptance: {
+      subject: string
+      heading: string
+      /** Use {clubName} as placeholder */
+      congratulations: string
+      platformMessage: string
+      liveLine: string
+      setupLine: string
+      setupButton: string
+      expiry: string
+    }
+    rejection: {
+      /** Use {clubName} as placeholder */
+      subject: string
+      heading: string
+      /** Use {clubName} as placeholder */
+      thankYou: string
+      defaultReason: string
+      reapply: string
+      regards: string
+    }
+    operatorMessage: {
+      /** Use {clubName} as placeholder */
+      subject: string
+      heading: string
+      /** Use {clubName} as placeholder */
+      intro: string
+      regards: string
+    }
+    forceOffline: {
+      /** Use {clubName} as placeholder */
+      subject: string
+      heading: string
+      /** Use {clubName} as placeholder */
+      intro: string
+      resolution: string
+      regards: string
+    }
+    invitation: {
+      /** Use {clubName} as placeholder */
+      subject: string
+      heading: string
+      /** Use {clubName} as placeholder */
+      intro: string
+      cta: string
+      acceptButton: string
+      expiry: string
+    }
+  }
 }

@@ -19,6 +19,7 @@ type ProfilePageProps = {
     photos: Array<{ id: string; url: string; alt: string }>
   } & Partial<Record<SocialFieldKey, string | null>>
   translations: {
+    description: string
     schedule: string
     howToJoin: string
     contactInfo: string
@@ -39,12 +40,17 @@ export function ProfilePage({ club, translations }: ProfilePageProps) {
           name: club.name,
           logoUrl: club.logoUrl,
           logoAlt: club.logoAlt,
-          description: club.description,
         }}
       />
 
       <div className="mx-auto w-full max-w-3xl px-4">
         <PhotoCarousel photos={club.photos} ariaLabel={translations.photos} goToPhotoLabel={translations.goToPhoto} />
+
+        {club.description && (
+          <ProfileSection title={translations.description}>
+            <p className="text-sm whitespace-pre-line">{club.description}</p>
+          </ProfileSection>
+        )}
 
         {club.schedule && (
           <ProfileSection title={translations.schedule}>

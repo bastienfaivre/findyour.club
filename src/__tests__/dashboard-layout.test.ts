@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+vi.mock('next/headers', () => ({
+  cookies: vi.fn(async () => ({ get: vi.fn(() => undefined) })),
+}))
 vi.mock('@/server/auth', () => ({
   getAuthSession: vi.fn(),
 }))

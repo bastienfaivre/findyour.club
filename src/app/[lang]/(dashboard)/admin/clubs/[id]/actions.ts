@@ -5,6 +5,9 @@ import { prisma } from '@/server/db'
 import { getAuthSession } from '@/server/auth'
 import { sendEmail } from '@/lib/email'
 import { buildOperatorMessageEmailHtml, buildForceOfflineEmailHtml } from '@/lib/email-templates'
+import { isEmailEnabled } from '@/lib/server/email-settings'
+import { resolveUILang } from '@/lib/i18n'
+import { getTranslations } from '@/lib/i18n/translations'
 import { slugRegex } from '@/lib/schemas/application'
 import { isReservedSlug } from '@/lib/slug'
 import { upsertSwissLocation } from '@/lib/server/location'
@@ -16,6 +19,14 @@ export type { ClubEditableFields } from '@/lib/schemas/club'
 export type ModerationActionResult =
   | { success: true }
   | { success: false; error: string; code: string }
+
+async function getClubOwnerLanguage(clubId: string): Promise<string> {
+  const owner = await prisma.clubMembership.findFirst({
+    where: { clubId, role: 'OWNER', status: 'ACTIVE' },
+    select: { user: { select: { preferredLanguage: true } } },
+  })
+  return owner?.user?.preferredLanguage ?? 'en'
+}
 
 export async function sendSupportMessage(clubId: string, body: string): Promise<ModerationActionResult> {
   try {
@@ -51,18 +62,24 @@ export async function sendSupportMessage(clubId: string, body: string): Promise<
       create: { clubId: club.id, userId: session.user.id, lastReadAt: new Date() },
     })
 
-    try {
-      const html = buildOperatorMessageEmailHtml({
-        clubName: club.name,
-        message: trimmed,
-      })
-      await sendEmail({
-        to: club.email,
-        subject: `Message from the platform about ${club.name}`,
-        html,
-      })
-    } catch {
-      // DB record is the source of truth — email failure is non-blocking (ADR-004)
+    if (await isEmailEnabled('email.operator_message')) {
+      try {
+        const emailLang = resolveUILang(await getClubOwnerLanguage(club.id))
+        const emailT = getTranslations(emailLang).emails.operatorMessage
+
+        const html = buildOperatorMessageEmailHtml({
+          clubName: club.name,
+          message: trimmed,
+          lang: emailLang,
+        })
+        await sendEmail({
+          to: club.email,
+          subject: emailT.subject.replace('{clubName}', club.name),
+          html,
+        })
+      } catch {
+        // DB record is the source of truth — email failure is non-blocking (ADR-004)
+      }
     }
 
     revalidatePath('/[lang]/admin', 'layout')
@@ -111,18 +128,24 @@ export async function toggleForceOffline(clubId: string, reason: string): Promis
       }),
     ])
 
-    try {
-      const html = buildForceOfflineEmailHtml({
-        clubName: club.name,
-        reason: trimmed,
-      })
-      await sendEmail({
-        to: club.email,
-        subject: `Your club page has been taken offline — ${club.name}`,
-        html,
-      })
-    } catch {
-      // DB record is the source of truth — email failure is non-blocking (ADR-004)
+    if (await isEmailEnabled('email.force_offline')) {
+      try {
+        const emailLang = resolveUILang(await getClubOwnerLanguage(club.id))
+        const emailT = getTranslations(emailLang).emails.forceOffline
+
+        const html = buildForceOfflineEmailHtml({
+          clubName: club.name,
+          reason: trimmed,
+          lang: emailLang,
+        })
+        await sendEmail({
+          to: club.email,
+          subject: emailT.subject.replace('{clubName}', club.name),
+          html,
+        })
+      } catch {
+        // DB record is the source of truth — email failure is non-blocking (ADR-004)
+      }
     }
 
     revalidatePath(`/[lang]/${club.country}/[club]`, 'page')

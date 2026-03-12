@@ -19,8 +19,11 @@ describe('loginSchema', () => {
 })
 
 describe('setupPasswordSchema', () => {
+  const PROFILE = { firstName: 'Jean', lastName: 'Dupont', phone: '', preferredLanguage: 'fr' as const }
+
   it('accepts a strong matching password', () => {
     const result = setupPasswordSchema.safeParse({
+      ...PROFILE,
       password: 'Str0ng!Password#2',
       confirmPassword: 'Str0ng!Password#2',
     })
@@ -28,27 +31,28 @@ describe('setupPasswordSchema', () => {
   })
 
   it('rejects password shorter than 12 characters', () => {
-    const result = setupPasswordSchema.safeParse({ password: 'Short1!', confirmPassword: 'Short1!' })
+    const result = setupPasswordSchema.safeParse({ ...PROFILE, password: 'Short1!', confirmPassword: 'Short1!' })
     expect(result.success).toBe(false)
   })
 
   it('rejects password missing uppercase', () => {
-    const result = setupPasswordSchema.safeParse({ password: 'alllower1!abcdef', confirmPassword: 'alllower1!abcdef' })
+    const result = setupPasswordSchema.safeParse({ ...PROFILE, password: 'alllower1!abcdef', confirmPassword: 'alllower1!abcdef' })
     expect(result.success).toBe(false)
   })
 
   it('rejects password missing number', () => {
-    const result = setupPasswordSchema.safeParse({ password: 'NoNumbers!here!', confirmPassword: 'NoNumbers!here!' })
+    const result = setupPasswordSchema.safeParse({ ...PROFILE, password: 'NoNumbers!here!', confirmPassword: 'NoNumbers!here!' })
     expect(result.success).toBe(false)
   })
 
   it('rejects password missing special character', () => {
-    const result = setupPasswordSchema.safeParse({ password: 'NoSpecial123456', confirmPassword: 'NoSpecial123456' })
+    const result = setupPasswordSchema.safeParse({ ...PROFILE, password: 'NoSpecial123456', confirmPassword: 'NoSpecial123456' })
     expect(result.success).toBe(false)
   })
 
   it('rejects mismatched passwords', () => {
     const result = setupPasswordSchema.safeParse({
+      ...PROFILE,
       password: 'Str0ng!Password#2',
       confirmPassword: 'Different!Pass#9',
     })

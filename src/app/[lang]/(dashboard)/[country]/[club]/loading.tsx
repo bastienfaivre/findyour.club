@@ -3,17 +3,26 @@ import { Skeleton } from '@/components/ui/skeleton'
 export default function ClubPublicLoading() {
   return (
     <div className="flex flex-col">
-      {/* Hero — ClubHeroSection: size-24 avatar + text-2xl sm:text-4xl h1 + text-base description */}
+      {/* Hero — ClubHeroSection: size-24 avatar + text-2xl sm:text-4xl h1 */}
       <section className="flex flex-col items-center text-center gap-6 py-16">
         <Skeleton className="h-24 w-24 rounded-full" />
         <Skeleton className="h-9 w-48" />
-        <Skeleton className="h-5 w-[500px] max-w-full" />
       </section>
 
       {/* Content — ProfilePage max-w-3xl */}
       <div className="mx-auto w-full max-w-3xl px-4">
         {/* Photo carousel */}
         <Skeleton className="h-64 w-full rounded-lg" />
+
+        {/* "Who we are" section — heading + text-sm lines */}
+        <section className="py-6">
+          <Skeleton className="h-6 w-[130px] mb-3" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+        </section>
 
         {/* "Schedule" section — text-lg font-semibold heading (~75px) + text-sm lines */}
         <section className="py-6">

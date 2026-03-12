@@ -1,19 +1,17 @@
 import { z } from 'zod'
-import { isValidPhoneNumber } from 'libphonenumber-js'
 import type { SocialFieldKey } from '@/lib/social-platforms'
 import { SOCIAL_FIELD_KEYS } from '@/lib/social-platforms'
+import { phoneSchema } from '@/lib/schemas/profile'
 
 const optionalUrl = z.union([z.string().url(), z.literal('')]).nullable()
 
 export const clubProfileSaveSchema = z.object({
   name: z.string().trim().min(1).max(200),
   email: z.union([z.string().email(), z.literal('')]),
-  description: z.string().max(5000).nullable(),
-  schedule: z.string().max(2000).nullable(),
-  howToJoin: z.string().max(2000).nullable(),
-  contactPhone: z.string().refine((val) => val === '' || isValidPhoneNumber(val), {
-    message: 'invalidPhone',
-  }).nullable(),
+  description: z.string().trim().min(1).max(50000), // Dynamic limit enforced in server action
+  schedule: z.string().trim().min(1).max(50000), // Dynamic limit enforced in server action
+  howToJoin: z.string().trim().min(1).max(50000), // Dynamic limit enforced in server action
+  contactPhone: phoneSchema.nullable(),
   contactAddress: z.string().max(500).nullable(),
   externalWebsiteUrl: optionalUrl,
   instagramUrl: optionalUrl,
@@ -49,8 +47,8 @@ export interface ClubEditableFields {
   activityType: string | null
   location: import('@/lib/schemas/application').LocationInput | null
   description: string
-  schedule: string | null
-  howToJoin: string | null
+  schedule: string
+  howToJoin: string
   contactPhone: string | null
   contactAddress: string | null
   externalWebsiteUrl: string | null
@@ -114,8 +112,8 @@ export function extractClubEditableFields(club: {
         }
       : null,
     description: club.description ?? '',
-    schedule: club.schedule,
-    howToJoin: club.howToJoin,
+    schedule: club.schedule ?? '',
+    howToJoin: club.howToJoin ?? '',
     contactPhone: club.contactPhone,
     contactAddress: club.contactAddress,
     externalWebsiteUrl: club.externalWebsiteUrl,

@@ -10,6 +10,7 @@ import { extractClubEditableFields } from '@/lib/schemas/club'
 import type { ClubEditableFields } from '@/lib/schemas/club'
 import { SOCIAL_PLATFORMS } from '@/lib/social-platforms'
 import { updateClubFields, operatorDeleteClubPhoto, operatorDeleteClubLogo, operatorUploadClubLogo, operatorPersistClubLogo, operatorUpdateClubLogoAlt, operatorDeleteClub } from '@/app/[lang]/(dashboard)/admin/clubs/[id]/actions'
+import { useAdminSelection } from '@/components/app/AdminSelectionContext'
 import type { ClubListItem } from './ClubQueue'
 import type { ActivityTypeOption, CountryOption } from './types'
 import { LocationTypeahead } from './LocationTypeahead'
@@ -54,10 +55,16 @@ interface ClubDetailProps {
 
 export function ClubDetail({ club, activityTypes, countries, translations: t, locale }: ClubDetailProps) {
   const router = useRouter()
+  const { setSelectedUserId } = useAdminSelection()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const tc = t.admin.clubs
   const cs = t.clubSite
+
+  const navigateToUser = (userId: string) => {
+    setSelectedUserId(userId)
+    router.push(`/${locale}/admin/users`)
+  }
 
   // Delete club state
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
@@ -103,10 +110,10 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
         activityType: fields.activityType,
         location: fields.location,
         description: fields.description.trim(),
-        schedule: fields.schedule?.trim() || null,
+        schedule: fields.schedule?.trim() || '',
         contactPhone: fields.contactPhone?.trim() || null,
         contactAddress: fields.contactAddress?.trim() || null,
-        howToJoin: fields.howToJoin?.trim() || null,
+        howToJoin: fields.howToJoin?.trim() || '',
         externalWebsiteUrl: fields.externalWebsiteUrl?.trim() || null,
         instagramUrl: fields.instagramUrl?.trim() || null,
         facebookUrl: fields.facebookUrl?.trim() || null,
@@ -281,7 +288,7 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
 
       {/* Save button */}
       <Button onClick={handleSave} disabled={isPending || !canSave}>
-        {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+        {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
         {tc.saveChanges}
       </Button>
 
@@ -317,19 +324,55 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
 
       <Separator />
 
+      {/* Members */}
+      <section className="space-y-3">
+        <h3 className="text-base font-semibold">{tc.members}</h3>
+        {club.members.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{tc.noMembers}</p>
+        ) : (
+          <div className="space-y-2">
+            {club.members.map((member) => {
+              const displayName = member.user.firstName
+                ? `${member.user.firstName} ${member.user.lastName}`
+                : member.user.email
+              return (
+                <button
+                  key={member.user.id}
+                  type="button"
+                  onClick={() => navigateToUser(member.user.id)}
+                  className="flex items-center gap-2 w-full text-left rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{displayName}</p>
+                    {member.user.firstName && (
+                      <p className="text-xs text-muted-foreground truncate">{member.user.email}</p>
+                    )}
+                  </div>
+                  <Badge variant={member.role === 'OWNER' ? 'default' : 'secondary'} className="text-xs shrink-0">
+                    {member.role === 'OWNER' ? t.admin.users.owner : t.admin.users.editor}
+                  </Badge>
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </section>
+
+      <Separator />
+
       {/* Promote */}
       <section className="space-y-3">
         <h3 className="text-sm font-medium">{t.club.admin.promote.title}</h3>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" size="sm">
             <a href={`/api/club/${club.id}/badge`} download="badge.png">
-              <Download className="mr-2 h-4 w-4" />
+              <Download className="h-4 w-4" />
               {t.club.admin.promote.badge}
             </a>
           </Button>
           <Button asChild variant="outline" size="sm">
             <a href={`/api/club/${club.id}/qr-card`} download="qr-card.png">
-              <Download className="mr-2 h-4 w-4" />
+              <Download className="h-4 w-4" />
               {t.club.admin.promote.qrCard}
             </a>
           </Button>
@@ -342,7 +385,7 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
       <section className="space-y-3">
         <AlertDialog open={deleteOpen} onOpenChange={(open) => { setDeleteOpen(open); if (!open) setDeleteConfirmText('') }}>
           <AlertDialogTrigger asChild>
-            <Button variant="destructive">{tc.deleteClub}</Button>
+            <Button variant="destructive" size="sm">{tc.deleteClub}</Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -375,7 +418,7 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
                   })
                 }}
               >
-                {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 {tc.deleteClub}
               </Button>
             </AlertDialogFooter>
@@ -391,9 +434,9 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
       formValues={{
         name: fields.name,
         email: fields.email,
-        description: fields.description || null,
-        schedule: fields.schedule || null,
-        howToJoin: fields.howToJoin || null,
+        description: fields.description || '',
+        schedule: fields.schedule || '',
+        howToJoin: fields.howToJoin || '',
         contactPhone: fields.contactPhone || null,
         contactAddress: fields.contactAddress || null,
         externalWebsiteUrl: fields.externalWebsiteUrl || null,
@@ -411,6 +454,7 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
       logoAlt={null}
       photos={photos}
       translations={{
+        description: cs.description,
         schedule: cs.schedule,
         howToJoin: cs.howToJoin,
         contactInfo: cs.contactInfo,

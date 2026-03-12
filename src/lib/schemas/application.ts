@@ -3,6 +3,7 @@ import { SUPPORTED_COUNTRIES } from '@/lib/country'
 import { ACTIVITY_TYPES } from '@/lib/activity-types'
 import { SOCIAL_FIELD_KEYS } from '@/lib/social-platforms'
 import { extractSocialLinks } from '@/lib/schemas/club'
+import { SUPPORTED_LANGUAGES, phoneSchema } from '@/lib/schemas/profile'
 
 export const locationSchema = z.object({
   swisstopoId: z.string().min(1).max(20),
@@ -19,15 +20,23 @@ export const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const optionalUrl = z.union([z.string().url(), z.literal('')]).optional()
 
 export const applicationSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required').max(200),
+  // Step 1 — Applicant info
+  applicantFirstName: z.string().trim().min(1, 'First name is required').max(100),
+  applicantLastName: z.string().trim().min(1, 'Last name is required').max(100),
   email: z.string().max(254).email('Invalid email address'),
+  applicantPhone: phoneSchema.optional().or(z.literal('')),
+  applicantPreferredLanguage: z.enum(SUPPORTED_LANGUAGES),
+
+  // Step 2 — Club info
+  name: z.string().trim().min(1, 'Name is required').max(200),
+  clubEmail: z.string().max(254).email('Invalid email address').optional().or(z.literal('')),
   country: z.enum(SUPPORTED_COUNTRIES),
   activityType: z.enum([...ACTIVITY_TYPES, 'other'] as [string, ...string[]]),
   otherDescription: z.string().max(200).optional(),
   location: locationSchema,
   description: z.string().trim().min(1, 'Description is required').max(1000, 'Description must be 1000 characters or less'),
-  schedule: z.string().max(500).optional(),
-  contactPhone: z.string().max(30).optional(),
+  schedule: z.string().trim().min(1, 'Schedule is required').max(500),
+  contactPhone: phoneSchema.optional().or(z.literal('')),
   contactAddress: z.string().max(500).optional(),
   howToJoin: z.string().trim().min(1, 'How to join is required').max(1000),
   externalWebsiteUrl: optionalUrl,
@@ -53,8 +62,13 @@ export type ApplicationInput = z.infer<typeof applicationSchema>
  * Central definition of all operator-editable application fields.
  */
 export interface ApplicationEditableFields {
-  name: string
+  applicantFirstName: string | null
+  applicantLastName: string | null
   email: string
+  applicantPhone: string | null
+  applicantPreferredLanguage: string | null
+  name: string
+  clubEmail: string | null
   country: string
   activityType: string | null
   location: LocationInput | null
@@ -80,8 +94,13 @@ export interface ApplicationEditableFields {
  * Extract editable fields from an application record (with relations).
  */
 export function extractEditableFields(app: {
+  applicantFirstName?: string | null
+  applicantLastName?: string | null
+  applicantPhone?: string | null
+  applicantPreferredLanguage?: string | null
   name: string
   email: string
+  clubEmail?: string | null
   country: string
   activityType: string | null
   description: string
@@ -111,8 +130,13 @@ export function extractEditableFields(app: {
 }): ApplicationEditableFields {
   const swissLoc = app.location?.swissLocation
   return {
-    name: app.name,
+    applicantFirstName: app.applicantFirstName ?? null,
+    applicantLastName: app.applicantLastName ?? null,
     email: app.email,
+    applicantPhone: app.applicantPhone ?? null,
+    applicantPreferredLanguage: app.applicantPreferredLanguage ?? null,
+    name: app.name,
+    clubEmail: app.clubEmail ?? null,
     country: app.country,
     activityType: app.activityType,
     location: swissLoc
@@ -138,7 +162,8 @@ export function extractEditableFields(app: {
  * Build a human-readable display string for a location input.
  */
 export function formatLocationDisplay(loc: LocationInput): string {
+  const canton = loc.cantonCode ? ` (${loc.cantonCode})` : ''
   return loc.plz
-    ? `${loc.name} (${loc.cantonCode}) — ${loc.plz}`
-    : `${loc.name} (${loc.cantonCode})`
+    ? `${loc.name}${canton} — ${loc.plz}`
+    : `${loc.name}${canton}`
 }

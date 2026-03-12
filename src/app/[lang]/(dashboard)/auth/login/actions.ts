@@ -8,6 +8,7 @@ import { loginSchema } from '@/lib/schemas/user'
 import { checkRateLimit, clearRateLimit } from '@/lib/rate-limit'
 import { SESSION_COOKIE_NAME } from '@/server/auth'
 import { encodeTotpVerifiedCookie } from '@/lib/setup-cookie'
+import { getNumberSetting } from '@/lib/server/platform-settings'
 
 export type LoginResult =
   | { success: false; error: string; code: 'VALIDATION_ERROR' | 'INVALID_CREDENTIALS' | 'RATE_LIMITED' | 'SERVER_ERROR' }
@@ -27,7 +28,8 @@ export async function loginWithCredentials(input: unknown): Promise<LoginResult>
   const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1'
   const rateLimitKey = `login:${ip}`
 
-  if (checkRateLimit(rateLimitKey)) {
+  const maxAttempts = await getNumberSetting('rate.login_attempts_per_hour')
+  if (checkRateLimit(rateLimitKey, { windowMs: 3_600_000, maxAttempts })) {
     return { success: false, error: 'Too many attempts. Please wait before trying again.', code: 'RATE_LIMITED' }
   }
 

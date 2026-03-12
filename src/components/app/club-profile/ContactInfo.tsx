@@ -1,5 +1,4 @@
-import { Mail, Phone, MapPin, ExternalLink } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Mail, Phone, MapPin, Globe } from 'lucide-react'
 import { SOCIAL_PLATFORMS, type SocialFieldKey } from '@/lib/social-platforms'
 
 type SocialLinks = Partial<Record<SocialFieldKey, string | null>>
@@ -71,17 +70,17 @@ export function ContactInfo({
       )}
 
       {websiteUrl && /^https?:\/\//i.test(websiteUrl) && (
-        <div className="mt-4">
-          <Button variant="outline" asChild>
-            <a
-              href={websiteUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <ExternalLink className="h-4 w-4" aria-hidden="true" />
-              {websiteLabel}
-            </a>
-          </Button>
+        <div className="flex items-center gap-2">
+          <Globe className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <span className="sr-only">{websiteLabel}</span>
+          <a
+            href={websiteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm underline underline-offset-4 hover:text-primary truncate"
+          >
+            {websiteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+          </a>
         </div>
       )}
 

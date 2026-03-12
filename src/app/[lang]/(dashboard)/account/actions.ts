@@ -5,7 +5,37 @@ import { cookies } from 'next/headers'
 import { prisma } from '@/server/db'
 import { getAuthSession } from '@/server/auth'
 import { changePasswordSchema } from '@/lib/schemas/user'
-import { deleteObject, extractR2Key } from '@/lib/r2'
+import { profileSchema } from '@/lib/schemas/profile'
+
+// ─── Profile ──────────────────────────────────────────────────────────────────
+
+export type UpdateProfileResult =
+  | { success: false; error: string; code: 'UNAUTHORIZED' | 'VALIDATION_ERROR' }
+  | { success: true }
+
+export async function updateProfile(input: unknown): Promise<UpdateProfileResult> {
+  const session = await getAuthSession()
+  if (!session?.user?.id) {
+    return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' }
+  }
+
+  const parsed = profileSchema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.', code: 'VALIDATION_ERROR' }
+  }
+
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: {
+      firstName: parsed.data.firstName,
+      lastName: parsed.data.lastName,
+      phone: parsed.data.phone || null,
+      preferredLanguage: parsed.data.preferredLanguage,
+    },
+  })
+
+  return { success: true }
+}
 
 export type ChangePasswordResult =
   | { success: false; error: string; code: 'UNAUTHORIZED' | 'VALIDATION_ERROR' | 'WRONG_PASSWORD' | 'PASSWORD_BREACHED' | 'SERVER_ERROR' }
@@ -148,51 +178,30 @@ export async function deleteAccount(): Promise<DeleteAccountResult> {
 
   const userId = session.user.id
 
-  // Identify clubs where the user is the sole owner → these clubs get deleted
+  // Block deletion if the user is the sole owner of any club
   const ownedMemberships = await prisma.clubMembership.findMany({
     where: { userId, role: 'OWNER', status: 'ACTIVE' },
     select: { clubId: true },
   })
 
-  const ownerCounts = await Promise.all(
-    ownedMemberships.map(({ clubId }) =>
-      prisma.clubMembership.count({
-        where: { clubId, role: 'OWNER', status: 'ACTIVE', userId: { not: userId } },
-      }),
-    ),
-  )
-  const clubIdsToDelete = ownedMemberships
-    .filter((_, i) => ownerCounts[i] === 0)
-    .map(({ clubId }) => clubId)
-
-  // 1. Best-effort R2 cleanup for clubs being deleted (before transaction)
-  if (clubIdsToDelete.length > 0) {
-    const clubs = await prisma.club.findMany({
-      where: { id: { in: clubIdsToDelete } },
-      select: { logoUrl: true, photos: { select: { url: true } } },
-    })
-
-    const r2Keys: string[] = []
-    for (const club of clubs) {
-      if (club.logoUrl) r2Keys.push(extractR2Key(club.logoUrl))
-      for (const photo of club.photos) r2Keys.push(extractR2Key(photo.url))
+  if (ownedMemberships.length > 0) {
+    const ownerCounts = await Promise.all(
+      ownedMemberships.map(({ clubId }) =>
+        prisma.clubMembership.count({
+          where: { clubId, role: 'OWNER', status: 'ACTIVE', userId: { not: userId } },
+        }),
+      ),
+    )
+    const hasSoleOwnerClub = ownedMemberships.some((_, i) => ownerCounts[i] === 0)
+    if (hasSoleOwnerClub) {
+      return { success: false, error: 'Please delete or transfer ownership of your clubs before deleting your account.' }
     }
-
-    // Delete R2 objects in parallel — best-effort, failures are logged
-    await Promise.allSettled(r2Keys.map((key) => deleteObject(key)))
   }
 
-  // 2. Delete clubs and user in a single transaction
+  // Delete the user (cascade handles: accounts, sessions, passkeys, memberships, read cursors)
+  // SupportMessage.senderId → SET NULL (preserves messages, anonymizes sender)
   try {
     await prisma.$transaction(async (tx) => {
-      // Delete sole-owner clubs (cascade handles photos, messages, memberships, etc.)
-      if (clubIdsToDelete.length > 0) {
-        await tx.invitation.deleteMany({ where: { clubId: { in: clubIdsToDelete } } })
-        await tx.club.deleteMany({ where: { id: { in: clubIdsToDelete } } })
-      }
-
-      // Delete the user (cascade handles: accounts, sessions, passkeys, memberships, read cursors)
-      // SupportMessage.senderId → SET NULL (preserves messages, anonymizes sender)
       await tx.user.delete({ where: { id: userId } })
     })
   } catch {

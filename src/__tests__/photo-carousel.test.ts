@@ -49,8 +49,21 @@ describe('PhotoCarousel', () => {
     expect(container).toBeDefined()
   })
 
-  it('duplicates photos for seamless looping', () => {
+  it('does not duplicate photos when 3 or fewer (static display)', () => {
     const result = renderCarousel(mockPhotos)
+    expect(result).not.toBeNull()
+    const tree = JSON.stringify(result)
+    // With ≤3 photos, each URL should appear exactly once (no duplication)
+    const count1 = (tree.match(/example\.com\/1\.jpg/g) || []).length
+    expect(count1).toBe(1)
+  })
+
+  it('duplicates photos for seamless looping when more than 3', () => {
+    const manyPhotos = [
+      ...mockPhotos,
+      { id: 'p4', url: 'https://example.com/4.jpg', alt: 'Photo 4' },
+    ]
+    const result = renderCarousel(manyPhotos)
     expect(result).not.toBeNull()
     const tree = JSON.stringify(result)
     // Each photo URL should appear twice (original + duplicate for looping)

@@ -191,7 +191,7 @@ describe('HomePage', () => {
 
     // Section labels
     expect(text).toContain('Available now')
-    expect(text).toContain('Coming soon')
+    // Coming soon section only appears when COMING_SOON_COUNTRIES is non-empty
     // Trust line
     expect(text).toContain('Free for all clubs')
   })

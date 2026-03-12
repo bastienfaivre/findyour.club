@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Loader2, Pencil, Eye } from 'lucide-react'
@@ -9,7 +9,8 @@ import type { Translations } from '@/lib/i18n/translations/types'
 import { extractEditableFields } from '@/lib/schemas/application'
 import type { ApplicationEditableFields } from '@/lib/schemas/application'
 import { SOCIAL_PLATFORMS } from '@/lib/social-platforms'
-import { approveApplication, rejectApplication } from '@/app/[lang]/(dashboard)/admin/applications/actions'
+import { approveApplication, rejectApplication, getApplicantClubs } from '@/app/[lang]/(dashboard)/admin/applications/actions'
+import { useAdminSelection } from '@/components/app/AdminSelectionContext'
 import type { ApplicationWithRelations } from './ApplicationQueue'
 import type { ActivityTypeOption, CountryOption } from './types'
 import { LocationTypeahead } from './LocationTypeahead'
@@ -21,6 +22,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { PhoneInput } from '@/components/ui/phone-input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
+import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
@@ -58,6 +60,7 @@ interface ApplicationDetailProps {
 
 export function ApplicationDetail({ application, activityTypes, countries, translations: t, locale, onActionComplete }: ApplicationDetailProps) {
   const router = useRouter()
+  const { setSelectedClubId } = useAdminSelection()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const ta = t.admin.applications
@@ -67,6 +70,17 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
   const initialFields = extractEditableFields(application)
   const [fields, setFields] = useState<ApplicationEditableFields>(initialFields)
   const [message, setMessage] = useState('')
+
+  // Existing clubs
+  const [existingClubs, setExistingClubs] = useState<{ id: string; name: string; role: string }[] | null>(null)
+  useEffect(() => {
+    getApplicantClubs(application.email).then(setExistingClubs)
+  }, [application.email])
+
+  const navigateToClub = (clubId: string) => {
+    setSelectedClubId(clubId)
+    router.push(`/${locale}/admin/clubs`)
+  }
 
   const updateField = <K extends keyof ApplicationEditableFields>(key: K, value: ApplicationEditableFields[K]) => {
     setFields(prev => ({ ...prev, [key]: value }))
@@ -85,8 +99,13 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
     setApproveDialogOpen(false)
     startTransition(async () => {
       const trimmedFields: ApplicationEditableFields = {
-        name: fields.name.trim(),
+        applicantFirstName: fields.applicantFirstName?.trim() || null,
+        applicantLastName: fields.applicantLastName?.trim() || null,
         email: fields.email.trim(),
+        applicantPhone: fields.applicantPhone?.trim() || null,
+        applicantPreferredLanguage: fields.applicantPreferredLanguage,
+        name: fields.name.trim(),
+        clubEmail: fields.clubEmail?.trim() || null,
         country: fields.country,
         activityType: fields.activityType,
         location: fields.location,
@@ -144,14 +163,79 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
 
       {/* Editable fields */}
       <fieldset disabled={isPending} className="space-y-4">
+        {/* Applicant section */}
+        <h3 className="text-base font-semibold">{ta.applicantSection}</h3>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="app-firstName">{t.apply.fields.firstName}</Label>
+            <Input id="app-firstName" value={fields.applicantFirstName ?? ''} onChange={(e) => updateField('applicantFirstName', e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="app-lastName">{t.apply.fields.lastName}</Label>
+            <Input id="app-lastName" value={fields.applicantLastName ?? ''} onChange={(e) => updateField('applicantLastName', e.target.value)} />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="app-email">{ta.email} <span className="text-destructive">*</span></Label>
+          <Input id="app-email" type="email" value={fields.email} onChange={(e) => updateField('email', e.target.value)} />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="app-applicantPhone">{t.apply.fields.phone}</Label>
+          <PhoneInput
+            id="app-applicantPhone"
+            value={fields.applicantPhone ?? ''}
+            onChange={(val) => updateField('applicantPhone', val ?? '')}
+            disabled={isPending}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>{t.apply.fields.preferredLanguage}</Label>
+          <p className="text-sm text-muted-foreground">{fields.applicantPreferredLanguage ?? '-'}</p>
+        </div>
+
+        {/* Existing Clubs */}
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium text-muted-foreground">{ta.existingClubs}</h4>
+          {existingClubs === null ? (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          ) : existingClubs.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{ta.noExistingClubs}</p>
+          ) : (
+            <div className="space-y-1">
+              {existingClubs.map((club) => (
+                <button
+                  key={club.id}
+                  type="button"
+                  onClick={() => navigateToClub(club.id)}
+                  className="flex items-center gap-2 text-sm text-primary hover:underline"
+                >
+                  <span>{club.name}</span>
+                  <Badge variant="secondary" className="text-xs">
+                    {club.role === 'OWNER' ? t.admin.users.owner : t.admin.users.editor}
+                  </Badge>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <Separator />
+
+        {/* Club Information section */}
+        <h3 className="text-base font-semibold">{ta.clubSection}</h3>
+
         <div className="space-y-2">
           <Label htmlFor="app-name">{ta.name} <span className="text-destructive">*</span></Label>
           <Input id="app-name" value={fields.name} onChange={(e) => updateField('name', e.target.value)} maxLength={200} />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="app-email">{ta.email} <span className="text-destructive">*</span></Label>
-          <Input id="app-email" type="email" value={fields.email} onChange={(e) => updateField('email', e.target.value)} />
+          <Label htmlFor="app-clubEmail">{t.apply.fields.clubEmail}</Label>
+          <Input id="app-clubEmail" type="email" value={fields.clubEmail ?? ''} onChange={(e) => updateField('clubEmail', e.target.value)} />
         </div>
 
         <div className="space-y-2">
@@ -268,7 +352,7 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
       {/* Action buttons */}
       <div className="flex gap-3">
         <Button onClick={() => setApproveDialogOpen(true)} disabled={isPending || !canApprove}>
-          {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           {ta.approve}
         </Button>
         <Button variant="destructive" onClick={() => setRejectDialogOpen(true)} disabled={isPending}>
@@ -289,9 +373,9 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
       formValues={{
         name: fields.name,
         email: fields.email,
-        description: fields.description || null,
-        schedule: fields.schedule || null,
-        howToJoin: fields.howToJoin || null,
+        description: fields.description || '',
+        schedule: fields.schedule || '',
+        howToJoin: fields.howToJoin || '',
         contactPhone: fields.contactPhone || null,
         contactAddress: fields.contactAddress || null,
         externalWebsiteUrl: fields.externalWebsiteUrl || null,
@@ -309,6 +393,7 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
       logoAlt={null}
       photos={[]}
       translations={{
+        description: cs.description,
         schedule: cs.schedule,
         howToJoin: cs.howToJoin,
         contactInfo: cs.contactInfo,

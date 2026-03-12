@@ -26,15 +26,18 @@ vi.mock('@/lib/r2', () => ({
   deleteObject: vi.fn(),
   getPublicUrl: vi.fn(),
   ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp'],
-  MAX_IMAGE_SIZE_BYTES: 5242880,
+}))
+
+vi.mock('@/lib/server/platform-settings', () => ({
+  getNumberSetting: vi.fn().mockResolvedValue(5000),
 }))
 
 const validInput = {
   name: 'Test',
   email: 'test@club.ch',
-  description: null,
-  schedule: null,
-  howToJoin: null,
+  description: 'A great test club.',
+  schedule: 'Tuesdays 7pm',
+  howToJoin: 'Just show up!',
   contactPhone: null,
   contactAddress: null,
   externalWebsiteUrl: null,

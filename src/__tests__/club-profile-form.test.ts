@@ -214,8 +214,11 @@ const translations = {
     validation: {
       nameRequired: 'Name is required.',
       emailInvalid: 'Invalid email.',
+      descriptionRequired: 'Description required.',
       descriptionMaxLength: 'Too long.',
+      scheduleRequired: 'Schedule required.',
       scheduleMaxLength: 'Too long.',
+      howToJoinRequired: 'How to join required.',
       howToJoinMaxLength: 'Too long.',
       contactPhoneInvalid: 'Invalid phone.',
       contactAddressMaxLength: 'Too long.',
@@ -238,12 +241,11 @@ const translations = {
       add: 'Add photos',
       delete: 'Delete',
       deleteConfirm: 'Delete this photo?',
-      maxReached: 'Max 10 reached.',
-      minRequired: '{count}/{min} photos.',
-      constraints: 'JPEG, PNG, WebP — 5 MB — 10 max',
+      maxReached: 'Max {max} reached.',
+      constraints: 'JPEG, PNG, WebP — {sizeMb} MB — {max} max',
       uploading: 'Uploading…',
       errorType: 'Invalid type.',
-      errorSize: 'Too large.',
+      errorSize: 'Too large. Max {sizeMb} MB.',
       errorUpload: 'Upload failed.',
     },
   },
@@ -254,7 +256,6 @@ const translations = {
     onlineSuccess: 'Now live.',
     offlineSuccess: 'Now offline.',
     forceOfflineWarning: 'Taken offline.',
-    minPhotosRequired: 'Need {min} photos.',
     error: 'Failed.',
   },
   messages: {
@@ -289,6 +290,7 @@ const clubSiteTranslations = {
   contactCta: 'Contact',
   visitWebsite: 'Visit',
   goToPhoto: 'Go to photo {n}',
+  description: 'Who we are & what we do',
   schedule: 'Schedule',
   howToJoin: 'How to Join',
   contactInfo: 'Contact',
@@ -304,6 +306,8 @@ function renderForm(overrides: Partial<typeof defaultData> = {}) {
     translations,
     clubSiteTranslations,
     initialData: { ...defaultData, ...overrides },
+    maxPhotos: 10,
+    maxImageSizeBytes: 5 * 1024 * 1024,
   })
 }
 

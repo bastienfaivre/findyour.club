@@ -1,23 +1,26 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 
 type PageTitleState = {
   title: string
   backHref: string | null
+  action: React.ReactNode | null
 }
 
 const PageTitleContext = createContext<{
   state: PageTitleState
-  setState: (state: PageTitleState) => void
-}>({ state: { title: '', backHref: null }, setState: () => {} })
+  setState: (state: Partial<PageTitleState>) => void
+}>({ state: { title: '', backHref: null, action: null }, setState: () => {} })
 
 export function PageTitleProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<PageTitleState>({ title: '', backHref: null })
+  const [state, setState] = useState<PageTitleState>({ title: '', backHref: null, action: null })
+  const mergeState = useCallback((patch: Partial<PageTitleState>) =>
+    setState(prev => ({ ...prev, ...patch })), [])
   return (
-    <PageTitleContext.Provider value={{ state, setState }}>
+    <PageTitleContext.Provider value={{ state, setState: mergeState }}>
       {children}
     </PageTitleContext.Provider>
   )
@@ -37,6 +40,16 @@ export function AdminPageTitle({ title, backHref }: { title: string; backHref?: 
   return null
 }
 
+/** Drop this component into any page to place an action in the top bar (right side). Renders nothing. */
+export function PageHeaderAction({ children }: { children: React.ReactNode }) {
+  const { setState } = usePageTitle()
+  useEffect(() => {
+    setState({ action: children })
+    return () => setState({ action: null })
+  }, [children, setState])
+  return null
+}
+
 export function PageTitleDisplay() {
   const { state: { title, backHref } } = usePageTitle()
   return (
@@ -49,4 +62,9 @@ export function PageTitleDisplay() {
       {title && <span className="text-sm font-medium truncate">{title}</span>}
     </span>
   )
+}
+
+export function PageActionDisplay() {
+  const { state: { action } } = usePageTitle()
+  return action ? <>{action}</> : null
 }

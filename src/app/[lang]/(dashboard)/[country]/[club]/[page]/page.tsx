@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { isValidCountry, getCountryName } from '@/lib/country'
@@ -11,7 +11,6 @@ import { generateClubMetadata, generateCategoryMetadata } from '@/components/app
 import { ElementRenderer } from '@/components/app/club-site/ElementRenderer'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 import { ACCENT_COLORS } from '@/components/app/club-site/accent-colors'
-import { CategoryLanding } from '@/components/app/seo/CategoryLanding'
 
 type Props = {
   params: Promise<{ lang: string; country: string; club: string; page: string }>
@@ -73,25 +72,15 @@ export default async function InnerPage({ params }: Props) {
 
   if (!isValidCountry(country)) notFound()
 
-  const uiLang = resolveUILang(lang)
-  const countryName = getCountryName(country, uiLang)
-
-  // Canton + activity type landing page
+  // Canton + activity type landing page — redirect to /search
   if (await isValidCanton(parentSlug.toUpperCase())) {
     if (isValidActivityType(pageSlug)) {
-      return (
-        <CategoryLanding
-          lang={lang}
-          uiLang={uiLang}
-          country={country}
-          countryName={countryName}
-          canton={parentSlug.toUpperCase()}
-          activity={pageSlug}
-        />
-      )
+      redirect(`/${lang}/search?country=${country}&canton=${parentSlug.toUpperCase()}&activity=${pageSlug}`)
     }
     notFound()
   }
+
+  const uiLang = resolveUILang(lang)
 
   // Regular club inner page
   const club = await getClubPublicData(parentSlug, country)

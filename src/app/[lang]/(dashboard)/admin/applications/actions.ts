@@ -11,6 +11,9 @@ import { inferDefaultLanguage } from '@/lib/country'
 import { sendEmail } from '@/lib/email'
 import { buildAcceptanceEmailHtml, buildRejectionEmailHtml } from '@/lib/email-templates'
 import { upsertSwissLocation } from '@/lib/server/location'
+import { isEmailEnabled } from '@/lib/server/email-settings'
+import { resolveUILang } from '@/lib/i18n'
+import { getTranslations } from '@/lib/i18n/translations'
 
 export type { ApplicationEditableFields } from '@/lib/schemas/application'
 
@@ -101,8 +104,13 @@ export async function approveApplication(applicationId: string, fields: Applicat
           status: 'APPROVED',
           reviewedAt: new Date(),
           desiredSlug: trimmedSlug,
+          applicantFirstName: fields.applicantFirstName,
+          applicantLastName: fields.applicantLastName,
+          applicantPhone: fields.applicantPhone,
+          applicantPreferredLanguage: fields.applicantPreferredLanguage,
           name: fields.name,
           email: fields.email,
+          clubEmail: fields.clubEmail,
           country: fields.country,
           description: fields.description,
           activityType: fields.activityType,
@@ -130,6 +138,9 @@ export async function approveApplication(applicationId: string, fields: Applicat
 
       const defaultLanguage = inferDefaultLanguage(fields.country)
 
+      // Club email: use clubEmail if provided, otherwise fall back to applicant email
+      const clubEmail = fields.clubEmail || fields.email
+
       // Create club record with operator-edited fields
       const club = await tx.club.create({
         data: {
@@ -137,7 +148,7 @@ export async function approveApplication(applicationId: string, fields: Applicat
           slug: trimmedSlug,
           country: fields.country,
           status: 'ACTIVE',
-          email: fields.email,
+          email: clubEmail,
           activityType: fields.activityType,
           locationId: resolvedLocationId,
           defaultLanguage,
@@ -168,10 +179,10 @@ export async function approveApplication(applicationId: string, fields: Applicat
         })
       }
 
-      // Find or create user by the (possibly edited) email
+      // Find or create user by the (possibly edited) email, populating profile from application
       let user = await tx.user.findUnique({
         where: { email: fields.email },
-        select: { id: true },
+        select: { id: true, firstName: true },
       })
 
       if (!user) {
@@ -179,8 +190,23 @@ export async function approveApplication(applicationId: string, fields: Applicat
           data: {
             email: fields.email,
             role: 'CLUB_ADMIN',
+            firstName: fields.applicantFirstName,
+            lastName: fields.applicantLastName,
+            phone: fields.applicantPhone,
+            preferredLanguage: fields.applicantPreferredLanguage,
           },
-          select: { id: true },
+          select: { id: true, firstName: true },
+        })
+      } else if (!user.firstName) {
+        // Existing user without profile — populate from application data
+        await tx.user.update({
+          where: { id: user.id },
+          data: {
+            firstName: fields.applicantFirstName,
+            lastName: fields.applicantLastName,
+            phone: fields.applicantPhone,
+            preferredLanguage: fields.applicantPreferredLanguage,
+          },
         })
       }
 
@@ -230,16 +256,20 @@ export async function approveApplication(applicationId: string, fields: Applicat
       const clubUrl = `${protocol}://${host}/${result.club.defaultLanguage}/${result.club.country}/${result.club.slug}`
       const magicLinkUrl = `${protocol}://${host}/${result.club.defaultLanguage}/auth/magic-link?token=${result.rawToken}`
 
+      const emailLang = resolveUILang(fields.applicantPreferredLanguage ?? 'en')
+      const emailT = getTranslations(emailLang).emails.acceptance
+
       const html = buildAcceptanceEmailHtml({
         clubName: result.club.name,
         clubUrl,
         magicLinkUrl,
         operatorMessage: trimmedMessage,
+        lang: emailLang,
       })
 
       await sendEmail({
         to: fields.email,
-        subject: 'Your club site is ready — set up your account',
+        subject: emailT.subject,
         html,
       })
     } catch {
@@ -270,6 +300,23 @@ export async function approveApplication(applicationId: string, fields: Applicat
   }
 }
 
+export async function getApplicantClubs(email: string): Promise<{ id: string; name: string; role: string }[]> {
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: {
+      memberships: {
+        where: { status: 'ACTIVE' },
+        select: {
+          role: true,
+          club: { select: { id: true, name: true } },
+        },
+      },
+    },
+  })
+  if (!user) return []
+  return user.memberships.map((m) => ({ id: m.club.id, name: m.club.name, role: m.role }))
+}
+
 export async function rejectApplication(applicationId: string, reason?: string): Promise<ApplicationActionResult> {
   try {
     const session = await getAuthSession()
@@ -283,7 +330,7 @@ export async function rejectApplication(applicationId: string, reason?: string):
 
     const application = await prisma.application.findUnique({
       where: { id: applicationId },
-      select: { id: true, status: true, email: true, name: true },
+      select: { id: true, status: true, email: true, name: true, applicantPreferredLanguage: true },
     })
 
     if (!application) {
@@ -293,20 +340,26 @@ export async function rejectApplication(applicationId: string, reason?: string):
       return { success: false, error: 'Application already reviewed.', code: 'ALREADY_REVIEWED' }
     }
 
-    // Send rejection email BEFORE updating status — if email fails, status stays PENDING
-    try {
-      const html = buildRejectionEmailHtml({
-        clubName: application.name,
-        rejectionReason: reason,
-      })
+    // Send rejection email if enabled
+    if (await isEmailEnabled('email.application_rejected')) {
+      try {
+        const emailLang = resolveUILang(application.applicantPreferredLanguage ?? 'en')
+        const emailT = getTranslations(emailLang).emails.rejection
 
-      await sendEmail({
-        to: application.email,
-        subject: `Regarding your application for ${application.name}`,
-        html,
-      })
-    } catch {
-      return { success: false, error: 'Email delivery failed', code: 'EMAIL_FAILED' }
+        const html = buildRejectionEmailHtml({
+          clubName: application.name,
+          rejectionReason: reason,
+          lang: emailLang,
+        })
+
+        await sendEmail({
+          to: application.email,
+          subject: emailT.subject.replace('{clubName}', application.name),
+          html,
+        })
+      } catch {
+        return { success: false, error: 'Email delivery failed', code: 'EMAIL_FAILED' }
+      }
     }
 
     const result = await prisma.application.updateMany({

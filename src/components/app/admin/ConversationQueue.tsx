@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { List, MessageSquare, Inbox, Search, SearchX } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { List, MessageSquare, Inbox, Search, SearchX, Building2, Users } from 'lucide-react'
 import { ChatThread, type ChatMessage } from '@/components/app/messaging/ChatThread'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -17,6 +18,11 @@ export type ConversationEntry = {
   lastMessageBody: string
   lastMessageAt: string
   unreadCount: number
+  hasOlderMessages?: boolean
+  members: {
+    role: string
+    user: { id: string; firstName: string | null; lastName: string | null; email: string | null }
+  }[]
   messages: ChatMessage[]
 }
 
@@ -24,10 +30,12 @@ interface ConversationQueueProps {
   conversations: ConversationEntry[]
   sendAction: (clubId: string, body: string) => Promise<{ success: boolean; error?: string }>
   markReadAction: (clubId: string) => Promise<void>
+  loadOlderAction?: (clubId: string, beforeId: string) => Promise<{ messages: ChatMessage[]; hasMore: boolean }>
   locale: string
   translations: {
     admin: Translations['admin']['messages']
     chat: Translations['club']['admin']['messages']
+    users: Translations['admin']['users']
     searchPlaceholder: string
     showingCount: string
     showMore: string
@@ -35,8 +43,9 @@ interface ConversationQueueProps {
   }
 }
 
-export function ConversationQueue({ conversations, sendAction, markReadAction, locale, translations: t }: ConversationQueueProps) {
-  const { selectedConversationId: selectedClubId, setSelectedConversationId: setSelectedClubId } = useAdminSelection()
+export function ConversationQueue({ conversations, sendAction, markReadAction, loadOlderAction, locale, translations: t }: ConversationQueueProps) {
+  const { selectedConversationId: selectedClubId, setSelectedConversationId: setSelectedClubId, setSelectedClubId: navToClub, setSelectedUserId: navToUser } = useAdminSelection()
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<'list' | 'detail'>(selectedClubId ? 'detail' : 'list')
   const [searchQuery, setSearchQuery] = useState('')
   const [pageSize, setPageSize] = useState(20)
@@ -85,6 +94,7 @@ export function ConversationQueue({ conversations, sendAction, markReadAction, l
         noConversations={searchQuery ? t.noResults : t.admin.noConversations}
         noResultsIcon={!!searchQuery}
         locale={locale}
+        usersT={t.users}
       />
       {filteredConversations.length > 0 && (
         <div className="flex flex-col items-center gap-2 pt-2">
@@ -101,8 +111,62 @@ export function ConversationQueue({ conversations, sendAction, markReadAction, l
     </div>
   )
 
+  const navigateToClub = (clubId: string) => {
+    navToClub(clubId)
+    router.push(`/${locale}/admin/clubs`)
+  }
+
+  const navigateToUser = (userId: string) => {
+    navToUser(userId)
+    router.push(`/${locale}/admin/users`)
+  }
+
   const detailBlock = selected ? (
-    <ChatThread messages={selected.messages} sendAction={handleSend} isOperator translations={t.chat} />
+    <div className="flex flex-col h-full min-h-0">
+      {/* Navigation header */}
+      <div className="flex flex-wrap items-center gap-3 pb-3 border-b mb-3">
+        <button
+          type="button"
+          onClick={() => navigateToClub(selected.clubId)}
+          className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+        >
+          <Building2 className="size-3.5" />
+          {selected.clubName}
+        </button>
+        {selected.members.length > 0 && (
+          <span className="text-muted-foreground text-xs">·</span>
+        )}
+        {selected.members.map((m) => {
+          const name = m.user.firstName
+            ? `${m.user.firstName} ${m.user.lastName}`
+            : m.user.email
+          return (
+            <button
+              key={m.user.id}
+              type="button"
+              onClick={() => navigateToUser(m.user.id)}
+              className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+            >
+              <Users className="size-3.5" />
+              <span>{name}</span>
+              <Badge variant="secondary" className="text-[10px] px-1 py-0">
+                {m.role === 'OWNER' ? t.users.owner : t.users.editor}
+              </Badge>
+            </button>
+          )
+        })}
+      </div>
+      <div className="flex-1 min-h-0">
+        <ChatThread
+          messages={selected.messages}
+          sendAction={handleSend}
+          loadOlderAction={loadOlderAction ? (beforeId) => loadOlderAction(selected.clubId, beforeId) : undefined}
+          hasOlderMessages={selected.hasOlderMessages}
+          isOperator
+          translations={t.chat}
+        />
+      </div>
+    </div>
   ) : (
     <div className="flex flex-col items-center justify-center h-48 text-sm text-muted-foreground">
       <MessageSquare className="size-8 mb-2 opacity-40" />
@@ -152,6 +216,7 @@ function ConversationList({
   noConversations,
   noResultsIcon,
   locale,
+  usersT,
 }: {
   conversations: ConversationEntry[]
   selectedId: string | null
@@ -159,6 +224,7 @@ function ConversationList({
   noConversations: string
   noResultsIcon?: boolean
   locale: string
+  usersT: Translations['admin']['users']
 }) {
   if (conversations.length === 0) {
     const Icon = noResultsIcon ? SearchX : Inbox
@@ -174,6 +240,10 @@ function ConversationList({
     <div className="space-y-2">
       {conversations.map((c) => {
         const date = c.lastMessageAt ? new Date(c.lastMessageAt).toLocaleDateString(locale) : null
+        const owner = c.members.find((m) => m.role === 'OWNER')
+        const ownerName = owner?.user.firstName
+          ? `${owner.user.firstName} ${owner.user.lastName}`
+          : owner?.user.email
 
         return (
           <button
@@ -188,6 +258,11 @@ function ConversationList({
             )}
           >
             <p className="font-medium truncate">{c.clubName}</p>
+            {ownerName && (
+              <p className="text-xs text-muted-foreground truncate">
+                {usersT.owner}: {ownerName}
+              </p>
+            )}
             <p className="text-xs text-muted-foreground truncate mt-1">{c.lastMessageBody}</p>
             <div className="flex flex-wrap items-center gap-2 mt-1">
               {date && <span className="text-xs text-muted-foreground">{date}</span>}

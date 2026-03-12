@@ -3,30 +3,104 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Service Temporarily Unavailable</title>
+  <title>Scheduled Maintenance — findyour.club</title>
   <style>
+    :root {
+      --background: oklch(1 0 0);
+      --foreground: oklch(0.141 0.005 285.75);
+      --muted-foreground: oklch(0.552 0.016 285.938);
+      --border: oklch(0.92 0.004 286.32);
+      --card: oklch(1 0 0);
+      --radius: 0.625rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background: oklch(0.141 0.005 285.75);
+        --foreground: oklch(0.985 0 0);
+        --muted-foreground: oklch(0.705 0.015 286.067);
+        --border: oklch(1 0 0 / 10%);
+        --card: oklch(0.21 0.006 285.885);
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Geist', sans-serif;
       display: flex;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      margin: 0;
-      background: #f9fafb;
-      color: #111827;
+      background: var(--background);
+      color: var(--foreground);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
+
     .container {
       text-align: center;
       padding: 2rem;
+      max-width: 28rem;
     }
-    h1 { font-size: 2rem; margin-bottom: 0.5rem; }
-    p { color: #6b7280; }
+
+    .icon {
+      width: 3rem;
+      height: 3rem;
+      margin: 0 auto 1.5rem;
+      color: var(--muted-foreground);
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      line-height: 1.3;
+    }
+
+    p {
+      margin-top: 0.5rem;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      color: var(--muted-foreground);
+    }
+
+    .card {
+      margin-top: 2rem;
+      padding: 1rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--card);
+    }
+
+    .card p {
+      margin: 0;
+      font-size: 0.8125rem;
+    }
+
+    .brand {
+      margin-top: 2.5rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--muted-foreground);
+    }
   </style>
 </head>
 <body>
   <div class="container">
+    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.049.58.025 1.193-.14 1.743" />
+    </svg>
     <h1>Scheduled Maintenance</h1>
-    <p>We'll be back shortly. Thank you for your patience.</p>
+    <p>We're performing a quick update. The platform will be back shortly.</p>
+    <div class="card">
+      <p>Thank you for your patience.</p>
+    </div>
+    <div class="brand">findyour.club</div>
   </div>
 </body>
 </html>

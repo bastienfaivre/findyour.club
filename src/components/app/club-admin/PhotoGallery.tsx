@@ -12,7 +12,7 @@ import {
   createClubPhoto,
   deleteClubPhoto,
 } from '@/app/[lang]/(dashboard)/club/[clubId]/actions'
-import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_SIZE_BYTES } from '@/lib/r2'
+import { ALLOWED_IMAGE_TYPES } from '@/lib/r2'
 import type { ClubPhoto } from './ClubProfileForm'
 import type { Translations } from '@/lib/i18n/translations/types'
 
@@ -20,17 +20,20 @@ interface PhotoGalleryProps {
   clubId: string
   clubName: string
   photos: ClubPhoto[]
+  maxPhotos: number
+  maxImageSizeBytes: number
   translations: Translations['club']['admin']['clubProfile']['photos']
 }
 
-export function PhotoGallery({ clubId, clubName, photos, translations: t }: PhotoGalleryProps) {
+export function PhotoGallery({ clubId, clubName, photos, maxPhotos, maxImageSizeBytes, translations: t }: PhotoGalleryProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isPending, startTransition] = useTransition()
   const [uploadingCount, setUploadingCount] = useState(0)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
-  const atLimit = photos.length >= 10
+  const atLimit = photos.length >= maxPhotos
+  const sizeMb = maxImageSizeBytes / (1024 * 1024)
 
   const handleFilesSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? [])
@@ -43,8 +46,8 @@ export function PhotoGallery({ clubId, clubName, photos, translations: t }: Phot
         toast.error(`${file.name}: ${t.errorType}`)
         continue
       }
-      if (file.size > MAX_IMAGE_SIZE_BYTES) {
-        toast.error(`${file.name}: ${t.errorSize}`)
+      if (file.size > maxImageSizeBytes) {
+        toast.error(`${file.name}: ${t.errorSize.replace('{sizeMb}', String(sizeMb))}`)
         continue
       }
       validFiles.push(file)
@@ -102,18 +105,12 @@ export function PhotoGallery({ clubId, clubName, photos, translations: t }: Phot
 
   const isLoading = isPending || uploadingCount > 0
 
-  const MIN_PHOTOS = 5
-  const needsMore = photos.length < MIN_PHOTOS
-
   return (
     <div className="space-y-3">
-      <Label>{t.title}</Label>
-
-      {needsMore && (
-        <p className="text-sm text-amber-600 dark:text-amber-400">
-          {t.minRequired.replace('{count}', String(photos.length)).replace(/{min}/g, String(MIN_PHOTOS))}
-        </p>
-      )}
+      <div className="flex items-center justify-between">
+        <Label>{t.title}</Label>
+        <span className="text-xs text-muted-foreground">{photos.length} / {maxPhotos}</span>
+      </div>
 
       {/* Thumbnail grid */}
       {photos.length > 0 && (
@@ -156,7 +153,7 @@ export function PhotoGallery({ clubId, clubName, photos, translations: t }: Phot
 
       {/* Upload zone */}
       {atLimit ? (
-        <p className="text-sm text-muted-foreground">{t.maxReached}</p>
+        <p className="text-sm text-muted-foreground">{t.maxReached.replace('{max}', String(maxPhotos))}</p>
       ) : (
         <div
           className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 cursor-pointer hover:border-primary/50 transition-colors"
@@ -172,7 +169,9 @@ export function PhotoGallery({ clubId, clubName, photos, translations: t }: Phot
               <Button type="button" variant="outline" size="sm" className="min-h-[44px] min-w-[44px]" disabled={isLoading}>
                 {t.add}
               </Button>
-              <p className="mt-2 text-sm text-muted-foreground">{t.constraints}</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {t.constraints.replace('{max}', String(maxPhotos)).replace('{sizeMb}', String(sizeMb))}
+              </p>
             </>
           )}
         </div>

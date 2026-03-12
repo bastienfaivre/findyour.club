@@ -27,8 +27,12 @@ import { upsertSwissLocation } from '@/lib/server/location'
 import { submitApplication } from '@/app/[lang]/(dashboard)/apply/actions'
 
 const VALID_INPUT = {
-  name: 'Ski Club Valais',
+  applicantFirstName: 'Jean',
+  applicantLastName: 'Dupont',
   email: 'contact@skiclub.ch',
+  applicantPhone: '+41 79 123 45 67',
+  applicantPreferredLanguage: 'fr' as const,
+  name: 'Ski Club Valais',
   country: 'ch' as const,
   activityType: 'skiing',
   location: {
@@ -69,8 +73,13 @@ describe('submitApplication()', () => {
     expect(result).toEqual({ success: true })
     expect(prisma.application.create).toHaveBeenCalledWith({
       data: {
+        applicantFirstName: 'Jean',
+        applicantLastName: 'Dupont',
+        applicantPhone: '+41 79 123 45 67',
+        applicantPreferredLanguage: 'fr',
         name: 'Ski Club Valais',
         email: 'contact@skiclub.ch',
+        clubEmail: null,
         country: 'ch',
         activityType: 'skiing',
         otherDescription: null,
@@ -81,6 +90,15 @@ describe('submitApplication()', () => {
         contactAddress: 'Rue de la Gare 1, 1950 Sion',
         howToJoin: 'Send us an email or come to any session.',
         externalWebsiteUrl: 'https://skiclub-valais.ch',
+        instagramUrl: null,
+        facebookUrl: null,
+        xUrl: null,
+        tiktokUrl: null,
+        discordUrl: null,
+        youtubeUrl: null,
+        whatsappUrl: null,
+        telegramUrl: null,
+        githubUrl: null,
         desiredSlug: 'ski-club-valais',
       },
     })
@@ -196,7 +214,7 @@ describe('submitApplication()', () => {
   })
 
   it('accepts submission when optional profile fields are omitted', async () => {
-    const { schedule: _s, contactPhone: _cp, contactAddress: _ca, externalWebsiteUrl: _ewu, ...input } = VALID_INPUT
+    const { contactPhone: _cp, contactAddress: _ca, externalWebsiteUrl: _ewu, ...input } = VALID_INPUT
     const result = await submitApplication(input)
 
     expect(result).toEqual({ success: true })

@@ -12,17 +12,13 @@ interface VisibilityToggleTranslations {
   onlineSuccess: string
   offlineSuccess: string
   forceOfflineWarning: string
-  minPhotosRequired: string
   error: string
 }
-
-const MIN_PHOTOS = 5
 
 interface VisibilityToggleProps {
   isPublished: boolean
   forceOffline: boolean
   clubId: string
-  photoCount: number
   translations: VisibilityToggleTranslations
 }
 
@@ -30,14 +26,12 @@ export function VisibilityToggle({
   isPublished,
   forceOffline,
   clubId,
-  photoCount,
   translations: t,
 }: VisibilityToggleProps) {
   const [isPending, startTransition] = useTransition()
   const [optimisticPublished, setOptimisticPublished] = useOptimistic(isPublished)
 
-  const needsMorePhotos = !optimisticPublished && photoCount < MIN_PHOTOS
-  const disabled = forceOffline || isPending || needsMorePhotos
+  const disabled = forceOffline || isPending
 
   function handleToggle() {
     startTransition(async () => {
@@ -57,10 +51,6 @@ export function VisibilityToggle({
         <p className="text-sm font-medium">{t.title}</p>
         {forceOffline ? (
           <p className="text-sm text-destructive">{t.forceOfflineWarning}</p>
-        ) : needsMorePhotos ? (
-          <p className="text-sm text-amber-600 dark:text-amber-400">
-            {t.minPhotosRequired.replace('{min}', String(MIN_PHOTOS)).replace('{count}', String(photoCount))}
-          </p>
         ) : (
           <p className="text-sm text-muted-foreground">
             {optimisticPublished ? t.online : t.offline}

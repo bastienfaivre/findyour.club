@@ -58,12 +58,13 @@ export function DirectoryFilters({
   const currentActivity = searchParams.get('activity') ?? ''
   const currentLocation = searchParams.get('location') ?? ''
   const currentLocationName = searchParams.get('locationName') ?? ''
+  const currentLocationCanton = searchParams.get('locationCanton') ?? ''
   const hasFilters = currentCountry || currentCanton || currentActivity || currentLocation
 
   // Restore LocationInput from URL params
   const [locationValue, setLocationValue] = useState<LocationInput | null>(() => {
     if (currentLocation && currentLocationName) {
-      return { swisstopoId: currentLocation, plz: '', cantonCode: '', name: currentLocationName }
+      return { swisstopoId: currentLocation, plz: '', cantonCode: currentLocationCanton, name: currentLocationName }
     }
     return null
   })
@@ -80,6 +81,7 @@ export function DirectoryFilters({
       params.delete('canton')
       params.delete('location')
       params.delete('locationName')
+      params.delete('locationCanton')
       setLocationValue(null)
     }
     const qs = params.toString()
@@ -94,11 +96,13 @@ export function DirectoryFilters({
     if (loc) {
       params.set('location', loc.swisstopoId)
       params.set('locationName', loc.name)
+      if (loc.cantonCode) params.set('locationCanton', loc.cantonCode)
       // Clear canton — city and canton are not compatible
       params.delete('canton')
     } else {
       params.delete('location')
       params.delete('locationName')
+      params.delete('locationCanton')
     }
     const qs = params.toString()
     startTransition(() => {

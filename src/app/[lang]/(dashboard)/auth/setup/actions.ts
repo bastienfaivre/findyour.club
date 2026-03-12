@@ -40,7 +40,7 @@ export async function setupPassword(input: unknown): Promise<SetupPasswordResult
     return { success: false, error: firstError, code: 'VALIDATION_ERROR' }
   }
 
-  const { password } = parsed.data
+  const { firstName, lastName, phone, preferredLanguage, password } = parsed.data
 
   // HaveIBeenPwned check (k-anonymity — only first 5 chars of SHA-1 sent)
   const sha1 = createHash('sha1').update(password).digest('hex').toUpperCase()
@@ -83,6 +83,10 @@ export async function setupPassword(input: unknown): Promise<SetupPasswordResult
         where: { id: userId },
         data: {
           passwordHash,
+          firstName,
+          lastName,
+          phone: phone || null,
+          preferredLanguage,
           magicToken: null,
           magicTokenExp: null,
         },

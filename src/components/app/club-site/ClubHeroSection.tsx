@@ -5,7 +5,6 @@ export type ClubHeroSectionProps = {
     name: string
     logoUrl: string | null
     logoAlt: string | null
-    description: string | null
   }
 }
 
@@ -21,12 +20,6 @@ export function ClubHeroSection({ club }: ClubHeroSectionProps) {
       />
 
       <h1 className="text-2xl sm:text-4xl font-bold">{club.name}</h1>
-
-      {club.description && (
-        <p className="text-base text-muted-foreground max-w-[600px]">
-          {club.description}
-        </p>
-      )}
     </section>
   )
 }

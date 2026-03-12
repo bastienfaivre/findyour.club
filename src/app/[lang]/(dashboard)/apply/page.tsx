@@ -7,6 +7,9 @@ import { ApplyForm } from '@/components/app/apply/ApplyForm'
 import { SUPPORTED_COUNTRIES, getCountryName } from '@/lib/country'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 import { generatePlatformMetadata } from '@/components/app/seo/metadata'
+import { getAuthSession } from '@/server/auth'
+import { prisma } from '@/server/db'
+import { getBooleanSetting } from '@/lib/server/platform-settings'
 
 type Props = {
   params: Promise<{ lang: string }>
@@ -32,6 +35,43 @@ export default async function ApplyPage({
   const { lang } = await params
   const uiLang = resolveUILang(lang)
   const t = getTranslations(uiLang)
+
+  const registrationsOpen = await getBooleanSetting('registrations_enabled')
+
+  if (!registrationsOpen) {
+    return (
+      <div className="py-8 sm:py-16 lg:py-24">
+        <AdminPageTitle title={t.nav.apply} />
+        <div className="mx-auto max-w-2xl text-center">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            {t.apply.title}
+          </h1>
+          <p className="mt-6 text-lg text-muted-foreground">
+            {t.apply.registrationsClosed}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Prefill from authenticated user's profile if available
+  const session = await getAuthSession()
+  let userProfile: { firstName: string; lastName: string; email: string; phone: string; preferredLanguage: string } | null = null
+  if (session?.user?.id) {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { firstName: true, lastName: true, email: true, phone: true, preferredLanguage: true },
+    })
+    if (user) {
+      userProfile = {
+        firstName: user.firstName ?? '',
+        lastName: user.lastName ?? '',
+        email: user.email ?? '',
+        phone: user.phone ?? '',
+        preferredLanguage: user.preferredLanguage ?? uiLang,
+      }
+    }
+  }
 
   const activityTypes = ACTIVITY_TYPES
     .map((slug) => ({
@@ -81,6 +121,7 @@ export default async function ApplyPage({
               code,
               label: getCountryName(code, uiLang),
             }))}
+            userProfile={userProfile}
           />
         </div>
       </div>

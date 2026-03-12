@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { SUPPORTED_LANGUAGES, phoneSchema } from '@/lib/schemas/profile'
 
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{12,}$/
 
@@ -8,6 +9,10 @@ export const loginSchema = z.object({
 })
 
 export const setupPasswordSchema = z.object({
+  firstName: z.string().trim().min(1, 'First name is required').max(100),
+  lastName: z.string().trim().min(1, 'Last name is required').max(100),
+  phone: phoneSchema.optional().or(z.literal('')),
+  preferredLanguage: z.enum(SUPPORTED_LANGUAGES),
   password: z.string()
     .min(12, 'Password must be at least 12 characters')
     .regex(passwordRegex, 'Password must include uppercase, lowercase, number, and special character'),

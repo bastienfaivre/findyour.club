@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Progress } from '@/components/ui/progress'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { PhoneInput } from '@/components/ui/phone-input'
 import { setupPassword } from '@/app/[lang]/(dashboard)/auth/setup/actions'
 
 interface SetupPasswordFormT {
@@ -17,6 +19,11 @@ interface SetupPasswordFormT {
   strengthWeak: string
   strengthFair: string
   strengthStrong: string
+  firstName: string
+  lastName: string
+  phone: string
+  preferredLanguage: string
+  languageOptions: { value: string; label: string }[]
 }
 
 function getPasswordStrength(
@@ -32,7 +39,11 @@ function getPasswordStrength(
   return { label: t.strengthStrong, color: 'text-green-600', progressColor: '[&_[data-slot=progress-indicator]]:bg-green-500', value: 100 }
 }
 
-export function SetupPasswordForm({ t }: { t: SetupPasswordFormT }) {
+export function SetupPasswordForm({ t, defaultLanguage }: { t: SetupPasswordFormT; defaultLanguage: string }) {
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [preferredLanguage, setPreferredLanguage] = useState(defaultLanguage)
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -45,7 +56,7 @@ export function SetupPasswordForm({ t }: { t: SetupPasswordFormT }) {
     setError(null)
 
     startTransition(async () => {
-      const result = await setupPassword({ password, confirmPassword })
+      const result = await setupPassword({ firstName, lastName, phone, preferredLanguage, password, confirmPassword })
       if (result && !result.success) {
         setError(result.error)
       }
@@ -60,8 +71,59 @@ export function SetupPasswordForm({ t }: { t: SetupPasswordFormT }) {
         </Alert>
       )}
 
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="firstName">{t.firstName} *</Label>
+          <Input
+            id="firstName"
+            value={firstName}
+            onChange={e => setFirstName(e.target.value)}
+            required
+            disabled={isPending}
+            autoComplete="given-name"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="lastName">{t.lastName} *</Label>
+          <Input
+            id="lastName"
+            value={lastName}
+            onChange={e => setLastName(e.target.value)}
+            required
+            disabled={isPending}
+            autoComplete="family-name"
+          />
+        </div>
+      </div>
+
       <div className="space-y-2">
-        <Label htmlFor="password">{t.newPassword}</Label>
+        <Label htmlFor="phone">{t.phone}</Label>
+        <PhoneInput
+          id="phone"
+          value={phone}
+          onChange={setPhone}
+          disabled={isPending}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="preferredLanguage">{t.preferredLanguage}</Label>
+        <Select value={preferredLanguage} onValueChange={setPreferredLanguage} disabled={isPending}>
+          <SelectTrigger id="preferredLanguage">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {t.languageOptions.map(opt => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <hr className="my-2" />
+
+      <div className="space-y-2">
+        <Label htmlFor="password">{t.newPassword} *</Label>
         <Input
           id="password"
           type="password"
@@ -80,7 +142,7 @@ export function SetupPasswordForm({ t }: { t: SetupPasswordFormT }) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="confirmPassword">{t.confirmPassword}</Label>
+        <Label htmlFor="confirmPassword">{t.confirmPassword} *</Label>
         <Input
           id="confirmPassword"
           type="password"

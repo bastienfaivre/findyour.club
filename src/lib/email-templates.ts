@@ -1,159 +1,199 @@
+import type { SupportedLanguage } from '@/lib/i18n'
+import { getTranslations } from '@/lib/i18n/translations'
+
+// ── Shared email layout ──
+
+const PLATFORM_NAME = 'findyour.club'
+const PLATFORM_URL = 'https://findyour.club'
+const CONTACT_EMAIL = 'contact@findyour.club'
+
+function emailLayout(content: string, lang: SupportedLanguage): string {
+  const t = getTranslations(lang).emails.footer
+  return `<!DOCTYPE html>
+<html lang="${lang}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${PLATFORM_NAME}</title>
+</head>
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background-color:#f4f4f5;color:#18181b;-webkit-font-smoothing:antialiased;">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="padding:40px 16px;">
+    <tr><td align="center">
+
+      <!-- Header -->
+      <table width="560" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:8px;">
+        <tr><td align="center" style="padding-bottom:24px;">
+          <a href="${PLATFORM_URL}" style="text-decoration:none;font-size:18px;font-weight:700;letter-spacing:-0.02em;color:#18181b;">${PLATFORM_NAME}</a>
+        </td></tr>
+      </table>
+
+      <!-- Body -->
+      <table width="560" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;border-radius:12px;border:1px solid #e4e4e7;">
+        <tr><td style="padding:40px 36px;">
+          ${content}
+        </td></tr>
+      </table>
+
+      <!-- Footer -->
+      <table width="560" cellpadding="0" cellspacing="0" role="presentation" style="margin-top:24px;">
+        <tr><td align="center" style="padding:0 16px;">
+          <p style="margin:0 0 8px;font-size:12px;color:#a1a1aa;line-height:1.5;">
+            ${t.noreply}
+          </p>
+          <p style="margin:0 0 8px;font-size:12px;color:#a1a1aa;line-height:1.5;">
+            ${t.contact.replace('{email}', `<a href="mailto:${CONTACT_EMAIL}" style="color:#71717a;text-decoration:underline;">${CONTACT_EMAIL}</a>`)}
+          </p>
+          <p style="margin:0;font-size:11px;color:#d4d4d8;line-height:1.5;">
+            ${t.copyright.replace('{year}', String(new Date().getFullYear()))}
+          </p>
+        </td></tr>
+      </table>
+
+    </td></tr>
+  </table>
+</body>
+</html>`
+}
+
+function heading(text: string): string {
+  return `<h1 style="margin:0 0 20px;font-size:22px;font-weight:700;letter-spacing:-0.01em;color:#18181b;line-height:1.3;">${text}</h1>`
+}
+
+function paragraph(text: string): string {
+  return `<p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:#3f3f46;">${text}</p>`
+}
+
+function calloutBox(content: string): string {
+  return `<div style="background:#fafafa;border-left:3px solid #18181b;padding:16px 20px;margin:20px 0;border-radius:0 6px 6px 0;">
+    <p style="margin:0;font-size:15px;line-height:1.7;color:#3f3f46;">${content}</p>
+  </div>`
+}
+
+function primaryButton(text: string, href: string): string {
+  return `<table cellpadding="0" cellspacing="0" role="presentation" style="margin:24px 0;">
+    <tr><td style="background:#18181b;border-radius:8px;padding:13px 28px;">
+      <a href="${escapeHtml(href)}" style="color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;display:inline-block;">${text}</a>
+    </td></tr>
+  </table>`
+}
+
+function smallText(text: string): string {
+  return `<p style="margin:0;font-size:13px;color:#a1a1aa;line-height:1.6;">${text}</p>`
+}
+
+function divider(): string {
+  return `<hr style="border:none;border-top:1px solid #f4f4f5;margin:24px 0;">`
+}
+
+// ── Email templates ──
+
 interface AcceptanceEmailParams {
   clubName: string
   clubUrl: string
   magicLinkUrl: string
   operatorMessage?: string
+  lang: SupportedLanguage
 }
 
-export function buildAcceptanceEmailHtml({ clubName, clubUrl, magicLinkUrl, operatorMessage }: AcceptanceEmailParams): string {
-  const operatorMessageBlock = operatorMessage
-    ? `<div style="background:#f8f9fa;border-left:4px solid #2563eb;padding:16px;margin:24px 0;">
-          <p style="margin:0 0 8px;font-weight:600;font-size:15px;color:#18181b;">Message from the platform:</p>
-          <p style="margin:0;font-size:15px;line-height:1.6;color:#3f3f46;">${escapeHtml(operatorMessage)}</p>
-        </div>`
+export function buildAcceptanceEmailHtml({ clubName, clubUrl, magicLinkUrl, operatorMessage, lang }: AcceptanceEmailParams): string {
+  const t = getTranslations(lang).emails.acceptance
+
+  const operatorBlock = operatorMessage
+    ? calloutBox(`<strong style="color:#18181b;">${t.platformMessage}</strong><br>${escapeHtml(operatorMessage)}`)
     : ''
-  return `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"></head>
-<body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background-color:#f4f4f5;color:#18181b;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 20px;">
-    <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;padding:40px;">
-        <tr><td>
-          <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Your club site is ready</h1>
-          <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#3f3f46;">
-            Congratulations! Your application for <strong>${escapeHtml(clubName)}</strong> has been approved.
-          </p>
-          ${operatorMessageBlock}
-          <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#3f3f46;">
-            Your club URL:
-          </p>
-          <p style="margin:0 0 24px;">
-            <a href="${escapeHtml(clubUrl)}" style="color:#2563eb;text-decoration:underline;font-size:15px;">${escapeHtml(clubUrl)}</a>
-          </p>
-          <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#3f3f46;">
-            Click the button below to set your password and enable two-factor authentication.
-          </p>
-          <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
-            <tr><td style="background:#18181b;border-radius:6px;padding:12px 24px;">
-              <a href="${escapeHtml(magicLinkUrl)}" style="color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;">Set up your account</a>
-            </td></tr>
-          </table>
-          <p style="margin:0;font-size:13px;color:#71717a;line-height:1.5;">
-            This link expires in 1 hour. If you did not request this, you can safely ignore this email.
-          </p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`
+
+  return emailLayout(`
+    ${heading(t.heading)}
+    ${paragraph(t.congratulations.replace('{clubName}', `<strong>${escapeHtml(clubName)}</strong>`))}
+    ${operatorBlock}
+    ${paragraph(t.liveLine)}
+    <p style="margin:0 0 20px;">
+      <a href="${escapeHtml(clubUrl)}" style="color:#18181b;text-decoration:underline;font-size:15px;font-weight:500;">${escapeHtml(clubUrl)}</a>
+    </p>
+    ${paragraph(t.setupLine)}
+    ${primaryButton(t.setupButton, magicLinkUrl)}
+    ${divider()}
+    ${smallText(t.expiry)}
+  `, lang)
 }
 
 interface RejectionEmailParams {
   clubName: string
   rejectionReason?: string
+  lang: SupportedLanguage
 }
 
-export function buildRejectionEmailHtml({ clubName, rejectionReason }: RejectionEmailParams): string {
+export function buildRejectionEmailHtml({ clubName, rejectionReason, lang }: RejectionEmailParams): string {
+  const t = getTranslations(lang).emails.rejection
+
   const explanation = rejectionReason
     ? escapeHtml(rejectionReason)
-    : 'After careful review, we were unable to approve your application at this time. Our platform focuses on non-profit clubs engaged in real-world community activities.'
+    : t.defaultReason
 
-  return `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"></head>
-<body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background-color:#f4f4f5;color:#18181b;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 20px;">
-    <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;padding:40px;">
-        <tr><td>
-          <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Regarding your application</h1>
-          <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#3f3f46;">
-            Thank you for your interest in joining our platform with <strong>${escapeHtml(clubName)}</strong>.
-          </p>
-          <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#3f3f46;">
-            ${explanation}
-          </p>
-          <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#3f3f46;">
-            If your circumstances change or you believe this decision was made in error, you are welcome to submit a new application.
-          </p>
-          <p style="margin:0;font-size:13px;color:#71717a;line-height:1.5;">
-            Best regards,<br>The Platform Team
-          </p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`
+  return emailLayout(`
+    ${heading(t.heading)}
+    ${paragraph(t.thankYou.replace('{clubName}', `<strong>${escapeHtml(clubName)}</strong>`))}
+    ${calloutBox(explanation)}
+    ${paragraph(t.reapply)}
+    ${divider()}
+    ${smallText(t.regards)}
+  `, lang)
 }
 
 interface OperatorMessageEmailParams {
   clubName: string
   message: string
+  lang: SupportedLanguage
 }
 
-export function buildOperatorMessageEmailHtml({ clubName, message }: OperatorMessageEmailParams): string {
-  return `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"></head>
-<body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background-color:#f4f4f5;color:#18181b;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 20px;">
-    <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;padding:40px;">
-        <tr><td>
-          <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Message from the platform</h1>
-          <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#3f3f46;">
-            The following message concerns your club <strong>${escapeHtml(clubName)}</strong>:
-          </p>
-          <div style="background:#f8f9fa;border-left:4px solid #2563eb;padding:16px;margin:24px 0;">
-            <p style="margin:0;font-size:15px;line-height:1.6;color:#3f3f46;">${escapeHtml(message)}</p>
-          </div>
-          <p style="margin:0;font-size:13px;color:#71717a;line-height:1.5;">
-            Best regards,<br>The Platform Team
-          </p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`
+export function buildOperatorMessageEmailHtml({ clubName, message, lang }: OperatorMessageEmailParams): string {
+  const t = getTranslations(lang).emails.operatorMessage
+
+  return emailLayout(`
+    ${heading(t.heading)}
+    ${paragraph(t.intro.replace('{clubName}', `<strong>${escapeHtml(clubName)}</strong>`))}
+    ${calloutBox(escapeHtml(message))}
+    ${divider()}
+    ${smallText(t.regards)}
+  `, lang)
 }
 
 interface ForceOfflineEmailParams {
   clubName: string
   reason: string
+  lang: SupportedLanguage
 }
 
-export function buildForceOfflineEmailHtml({ clubName, reason }: ForceOfflineEmailParams): string {
-  return `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"></head>
-<body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background-color:#f4f4f5;color:#18181b;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 20px;">
-    <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;padding:40px;">
-        <tr><td>
-          <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Your club page has been taken offline</h1>
-          <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#3f3f46;">
-            Your club page for <strong>${escapeHtml(clubName)}</strong> has been taken offline by the platform team for the following reason:
-          </p>
-          <div style="background:#f8f9fa;border-left:4px solid #2563eb;padding:16px;margin:24px 0;">
-            <p style="margin:0;font-size:15px;line-height:1.6;color:#3f3f46;">${escapeHtml(reason)}</p>
-          </div>
-          <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#3f3f46;">
-            Your page will remain offline until the issue is resolved. Please review the reason above and make any necessary changes. Once the issue is addressed, the platform team will restore your page.
-          </p>
-          <p style="margin:0;font-size:13px;color:#71717a;line-height:1.5;">
-            Best regards,<br>The Platform Team
-          </p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`
+export function buildForceOfflineEmailHtml({ clubName, reason, lang }: ForceOfflineEmailParams): string {
+  const t = getTranslations(lang).emails.forceOffline
+
+  return emailLayout(`
+    ${heading(t.heading)}
+    ${paragraph(t.intro.replace('{clubName}', `<strong>${escapeHtml(clubName)}</strong>`))}
+    ${calloutBox(escapeHtml(reason))}
+    ${paragraph(t.resolution)}
+    ${divider()}
+    ${smallText(t.regards)}
+  `, lang)
+}
+
+interface InvitationEmailParams {
+  clubName: string
+  acceptUrl: string
+  lang: SupportedLanguage
+}
+
+export function buildInvitationEmailHtml({ clubName, acceptUrl, lang }: InvitationEmailParams): string {
+  const t = getTranslations(lang).emails.invitation
+
+  return emailLayout(`
+    ${heading(t.heading)}
+    ${paragraph(t.intro.replace('{clubName}', `<strong>${escapeHtml(clubName)}</strong>`))}
+    ${paragraph(t.cta)}
+    ${primaryButton(t.acceptButton, acceptUrl)}
+    ${divider()}
+    ${smallText(t.expiry)}
+  `, lang)
 }
 
 export function escapeHtml(str: string): string {

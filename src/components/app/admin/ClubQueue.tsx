@@ -54,6 +54,10 @@ export type ClubListItem = {
     } | null
   } | null
   photos: { id: string; url: string; alt: string; position: number }[]
+  members: {
+    role: string
+    user: { id: string; firstName: string | null; lastName: string | null; email: string | null }
+  }[]
 }
 
 export type { ActivityTypeOption, CountryOption } from './types'
@@ -283,6 +287,13 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
                     <Badge variant="destructive" className="ml-auto text-xs">{tc.offline}</Badge>
                   )}
                 </div>
+                {club.members.length > 0 && (
+                  <span className="text-xs text-muted-foreground truncate">
+                    {club.members.find(m => m.role === 'OWNER')?.user.firstName
+                      ? `${club.members.find(m => m.role === 'OWNER')?.user.firstName} ${club.members.find(m => m.role === 'OWNER')?.user.lastName}`
+                      : club.members.find(m => m.role === 'OWNER')?.user.email ?? club.members[0].user.email}
+                  </span>
+                )}
               </button>
             )
           })}

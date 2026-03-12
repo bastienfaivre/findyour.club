@@ -1,14 +1,18 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Download, ExternalLink } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
 import { VisibilityToggle } from '@/components/app/club-admin/PublishToggle'
 import { MembershipPanel } from '@/components/app/settings/MembershipPanel'
-import { inviteEditor, transferOwnership, revokeAccess } from './actions'
+import { ExportDataButton } from '@/components/app/settings/ExportDataButton'
+import { DeleteClubSection } from '@/components/app/settings/DeleteClubSection'
+import { inviteEditor, transferOwnership, revokeAccess, cancelInvite } from './actions'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
+import { getNumberSetting } from '@/lib/server/platform-settings'
 
 interface ClubSettingsPageProps {
   params: Promise<{ lang: string; clubId: string }>
@@ -24,7 +28,7 @@ export default async function ClubSettingsPage({ params }: ClubSettingsPageProps
 
   const club = await prisma.club.findUnique({
     where: { id: clubId },
-    select: { id: true, name: true, slug: true, country: true, isPublished: true, forceOffline: true, _count: { select: { photos: true } } },
+    select: { id: true, name: true, slug: true, country: true, isPublished: true, forceOffline: true },
   })
   if (!club) notFound()
 
@@ -45,6 +49,8 @@ export default async function ClubSettingsPage({ params }: ClubSettingsPageProps
     status: 'ACTIVE' | 'PENDING'
     user: { email: string | null; name: string | null }
   }> = []
+
+  const maxEditors = isOwner ? await getNumberSetting('limit.max_editors_per_club') : 0
 
   if (isOwner) {
     const [allMemberships, validInvitations] = await Promise.all([
@@ -68,6 +74,7 @@ export default async function ClubSettingsPage({ params }: ClubSettingsPageProps
   const boundInviteEditor = inviteEditor.bind(null, clubId)
   const boundTransferOwnership = transferOwnership.bind(null, clubId)
   const boundRevokeAccess = revokeAccess.bind(null, clubId)
+  const boundCancelInvite = cancelInvite.bind(null, clubId)
 
   const publicPageUrl = `/${lang}/${club.country}/${club.slug}`
 
@@ -81,29 +88,28 @@ export default async function ClubSettingsPage({ params }: ClubSettingsPageProps
           isPublished={club.isPublished}
           forceOffline={club.forceOffline}
           clubId={clubId}
-          photoCount={club._count.photos}
           translations={t.club.admin.visibility}
         />
       )}
 
       {/* View public page */}
-      <Link
-        href={publicPageUrl}
-        target="_blank"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ExternalLink className="h-4 w-4" />
-        {t.club.admin.sidebar.viewPublicPage}
-      </Link>
+      <Button variant="outline" asChild>
+        <Link href={publicPageUrl} target="_blank">
+          <ExternalLink className="h-4 w-4" />
+          {t.club.admin.sidebar.viewPublicPage}
+        </Link>
+      </Button>
 
       {/* Membership Panel (owners only) */}
       {isOwner && (
         <MembershipPanel
           memberships={memberships}
           currentUserId={session.user.id}
+          maxEditors={maxEditors}
           inviteAction={boundInviteEditor}
           transferOwnershipAction={boundTransferOwnership}
           revokeAccessAction={boundRevokeAccess}
+          cancelInviteAction={boundCancelInvite}
           t={t.club.membership}
         />
       )}
@@ -112,15 +118,27 @@ export default async function ClubSettingsPage({ params }: ClubSettingsPageProps
       {isOwner && (
         <section className="space-y-2">
           <p className="text-sm text-muted-foreground">{t.club.admin.settings.exportDescription}</p>
-          <a
-            href={`/api/club/${clubId}/export`}
-            download
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Download className="h-4 w-4" />
-            {t.club.admin.settings.exportData}
-          </a>
+          <ExportDataButton
+            exportUrl={`/api/club/${clubId}/export`}
+            t={{
+              exportData: t.club.admin.settings.exportData,
+              exportPreparing: t.club.admin.settings.exportPreparing,
+              exportDoNotClose: t.club.admin.settings.exportDoNotClose,
+              exportError: t.club.admin.settings.exportError,
+            }}
+          />
         </section>
+      )}
+
+      {/* Delete Club (owners only) */}
+      {isOwner && (
+        <DeleteClubSection
+          clubId={clubId}
+          clubName={club.name}
+          lang={lang}
+          exportUrl={`/api/club/${clubId}/export`}
+          t={t.club.admin.settings.deleteClub}
+        />
       )}
     </div>
   )

@@ -6,6 +6,9 @@ import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 import { ConversationQueue, type ConversationEntry } from '@/components/app/admin/ConversationQueue'
 import { sendSupportMessage } from '../clubs/[id]/actions'
 import { notFound } from 'next/navigation'
+import type { ChatMessage } from '@/components/app/messaging/ChatThread'
+
+const PAGE_SIZE = 10
 
 interface AdminMessagesPageProps {
   params: Promise<{ lang: string }>
@@ -21,20 +24,29 @@ export default async function AdminMessagesPage({ params }: AdminMessagesPagePro
 
   const operatorId = session.user.id
 
-  // Get all clubs that have messages, with their messages
+  // Get all clubs that have messages — only load last PAGE_SIZE messages + total count per club
   const clubsWithMessages = await prisma.club.findMany({
     where: { supportMessages: { some: {} } },
     select: {
       id: true,
       name: true,
+      _count: { select: { supportMessages: true } },
       supportMessages: {
-        orderBy: { createdAt: 'asc' },
+        orderBy: { createdAt: 'desc' },
+        take: PAGE_SIZE,
         select: {
           id: true,
           body: true,
           senderRole: true,
           createdAt: true,
           sender: { select: { name: true } },
+        },
+      },
+      memberships: {
+        where: { status: 'ACTIVE' },
+        select: {
+          role: true,
+          user: { select: { id: true, firstName: true, lastName: true, email: true } },
         },
       },
     },
@@ -52,11 +64,14 @@ export default async function AdminMessagesPage({ params }: AdminMessagesPagePro
   const cursorMap = new Map(cursors.map((c) => [c.clubId, c.lastReadAt]))
 
   const conversations: ConversationEntry[] = clubsWithMessages.map((club) => {
-    const lastMsg = club.supportMessages[club.supportMessages.length - 1]
+    // Messages are in desc order from query, reverse for display
+    const messagesAsc = [...club.supportMessages].reverse()
+    const lastMsg = messagesAsc[messagesAsc.length - 1]
     const cursor = cursorMap.get(club.id)
+    // Unread count is based on loaded messages — accurate for recent messages
     const unreadCount = cursor
-      ? club.supportMessages.filter((m) => m.createdAt > cursor && m.senderRole !== 'OPERATOR').length
-      : club.supportMessages.filter((m) => m.senderRole !== 'OPERATOR').length
+      ? messagesAsc.filter((m) => m.createdAt > cursor && m.senderRole !== 'OPERATOR').length
+      : messagesAsc.filter((m) => m.senderRole !== 'OPERATOR').length
 
     return {
       clubId: club.id,
@@ -64,7 +79,12 @@ export default async function AdminMessagesPage({ params }: AdminMessagesPagePro
       lastMessageBody: lastMsg?.body ?? '',
       lastMessageAt: lastMsg?.createdAt.toISOString() ?? '',
       unreadCount,
-      messages: club.supportMessages.map((m) => ({
+      hasOlderMessages: club._count.supportMessages > PAGE_SIZE,
+      members: club.memberships.map((m) => ({
+        role: m.role,
+        user: m.user,
+      })),
+      messages: messagesAsc.map((m) => ({
         id: m.id,
         body: m.body,
         senderRole: m.senderRole,
@@ -98,6 +118,45 @@ export default async function AdminMessagesPage({ params }: AdminMessagesPagePro
     })
   }
 
+  async function handleLoadOlder(clubId: string, beforeId: string) {
+    'use server'
+    const anchor = await prisma.supportMessage.findUnique({
+      where: { id: beforeId },
+      select: { createdAt: true },
+    })
+    if (!anchor) return { messages: [] as ChatMessage[], hasMore: false }
+
+    const older = await prisma.supportMessage.findMany({
+      where: { clubId, createdAt: { lt: anchor.createdAt } },
+      orderBy: { createdAt: 'desc' },
+      take: PAGE_SIZE,
+      select: {
+        id: true,
+        body: true,
+        senderRole: true,
+        createdAt: true,
+        sender: { select: { name: true } },
+      },
+    })
+
+    const remaining = older.length > 0
+      ? await prisma.supportMessage.count({
+          where: { clubId, createdAt: { lt: older[older.length - 1].createdAt } },
+        })
+      : 0
+
+    return {
+      messages: older.reverse().map((m) => ({
+        id: m.id,
+        body: m.body,
+        senderRole: m.senderRole,
+        senderName: m.sender?.name ?? null,
+        createdAt: m.createdAt.toISOString(),
+      })),
+      hasMore: remaining > 0,
+    }
+  }
+
   return (
     <div className="flex flex-col h-full min-h-0">
       <AdminPageTitle title={t.admin.messages.title} />
@@ -105,10 +164,12 @@ export default async function AdminMessagesPage({ params }: AdminMessagesPagePro
         conversations={conversations}
         sendAction={handleSend}
         markReadAction={handleMarkRead}
+        loadOlderAction={handleLoadOlder}
         locale={uiLang}
         translations={{
           admin: t.admin.messages,
           chat: t.club.admin.messages,
+          users: t.admin.users,
           searchPlaceholder: t.admin.searchPlaceholder,
           showingCount: t.admin.showingCount,
           showMore: t.admin.showMore,

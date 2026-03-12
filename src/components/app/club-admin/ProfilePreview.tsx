@@ -13,6 +13,7 @@ interface ProfilePreviewProps {
   logoAlt: string | null
   photos: ClubPhoto[]
   translations: {
+    description: string
     schedule: string
     howToJoin: string
     contactInfo: string
@@ -37,12 +38,17 @@ export function ProfilePreview({ formValues, logoUrl, logoAlt, photos, translati
               name: formValues.name || '…',
               logoUrl,
               logoAlt,
-              description: formValues.description ?? null,
             }}
           />
 
           <div className="mx-auto w-full max-w-3xl px-4">
             <PhotoCarousel photos={photos} ariaLabel={t.photos} goToPhotoLabel={t.goToPhoto} />
+
+            {formValues.description && (
+              <ProfileSection title={t.description}>
+                <p className="text-sm whitespace-pre-line">{formValues.description}</p>
+              </ProfileSection>
+            )}
 
             {formValues.schedule && (
               <ProfileSection title={t.schedule}>

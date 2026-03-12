@@ -13,7 +13,8 @@ interface SetupPageProps {
 
 export default async function SetupPage({ params }: SetupPageProps) {
   const { lang } = await params
-  const t = getTranslations(resolveUILang(lang))
+  const uiLang = resolveUILang(lang)
+  const t = getTranslations(uiLang)
 
   // Already authenticated — account setup is complete; send user home.
   const session = await getAuthSession()
@@ -37,7 +38,7 @@ export default async function SetupPage({ params }: SetupPageProps) {
           <h1 className="text-2xl font-semibold">{t.auth.setPassword}</h1>
           <p className="text-muted-foreground text-sm">{t.auth.setPasswordSubtitle}</p>
         </div>
-        <SetupPasswordForm t={{
+        <SetupPasswordForm defaultLanguage={uiLang} t={{
           newPassword: t.auth.fields.newPassword,
           confirmPassword: t.auth.fields.confirmPassword,
           settingPassword: t.auth.form.settingPassword,
@@ -47,6 +48,16 @@ export default async function SetupPage({ params }: SetupPageProps) {
           strengthWeak: t.auth.form.strengthWeak,
           strengthFair: t.auth.form.strengthFair,
           strengthStrong: t.auth.form.strengthStrong,
+          firstName: t.auth.profile.firstName,
+          lastName: t.auth.profile.lastName,
+          phone: t.auth.profile.phone,
+          preferredLanguage: t.auth.profile.preferredLanguage,
+          languageOptions: [
+            { value: 'fr', label: t.language.fr },
+            { value: 'de', label: t.language.de },
+            { value: 'it', label: t.language.it },
+            { value: 'en', label: t.language.en },
+          ],
         }} />
       </div>
     </div>

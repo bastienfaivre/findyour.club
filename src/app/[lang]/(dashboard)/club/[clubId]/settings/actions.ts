@@ -1,10 +1,17 @@
 'use server'
 
 import { createHash, randomBytes } from 'crypto'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/server/db'
 import { getAuthSession } from '@/server/auth'
 import { sendEmail } from '@/lib/email'
+import { buildInvitationEmailHtml } from '@/lib/email-templates'
+import { deleteObject, extractR2Key } from '@/lib/r2'
 import { z } from 'zod'
+import { getNumberSetting } from '@/lib/server/platform-settings'
+import { checkRateLimit } from '@/lib/rate-limit'
+import { resolveUILang } from '@/lib/i18n'
+import { getTranslations } from '@/lib/i18n/translations'
 
 const inviteSchema = z.object({ email: z.string().email() })
 
@@ -37,6 +44,21 @@ export async function inviteEditor(
     return { success: false, error: 'Only club owners can invite editors.', code: 'FORBIDDEN' }
   }
 
+  // Rate limit invitations
+  const maxInvites = await getNumberSetting('rate.invitations_per_hour')
+  if (checkRateLimit(`invite:${session.user.id}:${club.id}`, { windowMs: 3_600_000, maxAttempts: maxInvites })) {
+    return { success: false, error: 'Too many invitations. Please wait before sending another.', code: 'VALIDATION_ERROR' }
+  }
+
+  // Enforce max editors limit
+  const maxEditors = await getNumberSetting('limit.max_editors_per_club')
+  const editorCount = await prisma.clubMembership.count({
+    where: { clubId: club.id, role: 'EDITOR', status: { in: ['ACTIVE', 'PENDING'] } },
+  })
+  if (editorCount >= maxEditors) {
+    return { success: false, error: `Maximum of ${maxEditors} editor(s) reached.`, code: 'VALIDATION_ERROR' }
+  }
+
   // Validate email
   const parsed = inviteSchema.safeParse({ email: formData.get('email') })
   if (!parsed.success) {
@@ -49,6 +71,7 @@ export async function inviteEditor(
     where: { email },
     select: {
       id: true,
+      preferredLanguage: true,
       memberships: {
         where: { clubId: club.id, status: { in: ['ACTIVE', 'PENDING'] } },
         select: { id: true, status: true },
@@ -109,14 +132,22 @@ export async function inviteEditor(
   const acceptUrl = `${baseUrl}/auth/invite/accept?token=${rawToken}`
 
   try {
+    // Use the recipient's preferred language if they exist, otherwise use the sender's
+    let recipientLangRaw: string | null | undefined = existingMember?.preferredLanguage
+    if (!recipientLangRaw) {
+      const sender = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { preferredLanguage: true },
+      })
+      recipientLangRaw = sender?.preferredLanguage
+    }
+    const emailLang = resolveUILang(recipientLangRaw ?? 'en')
+    const emailT = getTranslations(emailLang).emails.invitation
+
     await sendEmail({
       to: email,
-      subject: `You've been invited to co-manage ${club.name}`,
-      html: `
-        <p>You have been invited to co-manage <strong>${club.name}</strong> as an Editor.</p>
-        <p><a href="${acceptUrl}">Accept invitation</a></p>
-        <p>This link expires in 7 days. If you did not expect this, you can safely ignore this email.</p>
-      `,
+      subject: emailT.subject.replace('{clubName}', club.name),
+      html: buildInvitationEmailHtml({ clubName: club.name, acceptUrl, lang: emailLang }),
     })
   } catch {
     // Rollback: delete both records so the owner can retry
@@ -130,6 +161,108 @@ export async function inviteEditor(
   }
 
   return { success: true }
+}
+
+export type CancelInviteResult =
+  | { success: true }
+  | { success: false; error: string; code: 'UNAUTHORIZED' | 'FORBIDDEN' | 'NOT_FOUND' | 'SERVER_ERROR' }
+
+export async function cancelInvite(
+  clubId: string,
+  membershipId: string,
+): Promise<CancelInviteResult> {
+  const session = await getAuthSession()
+  if (!session?.user?.id) {
+    return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' }
+  }
+
+  const club = await prisma.club.findUnique({
+    where: { id: clubId },
+    select: { id: true },
+  })
+  if (!club) return { success: false, error: 'Club not found.', code: 'UNAUTHORIZED' }
+
+  const callerOwnership = await prisma.clubMembership.findFirst({
+    where: { userId: session.user.id, clubId: club.id, status: 'ACTIVE', role: 'OWNER' },
+    select: { id: true },
+  })
+  if (!callerOwnership) {
+    return { success: false, error: 'Only club owners can cancel invitations.', code: 'FORBIDDEN' }
+  }
+
+  const membership = await prisma.clubMembership.findUnique({
+    where: { id: membershipId },
+    select: { id: true, userId: true, clubId: true, status: true, user: { select: { email: true } } },
+  })
+  if (!membership || membership.clubId !== club.id || membership.status !== 'PENDING') {
+    return { success: false, error: 'Pending invitation not found.', code: 'NOT_FOUND' }
+  }
+
+  try {
+    await prisma.$transaction([
+      prisma.invitation.deleteMany({ where: { email: membership.user.email!, clubId: club.id } }),
+      prisma.clubMembership.delete({ where: { id: membership.id } }),
+    ])
+  } catch {
+    return { success: false, error: 'Failed to cancel invitation.', code: 'SERVER_ERROR' }
+  }
+
+  return { success: true }
+}
+
+export type DeleteClubResult =
+  | { success: true }
+  | { success: false; error: string; code: 'UNAUTHORIZED' | 'FORBIDDEN' | 'NOT_FOUND' | 'SERVER_ERROR' }
+
+export async function ownerDeleteClub(clubId: string): Promise<DeleteClubResult> {
+  try {
+    const session = await getAuthSession()
+    if (!session?.user?.id) {
+      return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' }
+    }
+
+    // Verify caller is an ACTIVE OWNER of this club
+    const membership = await prisma.clubMembership.findFirst({
+      where: { userId: session.user.id, clubId, status: 'ACTIVE', role: 'OWNER' },
+      select: { id: true },
+    })
+    if (!membership) {
+      return { success: false, error: 'Only club owners can delete a club.', code: 'FORBIDDEN' }
+    }
+
+    const club = await prisma.club.findUnique({
+      where: { id: clubId },
+      select: {
+        id: true,
+        slug: true,
+        country: true,
+        logoUrl: true,
+        photos: { select: { url: true } },
+      },
+    })
+    if (!club) {
+      return { success: false, error: 'Club not found.', code: 'NOT_FOUND' }
+    }
+
+    // Best-effort R2 cleanup (before transaction)
+    const r2Keys: string[] = []
+    if (club.logoUrl) r2Keys.push(extractR2Key(club.logoUrl))
+    for (const photo of club.photos) r2Keys.push(extractR2Key(photo.url))
+    await Promise.allSettled(r2Keys.map((key) => deleteObject(key)))
+
+    // Delete club in a transaction (cascade handles photos, messages, memberships, etc.)
+    await prisma.$transaction(async (tx) => {
+      await tx.invitation.deleteMany({ where: { clubId: club.id } })
+      await tx.club.delete({ where: { id: club.id } })
+    })
+
+    revalidatePath(`/[lang]/${club.country}/[club]`, 'page')
+    revalidatePath('/[lang]/search', 'page')
+
+    return { success: true }
+  } catch {
+    return { success: false, error: 'An unexpected error occurred.', code: 'SERVER_ERROR' }
+  }
 }
 
 export type TransferOwnershipResult =

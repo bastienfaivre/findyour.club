@@ -5,6 +5,7 @@ import { useTransition } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
 import { resolveUILang } from '@/lib/i18n'
 import { Button } from '@/components/ui/button'
+import { useSidebar } from '@/components/ui/sidebar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,13 +27,17 @@ export function LanguageSwitcher({ currentLang, dropUp }: { currentLang: string;
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const activeLang = resolveUILang(currentLang)
+  const { openMobile } = useSidebar()
 
   function switchLang(newLang: string) {
     const segments = pathname.split('/')
     segments[1] = newLang
     const newPath = segments.join('/')
+    if (openMobile) {
+      sessionStorage.setItem('sidebar-keep-open', '1')
+    }
     startTransition(() => {
-      router.push(newPath)
+      router.replace(newPath)
     })
   }
 

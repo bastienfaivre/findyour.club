@@ -37,6 +37,12 @@ import { redirect } from 'next/navigation'
 import { setupPassword } from '@/app/[lang]/(dashboard)/auth/setup/actions'
 
 const STRONG_PASSWORD = 'Str0ng!P@ssw0rd'
+const VALID_PROFILE = {
+  firstName: 'Jean',
+  lastName: 'Dupont',
+  phone: '',
+  preferredLanguage: 'fr' as const,
+}
 
 describe('setupPassword()', () => {
   beforeEach(() => {
@@ -51,26 +57,27 @@ describe('setupPassword()', () => {
 
   it('returns UNAUTHORIZED when setup cookie is missing or invalid', async () => {
     vi.mocked(decodeSetupCookie).mockReturnValue(null)
-    const result = await setupPassword({ password: STRONG_PASSWORD, confirmPassword: STRONG_PASSWORD })
+    const result = await setupPassword({ ...VALID_PROFILE, password: STRONG_PASSWORD, confirmPassword: STRONG_PASSWORD })
     expect(result).toMatchObject({ success: false, code: 'UNAUTHORIZED' })
   })
 
   it('returns ALREADY_CONFIGURED when user already has a password', async () => {
     vi.mocked(decodeSetupCookie).mockReturnValue('user-123')
     vi.mocked(prisma.user.findUnique).mockResolvedValue({ passwordHash: '$existing_hash' } as never)
-    const result = await setupPassword({ password: STRONG_PASSWORD, confirmPassword: STRONG_PASSWORD })
+    const result = await setupPassword({ ...VALID_PROFILE, password: STRONG_PASSWORD, confirmPassword: STRONG_PASSWORD })
     expect(result).toMatchObject({ success: false, code: 'ALREADY_CONFIGURED' })
   })
 
   it('returns VALIDATION_ERROR for a short password', async () => {
     vi.mocked(decodeSetupCookie).mockReturnValue('user-123')
-    const result = await setupPassword({ password: 'Short1!', confirmPassword: 'Short1!' })
+    const result = await setupPassword({ ...VALID_PROFILE, password: 'Short1!', confirmPassword: 'Short1!' })
     expect(result).toMatchObject({ success: false, code: 'VALIDATION_ERROR' })
   })
 
   it('returns VALIDATION_ERROR for mismatched passwords', async () => {
     vi.mocked(decodeSetupCookie).mockReturnValue('user-123')
     const result = await setupPassword({
+      ...VALID_PROFILE,
       password: STRONG_PASSWORD,
       confirmPassword: 'Different!Passw0rd',
     })
@@ -79,7 +86,7 @@ describe('setupPassword()', () => {
 
   it('returns VALIDATION_ERROR for password without uppercase', async () => {
     vi.mocked(decodeSetupCookie).mockReturnValue('user-123')
-    const result = await setupPassword({ password: 'alllower!abc1234', confirmPassword: 'alllower!abc1234' })
+    const result = await setupPassword({ ...VALID_PROFILE, password: 'alllower!abc1234', confirmPassword: 'alllower!abc1234' })
     expect(result).toMatchObject({ success: false, code: 'VALIDATION_ERROR' })
   })
 
@@ -92,7 +99,7 @@ describe('setupPassword()', () => {
       text: async () => 'AAAAA:5\nBBBBB:3',
     })) as never
 
-    await setupPassword({ password: STRONG_PASSWORD, confirmPassword: STRONG_PASSWORD })
+    await setupPassword({ ...VALID_PROFILE, password: STRONG_PASSWORD, confirmPassword: STRONG_PASSWORD })
 
     // AC2: password hash and magic token cleared in one atomic update
     expect(prisma.user.update).toHaveBeenCalledWith({
@@ -126,7 +133,7 @@ describe('setupPassword()', () => {
       text: async () => `${suffix}:3\nBBBBB:1`,
     })) as never
 
-    const result = await setupPassword({ password: STRONG_PASSWORD, confirmPassword: STRONG_PASSWORD })
+    const result = await setupPassword({ ...VALID_PROFILE, password: STRONG_PASSWORD, confirmPassword: STRONG_PASSWORD })
     expect(result).toMatchObject({ success: false, code: 'PASSWORD_BREACHED' })
   })
 
@@ -134,7 +141,7 @@ describe('setupPassword()', () => {
     vi.mocked(decodeSetupCookie).mockReturnValue('user-123')
     global.fetch = vi.fn(async () => { throw new Error('network error') }) as never
 
-    await setupPassword({ password: STRONG_PASSWORD, confirmPassword: STRONG_PASSWORD })
+    await setupPassword({ ...VALID_PROFILE, password: STRONG_PASSWORD, confirmPassword: STRONG_PASSWORD })
 
     expect(prisma.user.update).toHaveBeenCalled()
     expect(prisma.session.create).toHaveBeenCalled()
@@ -149,7 +156,7 @@ describe('setupPassword()', () => {
       text: async () => 'AAAAA:5\nBBBBB:3',
     })) as never
 
-    await setupPassword({ password: STRONG_PASSWORD, confirmPassword: STRONG_PASSWORD })
+    await setupPassword({ ...VALID_PROFILE, password: STRONG_PASSWORD, confirmPassword: STRONG_PASSWORD })
 
     expect(prisma.$transaction).toHaveBeenCalled()
     expect(prisma.clubMembership.updateMany).toHaveBeenCalledWith(

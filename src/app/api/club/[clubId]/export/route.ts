@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { zipSync, strToU8 } from 'fflate'
 import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
 
@@ -76,8 +77,45 @@ export async function GET(
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
+  // Download images in parallel
+  const imageDownloads: { url: string; baseName: string }[] = []
+
+  if (club.logoUrl) {
+    imageDownloads.push({ url: club.logoUrl, baseName: 'logo' })
+  }
+
+  for (const photo of club.photos) {
+    imageDownloads.push({ url: photo.url, baseName: `photos/${photo.position}` })
+  }
+
+  const imageResults = await Promise.allSettled(
+    imageDownloads.map(async ({ url, baseName }) => {
+      const res = await fetch(url)
+      if (!res.ok) return null
+      const contentType = res.headers.get('Content-Type') ?? ''
+      const ext = mimeToExt(contentType) ?? extFromUrl(url)
+      const buffer = await res.arrayBuffer()
+      return { filename: `${baseName}${ext}`, data: new Uint8Array(buffer) }
+    }),
+  )
+
+  // Build ZIP contents
+  const files: Record<string, Uint8Array> = {}
+
+  // Collect resolved filenames from downloads
+  const resolvedFiles = new Map<string, string>() // baseName -> actual filename
+  for (const result of imageResults) {
+    if (result.status === 'fulfilled' && result.value) {
+      files[result.value.filename] = result.value.data
+      // Extract baseName from filename (e.g. "logo" from "logo.png", "photos/0" from "photos/0.jpg")
+      const baseName = result.value.filename.replace(/\.[^.]+$/, '')
+      resolvedFiles.set(baseName, result.value.filename)
+    }
+  }
+
+  // Build JSON export data (with local file references instead of URLs)
   const exportData = {
-    version: '1.0',
+    version: '2.0',
     exportedAt: new Date().toISOString(),
     club: {
       name: club.name,
@@ -114,9 +152,11 @@ export async function GET(
           }
         : null,
     },
-    logo: club.logoUrl ? { url: club.logoUrl, alt: club.logoAlt } : null,
+    logo: club.logoUrl
+      ? { file: resolvedFiles.get('logo') ?? null, alt: club.logoAlt }
+      : null,
     photos: club.photos.map((p) => ({
-      url: p.url,
+      file: resolvedFiles.get(`photos/${p.position}`) ?? null,
       alt: p.alt,
       position: p.position,
     })),
@@ -127,13 +167,38 @@ export async function GET(
     })),
   }
 
-  const json = JSON.stringify(exportData, null, 2)
-  const filename = `${club.slug}-export-${new Date().toISOString().slice(0, 10)}.json`
+  files['data.json'] = strToU8(JSON.stringify(exportData, null, 2))
 
-  return new Response(json, {
+  // Create ZIP archive
+  const zip = zipSync(files)
+  const filename = `${club.slug}-export-${new Date().toISOString().slice(0, 10)}.zip`
+
+  return new Response(zip.buffer as ArrayBuffer, {
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/zip',
       'Content-Disposition': `attachment; filename="${filename}"`,
     },
   })
+}
+
+function mimeToExt(contentType: string): string | null {
+  const mime = contentType.split(';')[0].trim().toLowerCase()
+  const map: Record<string, string> = {
+    'image/jpeg': '.jpg',
+    'image/png': '.png',
+    'image/webp': '.webp',
+    'image/gif': '.gif',
+    'image/svg+xml': '.svg',
+  }
+  return map[mime] ?? null
+}
+
+function extFromUrl(url: string): string {
+  try {
+    const pathname = new URL(url).pathname
+    const match = pathname.match(/\.(jpe?g|png|webp|gif|svg)$/i)
+    return match ? `.${match[1].toLowerCase()}` : '.png'
+  } catch {
+    return '.png'
+  }
 }

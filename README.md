@@ -50,6 +50,8 @@ The app is now available at:
 | Club site | http://localhost:3000/en/ch/{club-slug} |
 | Club admin dashboard | http://localhost:3000/en/club/{clubId} |
 | Operator dashboard | http://localhost:3000/en/admin |
+| Privacy policy | http://localhost:3000/en/privacy |
+| Terms of service | http://localhost:3000/en/terms |
 | MinIO console | http://localhost:9001 |
 | Mailpit inbox | http://localhost:8025 |
 
@@ -111,13 +113,15 @@ src/
       (dashboard)/
         [country]/        # Country directory + club pages
         club/[clubId]/    # Club admin dashboard (settings, messages, promote)
-        admin/            # Operator dashboard (applications, clubs, messages)
+        admin/            # Operator dashboard (applications, clubs, users, messages)
         auth/             # Authentication (login, TOTP, passkey, setup)
-        account/          # Account settings (password, 2FA)
+        account/          # Account settings (profile, password, 2FA, passkeys)
         search/           # Club search
         apply/            # Club application form
         about/            # About page
         support/          # Support page
+        privacy/          # Privacy policy
+        terms/            # Terms of service
     api/
       auth/               # NextAuth + passkey endpoints
       club/[clubId]/      # QR card, badge, export
@@ -153,6 +157,9 @@ prisma/
 - **Multi-country:** Switzerland fully supported; more countries planned
 - **Authentication:** Password + TOTP + Passkey (WebAuthn) via Auth.js
 - **Content management:** Rich text, image galleries, calendars, documents per club page
+- **Club settings:** Data export (ZIP), club deletion with confirmation
+- **User management:** Operator dashboard for viewing users, roles, and managed clubs
+- **User profiles:** First name, last name, phone, preferred language
 - **Security:** AES-256 encrypted contact forms, Cloudflare Turnstile CAPTCHA, multi-tenant middleware, audit logging
 - **Storage:** Cloudflare R2 / S3-compatible (MinIO in dev)
 - **Email:** Resend (production) + SMTP (Mailpit in dev)

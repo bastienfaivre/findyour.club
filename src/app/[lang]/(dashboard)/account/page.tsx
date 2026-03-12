@@ -8,6 +8,7 @@ import { ChangePasswordForm } from '@/components/app/auth/ChangePasswordForm'
 import { ManageTotpSection } from '@/components/app/auth/ManageTotpSection'
 import { ManagePasskeysSection } from '@/components/app/auth/ManagePasskeysSection'
 import { DeleteAccountSection } from '@/components/app/auth/DeleteAccountSection'
+import { ProfileSection } from '@/components/app/auth/ProfileSection'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 
 interface AccountPageProps {
@@ -22,10 +23,16 @@ export default async function AccountPage({ params }: AccountPageProps) {
   if (!session?.user) redirect(`/${lang}/auth/login`)
   if (session.user.totpEnabled && !session.user.totpVerified) redirect(`/${lang}/auth/totp`)
 
-  const passkeys = await prisma.webauthnCredential.findMany({
-    where: { userId: session.user.id },
-    select: { credentialId: true, deviceType: true, createdAt: true },
-  })
+  const [userProfile, passkeys] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { firstName: true, lastName: true, phone: true, preferredLanguage: true },
+    }),
+    prisma.webauthnCredential.findMany({
+      where: { userId: session.user.id },
+      select: { credentialId: true, deviceType: true, createdAt: true },
+    }),
+  ])
 
   return (
     <div className="max-w-xl space-y-10">
@@ -34,6 +41,23 @@ export default async function AccountPage({ params }: AccountPageProps) {
       <p className="text-sm text-muted-foreground">
         {t.auth.signedInAs} <span className="font-medium">{session.user.email}</span>
       </p>
+
+      <section className="space-y-4">
+        <div className="border-b pb-2">
+          <h2 className="text-lg font-medium">{t.auth.profile.title}</h2>
+          <p className="text-sm text-muted-foreground">{t.auth.profile.description}</p>
+        </div>
+        <ProfileSection
+          initialData={{
+            firstName: userProfile?.firstName ?? '',
+            lastName: userProfile?.lastName ?? '',
+            phone: userProfile?.phone ?? '',
+            preferredLanguage: userProfile?.preferredLanguage ?? resolveUILang(lang),
+          }}
+          t={t.auth.profile}
+          commonT={{ save: t.common.save }}
+        />
+      </section>
 
       <section className="space-y-4">
         <div className="border-b pb-2">

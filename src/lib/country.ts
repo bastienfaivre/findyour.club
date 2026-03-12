@@ -8,7 +8,7 @@ import type { SupportedLanguage } from '@/lib/i18n'
 export const SUPPORTED_COUNTRIES = ['ch'] as const
 export type Country = (typeof SUPPORTED_COUNTRIES)[number]
 
-export const COMING_SOON_COUNTRIES = ['fr'] as const
+export const COMING_SOON_COUNTRIES = [] as const
 export type ComingSoonCountry = (typeof COMING_SOON_COUNTRIES)[number]
 
 export function isValidCountry(country: string): country is Country {

@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { getAuthSession } from '@/server/auth'
@@ -6,9 +7,10 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/s
 import { Separator } from '@/components/ui/separator'
 import { AppSidebar } from '@/components/app/AppSidebar'
 import { AdminDirtyProvider } from '@/components/app/club-admin/AdminDirtyContext'
-import { PageTitleProvider, PageTitleDisplay } from '@/components/app/admin/AdminPageTitle'
+import { PageTitleProvider, PageTitleDisplay, PageActionDisplay } from '@/components/app/admin/AdminPageTitle'
 import { SearchStateProvider } from '@/components/app/SearchStateContext'
 import { AdminSelectionProvider } from '@/components/app/AdminSelectionContext'
+import { getStringSetting } from '@/lib/server/platform-settings'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -123,12 +125,18 @@ export default async function DashboardLayout({ children, params }: DashboardLay
   const uiLang = resolveUILang(lang)
   const t = getTranslations(uiLang)
 
+  const maintenanceBanner = await getStringSetting('maintenance_banner')
+
+  const cookieStore = await cookies()
+  const sidebarState = cookieStore.get('sidebar_state')?.value
+  const sidebarOpen = sidebarState === 'true'
+
   return (
     <SearchStateProvider>
       <AdminSelectionProvider>
       <AdminDirtyProvider>
         <PageTitleProvider>
-          <SidebarProvider defaultOpen={false}>
+          <SidebarProvider defaultOpen={sidebarOpen}>
             <a
               href="#main-content"
               className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:text-sm focus:font-medium focus:shadow-lg"
@@ -152,10 +160,18 @@ export default async function DashboardLayout({ children, params }: DashboardLay
               totpEnabled={session?.user?.totpEnabled ?? false}
             />
           <SidebarInset className="h-svh overflow-hidden">
+            {maintenanceBanner && (
+              <div className="shrink-0 bg-amber-100 px-4 py-2 text-center text-sm font-medium text-amber-900 dark:bg-amber-900/30 dark:text-amber-200">
+                {maintenanceBanner}
+              </div>
+            )}
             <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
               <SidebarTrigger className="-ml-1" />
               <Separator orientation="vertical" className="mr-2 !h-4" />
               <PageTitleDisplay />
+              <div className="ml-auto">
+                <PageActionDisplay />
+              </div>
             </header>
             <div id="main-content" className="flex-1 flex flex-col overflow-y-auto p-4 sm:p-6 lg:p-8">
               {children}

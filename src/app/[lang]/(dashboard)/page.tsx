@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ClipboardPen } from 'lucide-react'
+import { ClipboardList } from 'lucide-react'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import {
@@ -13,6 +13,7 @@ import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 import { SharePlatformButton } from '@/components/app/SharePlatformButton'
 import { Button } from '@/components/ui/button'
 import { RotatingWords } from '@/components/app/RotatingWords'
+import { HomeCitySearch } from '@/components/app/HomeCitySearch'
 import { prisma } from '@/server/db'
 import {
   SUPPORTED_COUNTRIES,
@@ -78,7 +79,7 @@ export default async function HomePage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd).replace(/</g, '\\u003c') }}
       />
       {/* Hero */}
-      <section className="py-8 sm:py-16 lg:py-24 text-center">
+      <section className="pt-8 sm:pt-16 lg:pt-24 text-center">
         <div>
           <h1 className="text-3xl sm:text-5xl font-extrabold leading-tight tracking-tight">
             <RotatingWords
@@ -86,14 +87,21 @@ export default async function HomePage({ params }: Props) {
               words={t.platform.headlineRotatingWords}
             />
           </h1>
-          <p className="mt-4 text-base text-muted-foreground">
-            {t.platform.tagline}
-          </p>
+          <div className="mt-4 text-base text-muted-foreground">
+            <p>{t.platform.taglineBullets.intro}</p>
+            <div className="mt-2 grid grid-cols-2 gap-x-2 gap-y-0.5 text-left [&>strong]:justify-self-end">
+              <strong>{t.platform.taglineBullets.whoLabel}</strong><span>{t.platform.taglineBullets.whoText}</span>
+              <strong>{t.platform.taglineBullets.whatLabel}</strong><span>{t.platform.taglineBullets.whatText}</span>
+              <strong>{t.platform.taglineBullets.whenLabel}</strong><span>{t.platform.taglineBullets.whenText}</span>
+              <strong>{t.platform.taglineBullets.howLabel}</strong><span>{t.platform.taglineBullets.howText}</span>
+            </div>
+            <p className="mt-2">{t.platform.taglineBullets.closing}</p>
+          </div>
         </div>
       </section>
 
       {/* Bootstrap message */}
-      <div className="mx-auto max-w-lg rounded-lg border border-green-200 bg-green-50 p-5 text-center dark:border-green-900 dark:bg-green-950/30">
+      <div className="mt-6 mx-auto max-w-lg rounded-lg border border-green-200 bg-green-50 p-5 text-center dark:border-green-900 dark:bg-green-950/30">
         <p className="text-sm font-medium text-green-800 dark:text-green-300">
           {t.platform.bootstrapMessage}
         </p>
@@ -106,12 +114,21 @@ export default async function HomePage({ params }: Props) {
             className="border-green-300 text-green-800 hover:bg-green-100 dark:border-green-800 dark:text-green-200 dark:hover:bg-green-900/40"
           >
             <Link href={`/${lang}/apply`}>
-              <ClipboardPen className="mr-2 h-3.5 w-3.5" />
+              <ClipboardList className="h-3.5 w-3.5" />
               {t.platform.bootstrapListClub}
             </Link>
           </Button>
         </div>
       </div>
+
+      {/* City search */}
+      <section className="mt-6">
+        <HomeCitySearch
+          lang={lang}
+          placeholder={t.platform.searchCityPlaceholder}
+          buttonLabel={t.platform.searchCityButton}
+        />
+      </section>
 
       {/* Countries */}
       <section className="py-8 sm:py-16 lg:py-24 text-center">
@@ -133,22 +150,26 @@ export default async function HomePage({ params }: Props) {
         </div>
 
         {/* Coming soon */}
-        <h2 className="mb-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-          {t.platform.comingSoon}
-        </h2>
-        <div className="flex flex-wrap justify-center gap-[10px]">
-          {comingSoonCountries.map((c) => (
-            <CountryButton
-              key={c.code}
-              country={c.code}
-              countryName={c.name}
-              clubCountLabel={t.platform.comingSoon}
-              ariaLabel={c.name}
-              lang={lang}
-              comingSoon
-            />
-          ))}
-        </div>
+        {comingSoonCountries.length > 0 && (
+          <>
+            <h2 className="mb-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+              {t.platform.comingSoon}
+            </h2>
+            <div className="flex flex-wrap justify-center gap-[10px]">
+              {comingSoonCountries.map((c) => (
+                <CountryButton
+                  key={c.code}
+                  country={c.code}
+                  countryName={c.name}
+                  clubCountLabel={t.platform.comingSoon}
+                  ariaLabel={c.name}
+                  lang={lang}
+                  comingSoon
+                />
+              ))}
+            </div>
+          </>
+        )}
 
         <p className="mt-8 text-sm text-muted-foreground">
           {t.platform.trustLine}

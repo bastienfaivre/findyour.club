@@ -6,7 +6,6 @@ vi.mock('next/headers', () => ({
 vi.mock('@/server/db', () => ({
   prisma: {
     clubMembership: { findMany: vi.fn(), count: vi.fn() },
-    club: { findMany: vi.fn() },
     user: { delete: vi.fn() },
     $transaction: vi.fn(),
   },
@@ -14,15 +13,10 @@ vi.mock('@/server/db', () => ({
 vi.mock('@/server/auth', () => ({
   getAuthSession: vi.fn(),
 }))
-vi.mock('@/lib/r2', () => ({
-  deleteObject: vi.fn(async () => {}),
-  extractR2Key: vi.fn((url: string) => url.replace('https://cdn.example.com/', '')),
-}))
 
 import { prisma } from '@/server/db'
 import { getAuthSession } from '@/server/auth'
 import { deleteAccount, getAccountDeletionInfo } from '@/app/[lang]/(dashboard)/account/actions'
-import { deleteObject } from '@/lib/r2'
 
 // ─── getAccountDeletionInfo ──────────────────────────────────────────────────
 
@@ -123,8 +117,6 @@ describe('deleteAccount()', () => {
 
   function mockTransaction() {
     const txMethods = {
-      invitation: { deleteMany: vi.fn() },
-      club: { deleteMany: vi.fn() },
       user: { delete: vi.fn() },
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -140,7 +132,7 @@ describe('deleteAccount()', () => {
     expect(result).toEqual({ success: false, error: 'Not authenticated.' })
   })
 
-  it('deletes R2 objects for sole-owner clubs (logo + photos)', async () => {
+  it('blocks deletion when user is sole owner of a club', async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'u1' } } as any)
     vi.mocked(prisma.clubMembership.findMany).mockResolvedValue([
@@ -148,26 +140,16 @@ describe('deleteAccount()', () => {
     ] as never)
     // sole owner
     vi.mocked(prisma.clubMembership.count).mockResolvedValue(0 as never)
-    vi.mocked(prisma.club.findMany).mockResolvedValue([
-      {
-        logoUrl: 'https://cdn.example.com/logos/logo1.png',
-        photos: [
-          { url: 'https://cdn.example.com/photos/p1.jpg' },
-          { url: 'https://cdn.example.com/photos/p2.jpg' },
-        ],
-      },
-    ] as never)
-    mockTransaction()
 
-    await deleteAccount()
-
-    expect(deleteObject).toHaveBeenCalledTimes(3)
-    expect(deleteObject).toHaveBeenCalledWith('logos/logo1.png')
-    expect(deleteObject).toHaveBeenCalledWith('photos/p1.jpg')
-    expect(deleteObject).toHaveBeenCalledWith('photos/p2.jpg')
+    const result = await deleteAccount()
+    expect(result).toEqual({
+      success: false,
+      error: 'Please delete or transfer ownership of your clubs before deleting your account.',
+    })
+    expect(prisma.$transaction).not.toHaveBeenCalled()
   })
 
-  it('does NOT delete R2 objects for co-owned clubs', async () => {
+  it('allows deletion when user is co-owner (another owner exists)', async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'u1' } } as any)
     vi.mocked(prisma.clubMembership.findMany).mockResolvedValue([
@@ -175,36 +157,23 @@ describe('deleteAccount()', () => {
     ] as never)
     // co-owned (another owner exists)
     vi.mocked(prisma.clubMembership.count).mockResolvedValue(1 as never)
-    mockTransaction()
-
-    await deleteAccount()
-
-    expect(prisma.club.findMany).not.toHaveBeenCalled()
-    expect(deleteObject).not.toHaveBeenCalled()
-  })
-
-  it('runs transaction with invitation + club + user deletion', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'u1' } } as any)
-    vi.mocked(prisma.clubMembership.findMany).mockResolvedValue([
-      { clubId: 'c1' },
-    ] as never)
-    vi.mocked(prisma.clubMembership.count).mockResolvedValue(0 as never)
-    vi.mocked(prisma.club.findMany).mockResolvedValue([
-      { logoUrl: null, photos: [] },
-    ] as never)
     const tx = mockTransaction()
 
     const result = await deleteAccount()
 
     expect(result).toEqual({ success: true })
-    expect(prisma.$transaction).toHaveBeenCalledOnce()
-    expect(tx.invitation.deleteMany).toHaveBeenCalledWith({
-      where: { clubId: { in: ['c1'] } },
-    })
-    expect(tx.club.deleteMany).toHaveBeenCalledWith({
-      where: { id: { in: ['c1'] } },
-    })
+    expect(tx.user.delete).toHaveBeenCalledWith({ where: { id: 'u1' } })
+  })
+
+  it('deletes user when they have no clubs', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'u1' } } as any)
+    vi.mocked(prisma.clubMembership.findMany).mockResolvedValue([] as never)
+    const tx = mockTransaction()
+
+    const result = await deleteAccount()
+
+    expect(result).toEqual({ success: true })
     expect(tx.user.delete).toHaveBeenCalledWith({ where: { id: 'u1' } })
   })
 
@@ -246,45 +215,5 @@ describe('deleteAccount()', () => {
 
     const result = await deleteAccount()
     expect(result).toEqual({ success: false, error: 'Failed to delete account. Please try again.' })
-  })
-
-  it('proceeds even if R2 deletion fails (best-effort)', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'u1' } } as any)
-    vi.mocked(prisma.clubMembership.findMany).mockResolvedValue([
-      { clubId: 'c1' },
-    ] as never)
-    vi.mocked(prisma.clubMembership.count).mockResolvedValue(0 as never)
-    vi.mocked(prisma.club.findMany).mockResolvedValue([
-      {
-        logoUrl: 'https://cdn.example.com/logos/logo1.png',
-        photos: [{ url: 'https://cdn.example.com/photos/p1.jpg' }],
-      },
-    ] as never)
-    // R2 deletion fails
-    vi.mocked(deleteObject).mockRejectedValue(new Error('R2 error'))
-    const tx = mockTransaction()
-
-    const result = await deleteAccount()
-
-    // Should still succeed — R2 failures don't block account deletion
-    expect(result).toEqual({ success: true })
-    expect(tx.user.delete).toHaveBeenCalledWith({ where: { id: 'u1' } })
-  })
-
-  it('handles user with no clubs (just deletes user)', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'u1' } } as any)
-    vi.mocked(prisma.clubMembership.findMany).mockResolvedValue([] as never)
-    const tx = mockTransaction()
-
-    const result = await deleteAccount()
-
-    expect(result).toEqual({ success: true })
-    expect(prisma.club.findMany).not.toHaveBeenCalled()
-    expect(deleteObject).not.toHaveBeenCalled()
-    expect(tx.invitation.deleteMany).not.toHaveBeenCalled()
-    expect(tx.club.deleteMany).not.toHaveBeenCalled()
-    expect(tx.user.delete).toHaveBeenCalledWith({ where: { id: 'u1' } })
   })
 })

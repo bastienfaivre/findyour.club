@@ -34,9 +34,9 @@ export interface ClubPhoto {
 export interface ClubProfileData {
   name: string
   email: string
-  description: string | null
-  schedule: string | null
-  howToJoin: string | null
+  description: string
+  schedule: string
+  howToJoin: string
   contactPhone: string | null
   contactAddress: string | null
   externalWebsiteUrl: string | null
@@ -61,6 +61,7 @@ interface ClubProfileFormProps {
     contactCta: string
     visitWebsite: string
     goToPhoto: string
+    description: string
     schedule: string
     howToJoin: string
     contactInfo: string
@@ -70,9 +71,11 @@ interface ClubProfileFormProps {
     photos: string
   }
   initialData: ClubProfileData
+  maxPhotos: number
+  maxImageSizeBytes: number
 }
 
-export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations: cs, initialData }: ClubProfileFormProps) {
+export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations: cs, initialData, maxPhotos, maxImageSizeBytes }: ClubProfileFormProps) {
   const [isPending, startTransition] = useTransition()
   const { setIsDirty } = useAdminDirty()
   const p = t.clubProfile
@@ -127,9 +130,6 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
     // Normalize empty strings to null for optional nullable fields
     const normalized: ClubProfileSaveInput = {
       ...data,
-      description: data.description || null,
-      schedule: data.schedule || null,
-      howToJoin: data.howToJoin || null,
       contactPhone: data.contactPhone || null,
       contactAddress: data.contactAddress || null,
       externalWebsiteUrl: data.externalWebsiteUrl || null,
@@ -163,6 +163,7 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
       logoAlt={initialData.logoAlt}
       photos={initialData.photos}
       translations={{
+        description: cs.description,
         schedule: cs.schedule,
         howToJoin: cs.howToJoin,
         contactInfo: cs.contactInfo,
@@ -187,6 +188,7 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
           clubId={clubId}
           logoUrl={initialData.logoUrl}
           logoAlt={initialData.logoAlt}
+          maxImageSizeBytes={maxImageSizeBytes}
           translations={p.logo}
           actions={logoActions}
         />
@@ -210,52 +212,64 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
 
         {/* Description */}
         <div className="space-y-2">
-          <Label htmlFor="description">{p.fields.description}</Label>
+          <Label htmlFor="description">{p.fields.description} <span className="text-destructive">*</span></Label>
+          <p className="text-sm text-muted-foreground">{p.helpers.description}</p>
           <Textarea
             id="description"
             {...register('description')}
             placeholder={p.placeholders.description}
             maxLength={5000}
             rows={4}
+            aria-required="true"
             aria-describedby={errors.description ? 'description-error' : undefined}
             aria-invalid={!!errors.description}
           />
           {errors.description && (
-            <p id="description-error" className="text-sm text-destructive">{p.validation.descriptionMaxLength}</p>
+            <p id="description-error" className="text-sm text-destructive">
+              {errors.description.type === 'too_big' ? p.validation.descriptionMaxLength : p.validation.descriptionRequired}
+            </p>
           )}
         </div>
 
         {/* Schedule */}
         <div className="space-y-2">
-          <Label htmlFor="schedule">{p.fields.schedule}</Label>
+          <Label htmlFor="schedule">{p.fields.schedule} <span className="text-destructive">*</span></Label>
+          <p className="text-sm text-muted-foreground">{p.helpers.schedule}</p>
           <Textarea
             id="schedule"
             {...register('schedule')}
             placeholder={p.placeholders.schedule}
             maxLength={2000}
             rows={3}
+            aria-required="true"
             aria-describedby={errors.schedule ? 'schedule-error' : undefined}
             aria-invalid={!!errors.schedule}
           />
           {errors.schedule && (
-            <p id="schedule-error" className="text-sm text-destructive">{p.validation.scheduleMaxLength}</p>
+            <p id="schedule-error" className="text-sm text-destructive">
+              {errors.schedule.type === 'too_big' ? p.validation.scheduleMaxLength : p.validation.scheduleRequired}
+            </p>
           )}
         </div>
 
         {/* How to Join */}
         <div className="space-y-2">
-          <Label htmlFor="howToJoin">{p.fields.howToJoin}</Label>
+          <Label htmlFor="howToJoin">{p.fields.howToJoin} <span className="text-destructive">*</span></Label>
+          <p className="text-sm text-muted-foreground">{p.helpers.howToJoin}</p>
           <Textarea
             id="howToJoin"
             {...register('howToJoin')}
             placeholder={p.placeholders.howToJoin}
             maxLength={2000}
             rows={3}
+            aria-required="true"
             aria-describedby={errors.howToJoin ? 'howToJoin-error' : undefined}
             aria-invalid={!!errors.howToJoin}
           />
           {errors.howToJoin && (
-            <p id="howToJoin-error" className="text-sm text-destructive">{p.validation.howToJoinMaxLength}</p>
+            <p id="howToJoin-error" className="text-sm text-destructive">
+              {errors.howToJoin.type === 'too_big' ? p.validation.howToJoinMaxLength : p.validation.howToJoinRequired}
+            </p>
           )}
         </div>
 
@@ -357,6 +371,8 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
           clubId={clubId}
           clubName={initialData.name}
           photos={initialData.photos}
+          maxPhotos={maxPhotos}
+          maxImageSizeBytes={maxImageSizeBytes}
           translations={p.photos}
         />
       </fieldset>

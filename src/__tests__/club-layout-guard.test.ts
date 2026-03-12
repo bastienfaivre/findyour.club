@@ -40,9 +40,6 @@ vi.mock('@/components/app/seo/metadata', () => ({
   generateCategoryMetadata: vi.fn(() => ({})),
   BASE_URL: 'http://localhost:3000',
 }))
-vi.mock('@/components/app/seo/CategoryLanding', () => ({
-  CategoryLanding: vi.fn(() => null),
-}))
 
 import { notFound } from 'next/navigation'
 import { prisma } from '@/server/db'

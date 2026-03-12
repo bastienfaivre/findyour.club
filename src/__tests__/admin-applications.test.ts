@@ -43,6 +43,9 @@ vi.mock('@/lib/email', () => ({
 vi.mock('@/lib/server/location', () => ({
   upsertSwissLocation: vi.fn(async () => ({ locationId: 'loc-1' })),
 }))
+vi.mock('@/lib/server/email-settings', () => ({
+  isEmailEnabled: vi.fn().mockResolvedValue(true),
+}))
 
 import { prisma } from '@/server/db'
 import { getAuthSession } from '@/server/auth'
@@ -77,11 +80,17 @@ const PENDING_APPLICATION = {
   contactAddress: 'Rue de la Gare 1, 1950 Sion',
   howToJoin: 'Send us an email',
   externalWebsiteUrl: 'https://skiclub-valais.ch',
+  applicantPreferredLanguage: 'en',
 }
 
 const DEFAULT_FIELDS: ApplicationEditableFields = {
-  name: 'Ski Club Valais',
+  applicantFirstName: 'Jean',
+  applicantLastName: 'Dupont',
   email: 'admin@skiclub.ch',
+  applicantPhone: null,
+  applicantPreferredLanguage: 'en',
+  name: 'Ski Club Valais',
+  clubEmail: null,
   country: 'ch',
   description: 'A great ski club in Valais',
   activityType: 'skiing',
@@ -116,7 +125,7 @@ describe('approveApplication()', () => {
       country: 'ch', defaultLanguage: 'fr',
     } as never)
     vi.mocked(prisma.user.findUnique).mockResolvedValue(null)
-    vi.mocked(prisma.user.create).mockResolvedValue({ id: 'user-1' } as never)
+    vi.mocked(prisma.user.create).mockResolvedValue({ id: 'user-1', firstName: null } as never)
     vi.mocked(prisma.user.update).mockResolvedValue({} as never)
     vi.mocked(prisma.clubMembership.create).mockResolvedValue({} as never)
     vi.mocked(prisma.supportMessage.create).mockResolvedValue({} as never)
@@ -158,8 +167,15 @@ describe('approveApplication()', () => {
       }),
     })
     expect(prisma.user.create).toHaveBeenCalledWith({
-      data: { email: 'admin@skiclub.ch', role: 'CLUB_ADMIN' },
-      select: { id: true },
+      data: {
+        email: 'admin@skiclub.ch',
+        role: 'CLUB_ADMIN',
+        firstName: 'Jean',
+        lastName: 'Dupont',
+        phone: null,
+        preferredLanguage: 'en',
+      },
+      select: { id: true, firstName: true },
     })
     expect(prisma.user.update).toHaveBeenCalledWith({
       where: { id: 'user-1' },
@@ -203,7 +219,7 @@ describe('approveApplication()', () => {
     })
     expect(prisma.user.findUnique).toHaveBeenCalledWith({
       where: { email: 'corrected@skiclub.ch' },
-      select: { id: true },
+      select: { id: true, firstName: true },
     })
     expect(sendEmail).toHaveBeenCalledWith(
       expect.objectContaining({ to: 'corrected@skiclub.ch' }),
@@ -211,7 +227,7 @@ describe('approveApplication()', () => {
   })
 
   it('reuses existing user when email matches', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'existing-user' } as never)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'existing-user', firstName: 'Existing' } as never)
 
     const result = await approveApplication('app-1', DEFAULT_FIELDS)
 
@@ -580,6 +596,7 @@ describe('buildAcceptanceEmailHtml()', () => {
       clubName: 'Ski Club Valais',
       clubUrl: 'http://localhost:3000/fr/ch/ski-club-valais',
       magicLinkUrl: 'http://localhost:3000/fr/auth/magic-link?token=abc123',
+      lang: 'en',
     })
 
     expect(html).toContain('Ski Club Valais')
@@ -595,6 +612,7 @@ describe('buildAcceptanceEmailHtml()', () => {
       clubName: '<script>alert(1)</script>',
       clubUrl: 'http://localhost:3000/fr/ch/test',
       magicLinkUrl: 'http://localhost:3000/fr/auth/magic-link?token=abc',
+      lang: 'en',
     })
 
     expect(html).not.toContain('<script>')
@@ -607,6 +625,7 @@ describe('buildAcceptanceEmailHtml()', () => {
       clubName: "Club d'Art",
       clubUrl: 'http://localhost:3000/fr/ch/club-dart',
       magicLinkUrl: 'http://localhost:3000/fr/auth/magic-link?token=abc',
+      lang: 'en',
     })
 
     expect(html).toContain('Club d&#39;Art')
@@ -619,6 +638,7 @@ describe('buildAcceptanceEmailHtml()', () => {
       clubUrl: 'http://localhost:3000/fr/ch/ski-club',
       magicLinkUrl: 'http://localhost:3000/fr/auth/magic-link?token=abc',
       operatorMessage: 'Please update your schedule',
+      lang: 'en',
     })
 
     expect(html).toContain('Message from the platform')
@@ -631,6 +651,7 @@ describe('buildAcceptanceEmailHtml()', () => {
       clubName: 'Ski Club',
       clubUrl: 'http://localhost:3000/fr/ch/ski-club',
       magicLinkUrl: 'http://localhost:3000/fr/auth/magic-link?token=abc',
+      lang: 'en',
     })
 
     expect(html).not.toContain('Message from the platform')
@@ -643,6 +664,7 @@ describe('buildAcceptanceEmailHtml()', () => {
       clubUrl: 'http://localhost:3000/fr/ch/ski-club',
       magicLinkUrl: 'http://localhost:3000/fr/auth/magic-link?token=abc',
       operatorMessage: '<script>alert("xss")</script>',
+      lang: 'en',
     })
 
     expect(html).not.toContain('<script>alert')
@@ -656,6 +678,7 @@ describe('buildRejectionEmailHtml()', () => {
     const html = buildRejectionEmailHtml({
       clubName: 'Ski Club Valais',
       rejectionReason: 'Not a registered club',
+      lang: 'en',
     })
 
     expect(html).toContain('Ski Club Valais')
@@ -664,7 +687,7 @@ describe('buildRejectionEmailHtml()', () => {
 
   it('uses default explanation when no reason provided', async () => {
     const { buildRejectionEmailHtml } = await import('@/lib/email-templates')
-    const html = buildRejectionEmailHtml({ clubName: 'Test Club' })
+    const html = buildRejectionEmailHtml({ clubName: 'Test Club', lang: 'en' })
 
     expect(html).toContain('non-profit clubs')
     expect(html).toContain('real-world community activities')
@@ -674,6 +697,7 @@ describe('buildRejectionEmailHtml()', () => {
     const { buildRejectionEmailHtml } = await import('@/lib/email-templates')
     const html = buildRejectionEmailHtml({
       clubName: '<script>alert(1)</script>',
+      lang: 'en',
     })
 
     expect(html).not.toContain('<script>')
@@ -685,6 +709,7 @@ describe('buildRejectionEmailHtml()', () => {
     const html = buildRejectionEmailHtml({
       clubName: 'Test Club',
       rejectionReason: '<img onerror="alert(1)" src="x">',
+      lang: 'en',
     })
 
     expect(html).not.toContain('<img')
@@ -693,7 +718,7 @@ describe('buildRejectionEmailHtml()', () => {
 
   it('includes encouragement to reapply', async () => {
     const { buildRejectionEmailHtml } = await import('@/lib/email-templates')
-    const html = buildRejectionEmailHtml({ clubName: 'Test Club' })
+    const html = buildRejectionEmailHtml({ clubName: 'Test Club', lang: 'en' })
 
     expect(html).toContain('welcome to submit a new application')
   })

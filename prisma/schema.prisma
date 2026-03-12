@@ -101,6 +101,12 @@ model User {
   emailVerified DateTime? @map("email_verified")
   image         String?
 
+  // Profile fields
+  firstName         String?  @map("first_name")
+  lastName          String?  @map("last_name")
+  phone             String?
+  preferredLanguage String?  @map("preferred_language") // "fr" | "de" | "it" | "en"
+
   // Platform custom fields
   role         UserRole @default(CLUB_ADMIN)
   passwordHash String?  @map("password_hash")
@@ -227,16 +233,23 @@ model Club {
 
 model Application {
   id               String            @id @default(cuid())
-  name             String
+  name             String                                      // club name
   country          String
-  activityType     String?           @map("activity_type") // slug, e.g. "skiing"
+  activityType     String?           @map("activity_type")     // slug, e.g. "skiing"
   otherDescription String?           @map("other_description") // filled when applicant picks "other"
   locationId       String?           @map("location_id")
   description      String
-  email            String
+  email            String                                      // applicant's personal email
+  clubEmail        String?           @map("club_email")        // club contact email (null = same as applicant email)
   schedule         String?
-  contactPhone     String?           @map("contact_phone")
+  contactPhone     String?           @map("contact_phone")     // club contact phone
   contactAddress   String?           @map("contact_address")
+
+  // Applicant profile
+  applicantFirstName         String?  @map("applicant_first_name")
+  applicantLastName          String?  @map("applicant_last_name")
+  applicantPhone             String?  @map("applicant_phone")      // personal phone
+  applicantPreferredLanguage String?  @map("applicant_preferred_language")
   howToJoin        String?           @map("how_to_join")
   externalWebsiteUrl String?         @map("external_website_url")
   instagramUrl       String?         @map("instagram_url")

@@ -3,12 +3,12 @@
 import { Share2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { PageHeaderAction } from '@/components/app/admin/AdminPageTitle'
 
 type SharePromptProps = {
   clubName: string
   clubUrl: string
   translations: {
-    sharePrompt: string
     shareButton: string
     linkCopied: string
   }
@@ -29,12 +29,11 @@ export function SharePrompt({ clubName, clubUrl, translations: t }: SharePromptP
   }
 
   return (
-    <div className="mt-12 flex items-center justify-between rounded-lg border bg-muted/50 p-4">
-      <p className="text-sm text-muted-foreground">{t.sharePrompt}</p>
+    <PageHeaderAction>
       <Button variant="outline" size="sm" onClick={handleShare}>
-        <Share2 className="mr-2 h-4 w-4" />
+        <Share2 className="h-4 w-4" />
         {t.shareButton}
       </Button>
-    </div>
+    </PageHeaderAction>
   )
 }

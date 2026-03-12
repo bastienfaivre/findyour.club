@@ -6,6 +6,8 @@ import { prisma } from '@/server/db'
 import { getClubActiveMembership } from '@/lib/server/club-queries'
 import { clubProfileSaveSchema, type ClubProfileSaveInput } from '@/lib/schemas/club'
 import { generateUploadUrl, deleteObject, extractR2Key, getPublicUrl, ALLOWED_IMAGE_TYPES } from '@/lib/r2'
+import { getNumberSetting } from '@/lib/server/platform-settings'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 export type ActionResult<T = undefined> =
   | { success: true; data: T }
@@ -70,14 +72,6 @@ export async function togglePublish(clubId: string): Promise<TogglePublishResult
 
     const newState = !club.isPublished
 
-    // Enforce minimum 5 photos before publishing
-    if (newState) {
-      const photoCount = await tx.clubPhoto.count({ where: { clubId: guard.club.id } })
-      if (photoCount < 5) {
-        return { success: false as const, error: `You need at least 5 photos to publish your page (currently ${photoCount}).`, code: 'MIN_PHOTOS' }
-      }
-    }
-
     await tx.club.update({
       where: { id: guard.club.id },
       data: { isPublished: newState },
@@ -105,6 +99,11 @@ export async function sendClubMessage(
   const session = await getAuthSession()
   if (!session?.user?.id) {
     return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' }
+  }
+
+  const maxMessages = await getNumberSetting('rate.support_messages_per_hour')
+  if (checkRateLimit(`support-msg:${session.user.id}:${clubId}`, { windowMs: 3_600_000, maxAttempts: maxMessages })) {
+    return { success: false, error: 'Too many messages. Please wait before sending another.', code: 'RATE_LIMITED' }
   }
 
   const trimmed = body.trim()
@@ -174,6 +173,23 @@ export async function saveClubProfile(
     return { success: false, error: 'Invalid input.', code: 'VALIDATION_ERROR' }
   }
 
+  // Dynamic field length limits from platform settings
+  const [maxDescription, maxSchedule, maxHowToJoin] = await Promise.all([
+    getNumberSetting('limit.max_description_length'),
+    getNumberSetting('limit.max_schedule_length'),
+    getNumberSetting('limit.max_how_to_join_length'),
+  ])
+
+  if (parsed.data.description && parsed.data.description.length > maxDescription) {
+    return { success: false, error: `Description must be ${maxDescription} characters or less.`, code: 'VALIDATION_ERROR' }
+  }
+  if (parsed.data.schedule && parsed.data.schedule.length > maxSchedule) {
+    return { success: false, error: `Schedule must be ${maxSchedule} characters or less.`, code: 'VALIDATION_ERROR' }
+  }
+  if (parsed.data.howToJoin && parsed.data.howToJoin.length > maxHowToJoin) {
+    return { success: false, error: `How to join must be ${maxHowToJoin} characters or less.`, code: 'VALIDATION_ERROR' }
+  }
+
   await prisma.club.update({
     where: { id: guard.club.id },
     data: {
@@ -218,9 +234,15 @@ export async function getPresignedUploadUrl(
     return { success: false, error: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.', code: 'INVALID_TYPE' }
   }
 
+  const maxPhotos = await getNumberSetting('limit.max_photos_per_club')
   const photoCount = await prisma.clubPhoto.count({ where: { clubId: guard.club.id } })
-  if (photoCount >= 10) {
-    return { success: false, error: 'Maximum 10 photos reached.', code: 'MAX_PHOTOS' }
+  if (photoCount >= maxPhotos) {
+    return { success: false, error: `Maximum ${maxPhotos} photos reached.`, code: 'MAX_PHOTOS' }
+  }
+
+  const maxImageTransactions = await getNumberSetting('limit.image_transactions_per_day')
+  if (checkRateLimit(`r2:${guard.club.id}`, { windowMs: 86_400_000, maxAttempts: maxImageTransactions })) {
+    return { success: false, error: 'Daily image transaction limit reached. Please try again tomorrow.', code: 'IMAGE_RATE_LIMITED' }
   }
 
   const ext = contentType.split('/')[1] === 'jpeg' ? 'jpg' : contentType.split('/')[1]
@@ -251,9 +273,10 @@ export async function createClubPhoto(
   const trimmedAlt = alt.slice(0, 500)
 
   // Use transaction to prevent race condition in position assignment AND enforce photo limit
+  const maxPhotos = await getNumberSetting('limit.max_photos_per_club')
   const photo = await prisma.$transaction(async (tx) => {
     const photoCount = await tx.clubPhoto.count({ where: { clubId: guard.club.id } })
-    if (photoCount >= 10) {
+    if (photoCount >= maxPhotos) {
       throw new Error('MAX_PHOTOS')
     }
 
@@ -279,7 +302,7 @@ export async function createClubPhoto(
   })
 
   if (!photo) {
-    return { success: false, error: 'Maximum 10 photos reached.', code: 'MAX_PHOTOS' }
+    return { success: false, error: `Maximum ${maxPhotos} photos reached.`, code: 'MAX_PHOTOS' }
   }
 
   revalidateClubPaths(guard.club)
@@ -301,6 +324,11 @@ export async function deleteClubPhoto(
   })
   if (!photo) {
     return { success: false, error: 'Photo not found.', code: 'NOT_FOUND' }
+  }
+
+  const maxImageTransactions = await getNumberSetting('limit.image_transactions_per_day')
+  if (checkRateLimit(`r2:${guard.club.id}`, { windowMs: 86_400_000, maxAttempts: maxImageTransactions })) {
+    return { success: false, error: 'Daily image transaction limit reached. Please try again tomorrow.', code: 'IMAGE_RATE_LIMITED' }
   }
 
   // Best-effort R2 deletion — always remove DB record
@@ -325,6 +353,11 @@ export async function uploadLogo(
 
   if (!ALLOWED_IMAGE_TYPES.includes(contentType as typeof ALLOWED_IMAGE_TYPES[number])) {
     return { success: false, error: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.', code: 'INVALID_TYPE' }
+  }
+
+  const maxImageTransactions = await getNumberSetting('limit.image_transactions_per_day')
+  if (checkRateLimit(`r2:${guard.club.id}`, { windowMs: 86_400_000, maxAttempts: maxImageTransactions })) {
+    return { success: false, error: 'Daily image transaction limit reached. Please try again tomorrow.', code: 'IMAGE_RATE_LIMITED' }
   }
 
   const ext = contentType.split('/')[1] === 'jpeg' ? 'jpg' : contentType.split('/')[1]
@@ -383,6 +416,10 @@ export async function deleteLogo(clubId: string): Promise<ActionResult<undefined
   })
 
   if (club?.logoUrl) {
+    const maxImageTransactions = await getNumberSetting('limit.image_transactions_per_day')
+    if (checkRateLimit(`r2:${guard.club.id}`, { windowMs: 86_400_000, maxAttempts: maxImageTransactions })) {
+      return { success: false, error: 'Daily image transaction limit reached. Please try again tomorrow.', code: 'IMAGE_RATE_LIMITED' }
+    }
     try { await deleteObject(extractR2Key(club.logoUrl)) } catch { /* best-effort R2 cleanup */ }
   }
 

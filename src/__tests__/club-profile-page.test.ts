@@ -15,6 +15,7 @@ import { ProfileSection } from '@/components/app/club-profile/ProfileSection'
 import { ContactInfo } from '@/components/app/club-profile/ContactInfo'
 
 const translations = {
+  description: 'Who we are & what we do',
   schedule: 'Schedule',
   howToJoin: 'How to join',
   contactInfo: 'Contact information',

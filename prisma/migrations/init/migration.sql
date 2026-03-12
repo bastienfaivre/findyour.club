@@ -57,6 +57,10 @@ CREATE TABLE "users" (
     "email" TEXT,
     "email_verified" TIMESTAMP(3),
     "image" TEXT,
+    "first_name" TEXT,
+    "last_name" TEXT,
+    "phone" TEXT,
+    "preferred_language" TEXT,
     "role" "UserRole" NOT NULL DEFAULT 'CLUB_ADMIN',
     "password_hash" TEXT,
     "totp_secret" TEXT,
@@ -119,6 +123,15 @@ CREATE TABLE "clubs" (
     "contact_phone" TEXT,
     "contact_address" TEXT,
     "external_website_url" TEXT,
+    "instagram_url" TEXT,
+    "facebook_url" TEXT,
+    "x_url" TEXT,
+    "tiktok_url" TEXT,
+    "discord_url" TEXT,
+    "youtube_url" TEXT,
+    "whatsapp_url" TEXT,
+    "telegram_url" TEXT,
+    "github_url" TEXT,
     "is_published" BOOLEAN NOT NULL DEFAULT false,
     "force_offline" BOOLEAN NOT NULL DEFAULT false,
     "accent_color" TEXT NOT NULL DEFAULT 'zinc',
@@ -143,11 +156,25 @@ CREATE TABLE "applications" (
     "location_id" TEXT,
     "description" TEXT NOT NULL,
     "email" TEXT NOT NULL,
+    "club_email" TEXT,
     "schedule" TEXT,
     "contact_phone" TEXT,
     "contact_address" TEXT,
+    "applicant_first_name" TEXT,
+    "applicant_last_name" TEXT,
+    "applicant_phone" TEXT,
+    "applicant_preferred_language" TEXT,
     "how_to_join" TEXT,
     "external_website_url" TEXT,
+    "instagram_url" TEXT,
+    "facebook_url" TEXT,
+    "x_url" TEXT,
+    "tiktok_url" TEXT,
+    "discord_url" TEXT,
+    "youtube_url" TEXT,
+    "whatsapp_url" TEXT,
+    "telegram_url" TEXT,
+    "github_url" TEXT,
     "desired_slug" TEXT,
     "status" "ApplicationStatus" NOT NULL DEFAULT 'PENDING',
     "rejection_reason" TEXT,
@@ -355,14 +382,25 @@ CREATE TABLE "club_photos" (
 );
 
 -- CreateTable
-CREATE TABLE "operator_messages" (
+CREATE TABLE "support_messages" (
     "id" TEXT NOT NULL,
     "club_id" TEXT NOT NULL,
-    "message" TEXT NOT NULL,
+    "sender_id" TEXT,
+    "sender_role" "UserRole" NOT NULL,
+    "body" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "read_at" TIMESTAMP(3),
 
-    CONSTRAINT "operator_messages_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "support_messages_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "conversation_read_cursors" (
+    "id" TEXT NOT NULL,
+    "club_id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "last_read_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "conversation_read_cursors_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -382,7 +420,7 @@ CREATE TABLE "support_tickets" (
 CREATE TABLE "ticket_replies" (
     "id" TEXT NOT NULL,
     "ticket_id" TEXT NOT NULL,
-    "operator_id" TEXT NOT NULL,
+    "operator_id" TEXT,
     "body" TEXT NOT NULL,
     "sent_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -423,34 +461,6 @@ CREATE TABLE "feature_flags" (
     CONSTRAINT "feature_flags_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "support_messages" (
-    "id" TEXT NOT NULL,
-    "club_id" TEXT NOT NULL,
-    "sender_id" TEXT NOT NULL,
-    "sender_role" "UserRole" NOT NULL,
-    "body" TEXT NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "support_messages_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "conversation_read_cursors" (
-    "id" TEXT NOT NULL,
-    "club_id" TEXT NOT NULL,
-    "user_id" TEXT NOT NULL,
-    "last_read_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "conversation_read_cursors_pkey" PRIMARY KEY ("id")
-);
-
--- CreateIndex
-CREATE INDEX "support_messages_club_id_created_at_idx" ON "support_messages"("club_id", "created_at");
-
--- CreateIndex
-CREATE UNIQUE INDEX "conversation_read_cursors_club_id_user_id_key" ON "conversation_read_cursors"("club_id", "user_id");
-
 -- CreateIndex
 CREATE UNIQUE INDEX "accounts_provider_provider_account_id_key" ON "accounts"("provider", "provider_account_id");
 
@@ -479,6 +489,9 @@ CREATE INDEX "invitations_email_idx" ON "invitations"("email");
 CREATE INDEX "club_memberships_club_id_idx" ON "club_memberships"("club_id");
 
 -- CreateIndex
+CREATE INDEX "club_memberships_user_id_idx" ON "club_memberships"("user_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "club_memberships_user_id_club_id_key" ON "club_memberships"("user_id", "club_id");
 
 -- CreateIndex
@@ -486,6 +499,9 @@ CREATE UNIQUE INDEX "clubs_custom_domain_key" ON "clubs"("custom_domain");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "clubs_slug_country_key" ON "clubs"("slug", "country");
+
+-- CreateIndex
+CREATE INDEX "applications_status_submitted_at_idx" ON "applications"("status", "submitted_at");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "locations_swiss_location_id_key" ON "locations"("swiss_location_id");
@@ -518,7 +534,10 @@ CREATE UNIQUE INDEX "webauthn_credentials_credential_id_key" ON "webauthn_creden
 CREATE INDEX "club_photos_club_id_idx" ON "club_photos"("club_id");
 
 -- CreateIndex
-CREATE INDEX "operator_messages_club_id_idx" ON "operator_messages"("club_id");
+CREATE INDEX "support_messages_club_id_created_at_idx" ON "support_messages"("club_id", "created_at");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "conversation_read_cursors_club_id_user_id_key" ON "conversation_read_cursors"("club_id", "user_id");
 
 -- CreateIndex
 CREATE INDEX "support_tickets_club_id_idx" ON "support_tickets"("club_id");
@@ -611,7 +630,16 @@ ALTER TABLE "webauthn_credentials" ADD CONSTRAINT "webauthn_credentials_user_id_
 ALTER TABLE "club_photos" ADD CONSTRAINT "club_photos_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "operator_messages" ADD CONSTRAINT "operator_messages_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "support_messages" ADD CONSTRAINT "support_messages_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "support_messages" ADD CONSTRAINT "support_messages_sender_id_fkey" FOREIGN KEY ("sender_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "conversation_read_cursors" ADD CONSTRAINT "conversation_read_cursors_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "conversation_read_cursors" ADD CONSTRAINT "conversation_read_cursors_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "support_tickets" ADD CONSTRAINT "support_tickets_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -620,20 +648,8 @@ ALTER TABLE "support_tickets" ADD CONSTRAINT "support_tickets_club_id_fkey" FORE
 ALTER TABLE "ticket_replies" ADD CONSTRAINT "ticket_replies_ticket_id_fkey" FOREIGN KEY ("ticket_id") REFERENCES "support_tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ticket_replies" ADD CONSTRAINT "ticket_replies_operator_id_fkey" FOREIGN KEY ("operator_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ticket_replies" ADD CONSTRAINT "ticket_replies_operator_id_fkey" FOREIGN KEY ("operator_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "health_checks" ADD CONSTRAINT "health_checks_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "support_messages" ADD CONSTRAINT "support_messages_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "support_messages" ADD CONSTRAINT "support_messages_sender_id_fkey" FOREIGN KEY ("sender_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "conversation_read_cursors" ADD CONSTRAINT "conversation_read_cursors_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "conversation_read_cursors" ADD CONSTRAINT "conversation_read_cursors_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 

@@ -1,9 +1,12 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import { SearchX } from 'lucide-react'
+import Link from 'next/link'
+import { ClipboardList, SearchX } from 'lucide-react'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { generatePlatformMetadata } from '@/components/app/seo/metadata'
+import { SharePlatformButton } from '@/components/app/SharePlatformButton'
+import { Button } from '@/components/ui/button'
 import { ClubCard, ClubCardSkeleton } from '@/components/app/directory/ClubCard'
 import { PaginatedGrid } from '@/components/app/directory/PaginatedGrid'
 import { DirectoryFilters } from '@/components/app/directory/DirectoryFilters'
@@ -160,56 +163,85 @@ export default async function SearchPage({ params, searchParams }: Props) {
           <p className="mt-1 text-sm">
             {t.directory.noResultsHint}
           </p>
+          <div className="mt-6 rounded-lg border p-5 text-center max-w-md">
+            <p className="text-sm text-foreground">{t.directory.shareCtaMessage}</p>
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+              <SharePlatformButton label={t.platform.bootstrapShare} copiedMessage={t.clubSite.linkCopied} className="" />
+            </div>
+            <p className="mt-4 text-sm text-foreground">{t.directory.listCtaMessage}</p>
+            <div className="mt-2">
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/${lang}/apply`}>
+                  <ClipboardList className="h-3.5 w-3.5" />
+                  {t.platform.bootstrapListClub}
+                </Link>
+              </Button>
+            </div>
+          </div>
         </div>
       ) : (
-        <Suspense
-          fallback={
-            <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {Array.from({ length: 6 }, (_, i) => (
-                <ClubCardSkeleton key={i} />
-              ))}
-            </div>
-          }
-        >
-          <PaginatedGrid
-            showingLabel={t.admin.showingCount}
-            showMoreLabel={t.admin.showMore}
+        <>
+          <Suspense
+            fallback={
+              <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 6 }, (_, i) => (
+                  <ClubCardSkeleton key={i} />
+                ))}
+              </div>
+            }
           >
-            {clubs.map((club) => {
-              const activitySlug = club.activityType
-              const activityName = activitySlug
-                ? (t.activityTypes[activitySlug] ?? activitySlug)
-                : null
-              const locationName =
-                club.location?.swissLocation?.translations[0]?.name ?? null
-              const cantonCode =
-                club.location?.swissLocation?.cantonCode ?? null
-              const cantonLabel = cantonCode
-                ? (cantonOptions.find((c) => c.code === cantonCode)?.name ?? cantonCode)
-                : null
+            <PaginatedGrid
+              showingLabel={t.admin.showingCount}
+              showMoreLabel={t.admin.showMore}
+            >
+              {clubs.map((club) => {
+                const activitySlug = club.activityType
+                const activityName = activitySlug
+                  ? (t.activityTypes[activitySlug] ?? activitySlug)
+                  : null
+                const locationName =
+                  club.location?.swissLocation?.translations[0]?.name ?? null
+                const cantonCode =
+                  club.location?.swissLocation?.cantonCode ?? null
+                const cantonLabel = cantonCode
+                  ? (cantonOptions.find((c) => c.code === cantonCode)?.name ?? cantonCode)
+                  : null
 
-              return (
-                <ClubCard
-                  key={club.id}
-                  name={club.name}
-                  slug={club.slug}
-                  country={club.country}
-                  countryName={countryNameMap.get(club.country) ?? club.country}
-                  lang={lang}
-                  logoUrl={club.logoUrl}
-                  logoAlt={club.logoAlt}
-                  activityType={activityName}
-                  locationName={locationName}
-                  cantonName={cantonLabel}
-                  ariaLabel={t.directory.clubAriaLabel
-                    .replace('{name}', club.name)
-                    .replace('{activity}', activityName ?? '')
-                    .replace('{location}', locationName ?? '')}
-                />
-              )
-            })}
-          </PaginatedGrid>
-        </Suspense>
+                return (
+                  <ClubCard
+                    key={club.id}
+                    name={club.name}
+                    slug={club.slug}
+                    country={club.country}
+                    countryName={countryNameMap.get(club.country) ?? club.country}
+                    lang={lang}
+                    logoUrl={club.logoUrl}
+                    logoAlt={club.logoAlt}
+                    activityType={activityName}
+                    locationName={locationName}
+                    cantonName={cantonLabel}
+                    ariaLabel={t.directory.clubAriaLabel
+                      .replace('{name}', club.name)
+                      .replace('{activity}', activityName ?? '')
+                      .replace('{location}', locationName ?? '')}
+                  />
+                )
+              })}
+            </PaginatedGrid>
+          </Suspense>
+          <div className="mt-8 rounded-lg border p-5 text-center">
+            <p className="text-sm text-muted-foreground">{t.directory.shareCtaMessage}</p>
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+              <SharePlatformButton label={t.platform.bootstrapShare} copiedMessage={t.clubSite.linkCopied} className="" />
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/${lang}/apply`}>
+                  <ClipboardList className="h-3.5 w-3.5" />
+                  {t.platform.bootstrapListClub}
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   )

@@ -69,15 +69,27 @@ export default async function ClubsPage({ params }: ClubsPageProps) {
         orderBy: { position: 'asc' as const },
         select: { id: true, url: true, alt: true, position: true },
       },
+      memberships: {
+        where: { status: 'ACTIVE' },
+        select: {
+          role: true,
+          user: { select: { id: true, firstName: true, lastName: true, email: true } },
+        },
+      },
     },
     orderBy: { name: 'asc' },
   })
+
+  const clubsWithMembers = clubs.map(({ memberships, ...rest }) => ({
+    ...rest,
+    members: memberships.map(({ role, user }) => ({ role, user })),
+  }))
 
   return (
     <div className="flex flex-col h-full min-h-0">
       <AdminPageTitle title={t.admin.clubs.title} />
       <div className="flex-1 min-h-0">
-        <ClubQueue clubs={clubs} activityTypes={activityTypes} countries={countries} translations={t} locale={uiLang} />
+        <ClubQueue clubs={clubsWithMembers} activityTypes={activityTypes} countries={countries} translations={t} locale={uiLang} />
       </div>
     </div>
   )

@@ -76,6 +76,7 @@ function findText(node: unknown): string {
 }
 
 const defaultTranslations = {
+  description: 'Who we are & what we do',
   schedule: 'Schedule',
   howToJoin: 'How to join',
   contactInfo: 'Contact information',
@@ -93,8 +94,8 @@ const baseFormValues = {
   name: 'Test Club',
   email: 'info@test.ch',
   description: 'A great club',
-  schedule: null as string | null,
-  howToJoin: null as string | null,
+  schedule: '' as string,
+  howToJoin: '' as string,
   contactPhone: null as string | null,
   contactAddress: null as string | null,
   externalWebsiteUrl: null as string | null,
@@ -110,7 +111,7 @@ const baseFormValues = {
 }
 
 describe('ProfilePreview', () => {
-  it('renders hero section with club name and description', () => {
+  it('renders hero section with club name', () => {
     const result = ProfilePreview({
       formValues: { ...baseFormValues },
       logoUrl: null,
@@ -122,8 +123,24 @@ describe('ProfilePreview', () => {
     const heroes = findByType(result, ClubHeroSection)
     expect(heroes).toHaveLength(1)
     expect(heroes[0].props.club).toEqual(
-      expect.objectContaining({ name: 'Test Club', description: 'A great club' }),
+      expect.objectContaining({ name: 'Test Club' }),
     )
+  })
+
+  it('renders description as a named section', () => {
+    const result = ProfilePreview({
+      formValues: { ...baseFormValues },
+      logoUrl: null,
+      logoAlt: null,
+      photos: [],
+      translations: defaultTranslations,
+    })
+
+    const sections = findByType(result, ProfileSection)
+    const descSection = sections.find((s) => s.props.title === 'Who we are & what we do')
+    expect(descSection).toBeDefined()
+    const text = findText(descSection!.props.children)
+    expect(text).toContain('A great club')
   })
 
   it('shows ellipsis placeholder when name is empty', () => {
@@ -158,7 +175,7 @@ describe('ProfilePreview', () => {
 
   it('hides schedule section when schedule is null', () => {
     const result = ProfilePreview({
-      formValues: { ...baseFormValues, schedule: null },
+      formValues: { ...baseFormValues, schedule: '' },
       logoUrl: null,
       logoAlt: null,
       photos: [],

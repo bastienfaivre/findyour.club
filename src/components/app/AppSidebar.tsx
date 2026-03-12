@@ -9,6 +9,7 @@ import {
   Search,
   Info,
   Heart,
+  Map,
   ClipboardList,
   FileText,
   Building2,
@@ -16,7 +17,9 @@ import {
   LogIn,
   LogOut,
   User,
+  Users,
   MessageSquare,
+  Settings,
 } from 'lucide-react'
 import {
   Collapsible,
@@ -144,6 +147,14 @@ export function AppSidebar({
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isItemActive(pathname, `${basePath}/roadmap`, false)}>
+                  <Link href={`${basePath}/roadmap`}>
+                    <Map />
+                    <span>{t.nav.roadmap}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isItemActive(pathname, `${basePath}/support`, false)}>
                   <Link href={`${basePath}/support`}>
                     <Heart />
@@ -151,17 +162,15 @@ export function AppSidebar({
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {/* Show "Register a Club" for visitors or authenticated users without clubs */}
-              {(!isAuthenticated || (clubs.length === 0 && !isOperator)) && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isItemActive(pathname, `${basePath}/apply`, false)}>
-                    <Link href={`${basePath}/apply`}>
-                      <ClipboardList />
-                      <span>{t.nav.apply}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
+              {/* Always show "Register a Club" — logged-in users can apply too */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isItemActive(pathname, `${basePath}/apply`, false)}>
+                  <Link href={`${basePath}/apply`}>
+                    <ClipboardList />
+                    <span>{t.nav.apply}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -191,6 +200,14 @@ export function AppSidebar({
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isItemActive(pathname, `${basePath}/admin/users`, false)}>
+                      <Link href={`${basePath}/admin/users`}>
+                        <Users />
+                        <span>{t.admin.users.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={isItemActive(pathname, `${basePath}/admin/messages`, false)}>
                       <Link href={`${basePath}/admin/messages`}>
                         <MessageSquare />
@@ -200,6 +217,14 @@ export function AppSidebar({
                             <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" aria-hidden="true" />
                           )}
                         </span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isItemActive(pathname, `${basePath}/admin/settings`, false)}>
+                      <Link href={`${basePath}/admin/settings`}>
+                        <Settings />
+                        <span>{t.admin.settings.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -251,7 +276,7 @@ export function AppSidebar({
                               <SidebarMenuSubItem>
                                 <SidebarMenuSubButton asChild isActive={isItemActive(pathname, `${clubPath}/promote`, false)}>
                                   <Link href={`${clubPath}/promote`}>
-                                    <span>{t.club.sidebar.promote}</span>
+                                    <span>🚧 {t.club.sidebar.promote}</span>
                                   </Link>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>

@@ -1,12 +1,13 @@
 'use client'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { ArrowRightLeft, UserMinus, Check, X, Send, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
-import type { InviteEditorResult, TransferOwnershipResult, RevokeAccessResult } from '@/app/[lang]/(dashboard)/club/[clubId]/settings/actions'
+import type { InviteEditorResult, TransferOwnershipResult, RevokeAccessResult, CancelInviteResult } from '@/app/[lang]/(dashboard)/club/[clubId]/settings/actions'
 import type { Translations } from '@/lib/i18n/translations'
 
 type MembershipPanelT = Translations['club']['membership']
@@ -25,13 +26,15 @@ interface Membership {
 interface MembershipPanelProps {
   memberships: Membership[]
   currentUserId: string
+  maxEditors: number
   inviteAction: (_prevState: InviteEditorResult | null, formData: FormData) => Promise<InviteEditorResult>
   transferOwnershipAction: (targetId: string) => Promise<TransferOwnershipResult>
   revokeAccessAction: (targetId: string) => Promise<RevokeAccessResult>
+  cancelInviteAction: (membershipId: string) => Promise<CancelInviteResult>
   t: MembershipPanelT
 }
 
-export function MembershipPanel({ memberships, currentUserId, inviteAction, transferOwnershipAction, revokeAccessAction, t }: MembershipPanelProps) {
+export function MembershipPanel({ memberships, currentUserId, maxEditors, inviteAction, transferOwnershipAction, revokeAccessAction, cancelInviteAction, t }: MembershipPanelProps) {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [isPending, startTransition] = useTransition()
@@ -39,10 +42,15 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
   const [isPendingTransfer, startTransferTransition] = useTransition()
   const [confirmRevokeId, setConfirmRevokeId] = useState<string | null>(null)
   const [isPendingRevoke, startRevokeTransition] = useTransition()
+  const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null)
+  const [isPendingCancel, startCancelTransition] = useTransition()
 
   const isOwnerViewing = memberships.some(
     m => m.userId === currentUserId && m.role === 'OWNER' && m.status === 'ACTIVE',
   )
+
+  const editorCount = memberships.filter(m => m.role === 'EDITOR').length
+  const atEditorLimit = editorCount >= maxEditors
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -67,6 +75,19 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
       setConfirmRevokeId(null)
       if (res.success) {
         toast.success(t.revokeSuccess)
+        router.refresh()
+      } else {
+        toast.error(res.error)
+      }
+    })
+  }
+
+  function handleCancelInvite(targetMembershipId: string) {
+    startCancelTransition(async () => {
+      const res = await cancelInviteAction(targetMembershipId)
+      setConfirmCancelId(null)
+      if (res.success) {
+        toast.success(t.inviteCancelled)
         router.refresh()
       } else {
         toast.error(res.error)
@@ -123,6 +144,40 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
                     )}
                   </td>
                   <td className="py-2">
+                    {isOwnerViewing && m.status === 'PENDING' && (
+                      confirmCancelId === m.id ? (
+                        <span className="flex items-center gap-2 text-xs">
+                          <span className="text-muted-foreground">{t.cancelInviteConfirm.replace('{email}', m.user.email ?? '—')}</span>
+                          <Button
+                            size="xs"
+                            variant="destructive"
+                            disabled={isPendingCancel}
+                            onClick={() => handleCancelInvite(m.id)}
+                          >
+                            <Check className="h-3 w-3" />
+                            {t.confirm}
+                          </Button>
+                          <Button
+                            size="xs"
+                            variant="ghost"
+                            disabled={isPendingCancel}
+                            onClick={() => setConfirmCancelId(null)}
+                          >
+                            <X className="h-3 w-3" />
+                            {t.cancel}
+                          </Button>
+                        </span>
+                      ) : (
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          onClick={() => setConfirmCancelId(m.id)}
+                        >
+                          <X className="h-3 w-3" />
+                          {t.cancelInvite}
+                        </Button>
+                      )
+                    )}
                     {isOwnerViewing && m.status === 'ACTIVE' && m.role === 'EDITOR' && (
                       confirmTransferId === m.id ? (
                         <span className="flex items-center gap-2 text-xs">
@@ -133,6 +188,7 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
                             disabled={isPendingTransfer}
                             onClick={() => handleTransferConfirm(m.id)}
                           >
+                            <Check className="h-3 w-3" />
                             {t.confirm}
                           </Button>
                           <Button
@@ -141,6 +197,7 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
                             disabled={isPendingTransfer}
                             onClick={() => setConfirmTransferId(null)}
                           >
+                            <X className="h-3 w-3" />
                             {t.cancel}
                           </Button>
                         </span>
@@ -153,6 +210,7 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
                             disabled={isPendingRevoke}
                             onClick={() => handleRevokeConfirm(m.id)}
                           >
+                            <Check className="h-3 w-3" />
                             {t.confirm}
                           </Button>
                           <Button
@@ -161,6 +219,7 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
                             disabled={isPendingRevoke}
                             onClick={() => setConfirmRevokeId(null)}
                           >
+                            <X className="h-3 w-3" />
                             {t.cancel}
                           </Button>
                         </span>
@@ -171,6 +230,7 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
                             variant="outline"
                             onClick={() => { setConfirmRevokeId(null); setConfirmTransferId(m.id) }}
                           >
+                            <ArrowRightLeft className="h-3 w-3" />
                             {t.transfer}
                           </Button>
                           <Button
@@ -178,6 +238,7 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
                             variant="outline"
                             onClick={() => { setConfirmTransferId(null); setConfirmRevokeId(m.id) }}
                           >
+                            <UserMinus className="h-3 w-3" />
                             {t.revoke}
                           </Button>
                         </span>
@@ -193,26 +254,37 @@ export function MembershipPanel({ memberships, currentUserId, inviteAction, tran
       </div>
 
       <div>
-        <h2 className="text-lg font-medium mb-3">{t.inviteEditor}</h2>
-        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 sm:items-end">
-          <div className="flex-1 space-y-1">
-            <Label htmlFor="invite-email">{t.emailAddress}</Label>
-            <Input
-              id="invite-email"
-              name="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="editor@example.com"
-              required
-              disabled={isPending}
-            />
-          </div>
-          <Button type="submit" disabled={isPending || !email}>
-            {isPending ? t.sending : t.inviteAsEditor}
-          </Button>
-        </form>
-
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-medium">{t.inviteEditor}</h2>
+          <span className="text-xs text-muted-foreground">
+            {t.editorCount.replace('{current}', String(editorCount)).replace('{max}', String(maxEditors))}
+          </span>
+        </div>
+        {atEditorLimit ? (
+          <p className="text-sm text-muted-foreground">
+            {t.editorLimitReached.replace('{max}', String(maxEditors))}
+          </p>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 sm:items-end">
+            <div className="flex-1 space-y-1">
+              <Label htmlFor="invite-email">{t.emailAddress}</Label>
+              <Input
+                id="invite-email"
+                name="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="editor@example.com"
+                required
+                disabled={isPending}
+              />
+            </div>
+            <Button type="submit" disabled={isPending || !email}>
+              {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {isPending ? t.sending : t.inviteAsEditor}
+            </Button>
+          </form>
+        )}
       </div>
     </div>
   )

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { isValidCountry, getCountryName } from '@/lib/country'
@@ -10,16 +10,12 @@ import {
   generateClubMetadata,
   generateClubJsonLd,
   generateBreadcrumbJsonLd,
-  generateCategoryMetadata,
   BASE_URL,
 } from '@/components/app/seo/metadata'
 import { ProfilePage } from '@/components/app/club-profile/ProfilePage'
 import { ACCENT_COLORS } from '@/components/app/club-site/accent-colors'
-import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
-import { CategoryLanding } from '@/components/app/seo/CategoryLanding'
 import { SharePrompt } from '@/components/app/club-site/SharePrompt'
-import Link from 'next/link'
-import { ChevronRight } from 'lucide-react'
+import { SearchBackTitle } from '@/components/app/club-profile/SearchBackTitle'
 
 type Props = {
   params: Promise<{ lang: string; country: string; club: string }>
@@ -33,31 +29,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = getTranslations(uiLang)
   const countryName = getCountryName(country, uiLang)
 
-  // Activity type landing page
+  // Activity type landing page (redirected at runtime)
   if (isValidActivityType(slug)) {
-    const activityLabel = t.activityTypes[slug] ?? slug
-    return generateCategoryMetadata({
-      title: `${activityLabel} — ${t.seo.clubsIn} ${countryName}`,
-      description: t.seo.activityDescription
-        .replace('{activity}', activityLabel)
-        .replace('{country}', countryName),
-      lang,
-      country,
-      activity: slug,
-    })
+    return {}
   }
 
-  // Canton landing page
+  // Canton landing page (redirected at runtime)
   if (await isValidCanton(slug.toUpperCase())) {
-    return generateCategoryMetadata({
-      title: `${t.seo.clubsIn} ${slug.toUpperCase()} — ${countryName}`,
-      description: t.seo.cantonDescription
-        .replace('{canton}', slug.toUpperCase())
-        .replace('{country}', countryName),
-      lang,
-      country,
-      canton: slug,
-    })
+    return {}
   }
 
   // Club page
@@ -88,30 +67,14 @@ export default async function ClubPage({ params }: Props) {
   const t = getTranslations(uiLang)
   const countryName = getCountryName(country, uiLang)
 
-  // Activity type landing page
+  // Redirect activity type pages to /search
   if (isValidActivityType(slug)) {
-    return (
-      <CategoryLanding
-        lang={lang}
-        uiLang={uiLang}
-        country={country}
-        countryName={countryName}
-        activity={slug}
-      />
-    )
+    redirect(`/${lang}/search?country=${country}&activity=${slug}`)
   }
 
-  // Canton landing page
+  // Redirect canton pages to /search
   if (await isValidCanton(slug.toUpperCase())) {
-    return (
-      <CategoryLanding
-        lang={lang}
-        uiLang={uiLang}
-        country={country}
-        countryName={countryName}
-        canton={slug.toUpperCase()}
-      />
-    )
+    redirect(`/${lang}/search?country=${country}&canton=${slug.toUpperCase()}`)
   }
 
   // Club page
@@ -162,14 +125,7 @@ export default async function ClubPage({ params }: Props) {
         '--primary-foreground': accentColor.primaryForeground,
       } as React.CSSProperties}
     >
-      <AdminPageTitle title={club.name} backHref={`/${lang}/search?country=${country}`} />
-      <nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Link href={`/${lang}`} className="hover:underline">{t.nav.home}</Link>
-        <ChevronRight className="size-3" />
-        <Link href={`/${lang}/${country}`} className="hover:underline">{countryName}</Link>
-        <ChevronRight className="size-3" />
-        <span className="text-foreground">{club.name}</span>
-      </nav>
+      <SearchBackTitle title={club.name} lang={lang} defaultCountry={country} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
@@ -202,6 +158,7 @@ export default async function ClubPage({ params }: Props) {
           photos: club.photos,
         }}
         translations={{
+          description: t.clubSite.description,
           schedule: t.clubSite.schedule,
           howToJoin: t.clubSite.howToJoin,
           contactInfo: t.clubSite.contactInfo,
@@ -217,7 +174,6 @@ export default async function ClubPage({ params }: Props) {
         clubName={club.name}
         clubUrl={`${BASE_URL}/${lang}/${country}/${club.slug}`}
         translations={{
-          sharePrompt: t.clubSite.sharePrompt,
           shareButton: t.clubSite.shareButton,
           linkCopied: t.clubSite.linkCopied,
         }}

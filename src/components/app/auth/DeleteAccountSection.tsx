@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { Trash2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -24,11 +24,12 @@ interface DeleteAccountSectionProps {
     button: string
     dialogTitle: string
     dialogDescription: string
-    clubsWarning: string
+    consequences: string[]
+    /** Use {clubs} as placeholder for the list of club names */
+    clubsBlockingNote: string
     editorOnlyNote: string
     noClubsNote: string
-    confirmLabel: string
-    confirmHint: string
+    acknowledge: string
     deleting: string
     confirm: string
     cancel: string
@@ -40,23 +41,20 @@ export function DeleteAccountSection({ lang, t }: DeleteAccountSectionProps) {
   const [open, setOpen] = useState(false)
   const [info, setInfo] = useState<AccountDeletionInfo | null>(null)
   const [loading, setLoading] = useState(false)
-  const [confirmText, setConfirmText] = useState('')
+  const [acknowledged, setAcknowledged] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   const soleOwnerClubs = info?.soleOwnerClubs ?? []
-  const requiredConfirmation = soleOwnerClubs.map((c) => c.name).join(', ')
-  const needsConfirmation = soleOwnerClubs.length > 0
-  const canDelete = !needsConfirmation || confirmText === requiredConfirmation
+  const isBlocked = soleOwnerClubs.length > 0
 
   async function handleOpenChange(isOpen: boolean) {
     if (isOpen) {
       setLoading(true)
       setError(null)
-      setConfirmText('')
+      setAcknowledged(false)
       const result = await getAccountDeletionInfo()
       if (!result) {
-        // Session expired — close dialog and bail
         setLoading(false)
         setOpen(false)
         return
@@ -88,7 +86,10 @@ export function DeleteAccountSection({ lang, t }: DeleteAccountSectionProps) {
 
       <AlertDialog open={open} onOpenChange={handleOpenChange}>
         <AlertDialogTrigger asChild>
-          <Button variant="destructive">{t.button}</Button>
+          <Button variant="destructive">
+            <Trash2 className="h-4 w-4" />
+            {t.button}
+          </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -97,38 +98,42 @@ export function DeleteAccountSection({ lang, t }: DeleteAccountSectionProps) {
           </AlertDialogHeader>
 
           {loading ? (
-            <p className="text-sm text-muted-foreground py-2">…</p>
+            <p className="text-sm text-muted-foreground py-2">&hellip;</p>
           ) : info ? (
-            <div className="space-y-3 text-sm">
-              {soleOwnerClubs.length > 0 && (
+            <div className="space-y-4 text-sm">
+              {/* Detailed consequences */}
+              <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                {t.consequences.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+
+              {/* Club-specific warnings */}
+              {isBlocked && (
                 <p className="text-destructive font-medium">
-                  {t.clubsWarning.replace('{clubs}', soleOwnerClubs.map((c) => c.name).join(', '))}
+                  {t.clubsBlockingNote.replace('{clubs}', soleOwnerClubs.map((c) => c.name).join(', '))}
                 </p>
               )}
 
-              {info.otherClubs.length > 0 && (
+              {!isBlocked && info.otherClubs.length > 0 && (
                 <p className="text-muted-foreground">{t.editorOnlyNote}</p>
               )}
 
-              {soleOwnerClubs.length === 0 && info.otherClubs.length === 0 && (
+              {!isBlocked && info.otherClubs.length === 0 && (
                 <p className="text-muted-foreground">{t.noClubsNote}</p>
               )}
 
-              {needsConfirmation && (
-                <div className="space-y-2">
-                  <label htmlFor="confirm-delete" className="text-sm font-medium">
-                    {t.confirmLabel}
-                  </label>
-                  <p className="text-xs text-muted-foreground font-mono">
-                    {t.confirmHint.replace('{names}', requiredConfirmation)}
-                  </p>
-                  <Input
-                    id="confirm-delete"
-                    value={confirmText}
-                    onChange={(e) => setConfirmText(e.target.value)}
-                    autoComplete="off"
+              {/* Acknowledge checkbox (only when not blocked) */}
+              {!isBlocked && (
+                <label className="flex items-start gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={acknowledged}
+                    onChange={(e) => setAcknowledged(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-border accent-destructive"
                   />
-                </div>
+                  <span className="text-sm font-medium">{t.acknowledge}</span>
+                </label>
               )}
 
               {error && <p className="text-sm text-destructive">{error}</p>}
@@ -140,8 +145,9 @@ export function DeleteAccountSection({ lang, t }: DeleteAccountSectionProps) {
             <Button
               variant="destructive"
               onClick={handleDelete}
-              disabled={isPending || loading || !canDelete}
+              disabled={isPending || loading || isBlocked || !acknowledged}
             >
+              {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
               {isPending ? t.deleting : t.confirm}
             </Button>
           </AlertDialogFooter>

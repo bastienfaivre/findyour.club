@@ -22,7 +22,7 @@ vi.mock('react', async () => {
 })
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ refresh: vi.fn() }),
+  useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
 }))
 
 vi.mock('sonner', () => ({
@@ -163,7 +163,25 @@ const defaultTranslations = {
     you: 'You',
     platform: 'Platform',
     empty: 'No messages yet',
+    loadOlder: 'Load older messages',
     unreadBadge: '{count} new',
+  },
+  users: {
+    title: 'Users',
+    selectUser: 'Select a user',
+    noUsers: 'No users',
+    firstName: 'First Name',
+    lastName: 'Last Name',
+    email: 'Email',
+    phone: 'Phone',
+    preferredLanguage: 'Language',
+    role: 'Role',
+    operator: 'Operator',
+    clubAdmin: 'Club Admin',
+    managedClubs: 'Managed clubs',
+    noManagedClubs: 'No managed clubs',
+    owner: 'Owner',
+    editor: 'Editor',
   },
   searchPlaceholder: 'Search by name…',
   showingCount: 'Showing {shown} of {total}',
@@ -177,6 +195,7 @@ function makeConversation(overrides: Partial<ConversationEntry> & { clubId: stri
     lastMessageBody: 'Last message',
     lastMessageAt: '2026-03-09T10:00:00Z',
     unreadCount: 0,
+    members: [],
     messages: [],
     ...overrides,
   }
@@ -203,6 +222,8 @@ describe('ConversationQueue', () => {
       setSelectedApplicationId: vi.fn(),
       selectedClubId: null,
       setSelectedClubId: vi.fn(),
+      selectedUserId: null,
+      setSelectedUserId: vi.fn(),
     })
   })
 

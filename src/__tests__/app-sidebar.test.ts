@@ -50,6 +50,7 @@ vi.mock('@/components/ui/sidebar', () => ({
   SidebarFooter: ({ children }: any) => ({ type: 'SidebarFooter', props: { children }, key: null }),
   SidebarHeader: ({ children }: any) => ({ type: 'SidebarHeader', props: { children }, key: null }),
   SidebarSeparator: () => ({ type: 'SidebarSeparator', props: {}, key: null }),
+  useSidebar: () => ({ setOpenMobile: vi.fn() }),
 }))
 
 vi.mock('@/components/ui/collapsible', () => ({
@@ -80,6 +81,7 @@ vi.mock('lucide-react', () => {
     LogIn: icon('LogIn'),
     LogOut: icon('LogOut'),
     User: icon('User'),
+    Users: icon('Users'),
     MessageSquare: icon('MessageSquare'),
   }
 })
@@ -141,6 +143,7 @@ const defaultTranslations = {
   admin: {
     applications: { title: 'Applications' },
     clubs: { title: 'Clubs' },
+    users: { title: 'Users' },
     messages: { title: 'Messages' },
   },
   club: {

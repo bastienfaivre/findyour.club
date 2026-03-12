@@ -95,6 +95,7 @@ const t = {
   you: 'You',
   platform: 'Platform',
   empty: 'No messages yet',
+  loadOlder: 'Load older messages',
 }
 
 function makeMsg(overrides: Partial<ChatMessage> & { id: string }): ChatMessage {

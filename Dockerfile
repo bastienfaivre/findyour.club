@@ -16,11 +16,14 @@ RUN pnpm install --frozen-lockfile
 # Copies compiled node_modules (including argon2 native addon) from deps.
 # Runs `prisma generate` explicitly before `next build` to ensure the TypeScript
 # client exists regardless of whether it was generated in deps or is gitignored.
+# DATABASE_URL is a dummy value so the Prisma client can initialise during page
+# data collection — no real connection is made at build time.
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN pnpm prisma generate
+ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
 RUN pnpm build
 
 # Stage 3: Production runner (NO build tools)
@@ -38,3 +41,12 @@ USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 CMD ["node", "server.js"]
+
+# Stage 4: Migrations runner (used for `docker compose run migrate`)
+FROM base AS migrate
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY prisma/ ./prisma/
+COPY prisma.config.ts ./
+COPY --from=builder /app/src/generated ./src/generated
+CMD ["npx", "prisma", "migrate", "deploy"]

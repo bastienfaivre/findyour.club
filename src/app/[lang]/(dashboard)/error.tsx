@@ -11,7 +11,7 @@ export default function DashboardError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error(error)
+    // TODO: send to error reporting service (e.g. Sentry)
   }, [error])
 
   return (

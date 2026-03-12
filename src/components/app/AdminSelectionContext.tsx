@@ -9,6 +9,8 @@ interface AdminSelectionState {
   setSelectedClubId: (id: string | null) => void
   selectedConversationId: string | null
   setSelectedConversationId: (id: string | null) => void
+  selectedUserId: string | null
+  setSelectedUserId: (id: string | null) => void
 }
 
 const AdminSelectionContext = createContext<AdminSelectionState>({
@@ -18,16 +20,20 @@ const AdminSelectionContext = createContext<AdminSelectionState>({
   setSelectedClubId: () => {},
   selectedConversationId: null,
   setSelectedConversationId: () => {},
+  selectedUserId: null,
+  setSelectedUserId: () => {},
 })
 
 export function AdminSelectionProvider({ children }: { children: ReactNode }) {
   const [selectedApplicationId, setAppId] = useState<string | null>(null)
   const [selectedClubId, setClubId] = useState<string | null>(null)
   const [selectedConversationId, setConvId] = useState<string | null>(null)
+  const [selectedUserId, setUId] = useState<string | null>(null)
 
   const setSelectedApplicationId = useCallback((id: string | null) => setAppId(id), [])
   const setSelectedClubId = useCallback((id: string | null) => setClubId(id), [])
   const setSelectedConversationId = useCallback((id: string | null) => setConvId(id), [])
+  const setSelectedUserId = useCallback((id: string | null) => setUId(id), [])
 
   return (
     <AdminSelectionContext.Provider
@@ -38,6 +44,8 @@ export function AdminSelectionProvider({ children }: { children: ReactNode }) {
         setSelectedClubId,
         selectedConversationId,
         setSelectedConversationId,
+        selectedUserId,
+        setSelectedUserId,
       }}
     >
       {children}

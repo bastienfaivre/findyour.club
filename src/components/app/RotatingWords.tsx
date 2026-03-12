@@ -65,7 +65,7 @@ export function RotatingWords({ prefix, words, interval = 2500 }: RotatingWordsP
       const fontSize = parseFloat(getComputedStyle(prefixEl!).fontSize)
       const spaceWidth = fontSize * 0.3
       const wouldOverflow = prefixWidth + spaceWidth + maxWordWidth > availableWidth
-      setIsWrapped(window.innerWidth < 640 || wouldOverflow)
+      setIsWrapped(window.innerWidth < 1024 || wouldOverflow)
     }
 
     checkWrap()
@@ -103,7 +103,7 @@ export function RotatingWords({ prefix, words, interval = 2500 }: RotatingWordsP
         : { transform: 'translateY(0)', opacity: 1 }
 
   return (
-    <span ref={containerRef} className={isWrapped ? 'inline-flex flex-col items-center' : 'inline'}>
+    <span ref={containerRef} className={isWrapped ? 'inline-flex flex-col items-center' : 'grid grid-cols-2 gap-x-[0.25em] w-full items-baseline'}>
       {/* Hidden measurer — renders all words offscreen to find the widest */}
       <span
         ref={measureRef}
@@ -115,10 +115,10 @@ export function RotatingWords({ prefix, words, interval = 2500 }: RotatingWordsP
         ))}
       </span>
 
-      <span ref={prefixRef}>{prefix}</span>{' '}
+      <span ref={prefixRef} className={!isWrapped ? 'justify-self-end' : undefined}>{prefix}</span>
       <span
         ref={rotatingRef}
-        className="relative inline-flex overflow-hidden align-bottom transition-[width] duration-350 ease-in-out"
+        className={`relative overflow-hidden transition-[width] duration-350 ease-in-out${isWrapped ? ' inline-flex align-bottom' : ' flex'}`}
         style={{
           ...(wordWidths.length ? { width: isWrapped ? wordWidths[index] : Math.max(...wordWidths) } : {}),
           ...(isWrapped ? { justifyContent: 'center' } : {}),

@@ -10,6 +10,9 @@ vi.mock('@/server/db', () => ({
       findUnique: vi.fn(),
       update: vi.fn(),
     },
+    clubMembership: {
+      findFirst: vi.fn(),
+    },
     supportMessage: {
       create: vi.fn(),
     },
@@ -24,6 +27,9 @@ vi.mock('@/server/auth', () => ({
 }))
 vi.mock('@/lib/email', () => ({
   sendEmail: vi.fn(),
+}))
+vi.mock('@/lib/server/email-settings', () => ({
+  isEmailEnabled: vi.fn().mockResolvedValue(true),
 }))
 
 import { revalidatePath } from 'next/cache'
@@ -63,6 +69,7 @@ describe('sendSupportMessage()', () => {
     vi.clearAllMocks()
     vi.mocked(getAuthSession).mockResolvedValue(OPERATOR_SESSION as never)
     vi.mocked(prisma.club.findUnique).mockResolvedValue(CLUB as never)
+    vi.mocked(prisma.clubMembership.findFirst).mockResolvedValue({ user: { preferredLanguage: 'en' } } as never)
     vi.mocked(prisma.supportMessage.create).mockResolvedValue({} as never)
     vi.mocked(prisma.conversationReadCursor.upsert).mockResolvedValue({} as never)
     vi.mocked(sendEmail).mockResolvedValue(undefined)
@@ -142,6 +149,7 @@ describe('toggleForceOffline()', () => {
     vi.clearAllMocks()
     vi.mocked(getAuthSession).mockResolvedValue(OPERATOR_SESSION as never)
     vi.mocked(prisma.club.findUnique).mockResolvedValue(CLUB as never)
+    vi.mocked(prisma.clubMembership.findFirst).mockResolvedValue({ user: { preferredLanguage: 'en' } } as never)
     vi.mocked(prisma.club.update).mockResolvedValue({} as never)
     vi.mocked(prisma.supportMessage.create).mockResolvedValue({} as never)
     vi.mocked(sendEmail).mockResolvedValue(undefined)
@@ -236,6 +244,7 @@ describe('Email template rendering', () => {
     const html = buildOperatorMessageEmailHtml({
       clubName: 'Test <Club> & "Friends"',
       message: 'Please fix <script>alert("xss")</script>',
+      lang: 'en',
     })
 
     expect(html).toContain('<!DOCTYPE html>')
@@ -248,6 +257,7 @@ describe('Email template rendering', () => {
     const html = buildForceOfflineEmailHtml({
       clubName: 'Club <Test>',
       reason: 'Content violates <rules> & "guidelines"',
+      lang: 'en',
     })
 
     expect(html).toContain('<!DOCTYPE html>')

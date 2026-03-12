@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_SIZE_BYTES } from '@/lib/r2'
+import { ALLOWED_IMAGE_TYPES } from '@/lib/r2'
 import type { Translations } from '@/lib/i18n/translations/types'
 
 type UploadResult =
@@ -36,15 +36,18 @@ export interface LogoActions {
   updateAlt: (clubId: string, alt: string) => Promise<SimpleResult>
 }
 
+const DEFAULT_MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024
+
 interface LogoUploadProps {
   clubId: string
   logoUrl: string | null
   logoAlt: string | null
+  maxImageSizeBytes?: number
   translations: Translations['club']['admin']['clubProfile']['logo']
   actions: LogoActions
 }
 
-export function LogoUpload({ clubId, logoUrl, logoAlt, translations: t, actions }: LogoUploadProps) {
+export function LogoUpload({ clubId, logoUrl, logoAlt, maxImageSizeBytes = DEFAULT_MAX_IMAGE_SIZE_BYTES, translations: t, actions }: LogoUploadProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isPending, startTransition] = useTransition()
@@ -59,8 +62,8 @@ export function LogoUpload({ clubId, logoUrl, logoAlt, translations: t, actions 
       toast.error(t.errorType)
       return
     }
-    if (file.size > MAX_IMAGE_SIZE_BYTES) {
-      toast.error(t.errorSize)
+    if (file.size > maxImageSizeBytes) {
+      toast.error(t.errorSize.replace('{sizeMb}', String(maxImageSizeBytes / (1024 * 1024))))
       return
     }
 

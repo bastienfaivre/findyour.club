@@ -21,6 +21,9 @@ async function main() {
     create: {
       email: 'admin@platform-name.com',
       name: 'Platform Operator',
+      firstName: 'Platform',
+      lastName: 'Operator',
+      preferredLanguage: 'en',
       role: 'OPERATOR',
       passwordHash: operatorPasswordHash,
       totpEnabled: false,
@@ -37,6 +40,10 @@ async function main() {
     create: {
       email: 'jean.favre@ski-club-valais.ch',
       name: 'Jean Favre',
+      firstName: 'Jean',
+      lastName: 'Favre',
+      phone: '+41 27 322 55 01',
+      preferredLanguage: 'fr',
       role: 'CLUB_ADMIN',
       passwordHash: adminPasswordHash,
       totpEnabled: false,
@@ -49,6 +56,10 @@ async function main() {
     create: {
       email: 'marc.bonvin@fc-lausanne-sport.ch',
       name: 'Marc Bonvin',
+      firstName: 'Marc',
+      lastName: 'Bonvin',
+      phone: '+41 21 316 42 01',
+      preferredLanguage: 'fr',
       role: 'CLUB_ADMIN',
       passwordHash: adminPasswordHash,
       totpEnabled: false,
@@ -61,6 +72,10 @@ async function main() {
     create: {
       email: 'hans.mueller@bergclub-zurich.ch',
       name: 'Hans Müller',
+      firstName: 'Hans',
+      lastName: 'Müller',
+      phone: '+41 44 211 33 01',
+      preferredLanguage: 'de',
       role: 'CLUB_ADMIN',
       passwordHash: adminPasswordHash,
       totpEnabled: false,
@@ -73,6 +88,10 @@ async function main() {
     create: {
       email: 'claire.dumont@aviron-geneve.ch',
       name: 'Claire Dumont',
+      firstName: 'Claire',
+      lastName: 'Dumont',
+      phone: '+41 22 786 12 35',
+      preferredLanguage: 'fr',
       role: 'CLUB_ADMIN',
       passwordHash: adminPasswordHash,
       totpEnabled: false,
@@ -85,6 +104,10 @@ async function main() {
     create: {
       email: 'lukas.gerber@turnverein-bern.ch',
       name: 'Lukas Gerber',
+      firstName: 'Lukas',
+      lastName: 'Gerber',
+      phone: '+41 31 302 88 01',
+      preferredLanguage: 'de',
       role: 'CLUB_ADMIN',
       passwordHash: adminPasswordHash,
       totpEnabled: false,
@@ -97,6 +120,9 @@ async function main() {
     create: {
       email: 'sophie.martin@ski-club-valais.ch',
       name: 'Sophie Martin',
+      firstName: 'Sophie',
+      lastName: 'Martin',
+      preferredLanguage: 'fr',
       role: 'CLUB_ADMIN',
       passwordHash: adminPasswordHash,
       totpEnabled: false,
@@ -213,7 +239,7 @@ async function main() {
   // ─── Clubs (5 fully populated clubs) ─────────────────────────────────
   const clubValais = await prisma.club.upsert({
     where: { slug_country: { slug: 'ski-club-valais', country: 'ch' } },
-    update: { locationId: locationSion.id },
+    update: { locationId: locationSion.id, logoUrl: 'https://ui-avatars.com/api/?name=Ski+Club+Valais&background=2563eb&color=fff&size=200&bold=true', logoAlt: 'Ski Club Valais logo' },
     create: {
       name: 'Ski Club Valais',
       slug: 'ski-club-valais',
@@ -222,9 +248,11 @@ async function main() {
       activityType: 'skiing',
       locationId: locationSion.id,
       email: 'contact@ski-club-valais.ch',
-      description: 'Bienvenue au Ski Club Valais ! Depuis 1952, nous rassemblons les passionnés de ski alpin dans le Valais. Que vous soyez débutant ou compétiteur, rejoignez-nous pour des sorties en groupe, des entraînements et des compétitions tout au long de la saison hivernale.',
-      schedule: 'Samedis 09h00–12h00 : sorties en groupe\nMercredis 18h00–20h00 : entraînement libre\nCompétitions : voir le calendrier',
-      howToJoin: 'Remplissez le formulaire d\'adhésion disponible sur notre page Documents et envoyez-le par email. Cotisation annuelle : CHF 150 (adultes), CHF 80 (juniors < 18 ans). Une sortie d\'essai gratuite est possible.',
+      logoUrl: 'https://ui-avatars.com/api/?name=Ski+Club+Valais&background=2563eb&color=fff&size=200&bold=true',
+      logoAlt: 'Ski Club Valais logo',
+      description: 'Le Ski Club Valais, c\'est 70 ans de passion pour la montagne. On a trois groupes : les enfants dès 6 ans qui apprennent les bases dans la bonne humeur, les juniors qui s\'entraînent sérieusement pour les compétitions régionales, et les adultes qui sortent ensemble chaque week-end pour le plaisir. On ski en français, mais si tu parles une autre langue, viens quand même — la neige s\'en fiche.',
+      schedule: 'Enfants (6–12 ans) : mercredis 14h–16h et samedis matin 9h–11h, pistes de Crans-Montana.\nJuniors (13–17 ans) : mardis et jeudis 17h–19h, plus les week-ends en compétition.\nAdultes : sorties en groupe chaque samedi à 9h — la destination change selon la météo. On s\'organise via notre groupe WhatsApp, demande-nous de t\'ajouter quand tu viens.',
+      howToJoin: 'Viens à une séance d\'essai gratuite avec ton équipement, on s\'occupe du reste. Pas de skis ? Dis-le-nous à l\'avance, on peut t\'aider. La cotisation annuelle est de CHF 150 pour les adultes et CHF 80 pour les juniors. Pas encore prêt·e à sauter le pas ? Envoie-nous un message sur Instagram — tu trouveras le lien dans la section contact en bas de page.',
       contactPhone: '+41 27 322 55 00',
       contactAddress: 'Rue de Lausanne 12\n1950 Sion\nSuisse',
       externalWebsiteUrl: 'https://ski-club-valais.ch',
@@ -242,7 +270,7 @@ async function main() {
 
   const clubLausanne = await prisma.club.upsert({
     where: { slug_country: { slug: 'fc-lausanne-sport', country: 'ch' } },
-    update: { locationId: locationLausanne.id },
+    update: { locationId: locationLausanne.id, logoUrl: 'https://ui-avatars.com/api/?name=FC+Lausanne+Sport&background=16a34a&color=fff&size=200&bold=true', logoAlt: 'FC Lausanne Sport logo' },
     create: {
       name: 'FC Lausanne Sport',
       slug: 'fc-lausanne-sport',
@@ -251,9 +279,11 @@ async function main() {
       activityType: 'football',
       locationId: locationLausanne.id,
       email: 'info@fc-lausanne-sport.ch',
-      description: 'FC Lausanne Sport est un club de football communautaire fondé en 1989. Nous accueillons joueurs et joueuses de tous niveaux, des poussins aux vétérans. Entraînements réguliers, matchs de championnat régional et tournois amicaux.',
-      schedule: 'Mardis et jeudis 19h00–21h00 : entraînement\nSamedis : matchs (domicile et extérieur)\nMercredis 14h00–16h00 : école de football (U8–U15)',
-      howToJoin: 'Venez à une séance d\'essai, aucune inscription préalable nécessaire. Cotisation : CHF 200/an (adultes), CHF 100/an (U18). Équipement fourni la première saison.',
+      logoUrl: 'https://ui-avatars.com/api/?name=FC+Lausanne+Sport&background=16a34a&color=fff&size=200&bold=true',
+      logoAlt: 'FC Lausanne Sport logo',
+      description: 'FC Lausanne Sport, c\'est quatre équipes, quatre ambiances. Les U8–U12 découvrent le foot dans la joie les mercredis après-midi. Les U13–U16 s\'entraînent dur et jouent le championnat régional. L\'équipe adulte mixte joue pour le plaisir, pas pour la gloire. Et les vétérans (35+) prouvent que le foot, ça ne s\'arrête jamais. On est un club francophone, mais si tu ne parles pas encore français, viens quand même — le ballon, lui, comprend tout le monde.',
+      schedule: 'U8–U12 : mercredis 14h–16h, terrain synthétique de la Pontaise.\nU13–U16 : mardis et jeudis 17h30–19h30, même terrain.\nAdultes : mardis et jeudis 20h–22h, plus les matchs le samedi.\nVétérans (35+) : dimanches matin 10h–12h. On a un groupe WhatsApp pour chaque équipe — demande-nous d\'être ajouté quand tu viens.',
+      howToJoin: 'Pointe-toi à un entraînement, aucune inscription nécessaire. Si tu veux rester, la cotisation est de CHF 200/an pour les adultes et CHF 100/an pour les moins de 18 ans — l\'équipement est fourni la première saison. Pas encore sûr·e ? Envoie-nous un message sur Instagram, on t\'explique tout — le lien est dans la section contact en bas.',
       contactPhone: '+41 21 316 42 00',
       contactAddress: 'Chemin de la Prairie 8\n1007 Lausanne\nSuisse',
       externalWebsiteUrl: 'https://fc-lausanne-sport.ch',
@@ -272,7 +302,7 @@ async function main() {
 
   const clubZurich = await prisma.club.upsert({
     where: { slug_country: { slug: 'bergclub-zurich', country: 'ch' } },
-    update: { locationId: locationZurich.id },
+    update: { locationId: locationZurich.id, logoUrl: 'https://ui-avatars.com/api/?name=Bergclub+Z%C3%BCrich&background=7c3aed&color=fff&size=200&bold=true', logoAlt: 'Bergclub Zürich logo' },
     create: {
       name: 'Bergclub Zürich',
       slug: 'bergclub-zurich',
@@ -281,9 +311,11 @@ async function main() {
       activityType: 'mountaineering',
       locationId: locationZurich.id,
       email: 'info@bergclub-zurich.ch',
-      description: 'Willkommen beim Bergclub Zürich! Seit 1968 organisieren wir Bergtouren, Kletterausflüge und Wanderungen in den Schweizer Alpen und im Zürcher Oberland. Ob Anfänger oder erfahrener Alpinist — bei uns ist jeder willkommen.',
-      schedule: 'Touren: jeden zweiten Samstag\nKlettertraining: Montags 19:00–21:00 (Kletterhalle Gaswerk)\nStammtisch: erster Mittwoch im Monat, Restaurant Zeughauskeller',
-      howToJoin: 'Komm zu einem Schnuppertraining oder schreib uns eine E-Mail. Jahresbeitrag: CHF 120 (Erwachsene), CHF 60 (Studierende). Probetour kostenlos.',
+      logoUrl: 'https://ui-avatars.com/api/?name=Bergclub+Z%C3%BCrich&background=7c3aed&color=fff&size=200&bold=true',
+      logoAlt: 'Bergclub Zürich logo',
+      description: 'Bergclub Zürich ist mehr als ein Verein — es sind drei Gruppen mit drei verschiedenen Tempos. Die Einsteiger-Gruppe macht gemütliche Tagestouren und lernt die Grundlagen des Berggehens. Die Fortgeschrittenen wagen sich an Klettersteige und leichte Hochtouren. Und die Alpinisten planen anspruchsvolle Mehrtagestouren im Sommer und Skitourengehen im Winter. Wenn du Lust auf die Berge hast, ist bei uns garantiert eine Gruppe dabei, die zu dir passt.',
+      schedule: 'Einsteiger-Gruppe: jeden zweiten Sonntag, Tagestouren im Zürcher Oberland — Treffpunkt je nach Tour.\nFortgeschrittene & Alpinisten: jeden zweiten Samstag, Ziele werden kurzfristig per WhatsApp kommuniziert.\nKlettertraining für alle: montags 19–21 Uhr in der Kletterhalle Gaswerk, Zürich.\nStammtisch: erster Mittwoch im Monat im Zeughauskeller — alle sind willkommen.',
+      howToJoin: 'Komm einfach zum nächsten Stammtisch oder Klettertraining — keine Voranmeldung nötig. Eine Schnuppertour ist gratis. Wenn es passt, beträgt der Jahresbeitrag CHF 120 für Erwachsene und CHF 60 für Studierende. Noch unentschlossen? Schreib uns eine Nachricht auf Instagram — den Link findest du im Kontaktbereich unten.',
       contactPhone: '+41 44 211 33 00',
       contactAddress: 'Bahnhofstrasse 45\n8001 Zürich\nSchweiz',
       externalWebsiteUrl: 'https://bergclub-zurich.ch',
@@ -302,7 +334,7 @@ async function main() {
 
   const clubGeneva = await prisma.club.upsert({
     where: { slug_country: { slug: 'aviron-geneve', country: 'ch' } },
-    update: { locationId: locationGeneva.id },
+    update: { locationId: locationGeneva.id, logoUrl: 'https://ui-avatars.com/api/?name=Aviron+Gen%C3%A8ve&background=f97316&color=fff&size=200&bold=true', logoAlt: 'Aviron Genève logo' },
     create: {
       name: 'Aviron Genève',
       slug: 'aviron-geneve',
@@ -311,9 +343,11 @@ async function main() {
       activityType: 'rowing',
       locationId: locationGeneva.id,
       email: 'contact@aviron-geneve.ch',
-      description: 'L\'Aviron Genève est le plus ancien club d\'aviron du canton, fondé en 1875. Nous proposons des cours pour débutants, de l\'aviron de loisir et de la compétition sur le lac Léman. Notre hangar à bateaux est situé aux Eaux-Vives.',
-      schedule: 'Lundis, mercredis et vendredis 06h30–08h00 : entraînement matin\nMardis et jeudis 18h00–20h00 : entraînement soir\nSamedis 09h00–12h00 : sorties libres et cours débutants',
-      howToJoin: 'Inscrivez-vous à un cours d\'initiation (4 séances, CHF 80). Cotisation annuelle après le cours : CHF 350 (adultes), CHF 180 (juniors). Test de natation obligatoire (200m).',
+      logoUrl: 'https://ui-avatars.com/api/?name=Aviron+Gen%C3%A8ve&background=f97316&color=fff&size=200&bold=true',
+      logoAlt: 'Aviron Genève logo',
+      description: 'L\'Aviron Genève, c\'est 150 ans de rame sur le Léman. On a trois groupes bien distincts : les débutants qui découvrent l\'aviron avec nos moniteurs brevetés (aucune expérience requise), les loisirs qui rament pour le plaisir et la forme, et les compétiteurs qui s\'entraînent sérieusement pour les régates suisses et européennes. Notre hangar à bateaux est aux Eaux-Vives, à deux pas du lac. On s\'entraîne en français, mais on accueille volontiers les anglophones et les italophones — notre équipe est internationale.',
+      schedule: 'Cours débutants : samedis 9h–12h (par groupes de 8, inscription requise).\nLoisirs : mardis et jeudis 18h–20h, plus sorties libres le samedi matin.\nCompétition : lundis, mercredis et vendredis dès 6h30 — le programme est intense mais la vue sur le Léman au lever du soleil vaut tout. Les créneaux sont confirmés via notre groupe WhatsApp la veille.',
+      howToJoin: 'Commence par un cours d\'initiation — 4 séances pour CHF 80, aucune expérience nécessaire. Un test de natation (200m) est obligatoire pour des raisons de sécurité. Si tu accroches, la cotisation annuelle est de CHF 350 pour les adultes et CHF 180 pour les juniors. Des questions ? Envoie-nous un message sur Instagram — le lien est dans la section contact ci-dessous.',
       contactPhone: '+41 22 786 12 34',
       contactAddress: 'Quai Gustave-Ador 44\n1207 Genève\nSuisse',
       externalWebsiteUrl: 'https://aviron-geneve.ch',
@@ -332,7 +366,7 @@ async function main() {
 
   const clubBern = await prisma.club.upsert({
     where: { slug_country: { slug: 'turnverein-bern', country: 'ch' } },
-    update: { locationId: locationBern.id },
+    update: { locationId: locationBern.id, logoUrl: 'https://ui-avatars.com/api/?name=Turnverein+Bern&background=e11d48&color=fff&size=200&bold=true', logoAlt: 'Turnverein Bern logo' },
     create: {
       name: 'Turnverein Bern',
       slug: 'turnverein-bern',
@@ -341,9 +375,11 @@ async function main() {
       activityType: 'gymnastics',
       locationId: locationBern.id,
       email: 'info@turnverein-bern.ch',
-      description: 'Der Turnverein Bern bietet seit 1860 vielfältige Turnangebote für Kinder, Jugendliche und Erwachsene. Von Geräteturnen über Trampolin bis Gruppengymnastik — bei uns findet jeder seine Disziplin.',
-      schedule: 'Montags 18:00–20:00: Geräteturnen Erwachsene\nDienstags 17:00–18:30: Kinderturnen (6–12 Jahre)\nDonnerstags 19:00–21:00: Trampolin & Akrobatik\nSamstags 10:00–12:00: offenes Training',
-      howToJoin: 'Drei Probetrainings sind kostenlos. Danach Vereinsbeitritt: CHF 180/Jahr (Erwachsene), CHF 90/Jahr (Kinder & Jugendliche). Anmeldung per E-Mail oder direkt beim Training.',
+      logoUrl: 'https://ui-avatars.com/api/?name=Turnverein+Bern&background=e11d48&color=fff&size=200&bold=true',
+      logoAlt: 'Turnverein Bern logo',
+      description: 'Turnverein Bern — 160 Jahre und immer noch auf den Beinen. Wir haben vier aktive Gruppen: das Kinderturnen für die Kleinen ab 6 Jahren, bei dem Spass und Bewegung im Vordergrund stehen; die Jugendgruppe (13–17) mit Wettkampftraining am Gerät; die Erwachsenengruppe für Geräteturnen und Akrobatik; und unsere Trampolin-Sektion, die für alle offen ist. Anfänger sind genauso willkommen wie Fortgeschrittene — es gibt immer eine passende Gruppe.',
+      schedule: 'Kinderturnen (6–12 J.): dienstags 17–18:30 Uhr, Sporthalle Länggasse.\nJugend (13–17 J.): montags und mittwochs 18–20 Uhr, gleiche Halle.\nErwachsene Geräteturnen: montags 20–22 Uhr.\nTrampolin & Akrobatik (alle Altersgruppen): donnerstags 19–21 Uhr.\nOffenes Training: samstags 10–12 Uhr — komm einfach vorbei, kein Training wie das andere.',
+      howToJoin: 'Die ersten drei Trainings sind kostenlos — komm einfach vorbei, keine Anmeldung nötig. Wenn du bleiben möchtest, beträgt der Jahresbeitrag CHF 180 für Erwachsene und CHF 90 für Kinder und Jugendliche. Keine Turnerfahrung nötig, wir fangen gerne von Null an. Noch Fragen? Schreib uns auf Instagram — den Link findest du im Kontaktbereich unten.',
       contactPhone: '+41 31 302 88 00',
       contactAddress: 'Länggassstrasse 21\n3012 Bern\nSchweiz',
       externalWebsiteUrl: 'https://turnverein-bern.ch',
@@ -397,6 +433,9 @@ async function main() {
   console.log('✓ Club memberships created (5 owners + 1 editor)')
 
   // ─── Club Photos ──────────────────────────────────────────────────────
+  await prisma.clubPhoto.deleteMany({
+    where: { clubId: { in: [clubValais.id, clubLausanne.id, clubZurich.id, clubGeneva.id, clubBern.id] } },
+  })
   await prisma.clubPhoto.createMany({
     data: [
       // Ski Club Valais (6 photos)
@@ -536,6 +575,7 @@ async function main() {
 
   // ─── Conversation Read Cursors ──────────────────────────────────────
   await prisma.conversationReadCursor.createMany({
+    skipDuplicates: true,
     data: [
       // Lausanne: both sides have read
       { clubId: clubLausanne.id, userId: operator.id, lastReadAt: new Date(Date.now() - 43 * 24 * 60 * 60 * 1000) },
@@ -626,6 +666,7 @@ async function main() {
       },
     })
     if (config.events.length > 0) {
+      await prisma.event.deleteMany({ where: { elementId: calEl.id } })
       await prisma.event.createMany({
         data: config.events.map((e) => ({
           clubId: club.id, elementId: calEl.id, title: e.title, date: e.date, description: e.description,
@@ -643,6 +684,7 @@ async function main() {
       },
     })
     if (config.galleryImages.length > 0) {
+      await prisma.galleryItem.deleteMany({ where: { elementId: galEl.id } })
       await prisma.galleryItem.createMany({
         data: config.galleryImages.map((img, i) => ({
           clubId: club.id, elementId: galEl.id, url: img.url, alt: img.alt, type: 'image', position: i,
@@ -845,6 +887,9 @@ async function main() {
     create: {
       email: 'bulk@platform-name.com',
       name: 'Bulk Admin',
+      firstName: 'Bulk',
+      lastName: 'Admin',
+      preferredLanguage: 'fr',
       role: 'CLUB_ADMIN',
       passwordHash: adminPasswordHash,
       totpEnabled: false,
@@ -960,12 +1005,17 @@ async function main() {
   await prisma.application.createMany({
     data: [
       {
+        applicantFirstName: 'Léa',
+        applicantLastName: 'Mercier',
+        applicantPhone: '+41 21 963 00 01',
+        applicantPreferredLanguage: 'fr',
         name: 'Yoga Studio Montreux',
         country: 'ch',
         activityType: 'yoga',
         locationId: locationMontreux.id,
         description: 'Studio de yoga proposant des cours de Hatha, Vinyasa et Yin yoga en bord du lac Léman. Fondé en 2019, nous accueillons tous les niveaux dans un cadre apaisant.',
-        email: 'namaste@yoga-montreux.ch',
+        email: 'lea.mercier@example.com',
+        clubEmail: 'namaste@yoga-montreux.ch',
         schedule: 'Lundi au vendredi : 07h00, 12h00 et 18h30\nSamedi : 09h00 et 10h30\nDimanche : cours spécial mensuel',
         contactPhone: '+41 21 963 00 00',
         contactAddress: 'Rue du Marché 15\n1820 Montreux\nSuisse',
@@ -976,12 +1026,17 @@ async function main() {
         submittedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
       },
       {
+        applicantFirstName: 'Andreas',
+        applicantLastName: 'Weber',
+        applicantPhone: '+41 61 311 22 34',
+        applicantPreferredLanguage: 'de',
         name: 'Schwimmclub Basel',
         country: 'ch',
         activityType: 'swimming',
         locationId: locationBasel.id,
         description: 'Der Schwimmclub Basel trainiert Schwimmerinnen und Schwimmer aller Altersstufen im Hallenbad St. Jakob. Wir nehmen an regionalen und nationalen Wettkämpfen teil.',
-        email: 'info@schwimmclub-basel.ch',
+        email: 'andreas.weber@example.com',
+        clubEmail: 'info@schwimmclub-basel.ch',
         schedule: 'Dienstag und Donnerstag 18:00–20:00\nSamstag 08:00–10:00 (Wettkampfgruppe)\nSonntag 09:00–10:30 (Anfänger)',
         contactPhone: '+41 61 311 22 33',
         contactAddress: 'Im St. Jakob 2\n4052 Basel\nSchweiz',
@@ -993,12 +1048,16 @@ async function main() {
         reviewedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
       },
       {
+        applicantFirstName: 'Martin',
+        applicantLastName: 'Hofer',
+        applicantPreferredLanguage: 'de',
         name: 'Luzerner Schachverein',
         country: 'ch',
         activityType: 'chess',
         locationId: locationLucerne.id,
         description: 'Der Luzerner Schachverein besteht seit 1923 und ist einer der traditionsreichsten Schachvereine der Zentralschweiz. Wir spielen in der Nationalliga B und bieten Kurse für Kinder und Erwachsene.',
-        email: 'vorstand@schach-luzern.ch',
+        email: 'martin.hofer@example.com',
+        clubEmail: 'vorstand@schach-luzern.ch',
         schedule: 'Freitags 19:30–23:00: Spielabend\nMittwochs 14:00–16:00: Jugendtraining\nMonatlich: Blitzturnier (1. Samstag)',
         contactPhone: '+41 41 210 55 66',
         contactAddress: 'Pilatusstrasse 12\n6003 Luzern\nSchweiz',
@@ -1008,11 +1067,14 @@ async function main() {
         submittedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
       },
       {
+        applicantFirstName: 'Max',
+        applicantLastName: 'Keller',
+        applicantPreferredLanguage: 'de',
         name: 'Extreme Sports Zurich',
         country: 'ch',
         otherDescription: 'Paragliding, base jumping, and wingsuit club.',
         description: 'Club de sports extrêmes centré sur les disciplines aériennes : parapente, base jump et wingsuit.',
-        email: 'fly@extreme-zurich.ch',
+        email: 'max.keller@example.com',
         desiredSlug: 'extreme-sports-zurich',
         status: 'REJECTED',
         rejectionReason: 'La plateforme se concentre actuellement sur les sports et activités communautaires classiques. Les sports extrêmes nécessitent des assurances et certifications spécifiques que nous ne pouvons pas vérifier.',

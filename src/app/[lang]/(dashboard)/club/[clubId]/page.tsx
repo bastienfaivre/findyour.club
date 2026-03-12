@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { prisma } from '@/server/db'
+import { getNumberSetting } from '@/lib/server/platform-settings'
 import { ClubProfileForm } from '@/components/app/club-admin/ClubProfileForm'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 
@@ -49,16 +50,25 @@ export default async function ClubAdminPage({ params }: ClubAdminPageProps) {
   })
   if (!club) notFound()
 
+  const [maxPhotos, maxImageSizeMb] = await Promise.all([
+    getNumberSetting('limit.max_photos_per_club'),
+    getNumberSetting('limit.max_image_size_mb'),
+  ])
+  const maxImageSizeBytes = maxImageSizeMb * 1024 * 1024
+
   return (
     <>
     <AdminPageTitle title={t.club.admin.clubProfile.title} />
     <ClubProfileForm
       clubId={clubId}
       translations={t.club.admin}
+      maxPhotos={maxPhotos}
+      maxImageSizeBytes={maxImageSizeBytes}
       clubSiteTranslations={{
         contactCta: t.clubSite.contactCta,
         visitWebsite: t.clubSite.visitWebsite,
         goToPhoto: t.clubSite.goToPhoto,
+        description: t.clubSite.description,
         schedule: t.clubSite.schedule,
         howToJoin: t.clubSite.howToJoin,
         contactInfo: t.clubSite.contactInfo,
@@ -70,9 +80,9 @@ export default async function ClubAdminPage({ params }: ClubAdminPageProps) {
       initialData={{
         name: club.name,
         email: club.email,
-        description: club.description,
-        schedule: club.schedule,
-        howToJoin: club.howToJoin,
+        description: club.description ?? '',
+        schedule: club.schedule ?? '',
+        howToJoin: club.howToJoin ?? '',
         contactPhone: club.contactPhone,
         contactAddress: club.contactAddress,
         externalWebsiteUrl: club.externalWebsiteUrl,

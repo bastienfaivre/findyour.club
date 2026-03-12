@@ -20,14 +20,6 @@ vi.mock('@/components/ui/button', () => ({
   })),
 }))
 
-vi.mock('@/components/ui/input', () => ({
-  Input: vi.fn((props: any) => ({
-    type: 'Input',
-    props,
-    key: null,
-  })),
-}))
-
 vi.mock('@/components/ui/alert-dialog', () => ({
   AlertDialog: vi.fn(({ children }: any) => ({
     type: 'AlertDialog',
@@ -139,11 +131,14 @@ const t = {
   button: 'Delete my account',
   dialogTitle: 'Are you sure?',
   dialogDescription: 'This will permanently delete your account.',
-  clubsWarning: 'These clubs will be deleted: {clubs}',
+  consequences: [
+    'Your credentials will be deleted.',
+    'Your memberships will be removed.',
+  ],
+  clubsBlockingNote: 'You must delete or transfer these clubs first: {clubs}.',
   editorOnlyNote: 'Your editor memberships will be removed.',
   noClubsNote: 'You have no clubs.',
-  confirmLabel: 'Type club names to confirm',
-  confirmHint: 'Type: {names}',
+  acknowledge: 'I understand this is permanent.',
   deleting: 'Deleting...',
   confirm: 'Delete',
   cancel: 'Cancel',
@@ -152,7 +147,7 @@ const t = {
 /**
  * Render the component with controlled useState values.
  * stateOverrides maps by index:
- *   0: open, 1: info, 2: loading, 3: confirmText, 4: error
+ *   0: open, 1: info, 2: loading, 3: acknowledged, 4: error
  */
 async function renderWithStates(overrides: Record<number, unknown> = {}) {
   useStateCalls = []
@@ -215,7 +210,7 @@ describe('DeleteAccountSection', () => {
     expect(setOpen).toHaveBeenCalledWith(false)
   })
 
-  it('shows sole-owner warning with club names when soleOwnerClubs is non-empty', async () => {
+  it('shows blocking note with club names when soleOwnerClubs is non-empty', async () => {
     const info = {
       soleOwnerClubs: [{ id: '1', name: 'Ski Club' }, { id: '2', name: 'Tennis Club' }],
       otherClubs: [],
@@ -224,7 +219,23 @@ describe('DeleteAccountSection', () => {
     // State: open=true, info=..., loading=false
     const result = await renderWithStates({ 0: true, 1: info, 2: false })
     const text = findText(result)
-    expect(text).toContain('These clubs will be deleted: Ski Club, Tennis Club')
+    expect(text).toContain('You must delete or transfer these clubs first: Ski Club, Tennis Club.')
+  })
+
+  it('disables confirm button when sole-owner clubs exist', async () => {
+    const info = {
+      soleOwnerClubs: [{ id: '1', name: 'Ski Club' }],
+      otherClubs: [],
+    }
+
+    const result = await renderWithStates({ 0: true, 1: info, 2: false })
+
+    const buttons = findByRef(result, Button)
+    const confirmBtn = buttons.find(
+      (b) => findText(b.props.children).includes('Delete') && b.props.onClick,
+    )
+    expect(confirmBtn).toBeDefined()
+    expect(confirmBtn!.props.disabled).toBe(true)
   })
 
   it('shows editor-only note when user has otherClubs', async () => {
@@ -249,36 +260,35 @@ describe('DeleteAccountSection', () => {
     expect(text).toContain('You have no clubs.')
   })
 
-  it('disables confirm button when confirmation text does not match', async () => {
+  it('disables confirm button when acknowledged is false', async () => {
     const info = {
-      soleOwnerClubs: [{ id: '1', name: 'Ski Club' }],
+      soleOwnerClubs: [],
       otherClubs: [],
     }
 
-    // State: open=true, info=..., loading=false, confirmText='wrong'
-    const result = await renderWithStates({ 0: true, 1: info, 2: false, 3: 'wrong' })
+    // acknowledged=false (default)
+    const result = await renderWithStates({ 0: true, 1: info, 2: false })
 
-    // Find the confirm button — it has onClick (handleDelete) and contains 'Delete' text
     const buttons = findByRef(result, Button)
     const confirmBtn = buttons.find(
-      (b) => findText(b.props.children) === 'Delete' && b.props.onClick,
+      (b) => findText(b.props.children).includes('Delete') && b.props.onClick,
     )
     expect(confirmBtn).toBeDefined()
     expect(confirmBtn!.props.disabled).toBe(true)
   })
 
-  it('enables confirm button when confirmation text matches exactly', async () => {
+  it('enables confirm button when acknowledged and no sole-owner clubs', async () => {
     const info = {
-      soleOwnerClubs: [{ id: '1', name: 'Ski Club' }],
+      soleOwnerClubs: [],
       otherClubs: [],
     }
 
-    // State: open=true, info=..., loading=false, confirmText='Ski Club' (exact match)
-    const result = await renderWithStates({ 0: true, 1: info, 2: false, 3: 'Ski Club' })
+    // acknowledged=true (index 3)
+    const result = await renderWithStates({ 0: true, 1: info, 2: false, 3: true })
 
     const buttons = findByRef(result, Button)
     const confirmBtn = buttons.find(
-      (b) => findText(b.props.children) === 'Delete' && b.props.onClick,
+      (b) => findText(b.props.children).includes('Delete') && b.props.onClick,
     )
     expect(confirmBtn).toBeDefined()
     expect(confirmBtn!.props.disabled).toBe(false)

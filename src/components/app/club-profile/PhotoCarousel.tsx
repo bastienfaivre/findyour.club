@@ -40,12 +40,12 @@ export function PhotoCarousel({ photos, ariaLabel }: PhotoCarouselProps) {
     getReducedMotionServer,
   )
 
-  // Duplicate the photos so the marquee loops seamlessly
-  const items = photos.length > 0 ? [...photos, ...photos] : []
+  // Duplicate the photos so the marquee loops seamlessly (only needed for animated carousel)
+  const items = photos.length > 3 ? [...photos, ...photos] : photos
 
   useEffect(() => {
     const track = trackRef.current
-    if (!track || photos.length <= 1 || prefersReducedMotion || isPaused) return
+    if (!track || photos.length <= 3 || prefersReducedMotion || isPaused) return
 
     let animationId: number
 

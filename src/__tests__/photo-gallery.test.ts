@@ -49,12 +49,11 @@ const translations = {
   add: 'Add photos',
   delete: 'Delete',
   deleteConfirm: 'Delete this photo?',
-  maxReached: 'Maximum 10 photos reached. Remove a photo to add a new one.',
-  minRequired: '{count}/{min} photos — add at least {min} to publish.',
-  constraints: 'JPEG, PNG, or WebP — max 5 MB each — up to 10 photos',
+  maxReached: 'Maximum {max} photos reached. Remove a photo to add a new one.',
+  constraints: 'JPEG, PNG, or WebP — max {sizeMb} MB each — up to {max} photos',
   uploading: 'Uploading…',
   errorType: 'Invalid file type.',
-  errorSize: 'File too large.',
+  errorSize: 'File too large. Max {sizeMb} MB.',
   errorUpload: 'Upload failed.',
 }
 
@@ -68,7 +67,7 @@ function makePhotos(count: number) {
 }
 
 function render(photos: ReturnType<typeof makePhotos>) {
-  return PhotoGallery({ clubId: 'club-1', clubName: 'Test Club', photos, translations })
+  return PhotoGallery({ clubId: 'club-1', clubName: 'Test Club', photos, maxPhotos: 10, maxImageSizeBytes: 5 * 1024 * 1024, translations })
 }
 
 describe('PhotoGallery', () => {
@@ -83,30 +82,6 @@ describe('PhotoGallery', () => {
     expect(tree).toContain('https://example.com/1.jpg')
     expect(tree).toContain('https://example.com/2.jpg')
     expect(tree).toContain('https://example.com/3.jpg')
-  })
-
-  it('shows photo count in min-photos hint when < 5 photos', () => {
-    const photos = makePhotos(3)
-    const result = render(photos)
-    const tree = JSON.stringify(result)
-    // minRequired template: '{count}/{min} photos — add at least {min} to publish.'
-    // With 3 photos it becomes: '3/5 photos — add at least 5 to publish.'
-    expect(tree).toContain('3/5 photos')
-  })
-
-  it('shows min photos hint when fewer than 5 photos', () => {
-    const photos = makePhotos(2)
-    const result = render(photos)
-    const tree = JSON.stringify(result)
-    expect(tree).toContain('2/5 photos')
-    expect(tree).toContain('add at least 5 to publish')
-  })
-
-  it('does not show min photos hint when >= 5 photos', () => {
-    const photos = makePhotos(5)
-    const result = render(photos)
-    const tree = JSON.stringify(result)
-    expect(tree).not.toContain('add at least 5 to publish')
   })
 
   it('shows max photos reached message when 10 photos', () => {

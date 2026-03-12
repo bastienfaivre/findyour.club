@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+vi.mock('next/headers', () => ({
+  cookies: vi.fn(async () => ({ get: vi.fn(() => undefined) })),
+}))
 vi.mock('next/navigation', () => ({
   redirect: vi.fn((url: string) => { throw new Error(`NEXT_REDIRECT:${url}`) }),
   notFound: vi.fn(() => { throw new Error('NEXT_NOT_FOUND') }),
