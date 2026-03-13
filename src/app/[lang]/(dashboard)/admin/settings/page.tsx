@@ -61,6 +61,13 @@ export default async function AdminSettingsPage({ params }: AdminSettingsPagePro
               </div>
               <span className="shrink-0 text-xs text-muted-foreground">{s.alwaysEnabled}</span>
             </div>
+            <div className="flex items-center justify-between gap-4 px-4 py-3 opacity-60">
+              <div>
+                <p className="font-medium">{s.passwordReset}</p>
+                <p className="text-sm text-muted-foreground">{s.passwordResetDescription}</p>
+              </div>
+              <span className="shrink-0 text-xs text-muted-foreground">{s.alwaysEnabled}</span>
+            </div>
             <EmailToggleRow
               settingKey="email.application_rejected"
               label={s.applicationRejected}

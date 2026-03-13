@@ -477,6 +477,7 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
           {/* Activity Type */}
           <div className="space-y-2">
             <Label htmlFor="activityType">{t.apply.fields.activityType}<RequiredMark /></Label>
+            <p className="text-sm text-muted-foreground">{t.apply.helpers.activityType}</p>
             <Controller
               control={control}
               name="activityType"

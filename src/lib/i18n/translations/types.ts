@@ -8,6 +8,7 @@ export type Translations = {
     or: string
     setPassword: string
     setPasswordSubtitle: string
+    setPasswordProfileHint: string
     twoFactor: string
     twoFactorSubtitle: string
     totpSetup: string
@@ -97,6 +98,21 @@ export type Translations = {
       pre: string
       link: string
       post: string
+    }
+    forgotPassword: {
+      link: string
+      title: string
+      subtitle: string
+      sendLink: string
+      sending: string
+      successMessage: string
+      backToLogin: string
+    }
+    resetPassword: {
+      title: string
+      subtitle: string
+      resetting: string
+      resetBtn: string
     }
     deleteAccount: {
       title: string
@@ -272,6 +288,8 @@ export type Translations = {
       applicationApprovedDescription: string
       editorInvited: string
       editorInvitedDescription: string
+      passwordReset: string
+      passwordResetDescription: string
       // Platform controls
       platformControls: string
       platformControlsDescription: string
@@ -357,6 +375,7 @@ export type Translations = {
       otherDescription: string
     }
     helpers: {
+      activityType: string
       description: string
       schedule: string
       howToJoin: string
@@ -877,6 +896,13 @@ export type Translations = {
       intro: string
       cta: string
       acceptButton: string
+      expiry: string
+    }
+    passwordReset: {
+      subject: string
+      heading: string
+      intro: string
+      resetButton: string
       expiry: string
     }
   }

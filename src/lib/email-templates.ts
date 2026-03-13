@@ -196,6 +196,23 @@ export function buildInvitationEmailHtml({ clubName, acceptUrl, lang }: Invitati
   `, lang)
 }
 
+interface PasswordResetEmailParams {
+  resetUrl: string
+  lang: SupportedLanguage
+}
+
+export function buildPasswordResetEmailHtml({ resetUrl, lang }: PasswordResetEmailParams): string {
+  const t = getTranslations(lang).emails.passwordReset
+
+  return emailLayout(`
+    ${heading(t.heading)}
+    ${paragraph(t.intro)}
+    ${primaryButton(t.resetButton, resetUrl)}
+    ${divider()}
+    ${smallText(t.expiry)}
+  `, lang)
+}
+
 export function escapeHtml(str: string): string {
   return str
     .replace(/&/g, '&amp;')

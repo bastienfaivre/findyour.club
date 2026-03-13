@@ -1,6 +1,7 @@
 'use client'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,6 +13,7 @@ interface LoginFormT {
   password: string
   signingIn: string
   signIn: string
+  forgotPassword: string
 }
 
 interface LoginFormProps {
@@ -70,7 +72,12 @@ export function LoginForm({ callbackUrl, lang, t }: LoginFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password">{t.password}</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="password">{t.password}</Label>
+          <Link href={`/${lang}/auth/forgot-password`} className="text-xs text-muted-foreground hover:underline" tabIndex={-1}>
+            {t.forgotPassword}
+          </Link>
+        </div>
         <Input
           id="password"
           type="password"

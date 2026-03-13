@@ -27,11 +27,14 @@ export async function setupPassword(input: unknown): Promise<SetupPasswordResult
   // Guard: reject if a password is already set (prevents setup_session replay after completion)
   const existingUser = await prisma.user.findUnique({
     where: { id: userId },
-    select: { passwordHash: true, email: true },
+    select: { passwordHash: true, email: true, firstName: true },
   })
   if (existingUser?.passwordHash) {
     return { success: false, error: 'Password already configured for this account.', code: 'ALREADY_CONFIGURED' }
   }
+
+  // Profile already populated (e.g. from application approval) — don't overwrite
+  const profileLocked = !!existingUser?.firstName
 
   // Validate input
   const parsed = setupPasswordSchema.safeParse(input)
@@ -83,12 +86,15 @@ export async function setupPassword(input: unknown): Promise<SetupPasswordResult
         where: { id: userId },
         data: {
           passwordHash,
-          firstName,
-          lastName,
-          phone: phone || null,
-          preferredLanguage,
           magicToken: null,
           magicTokenExp: null,
+          // Only update profile fields for new editors (not pre-filled from approval)
+          ...(!profileLocked && {
+            firstName,
+            lastName,
+            phone: phone || null,
+            preferredLanguage,
+          }),
         },
       }),
       prisma.session.create({ data: { sessionToken, userId, expires } }),

@@ -28,15 +28,9 @@ export async function verifyMagicLinkToken(rawToken: string): Promise<MagicLinkR
     return { success: false, error: 'Invalid or already used link.', code: 'TOKEN_INVALID' }
   }
 
-  // Check alreadyConfigured before TTL: if the user already set a password, the token
-  // expiry is irrelevant — they should log in normally regardless of how stale the link is.
-  if (user.passwordHash) {
-    return { success: true, userId: user.id, alreadyConfigured: true }
-  }
-
   if (!user.magicTokenExp || user.magicTokenExp < new Date()) {
     return { success: false, error: 'This link has expired. Please contact support.', code: 'TOKEN_EXPIRED' }
   }
 
-  return { success: true, userId: user.id, alreadyConfigured: false }
+  return { success: true, userId: user.id, alreadyConfigured: !!user.passwordHash }
 }

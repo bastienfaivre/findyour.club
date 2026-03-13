@@ -37,7 +37,7 @@ export default async function LoginPage({ params, searchParams }: LoginPageProps
         <LoginForm
           callbackUrl={safeCallbackUrl}
           lang={lang}
-          t={{ email: t.auth.fields.email, password: t.auth.fields.password, signingIn: t.auth.form.signingIn, signIn: t.auth.form.signIn }}
+          t={{ email: t.auth.fields.email, password: t.auth.fields.password, signingIn: t.auth.form.signingIn, signIn: t.auth.form.signIn, forgotPassword: t.auth.forgotPassword.link }}
         />
         <div className="relative">
           <div className="absolute inset-0 flex items-center">

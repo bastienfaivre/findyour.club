@@ -6,6 +6,7 @@ import { decodeSetupCookie, SETUP_COOKIE_NAME } from '@/lib/setup-cookie'
 import { SetupPasswordForm } from '@/components/app/auth/SetupPasswordForm'
 import { getAuthSession } from '@/server/auth'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
+import { prisma } from '@/server/db'
 
 interface SetupPageProps {
   params: Promise<{ lang: string }>
@@ -30,6 +31,14 @@ export default async function SetupPage({ params }: SetupPageProps) {
     redirect(`/${lang}/auth/login`)
   }
 
+  // Fetch existing profile — fields filled during approval are locked (read-only)
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { firstName: true, lastName: true, phone: true, preferredLanguage: true },
+  })
+
+  const profileLocked = !!(user?.firstName)
+
   return (
     <div className="flex-1 flex items-center justify-center p-4">
       <AdminPageTitle title={t.auth.setPassword} />
@@ -37,28 +46,39 @@ export default async function SetupPage({ params }: SetupPageProps) {
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-semibold">{t.auth.setPassword}</h1>
           <p className="text-muted-foreground text-sm">{t.auth.setPasswordSubtitle}</p>
+          <p className="text-muted-foreground text-xs">{t.auth.setPasswordProfileHint}</p>
         </div>
-        <SetupPasswordForm defaultLanguage={uiLang} t={{
-          newPassword: t.auth.fields.newPassword,
-          confirmPassword: t.auth.fields.confirmPassword,
-          settingPassword: t.auth.form.settingPassword,
-          setPasswordBtn: t.auth.form.setPasswordBtn,
-          strength: t.auth.form.strength,
-          strengthTooShort: t.auth.form.strengthTooShort,
-          strengthWeak: t.auth.form.strengthWeak,
-          strengthFair: t.auth.form.strengthFair,
-          strengthStrong: t.auth.form.strengthStrong,
-          firstName: t.auth.profile.firstName,
-          lastName: t.auth.profile.lastName,
-          phone: t.auth.profile.phone,
-          preferredLanguage: t.auth.profile.preferredLanguage,
-          languageOptions: [
-            { value: 'fr', label: t.language.fr },
-            { value: 'de', label: t.language.de },
-            { value: 'it', label: t.language.it },
-            { value: 'en', label: t.language.en },
-          ],
-        }} />
+        <SetupPasswordForm
+          defaultLanguage={user?.preferredLanguage ?? uiLang}
+          profileLocked={profileLocked}
+          defaultProfile={{
+            firstName: user?.firstName ?? '',
+            lastName: user?.lastName ?? '',
+            phone: user?.phone ?? '',
+          }}
+          t={{
+            newPassword: t.auth.fields.newPassword,
+            confirmPassword: t.auth.fields.confirmPassword,
+            settingPassword: t.auth.form.settingPassword,
+            setPasswordBtn: t.auth.form.setPasswordBtn,
+            strength: t.auth.form.strength,
+            strengthTooShort: t.auth.form.strengthTooShort,
+            strengthWeak: t.auth.form.strengthWeak,
+            strengthFair: t.auth.form.strengthFair,
+            strengthStrong: t.auth.form.strengthStrong,
+            firstName: t.auth.profile.firstName,
+            lastName: t.auth.profile.lastName,
+            phone: t.auth.profile.phone,
+            preferredLanguage: t.auth.profile.preferredLanguage,
+            passwordHint: t.auth.form.passwordHint,
+            languageOptions: [
+              { value: 'fr', label: t.language.fr },
+              { value: 'de', label: t.language.de },
+              { value: 'it', label: t.language.it },
+              { value: 'en', label: t.language.en },
+            ],
+          }}
+        />
       </div>
     </div>
   )

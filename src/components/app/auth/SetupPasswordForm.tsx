@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PhoneInput } from '@/components/ui/phone-input'
 import { setupPassword } from '@/app/[lang]/(dashboard)/auth/setup/actions'
+import { getPasswordStrength } from '@/lib/password-strength'
 
 interface SetupPasswordFormT {
   newPassword: string
@@ -23,26 +24,22 @@ interface SetupPasswordFormT {
   lastName: string
   phone: string
   preferredLanguage: string
+  passwordHint: string
   languageOptions: { value: string; label: string }[]
 }
 
-function getPasswordStrength(
-  password: string,
-  t: Pick<SetupPasswordFormT, 'strengthTooShort' | 'strengthWeak' | 'strengthFair' | 'strengthStrong'>,
-): { label: string; color: string; progressColor: string; value: number } {
-  if (password.length === 0) return { label: '', color: '', progressColor: '', value: 0 }
-  if (password.length < 8) return { label: t.strengthTooShort, color: 'text-red-600', progressColor: '[&_[data-slot=progress-indicator]]:bg-red-500', value: 25 }
-  const checks = [/[a-z]/, /[A-Z]/, /\d/, /[^a-zA-Z\d]/]
-  const passed = checks.filter(r => r.test(password)).length
-  if (password.length < 12 || passed < 3) return { label: t.strengthWeak, color: 'text-orange-500', progressColor: '[&_[data-slot=progress-indicator]]:bg-orange-500', value: 50 }
-  if (passed < 4) return { label: t.strengthFair, color: 'text-yellow-600', progressColor: '[&_[data-slot=progress-indicator]]:bg-yellow-500', value: 75 }
-  return { label: t.strengthStrong, color: 'text-green-600', progressColor: '[&_[data-slot=progress-indicator]]:bg-green-500', value: 100 }
+interface SetupPasswordFormProps {
+  t: SetupPasswordFormT
+  defaultLanguage: string
+  /** When true, profile fields (name, phone, language) are read-only. */
+  profileLocked: boolean
+  defaultProfile: { firstName: string; lastName: string; phone: string }
 }
 
-export function SetupPasswordForm({ t, defaultLanguage }: { t: SetupPasswordFormT; defaultLanguage: string }) {
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [phone, setPhone] = useState('')
+export function SetupPasswordForm({ t, defaultLanguage, profileLocked, defaultProfile }: SetupPasswordFormProps) {
+  const [firstName, setFirstName] = useState(defaultProfile.firstName)
+  const [lastName, setLastName] = useState(defaultProfile.lastName)
+  const [phone, setPhone] = useState(defaultProfile.phone)
   const [preferredLanguage, setPreferredLanguage] = useState(defaultLanguage)
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -79,7 +76,7 @@ export function SetupPasswordForm({ t, defaultLanguage }: { t: SetupPasswordForm
             value={firstName}
             onChange={e => setFirstName(e.target.value)}
             required
-            disabled={isPending}
+            disabled={isPending || profileLocked}
             autoComplete="given-name"
           />
         </div>
@@ -90,7 +87,7 @@ export function SetupPasswordForm({ t, defaultLanguage }: { t: SetupPasswordForm
             value={lastName}
             onChange={e => setLastName(e.target.value)}
             required
-            disabled={isPending}
+            disabled={isPending || profileLocked}
             autoComplete="family-name"
           />
         </div>
@@ -102,13 +99,13 @@ export function SetupPasswordForm({ t, defaultLanguage }: { t: SetupPasswordForm
           id="phone"
           value={phone}
           onChange={setPhone}
-          disabled={isPending}
+          disabled={isPending || profileLocked}
         />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="preferredLanguage">{t.preferredLanguage}</Label>
-        <Select value={preferredLanguage} onValueChange={setPreferredLanguage} disabled={isPending}>
+        <Select value={preferredLanguage} onValueChange={setPreferredLanguage} disabled={isPending || profileLocked}>
           <SelectTrigger id="preferredLanguage">
             <SelectValue />
           </SelectTrigger>
@@ -133,6 +130,7 @@ export function SetupPasswordForm({ t, defaultLanguage }: { t: SetupPasswordForm
           disabled={isPending}
           autoComplete="new-password"
         />
+        <p className="text-xs text-muted-foreground">{t.passwordHint}</p>
         {password && (
           <div className="space-y-1">
             <Progress value={strength.value} className={`h-1.5 ${strength.progressColor}`} />

@@ -1,13 +1,16 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { verifyMagicLinkToken } from './actions'
 import { encodeSetupCookie, SETUP_COOKIE_NAME } from '@/lib/setup-cookie'
-import { getAuthSession } from '@/server/auth'
 
 /**
  * GET /auth/magic-link?token=<raw_token>
  *
  * Verifies the token and, on success, sets the setup_session cookie and
- * redirects to /auth/setup. Errors redirect to /auth/error with a code.
+ * redirects to the appropriate page. Errors redirect to /auth/error with a code.
+ *
+ * Handles both first-time setup (new account) and password reset (existing account):
+ * - New account (no password): sets setup cookie, redirects to /auth/setup
+ * - Password reset (has password): sets setup cookie, redirects to /auth/reset-password
  *
  * A Route Handler is used (not a Server Component + Server Action) because
  * Next.js only allows cookies() mutation in Route Handlers or Server Actions
@@ -27,17 +30,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL(`/auth/error?error=${errorCode}`, request.url))
   }
 
-  // If the user already completed setup (has a password), the magic link is a re-use
-  // after initial onboarding. Session check only matters here: first-time users never
-  // have a session, so calling getAuthSession() unconditionally would always return null.
-  if (result.alreadyConfigured) {
-    const session = await getAuthSession()
-    const dest = session?.user?.id ? '/' : '/auth/login'
-    return NextResponse.redirect(new URL(dest, request.url))
-  }
+  const dest = result.alreadyConfigured ? '/auth/reset-password' : '/auth/setup'
 
   const isProduction = process.env.NODE_ENV === 'production'
-  const response = NextResponse.redirect(new URL('/auth/setup', request.url))
+  const response = NextResponse.redirect(new URL(dest, request.url))
   response.cookies.set(SETUP_COOKIE_NAME, encodeSetupCookie(result.userId), {
     httpOnly: true,
     secure: isProduction,

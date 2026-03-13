@@ -2,11 +2,9 @@
  * Production seed — creates the initial OPERATOR account.
  *
  * Reads credentials from environment variables (set in .env.production):
- *   OPERATOR_EMAIL    — the operator's email address
- *   OPERATOR_NAME     — display name (e.g. "Bastien Faivre")
- *
- * The account is created WITHOUT a password so the operator must use the
- * magic-link flow to log in and set up their password + 2FA on first access.
+ *   OPERATOR_EMAIL            — the operator's email address
+ *   OPERATOR_NAME             — display name (e.g. "Bastien Faivre")
+ *   OPERATOR_INITIAL_PASSWORD — initial login password
  *
  * Usage (inside the migrate container or locally):
  *   npx tsx prisma/seed-prod.ts
@@ -14,6 +12,7 @@
 import { PrismaClient } from '../src/generated/prisma/client'
 import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
+import argon2 from 'argon2'
 import 'dotenv/config'
 
 const requiredEnv = (name: string): string => {
@@ -28,6 +27,7 @@ const requiredEnv = (name: string): string => {
 const DATABASE_URL = requiredEnv('DATABASE_URL')
 const OPERATOR_EMAIL = requiredEnv('OPERATOR_EMAIL')
 const OPERATOR_NAME = requiredEnv('OPERATOR_NAME')
+const OPERATOR_INITIAL_PASSWORD = requiredEnv('OPERATOR_INITIAL_PASSWORD')
 
 const [firstName, ...rest] = OPERATOR_NAME.split(' ')
 const lastName = rest.join(' ') || firstName
@@ -37,6 +37,8 @@ const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
 
 async function main() {
+  const passwordHash = await argon2.hash(OPERATOR_INITIAL_PASSWORD)
+
   const operator = await prisma.user.upsert({
     where: { email: OPERATOR_EMAIL },
     update: {},
@@ -47,13 +49,13 @@ async function main() {
       lastName,
       preferredLanguage: 'en',
       role: 'OPERATOR',
-      passwordHash: null,
+      passwordHash,
       totpEnabled: false,
     },
   })
 
   console.log(`Operator account ready: ${operator.email} (${operator.id})`)
-  console.log('Log in via magic link to set up your password.')
+  console.log('Log in with your initial password, then change it and enable 2FA.')
 }
 
 main()
