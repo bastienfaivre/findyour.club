@@ -1,7 +1,6 @@
 'use server'
 
 import { randomBytes, createHash } from 'crypto'
-import { headers } from 'next/headers'
 import { prisma } from '@/server/db'
 import { getAuthSession } from '@/server/auth'
 import { slugRegex } from '@/lib/schemas/application'
@@ -249,12 +248,10 @@ export async function approveApplication(applicationId: string, fields: Applicat
 
     // Send acceptance email (outside transaction — compensate on failure)
     try {
-      const headersList = await headers()
-      const host = headersList.get('host') ?? 'localhost:3000'
-      const protocol = host.startsWith('localhost') ? 'http' : 'https'
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://findyour.club'
 
-      const clubUrl = `${protocol}://${host}/${result.club.defaultLanguage}/${result.club.country}/${result.club.slug}`
-      const magicLinkUrl = `${protocol}://${host}/${result.club.defaultLanguage}/auth/magic-link?token=${result.rawToken}`
+      const clubUrl = `${baseUrl}/${result.club.defaultLanguage}/${result.club.country}/${result.club.slug}`
+      const magicLinkUrl = `${baseUrl}/${result.club.defaultLanguage}/auth/magic-link?token=${result.rawToken}`
 
       const emailLang = resolveUILang(fields.applicantPreferredLanguage ?? 'en')
       const emailT = getTranslations(emailLang).emails.acceptance

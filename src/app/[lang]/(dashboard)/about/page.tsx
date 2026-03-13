@@ -3,7 +3,6 @@ import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { generatePlatformMetadata } from '@/components/app/seo/metadata'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
-import { YouTubeEmbed } from '@/components/app/YouTubeEmbed'
 
 type Props = {
   params: Promise<{ lang: string }>

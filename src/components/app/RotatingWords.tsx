@@ -45,7 +45,6 @@ export function RotatingWords({ prefix, words, interval = 2500 }: RotatingWordsP
     const el = measureRef.current
     if (!el) return
     const widths = Array.from(el.children).map((child) => (child as HTMLElement).offsetWidth)
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time measurement on mount, no cascading risk
     setWordWidths(widths)
   }, [])
 

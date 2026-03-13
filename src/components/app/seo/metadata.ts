@@ -130,7 +130,7 @@ export function generateClubMetadata({
   clubSlug,
   country,
   lang,
-  activityTypeLabel,
+  activityTypeLabel: _activityTypeLabel,
   pageTitle,
   pageSlug,
 }: ClubMetadataOptions): Metadata {

@@ -80,8 +80,6 @@ export default async function InnerPage({ params }: Props) {
     notFound()
   }
 
-  const uiLang = resolveUILang(lang)
-
   // Regular club inner page
   const club = await getClubPublicData(parentSlug, country)
   if (!club) notFound()

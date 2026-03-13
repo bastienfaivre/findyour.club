@@ -63,9 +63,8 @@ export async function requestPasswordReset(email: string, lang: string): Promise
 
       const emailLang = resolveUILang(user.preferredLanguage ?? lang) as SupportedLanguage
       const t = getTranslations(emailLang).emails.passwordReset
-      const host = headersList.get('host') ?? 'localhost:3000'
-      const protocol = host.startsWith('localhost') ? 'http' : 'https'
-      const resetUrl = `${protocol}://${host}/${emailLang}/auth/magic-link?token=${rawToken}`
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://findyour.club'
+      const resetUrl = `${baseUrl}/${emailLang}/auth/magic-link?token=${rawToken}`
 
       await sendEmail({
         to: normalizedEmail,

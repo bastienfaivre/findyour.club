@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { SUPPORTED_COUNTRIES } from '@/lib/country'
 import { ACTIVITY_TYPES } from '@/lib/activity-types'
-import { SOCIAL_FIELD_KEYS } from '@/lib/social-platforms'
 import { extractSocialLinks } from '@/lib/schemas/club'
 import { SUPPORTED_LANGUAGES, phoneSchema } from '@/lib/schemas/profile'
 

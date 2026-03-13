@@ -27,7 +27,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const uiLang = resolveUILang(lang)
   const t = getTranslations(uiLang)
-  const countryName = getCountryName(country, uiLang)
 
   // Activity type landing page (redirected at runtime)
   if (isValidActivityType(slug)) {

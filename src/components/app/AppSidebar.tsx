@@ -116,7 +116,6 @@ export function AppSidebar({
           <LanguageSwitcher currentLang={lang} />
         </div>
       </SidebarHeader>
-      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events */}
       <SidebarContent onClick={(e) => { if ((e.target as HTMLElement).closest('a')) closeMobileSidebar() }}>
         {/* Public navigation — always visible */}
         <SidebarGroup>
