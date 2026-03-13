@@ -615,7 +615,7 @@ export const en: Translations = {
       'swim team',
       'community',
     ],
-    tagline: 'Clubs near you, with everything you need to join. No noise.',
+    tagline: 'The essential information of all clubs near you, nothing more.',
     taglineBullets: {
       intro: 'findyour.club covers the essentials on every club and association:',
       whoLabel: 'Who',

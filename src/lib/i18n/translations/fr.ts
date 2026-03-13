@@ -640,7 +640,7 @@ export const fr: Translations = {
       'groupe de guitare',
       'club d\'athlétisme'
     ],
-    tagline: 'Tous les clubs et associations, et comment les rejoindre. Rien de plus.',
+    tagline: 'L\'essentiel sur tous les clubs près de chez vous, rien de plus.',
     taglineBullets: {
       intro: "findyour.club rassemble l'essentiel sur tous les clubs et associations :",
       whoLabel: 'Qui',

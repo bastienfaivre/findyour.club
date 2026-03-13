@@ -615,7 +615,7 @@ export const it: Translations = {
       'club di nuoto',
       'prossimo traguardo',
     ],
-    tagline: 'I club vicino a te, con tutto quello che serve per iscriverti. Senza fronzoli.',
+    tagline: 'Le informazioni essenziali su tutti i club vicino a te, niente di più.',
     taglineBullets: {
       intro: "findyour.club raccoglie l'essenziale su tutti i club e le associazioni:",
       whoLabel: 'Chi',

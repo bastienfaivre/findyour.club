@@ -7,7 +7,7 @@ export const OG_CONTENT_TYPE = 'image/png'
 
 /**
  * Generate a branded OG image for static/platform pages.
- * Renders a simple card with the platform name, page title, and subtitle.
+ * Renders a card with gradient accent, platform name, page title, and subtitle.
  */
 export function generateStaticOgImage({
   title,
@@ -24,37 +24,85 @@ export function generateStaticOgImage({
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
+          justifyContent: 'space-between',
           backgroundColor: '#09090b',
           color: '#fafafa',
           fontFamily: 'sans-serif',
           padding: '60px 80px',
+          position: 'relative',
+          overflow: 'hidden',
         }}
       >
+        {/* Subtle gradient accent in top-right corner */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '-120px',
+            right: '-120px',
+            width: '500px',
+            height: '500px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%)',
+            display: 'flex',
+          }}
+        />
+        {/* Subtle gradient accent in bottom-left corner */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '-160px',
+            left: '-100px',
+            width: '400px',
+            height: '400px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 70%)',
+            display: 'flex',
+          }}
+        />
+
+        {/* Top: platform name */}
         <div
           style={{
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
-            gap: '24px',
+            gap: '12px',
           }}
         >
           <div
             style={{
-              fontSize: 32,
-              fontWeight: 400,
-              color: '#a1a1aa',
+              width: '8px',
+              height: '32px',
+              borderRadius: '4px',
+              background: 'linear-gradient(180deg, #3b82f6, #a855f7)',
+              display: 'flex',
+            }}
+          />
+          <div
+            style={{
+              fontSize: 30,
+              fontWeight: 600,
               letterSpacing: '-0.02em',
+              color: '#e4e4e7',
             }}
           >
             findyour.club
           </div>
+        </div>
+
+        {/* Center: title + subtitle */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+            flex: 1,
+            justifyContent: 'center',
+          }}
+        >
           <div
             style={{
               fontSize: 64,
-              fontWeight: 700,
-              textAlign: 'center',
+              fontWeight: 800,
               lineHeight: 1.1,
               letterSpacing: '-0.03em',
               maxWidth: '900px',
@@ -67,7 +115,6 @@ export function generateStaticOgImage({
               style={{
                 fontSize: 28,
                 color: '#a1a1aa',
-                textAlign: 'center',
                 maxWidth: '800px',
                 lineHeight: 1.4,
               }}
@@ -76,6 +123,17 @@ export function generateStaticOgImage({
             </div>
           )}
         </div>
+
+        {/* Bottom: thin accent line */}
+        <div
+          style={{
+            width: '120px',
+            height: '4px',
+            borderRadius: '2px',
+            background: 'linear-gradient(90deg, #3b82f6, #a855f7)',
+            display: 'flex',
+          }}
+        />
       </div>
     ),
     OG_SIZE,
@@ -108,8 +166,54 @@ export function generateClubOgImage({
           color: '#fafafa',
           fontFamily: 'sans-serif',
           padding: '60px 80px',
+          position: 'relative',
+          overflow: 'hidden',
         }}
       >
+        {/* Subtle gradient accent */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '-120px',
+            right: '-120px',
+            width: '500px',
+            height: '500px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%)',
+            display: 'flex',
+          }}
+        />
+
+        {/* Top: platform name */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <div
+            style={{
+              width: '8px',
+              height: '32px',
+              borderRadius: '4px',
+              background: 'linear-gradient(180deg, #3b82f6, #a855f7)',
+              display: 'flex',
+            }}
+          />
+          <div
+            style={{
+              fontSize: 30,
+              fontWeight: 600,
+              letterSpacing: '-0.02em',
+              color: '#e4e4e7',
+            }}
+          >
+            findyour.club
+          </div>
+        </div>
+
+        {/* Center: club info */}
         <div
           style={{
             display: 'flex',
@@ -143,16 +247,17 @@ export function generateClubOgImage({
             {location && <span>{location}</span>}
           </div>
         </div>
+
+        {/* Bottom: accent line */}
         <div
           style={{
+            width: '120px',
+            height: '4px',
+            borderRadius: '2px',
+            background: 'linear-gradient(90deg, #3b82f6, #a855f7)',
             display: 'flex',
-            justifyContent: 'flex-end',
-            fontSize: 28,
-            color: '#71717a',
           }}
-        >
-          findyour.club
-        </div>
+        />
       </div>
     ),
     OG_SIZE,
@@ -182,8 +287,54 @@ export function generateCategoryOgImage({
           color: '#fafafa',
           fontFamily: 'sans-serif',
           padding: '60px 80px',
+          position: 'relative',
+          overflow: 'hidden',
         }}
       >
+        {/* Subtle gradient accent */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '-120px',
+            right: '-120px',
+            width: '500px',
+            height: '500px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%)',
+            display: 'flex',
+          }}
+        />
+
+        {/* Top: platform name */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <div
+            style={{
+              width: '8px',
+              height: '32px',
+              borderRadius: '4px',
+              background: 'linear-gradient(180deg, #3b82f6, #a855f7)',
+              display: 'flex',
+            }}
+          />
+          <div
+            style={{
+              fontSize: 30,
+              fontWeight: 600,
+              letterSpacing: '-0.02em',
+              color: '#e4e4e7',
+            }}
+          >
+            findyour.club
+          </div>
+        </div>
+
+        {/* Center: title + subtitle */}
         <div
           style={{
             display: 'flex',
@@ -217,16 +368,17 @@ export function generateCategoryOgImage({
             </div>
           )}
         </div>
+
+        {/* Bottom: accent line */}
         <div
           style={{
+            width: '120px',
+            height: '4px',
+            borderRadius: '2px',
+            background: 'linear-gradient(90deg, #3b82f6, #a855f7)',
             display: 'flex',
-            justifyContent: 'flex-end',
-            fontSize: 28,
-            color: '#71717a',
           }}
-        >
-          findyour.club
-        </div>
+        />
       </div>
     ),
     OG_SIZE,

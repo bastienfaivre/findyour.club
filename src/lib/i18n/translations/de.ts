@@ -615,7 +615,7 @@ export const de: Translations = {
       'Schwimmverein',
       'Sportverein',
     ],
-    tagline: 'Vereine in deiner Nähe, mit allem was du brauchst, um mitzumachen. Ohne Umwege.',
+    tagline: 'Das Wichtigste über alle Vereine in deiner Nähe, mehr nicht.',
     taglineBullets: {
       intro: 'findyour.club bündelt das Wesentliche über alle Vereine und Clubs:',
       whoLabel: 'Wer',
