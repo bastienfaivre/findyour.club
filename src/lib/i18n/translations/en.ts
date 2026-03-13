@@ -875,14 +875,6 @@ export const en: Translations = {
     browseByRegion: 'Browse by region',
   },
   activityTypes: {
-    skiing: 'Skiing',
-    football: 'Football',
-    mountaineering: 'Mountaineering',
-    rowing: 'Rowing',
-    gymnastics: 'Gymnastics',
-    yoga: 'Yoga',
-    swimming: 'Swimming',
-    chess: 'Chess',
     other: 'Other',
   },
   emails: {

@@ -875,14 +875,6 @@ export const de: Translations = {
     browseByRegion: 'Nach Region durchsuchen',
   },
   activityTypes: {
-    skiing: 'Skifahren',
-    football: 'Fussball',
-    mountaineering: 'Bergsteigen',
-    rowing: 'Rudern',
-    gymnastics: 'Turnen',
-    yoga: 'Yoga',
-    swimming: 'Schwimmen',
-    chess: 'Schach',
     other: 'Andere',
   },
   emails: {

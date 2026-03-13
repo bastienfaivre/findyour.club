@@ -900,14 +900,6 @@ export const fr: Translations = {
     browseByRegion: 'Parcourir par région',
   },
   activityTypes: {
-    skiing: 'Ski',
-    football: 'Football',
-    mountaineering: 'Alpinisme',
-    rowing: 'Aviron',
-    gymnastics: 'Gymnastique',
-    yoga: 'Yoga',
-    swimming: 'Natation',
-    chess: 'Échecs',
     other: 'Autre',
   },
   emails: {
