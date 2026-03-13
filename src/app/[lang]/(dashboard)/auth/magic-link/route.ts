@@ -22,18 +22,19 @@ import { encodeSetupCookie, SETUP_COOKIE_NAME } from '@/lib/setup-cookie'
  */
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get('token') ?? ''
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? request.url
 
   const result = await verifyMagicLinkToken(token)
 
   if (!result.success) {
     const errorCode = result.code === 'TOKEN_EXPIRED' ? 'TokenExpired' : 'TokenInvalid'
-    return NextResponse.redirect(new URL(`/auth/error?error=${errorCode}`, request.url))
+    return NextResponse.redirect(new URL(`/auth/error?error=${errorCode}`, baseUrl))
   }
 
   const dest = result.alreadyConfigured ? '/auth/reset-password' : '/auth/setup'
 
   const isProduction = process.env.NODE_ENV === 'production'
-  const response = NextResponse.redirect(new URL(dest, request.url))
+  const response = NextResponse.redirect(new URL(dest, baseUrl))
   response.cookies.set(SETUP_COOKIE_NAME, encodeSetupCookie(result.userId), {
     httpOnly: true,
     secure: isProduction,

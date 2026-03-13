@@ -5,9 +5,10 @@ import { getAuthSession } from '@/server/auth'
 import { encodeSetupCookie, SETUP_COOKIE_NAME } from '@/lib/setup-cookie'
 
 export async function GET(request: NextRequest) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? request.url
   const rawToken = request.nextUrl.searchParams.get('token') ?? ''
   if (!rawToken) {
-    return NextResponse.redirect(new URL('/auth/error?error=InviteExpired', request.url))
+    return NextResponse.redirect(new URL('/auth/error?error=InviteExpired', baseUrl))
   }
   const tokenHash = createHash('sha256').update(rawToken).digest('hex')
 
@@ -20,9 +21,9 @@ export async function GET(request: NextRequest) {
     // or to login if not (so they end up there after login).
     const session = await getAuthSession()
     if (session?.user?.id) {
-      return NextResponse.redirect(new URL('/', request.url))
+      return NextResponse.redirect(new URL('/', baseUrl))
     }
-    return NextResponse.redirect(new URL('/auth/login', request.url))
+    return NextResponse.redirect(new URL('/auth/login', baseUrl))
   }
 
   // Find the invited user by email
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
 
   if (!invitedUser) {
     // Should not happen (user created during inviteEditor), but guard anyway
-    return NextResponse.redirect(new URL('/auth/error?error=InviteExpired', request.url))
+    return NextResponse.redirect(new URL('/auth/error?error=InviteExpired', baseUrl))
   }
 
   const session = await getAuthSession()
@@ -47,12 +48,12 @@ export async function GET(request: NextRequest) {
       }),
       prisma.invitation.delete({ where: { tokenHash } }),
     ])
-    return NextResponse.redirect(new URL('/', request.url))
+    return NextResponse.redirect(new URL('/', baseUrl))
   }
 
   if (session) {
     // Logged in as a DIFFERENT user — don't activate, show mismatch error
-    return NextResponse.redirect(new URL('/auth/error?error=InviteEmailMismatch', request.url))
+    return NextResponse.redirect(new URL('/auth/error?error=InviteEmailMismatch', baseUrl))
   }
 
   // Unauthenticated path: if user already has a password, redirect to login so they can
@@ -60,14 +61,14 @@ export async function GET(request: NextRequest) {
   // Pass the original accept URL as callbackUrl so the user lands back here after login.
   if (invitedUser.passwordHash) {
     const callbackUrl = encodeURIComponent(`/auth/invite/accept?token=${rawToken}`)
-    return NextResponse.redirect(new URL(`/auth/login?callbackUrl=${callbackUrl}`, request.url))
+    return NextResponse.redirect(new URL(`/auth/login?callbackUrl=${callbackUrl}`, baseUrl))
   }
 
   // First-time user: leave invitation intact (it will be cleaned up in setupPassword once
   // the user completes account setup), set setup cookie, and redirect to /auth/setup.
   // This allows the user to close and re-open the link before finishing setup.
   const isProduction = process.env.NODE_ENV === 'production'
-  const response = NextResponse.redirect(new URL('/auth/setup', request.url))
+  const response = NextResponse.redirect(new URL('/auth/setup', baseUrl))
   response.cookies.set(SETUP_COOKIE_NAME, encodeSetupCookie(invitedUser.id), {
     httpOnly: true,
     secure: isProduction,

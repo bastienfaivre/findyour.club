@@ -41,7 +41,7 @@ async function main() {
 
   const operator = await prisma.user.upsert({
     where: { email: OPERATOR_EMAIL },
-    update: {},
+    update: { passwordHash },
     create: {
       email: OPERATOR_EMAIL,
       name: OPERATOR_NAME,

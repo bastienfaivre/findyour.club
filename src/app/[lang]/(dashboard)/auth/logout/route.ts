@@ -20,7 +20,8 @@ export async function GET(
     await prisma.session.deleteMany({ where: { sessionToken } }).catch(() => {})
   }
 
-  const response = NextResponse.redirect(new URL(`/${lang}/`, request.url))
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? request.url
+  const response = NextResponse.redirect(new URL(`/${lang}/`, baseUrl))
   response.cookies.delete(SESSION_COOKIE_NAME)
   response.cookies.delete('totp_verified')
   response.cookies.delete('setup_session')
