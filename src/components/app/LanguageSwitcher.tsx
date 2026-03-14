@@ -27,15 +27,15 @@ export function LanguageSwitcher({ currentLang, dropUp }: { currentLang: string;
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const activeLang = resolveUILang(currentLang)
-  const { openMobile } = useSidebar()
+  const { setOpenMobile } = useSidebar()
 
   function switchLang(newLang: string) {
     const segments = pathname.split('/')
     segments[1] = newLang
     const newPath = segments.join('/')
-    if (openMobile) {
-      sessionStorage.setItem('sidebar-keep-open', '1')
-    }
+    // Close the mobile sidebar before navigating to avoid Radix Dialog
+    // leaving a stale body scroll lock (pointer-events/overflow) behind.
+    setOpenMobile(false)
     startTransition(() => {
       router.replace(newPath)
     })
