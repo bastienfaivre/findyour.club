@@ -275,7 +275,7 @@ export function AppSidebar({
                               <SidebarMenuSubItem>
                                 <SidebarMenuSubButton asChild isActive={isItemActive(pathname, `${clubPath}/promote`, false)}>
                                   <Link href={`${clubPath}/promote`}>
-                                    <span>🚧 {t.club.sidebar.promote}</span>
+                                    <span>{t.club.sidebar.promote}</span>
                                   </Link>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>

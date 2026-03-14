@@ -22,7 +22,7 @@ import { Pencil, Eye } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 import type { Translations } from '@/lib/i18n/translations/types'
-import { SOCIAL_PLATFORMS } from '@/lib/social-platforms'
+import { SocialLinksFieldset } from '@/components/app/SocialLinksFieldset'
 
 export interface ClubPhoto {
   id: string
@@ -61,6 +61,7 @@ interface ClubProfileFormProps {
     contactCta: string
     visitWebsite: string
     goToPhoto: string
+    closeLightbox: string
     description: string
     schedule: string
     howToJoin: string
@@ -173,6 +174,7 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
         visitWebsite: cs.visitWebsite,
         photos: cs.photos,
         goToPhoto: cs.goToPhoto,
+        closeLightbox: cs.closeLightbox,
         contactCta: cs.contactCta,
         preview: t.clubProfile.preview,
       }}
@@ -346,25 +348,19 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
         </div>
 
         {/* Social Media Links */}
-        <fieldset className="space-y-3">
-          <legend className="text-sm font-medium">{p.fields.socialLinks}</legend>
-          {SOCIAL_PLATFORMS.map((platform) => {
-            const Icon = platform.icon
-            return (
-              <div key={platform.key} className="flex items-center gap-2">
-                <Icon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                <Input
-                  id={platform.key}
-                  {...register(platform.key)}
-                  placeholder={platform.placeholder}
-                  aria-label={platform.label}
-                  aria-describedby={errors[platform.key] ? `${platform.key}-error` : undefined}
-                  aria-invalid={!!errors[platform.key]}
-                />
-              </div>
-            )
-          })}
-        </fieldset>
+        <SocialLinksFieldset
+          label={p.fields.socialLinks}
+          renderInput={(platform) => (
+            <Input
+              id={platform.key}
+              {...register(platform.key)}
+              placeholder={platform.placeholder}
+              aria-label={platform.label}
+              aria-describedby={errors[platform.key] ? `${platform.key}-error` : undefined}
+              aria-invalid={!!errors[platform.key]}
+            />
+          )}
+        />
 
         {/* Photos */}
         <PhotoGallery

@@ -162,7 +162,16 @@ describe('approveApplication()', () => {
         contactAddress: 'Rue de la Gare 1, 1950 Sion',
         howToJoin: 'Send us an email',
         externalWebsiteUrl: 'https://skiclub-valais.ch',
-        isPublished: false,
+        instagramUrl: null,
+        facebookUrl: null,
+        xUrl: null,
+        tiktokUrl: null,
+        discordUrl: null,
+        youtubeUrl: null,
+        whatsappUrl: null,
+        telegramUrl: null,
+        githubUrl: null,
+        isPublished: true,
         forceOffline: false,
       }),
     })
@@ -401,7 +410,7 @@ describe('approveApplication()', () => {
 
     expect(prisma.club.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
-        isPublished: false,
+        isPublished: true,
         forceOffline: false,
       }),
     })

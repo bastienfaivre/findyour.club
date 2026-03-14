@@ -51,14 +51,14 @@ describe('verifyMagicLinkToken()', () => {
     expect(result).toMatchObject({ success: true, userId: 'u1', alreadyConfigured: false })
   })
 
-  it('returns success with alreadyConfigured=true even when token is expired', async () => {
+  it('returns TOKEN_EXPIRED when token is expired even for already-configured users', async () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       id: 'u1',
       passwordHash: '$existing_hash',
-      magicTokenExp: new Date(Date.now() - 1000), // expired — irrelevant for already-configured users
+      magicTokenExp: new Date(Date.now() - 1000), // expired
     } as never)
     const result = await verifyMagicLinkToken('raw-token-stale')
-    expect(result).toMatchObject({ success: true, userId: 'u1', alreadyConfigured: true })
+    expect(result).toMatchObject({ success: false, code: 'TOKEN_EXPIRED' })
   })
 
   it('does NOT modify the user record (magic token cleared only after password setup)', async () => {

@@ -16,6 +16,7 @@ vi.mock('@/server/db', () => ({
     clubMembership: { findMany: vi.fn().mockResolvedValue([]) },
     conversationReadCursor: { findMany: vi.fn().mockResolvedValue([]) },
     supportMessage: { count: vi.fn().mockResolvedValue(0), groupBy: vi.fn().mockResolvedValue([]) },
+    featureFlag: { findUnique: vi.fn().mockResolvedValue(null) },
   },
 }))
 vi.mock('@/components/app/AppSidebar', () => ({
@@ -41,6 +42,7 @@ vi.mock('@/components/app/AdminSelectionContext', () => ({
 vi.mock('@/components/app/admin/AdminPageTitle', () => ({
   PageTitleProvider: vi.fn(({ children }: { children: unknown }) => children),
   PageTitleDisplay: vi.fn(() => null),
+  PageActionDisplay: vi.fn(() => null),
 }))
 
 import { getAuthSession } from '@/server/auth'

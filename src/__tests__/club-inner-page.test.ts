@@ -200,7 +200,7 @@ describe('Inner page generateMetadata', () => {
   it('returns correct title and canonical URL with page slug', async () => {
     setupMocks()
     const metadata = await innerPageMetadata({ params: makeParams() })
-    expect(metadata.title).toBe('Calendar — Ski Club Valais')
+    expect(metadata.title).toBe('Calendar — Ski Club Valais — findyour.club')
     expect(metadata.alternates?.canonical).toContain('/en/ch/ski-club-valais/calendar')
   })
 

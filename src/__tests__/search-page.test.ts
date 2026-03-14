@@ -9,7 +9,8 @@ vi.mock('@/server/db', () => ({
 vi.mock('@/lib/i18n/translations', () => ({
   getTranslations: vi.fn(() => ({
     nav: { search: 'Search' },
-    platform: { philosophy: 'Find clubs near you' },
+    platform: { philosophy: 'Find clubs near you', bootstrapShare: 'Share' },
+    clubSite: { linkCopied: 'Link copied', shareButton: 'Share' },
     directory: {
       clubCount: '{count} clubs',
       noResults: 'No clubs found',
@@ -23,6 +24,8 @@ vi.mock('@/lib/i18n/translations', () => ({
       allActivities: 'All activities',
       resetFilters: 'Reset',
       clubAriaLabel: '{name} - {activity} in {location}',
+      shareCallout: 'Share',
+      learnMore: 'Learn more',
     },
     country: { ch: 'Switzerland', fr: 'France', de: 'Germany' },
     activityTypes: {} as Record<string, string>,
@@ -52,6 +55,12 @@ vi.mock('@/components/app/directory/PaginatedGrid', () => ({
 }))
 vi.mock('@/components/app/admin/AdminPageTitle', () => ({
   AdminPageTitle: vi.fn(() => null),
+}))
+vi.mock('@/components/app/SharePlatformButton', () => ({
+  SharePlatformButton: vi.fn(() => null),
+}))
+vi.mock('@/components/app/directory/VerifiedBadge', () => ({
+  VerifiedBadge: vi.fn(() => null),
 }))
 vi.mock('@/components/app/seo/metadata', () => ({
   generatePlatformMetadata: vi.fn(() => ({})),

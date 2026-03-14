@@ -25,6 +25,7 @@ const translations = {
   visitWebsite: 'Visit our website',
   photos: 'Photos',
   goToPhoto: 'Go to photo {n}',
+  closeLightbox: 'Close',
 }
 
 const fullClub = {
@@ -78,8 +79,8 @@ describe('ProfilePage', () => {
     })
 
     const sections = findByType(result, ProfileSection)
-    // Schedule, howToJoin, contactInfo = 3 ProfileSections
-    expect(sections.length).toBe(3)
+    // description, Schedule, howToJoin, contactInfo = 4 ProfileSections
+    expect(sections.length).toBe(4)
   })
 
   it('omits schedule section when schedule is null', () => {
@@ -89,8 +90,8 @@ describe('ProfilePage', () => {
     })
 
     const sections = findByType(result, ProfileSection)
-    // Only howToJoin + contactInfo = 2
-    expect(sections.length).toBe(2)
+    // description + howToJoin + contactInfo = 3
+    expect(sections.length).toBe(3)
   })
 
   it('omits howToJoin section when howToJoin is null', () => {
@@ -100,8 +101,8 @@ describe('ProfilePage', () => {
     })
 
     const sections = findByType(result, ProfileSection)
-    // Only schedule + contactInfo = 2
-    expect(sections.length).toBe(2)
+    // description + schedule + contactInfo = 3
+    expect(sections.length).toBe(3)
   })
 
   it('always renders ContactInfo section', () => {

@@ -7,6 +7,7 @@ vi.mock('@/server/db', () => ({
   prisma: {
     application: { create: vi.fn() },
     $transaction: vi.fn(async (fn: (tx: unknown) => unknown) => fn(prisma)),
+    featureFlag: { findUnique: vi.fn().mockResolvedValue(null) },
   },
 }))
 vi.mock('@/lib/turnstile', () => ({
@@ -34,7 +35,8 @@ const VALID_INPUT = {
   applicantPreferredLanguage: 'fr' as const,
   name: 'Ski Club Valais',
   country: 'ch' as const,
-  activityType: 'skiing',
+  activityType: 'other',
+  otherDescription: 'Skiing club',
   location: {
     swisstopoId: '2117',
     plz: '1950',
@@ -81,8 +83,8 @@ describe('submitApplication()', () => {
         email: 'contact@skiclub.ch',
         clubEmail: null,
         country: 'ch',
-        activityType: 'skiing',
-        otherDescription: null,
+        activityType: null,
+        otherDescription: 'Skiing club',
         locationId: 'loc-1',
         description: 'A ski club in Valais.',
         schedule: 'Tuesdays 19h-21h',
@@ -150,7 +152,7 @@ describe('submitApplication()', () => {
   })
 
   it('returns VALIDATION_ERROR when activityType is invalid', async () => {
-    const result = await submitApplication({ ...VALID_INPUT, activityType: 'nonexistent' })
+    const result = await submitApplication({ ...VALID_INPUT, activityType: 'nonexistent' as never })
 
     expect(result).toMatchObject({ success: false, code: 'VALIDATION_ERROR' })
     expect(prisma.application.create).not.toHaveBeenCalled()
@@ -178,7 +180,7 @@ describe('submitApplication()', () => {
 
     await submitApplication(VALID_INPUT)
 
-    expect(checkRateLimit).toHaveBeenCalledWith('apply:192.168.1.1', { windowMs: 600000, maxAttempts: 3 })
+    expect(checkRateLimit).toHaveBeenCalledWith('apply:192.168.1.1', { windowMs: 3_600_000, maxAttempts: 3 })
   })
 
   it('uses first IP from x-forwarded-for when multiple are present', async () => {

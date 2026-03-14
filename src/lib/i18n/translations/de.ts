@@ -493,6 +493,8 @@ export const de: Translations = {
           errorType: 'Ungültiger Dateityp. Nur JPEG, PNG und WebP sind erlaubt.',
           errorSize: 'Datei ist zu groß. Maximale Größe: {sizeMb} MB.',
           errorUpload: 'Upload fehlgeschlagen. Bitte versuche es erneut.',
+          setAsMain: 'Als Hauptbild festlegen',
+          isMain: 'Hauptbild',
         },
       },
       visibility: {
@@ -546,6 +548,8 @@ export const de: Translations = {
         title: 'Verein bewerben',
         description: 'Lade Materialien herunter, um deinen Verein bekannter zu machen.',
         comingSoon: 'Wir arbeiten an teilbaren Materialien, um deinen Verein zu bewerben — Badges, QR-Karten und mehr. Bleib dran!',
+        poster: 'Druckbares Plakat (PDF)',
+        posterDescription: 'Ein A4-Plakat mit deinem Vereinsnamen und einem QR-Code, der zu deiner Seite führt. Drucke es aus und hänge es ans Anschlagbrett.',
         badge: '„Wir sind auf findyour.club"-Badge',
         badgeDescription: 'Ein Markenbild zum Posten in sozialen Medien oder zum Ausdrucken für euer Anschlagbrett.',
         qrCard: 'QR-Code-Karte',
@@ -601,8 +605,8 @@ export const de: Translations = {
     },
   },
   platform: {
-    headline: 'Finde deinen Club',
-    headlinePrefix: 'Finde deinen',
+    headline: 'Find your Club',
+    headlinePrefix: 'Find your',
     headlineRotatingWords: [
       'Fussballclub',
       'Yogakurs',
@@ -646,7 +650,7 @@ export const de: Translations = {
       content: [
         'In einer Zeit, in der die Treue der Menschen zu Vereinen und Verbänden abnimmt und die Tendenz, allein zu Hause zu bleiben, zunimmt, ist es an der Zeit, sozialen Aktivitäten wieder mehr Sichtbarkeit zu geben!',
         'Zudem ist es, entgegen dem, was man mit sozialen Medien erwarten könnte, eine wahre Qual, die nötigen Informationen über Vereine und Verbände zu finden. Zwischen Vereinen, die in sozialen Medien präsent sind, anderen, die es nicht sind, solchen, deren Website seit 4 Jahren nicht aktualisiert wurde usw., wird es zu einer komplexen Aufgabe, eine einfache Information wie „Wie kann ich beitreten?" zu finden: Man muss zwischen Google Maps, verschiedenen sozialen Netzwerken und Websites navigieren.',
-        'In diesem Chaos, das das Internet ist, wollte ich findyour.club schaffen — eine Plattform, die nur das Wesentliche jedes Vereins zusammenfasst: wer sie sind, was sie tun, wann, und wie man ihnen beitreten kann. Mein Ziel ist, dass jeder im Handumdrehen eine Aktivität finden kann, die ihm in seiner Nähe gefällt. Genau für diese Art der Vereinfachung des Alltags sollte Technologie entwickelt werden, aber leider ist das heute nicht der Fall, wo die Mehrheit der Tech-Projekte eher aus Profitgründen als aus reinem öffentlichen Nutzen entwickelt wird. Das ist keine Kritik, es ist die Welt, in der wir leben; ich bin übrigens der Erste, der das tut. Dieses erste Projekt ist für mich eine Gelegenheit, meine Zeit und Fähigkeiten einzusetzen, um diese Vision zu verwirklichen.',
+        'In diesem Chaos, das das Internet ist, wollte ich findyour.club schaffen — eine Plattform, die nur das Wesentliche jedes Vereins zusammenfasst: wer sie sind, was sie tun, wann, und wie man ihnen beitreten kann. Mein Ziel ist, dass jeder im Handumdrehen eine Aktivität finden kann, die ihm in seiner Nähe gefällt.',
       ],
       author: '— Bastien Faivre, Gründer von findyour.club',
     },
@@ -703,6 +707,7 @@ export const de: Translations = {
     address: 'Adresse',
     photos: 'Fotos',
     goToPhoto: 'Zu Foto {n} gehen',
+    closeLightbox: 'Schliessen',
     shareButton: 'Teilen',
     linkCopied: 'Link kopiert!',
   },

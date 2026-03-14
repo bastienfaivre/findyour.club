@@ -7,7 +7,7 @@ export const OG_CONTENT_TYPE = 'image/png'
 
 /**
  * Generate a branded OG image for static/platform pages.
- * Renders a card with gradient accent, platform name, page title, and subtitle.
+ * Clean card with platform name, page title, and subtitle.
  */
 export function generateStaticOgImage({
   title,
@@ -29,37 +29,8 @@ export function generateStaticOgImage({
           color: '#fafafa',
           fontFamily: 'sans-serif',
           padding: '60px 80px',
-          position: 'relative',
-          overflow: 'hidden',
         }}
       >
-        {/* Subtle gradient accent in top-right corner */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '-120px',
-            right: '-120px',
-            width: '500px',
-            height: '500px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%)',
-            display: 'flex',
-          }}
-        />
-        {/* Subtle gradient accent in bottom-left corner */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '-160px',
-            left: '-100px',
-            width: '400px',
-            height: '400px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 70%)',
-            display: 'flex',
-          }}
-        />
-
         {/* Top: platform name */}
         <div
           style={{
@@ -73,7 +44,7 @@ export function generateStaticOgImage({
               width: '8px',
               height: '32px',
               borderRadius: '4px',
-              background: 'linear-gradient(180deg, #3b82f6, #a855f7)',
+              backgroundColor: '#a1a1aa',
               display: 'flex',
             }}
           />
@@ -82,7 +53,7 @@ export function generateStaticOgImage({
               fontSize: 30,
               fontWeight: 600,
               letterSpacing: '-0.02em',
-              color: '#e4e4e7',
+              color: '#a1a1aa',
             }}
           >
             findyour.club
@@ -114,7 +85,7 @@ export function generateStaticOgImage({
             <div
               style={{
                 fontSize: 28,
-                color: '#a1a1aa',
+                color: '#71717a',
                 maxWidth: '800px',
                 lineHeight: 1.4,
               }}
@@ -130,7 +101,7 @@ export function generateStaticOgImage({
             width: '120px',
             height: '4px',
             borderRadius: '2px',
-            background: 'linear-gradient(90deg, #3b82f6, #a855f7)',
+            backgroundColor: '#27272a',
             display: 'flex',
           }}
         />
@@ -166,24 +137,8 @@ export function generateClubOgImage({
           color: '#fafafa',
           fontFamily: 'sans-serif',
           padding: '60px 80px',
-          position: 'relative',
-          overflow: 'hidden',
         }}
       >
-        {/* Subtle gradient accent */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '-120px',
-            right: '-120px',
-            width: '500px',
-            height: '500px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%)',
-            display: 'flex',
-          }}
-        />
-
         {/* Top: platform name */}
         <div
           style={{
@@ -197,7 +152,7 @@ export function generateClubOgImage({
               width: '8px',
               height: '32px',
               borderRadius: '4px',
-              background: 'linear-gradient(180deg, #3b82f6, #a855f7)',
+              backgroundColor: '#a1a1aa',
               display: 'flex',
             }}
           />
@@ -206,7 +161,7 @@ export function generateClubOgImage({
               fontSize: 30,
               fontWeight: 600,
               letterSpacing: '-0.02em',
-              color: '#e4e4e7',
+              color: '#a1a1aa',
             }}
           >
             findyour.club
@@ -236,16 +191,26 @@ export function generateClubOgImage({
           </div>
           <div
             style={{
-              display: 'flex',
-              gap: '24px',
               fontSize: 28,
-              color: '#a1a1aa',
+              color: '#71717a',
             }}
           >
-            {activityType && <span>{activityType}</span>}
-            {activityType && location && <span>·</span>}
-            {location && <span>{location}</span>}
+            is on findyour.club
           </div>
+          {(activityType || location) && (
+            <div
+              style={{
+                display: 'flex',
+                gap: '24px',
+                fontSize: 24,
+                color: '#52525b',
+              }}
+            >
+              {activityType && <span>{activityType}</span>}
+              {activityType && location && <span style={{ color: '#3f3f46' }}>·</span>}
+              {location && <span>{location}</span>}
+            </div>
+          )}
         </div>
 
         {/* Bottom: accent line */}
@@ -254,7 +219,7 @@ export function generateClubOgImage({
             width: '120px',
             height: '4px',
             borderRadius: '2px',
-            background: 'linear-gradient(90deg, #3b82f6, #a855f7)',
+            backgroundColor: '#27272a',
             display: 'flex',
           }}
         />
@@ -287,24 +252,8 @@ export function generateCategoryOgImage({
           color: '#fafafa',
           fontFamily: 'sans-serif',
           padding: '60px 80px',
-          position: 'relative',
-          overflow: 'hidden',
         }}
       >
-        {/* Subtle gradient accent */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '-120px',
-            right: '-120px',
-            width: '500px',
-            height: '500px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%)',
-            display: 'flex',
-          }}
-        />
-
         {/* Top: platform name */}
         <div
           style={{
@@ -318,7 +267,7 @@ export function generateCategoryOgImage({
               width: '8px',
               height: '32px',
               borderRadius: '4px',
-              background: 'linear-gradient(180deg, #3b82f6, #a855f7)',
+              backgroundColor: '#a1a1aa',
               display: 'flex',
             }}
           />
@@ -327,7 +276,7 @@ export function generateCategoryOgImage({
               fontSize: 30,
               fontWeight: 600,
               letterSpacing: '-0.02em',
-              color: '#e4e4e7',
+              color: '#a1a1aa',
             }}
           >
             findyour.club
@@ -359,7 +308,7 @@ export function generateCategoryOgImage({
             <div
               style={{
                 fontSize: 28,
-                color: '#a1a1aa',
+                color: '#71717a',
                 maxWidth: '800px',
                 lineHeight: 1.4,
               }}
@@ -375,7 +324,7 @@ export function generateCategoryOgImage({
             width: '120px',
             height: '4px',
             borderRadius: '2px',
-            background: 'linear-gradient(90deg, #3b82f6, #a855f7)',
+            backgroundColor: '#27272a',
             display: 'flex',
           }}
         />

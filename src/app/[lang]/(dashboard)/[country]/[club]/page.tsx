@@ -167,6 +167,7 @@ export default async function ClubPage({ params }: Props) {
           visitWebsite: t.clubSite.visitWebsite,
           photos: t.clubSite.photos,
           goToPhoto: t.clubSite.goToPhoto,
+          closeLightbox: t.clubSite.closeLightbox,
         }}
       />
       <SharePrompt

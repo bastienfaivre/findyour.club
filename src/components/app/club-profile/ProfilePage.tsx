@@ -29,6 +29,7 @@ type ProfilePageProps = {
     visitWebsite: string
     photos: string
     goToPhoto: string
+    closeLightbox: string
   }
 }
 
@@ -44,23 +45,23 @@ export function ProfilePage({ club, translations }: ProfilePageProps) {
       />
 
       <div className="mx-auto w-full max-w-3xl px-4">
-        <PhotoCarousel photos={club.photos} ariaLabel={translations.photos} goToPhotoLabel={translations.goToPhoto} />
+        <PhotoCarousel photos={club.photos} ariaLabel={translations.photos} goToPhotoLabel={translations.goToPhoto} closeLabel={translations.closeLightbox} />
 
         {club.description && (
           <ProfileSection title={translations.description}>
-            <p className="text-sm whitespace-pre-line">{club.description}</p>
+            <p className="text-sm whitespace-pre-line text-justify">{club.description}</p>
           </ProfileSection>
         )}
 
         {club.schedule && (
           <ProfileSection title={translations.schedule}>
-            <p className="text-sm whitespace-pre-line">{club.schedule}</p>
+            <p className="text-sm whitespace-pre-line text-justify">{club.schedule}</p>
           </ProfileSection>
         )}
 
         {club.howToJoin && (
           <ProfileSection title={translations.howToJoin}>
-            <p className="text-sm whitespace-pre-line">{club.howToJoin}</p>
+            <p className="text-sm whitespace-pre-line text-justify">{club.howToJoin}</p>
           </ProfileSection>
         )}
 

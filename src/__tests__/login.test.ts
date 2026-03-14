@@ -8,6 +8,7 @@ vi.mock('@/server/db', () => ({
   prisma: {
     user: { findUnique: vi.fn() },
     session: { create: vi.fn() },
+    featureFlag: { findUnique: vi.fn().mockResolvedValue(null) },
   },
 }))
 vi.mock('argon2', () => ({

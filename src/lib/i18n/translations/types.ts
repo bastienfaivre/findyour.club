@@ -509,6 +509,8 @@ export type Translations = {
           /** Use {sizeMb} as placeholder */
           errorSize: string
           errorUpload: string
+          setAsMain: string
+          isMain: string
         }
       }
       visibility: {
@@ -560,6 +562,8 @@ export type Translations = {
         title: string
         description: string
         comingSoon: string
+        poster: string
+        posterDescription: string
         badge: string
         badgeDescription: string
         qrCard: string
@@ -710,6 +714,7 @@ export type Translations = {
     address: string
     photos: string
     goToPhoto: string
+    closeLightbox: string
     shareButton: string
     linkCopied: string
   }

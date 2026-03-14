@@ -68,6 +68,7 @@ export default async function ClubAdminPage({ params }: ClubAdminPageProps) {
         contactCta: t.clubSite.contactCta,
         visitWebsite: t.clubSite.visitWebsite,
         goToPhoto: t.clubSite.goToPhoto,
+        closeLightbox: t.clubSite.closeLightbox,
         description: t.clubSite.description,
         schedule: t.clubSite.schedule,
         howToJoin: t.clubSite.howToJoin,

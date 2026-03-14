@@ -100,24 +100,17 @@ describe('GET /auth/magic-link', () => {
       })
     })
 
-    it('redirects to / when the user is already authenticated', async () => {
-      vi.mocked(getAuthSession).mockResolvedValue({ user: { id: 'u1' } } as never)
-
+    it('sets setup cookie and redirects to /auth/reset-password', async () => {
       const response = await GET(makeRequest('stale-token'))
 
       expect(response.status).toBe(307)
-      expect(response.headers.get('location')).toBe(`${BASE}/`)
-      expect(response.cookies.get('setup_session')).toBeUndefined()
-    })
+      expect(response.headers.get('location')).toBe(`${BASE}/auth/reset-password`)
 
-    it('redirects to /auth/login when the user is not authenticated', async () => {
-      vi.mocked(getAuthSession).mockResolvedValue(null)
-
-      const response = await GET(makeRequest('stale-token'))
-
-      expect(response.status).toBe(307)
-      expect(response.headers.get('location')).toBe(`${BASE}/auth/login`)
-      expect(response.cookies.get('setup_session')).toBeUndefined()
+      const cookie = response.cookies.get('setup_session')
+      expect(cookie).toBeDefined()
+      expect(cookie?.value).toBe('encoded-setup-cookie')
+      expect(cookie?.httpOnly).toBe(true)
+      expect(cookie?.path).toBe('/')
     })
   })
 })

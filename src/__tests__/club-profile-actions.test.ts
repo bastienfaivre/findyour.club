@@ -34,6 +34,7 @@ vi.mock('@/server/db', () => ({
     $transaction: vi.fn((fn: (tx: unknown) => Promise<unknown>) => {
       return fn({ clubPhoto: mockClubPhoto })
     }),
+    featureFlag: { findUnique: vi.fn().mockResolvedValue(null) },
   },
 }))
 

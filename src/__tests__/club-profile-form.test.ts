@@ -76,6 +76,19 @@ vi.mock('@/components/app/club-admin/UnsavedChangesDialog', () => ({
   UnsavedChangesDialog: () => null,
 }))
 
+vi.mock('@/components/app/SocialLinksFieldset', () => ({
+  SocialLinksFieldset: (props: Record<string, unknown>) => ({
+    type: 'div',
+    props: { 'data-testid': 'social-links-fieldset', ...props },
+  }),
+}))
+
+vi.mock('lucide-react', () => ({
+  Pencil: () => ({ type: 'Pencil', props: {}, key: null }),
+  Eye: () => ({ type: 'Eye', props: {}, key: null }),
+  Youtube: () => ({ type: 'Youtube', props: {}, key: null }),
+}))
+
 vi.mock('@/components/ui/phone-input', () => ({
   PhoneInput: (props: Record<string, unknown>) => ({
     type: 'input',
@@ -200,6 +213,12 @@ const translations = {
       contactPhone: 'Contact Phone',
       contactAddress: 'Contact Address',
       externalWebsiteUrl: 'Website',
+      socialLinks: 'Social media',
+    },
+    helpers: {
+      description: 'Describe your club.',
+      schedule: 'When do you meet.',
+      howToJoin: 'How can people join.',
     },
     placeholders: {
       name: 'e.g. Ski Club',
@@ -290,6 +309,7 @@ const clubSiteTranslations = {
   contactCta: 'Contact',
   visitWebsite: 'Visit',
   goToPhoto: 'Go to photo {n}',
+  closeLightbox: 'Close',
   description: 'Who we are & what we do',
   schedule: 'Schedule',
   howToJoin: 'How to Join',

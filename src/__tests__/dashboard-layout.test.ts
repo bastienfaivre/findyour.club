@@ -13,6 +13,7 @@ vi.mock('@/server/db', () => ({
     clubMembership: { findMany: vi.fn() },
     conversationReadCursor: { findMany: vi.fn() },
     supportMessage: { count: vi.fn() },
+    featureFlag: { findUnique: vi.fn().mockResolvedValue(null) },
   },
 }))
 vi.mock('@/lib/i18n/translations', () => ({
@@ -37,6 +38,7 @@ vi.mock('@/components/app/club-admin/AdminDirtyContext', () => ({
 vi.mock('@/components/app/admin/AdminPageTitle', () => ({
   PageTitleProvider: vi.fn(({ children }: { children: unknown }) => children),
   PageTitleDisplay: vi.fn(() => null),
+  PageActionDisplay: vi.fn(() => null),
 }))
 vi.mock('@/components/app/SearchStateContext', () => ({
   SearchStateProvider: vi.fn(({ children }: { children: unknown }) => children),

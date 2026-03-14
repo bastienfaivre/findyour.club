@@ -10,9 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
+import { RemovableFilterBadge } from '@/components/ui/removable-filter-badge'
 import { Button } from '@/components/ui/button'
-import { X } from 'lucide-react'
 import { countryCodeToFlag } from '@/lib/country'
 import { LocationTypeahead } from '@/components/app/admin/LocationTypeahead'
 import type { LocationInput } from '@/lib/schemas/application'
@@ -195,76 +194,24 @@ export function DirectoryFilters({
       {hasFilters && (
         <div className="flex items-center gap-2 flex-wrap">
           {activeCountryName && (
-            <Badge
-              variant="secondary"
-              className="cursor-pointer gap-1"
-              role="button"
-              tabIndex={0}
-              onClick={() => updateParams('country', ALL)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  updateParams('country', ALL)
-                }
-              }}
-            >
+            <RemovableFilterBadge onRemove={() => updateParams('country', ALL)}>
               {activeCountry && countryCodeToFlag(activeCountry.code)} {activeCountryName}
-              <X className="size-3" />
-            </Badge>
+            </RemovableFilterBadge>
           )}
           {activeCantonName && (
-            <Badge
-              variant="secondary"
-              className="cursor-pointer gap-1"
-              role="button"
-              tabIndex={0}
-              onClick={() => updateParams('canton', ALL)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  updateParams('canton', ALL)
-                }
-              }}
-            >
+            <RemovableFilterBadge onRemove={() => updateParams('canton', ALL)}>
               {activeCantonName}
-              <X className="size-3" />
-            </Badge>
+            </RemovableFilterBadge>
           )}
           {currentLocationName && (
-            <Badge
-              variant="secondary"
-              className="cursor-pointer gap-1"
-              role="button"
-              tabIndex={0}
-              onClick={() => handleLocationChange(null)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  handleLocationChange(null)
-                }
-              }}
-            >
+            <RemovableFilterBadge onRemove={() => handleLocationChange(null)}>
               {currentLocationName}
-              <X className="size-3" />
-            </Badge>
+            </RemovableFilterBadge>
           )}
           {activeActivityName && (
-            <Badge
-              variant="secondary"
-              className="cursor-pointer gap-1"
-              role="button"
-              tabIndex={0}
-              onClick={() => updateParams('activity', ALL)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  updateParams('activity', ALL)
-                }
-              }}
-            >
+            <RemovableFilterBadge onRemove={() => updateParams('activity', ALL)}>
               {activeActivityName}
-              <X className="size-3" />
-            </Badge>
+            </RemovableFilterBadge>
           )}
           <Button
             variant="link"

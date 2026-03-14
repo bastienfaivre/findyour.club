@@ -19,6 +19,19 @@ vi.mock('next/image', () => ({
     props: { src: props.src, alt: props.alt },
   })),
 }))
+vi.mock('lucide-react', () => ({
+  ChevronLeft: () => ({ type: 'ChevronLeft', props: {}, key: null }),
+  ChevronRight: () => ({ type: 'ChevronRight', props: {}, key: null }),
+  X: () => ({ type: 'X', props: {}, key: null }),
+}))
+vi.mock('@/components/ui/dialog', () => ({
+  Dialog: ({ children }: { children: unknown }) => ({ type: 'Dialog', props: { children }, key: null }),
+  DialogContent: ({ children }: { children: unknown }) => ({ type: 'DialogContent', props: { children }, key: null }),
+  DialogTitle: ({ children }: { children: unknown }) => ({ type: 'DialogTitle', props: { children }, key: null }),
+}))
+vi.mock('radix-ui', () => ({
+  VisuallyHidden: { Root: ({ children }: { children: unknown }) => ({ type: 'VisuallyHidden', props: { children }, key: null }) },
+}))
 
 import { PhotoCarousel } from '@/components/app/club-profile/PhotoCarousel'
 
@@ -29,7 +42,7 @@ const mockPhotos = [
 ]
 
 function renderCarousel(photos: typeof mockPhotos) {
-  return PhotoCarousel({ photos, ariaLabel: 'Photos', goToPhotoLabel: 'Go to photo {n}' })
+  return PhotoCarousel({ photos, ariaLabel: 'Photos', goToPhotoLabel: 'Go to photo {n}', closeLabel: 'Close' })
 }
 
 describe('PhotoCarousel', () => {
@@ -49,35 +62,23 @@ describe('PhotoCarousel', () => {
     expect(container).toBeDefined()
   })
 
-  it('does not duplicate photos when 3 or fewer (static display)', () => {
+  it('renders photo URLs in the carousel (with peek images for navigation)', () => {
     const result = renderCarousel(mockPhotos)
     expect(result).not.toBeNull()
     const tree = JSON.stringify(result)
-    // With ≤3 photos, each URL should appear exactly once (no duplication)
-    const count1 = (tree.match(/example\.com\/1\.jpg/g) || []).length
-    expect(count1).toBe(1)
+    // Each photo URL should appear in the tree (may appear multiple times due to peek images and lightbox)
+    expect(tree).toContain('example.com/1.jpg')
+    expect(tree).toContain('example.com/2.jpg')
+    expect(tree).toContain('example.com/3.jpg')
   })
 
-  it('duplicates photos for seamless looping when more than 3', () => {
-    const manyPhotos = [
-      ...mockPhotos,
-      { id: 'p4', url: 'https://example.com/4.jpg', alt: 'Photo 4' },
-    ]
-    const result = renderCarousel(manyPhotos)
-    expect(result).not.toBeNull()
-    const tree = JSON.stringify(result)
-    // Each photo URL should appear twice (original + duplicate for looping)
-    const count1 = (tree.match(/example\.com\/1\.jpg/g) || []).length
-    expect(count1).toBe(2)
-  })
-
-  it('has carousel role, aria-roledescription, and aria-label', () => {
+  it('has carousel role, aria-roledescription, and aria-label in region element', () => {
     const result = renderCarousel(mockPhotos)
     expect(result).not.toBeNull()
-    const container = result as { props: Record<string, unknown> }
-    expect(container.props.role).toBe('region')
-    expect(container.props['aria-roledescription']).toBe('carousel')
-    expect(container.props['aria-label']).toBe('Photos')
+    const tree = JSON.stringify(result)
+    expect(tree).toContain('"role":"region"')
+    expect(tree).toContain('"aria-roledescription":"carousel"')
+    expect(tree).toContain('"aria-label":"Photos"')
   })
 
   it('renders all photo images', () => {

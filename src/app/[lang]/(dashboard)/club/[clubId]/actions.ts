@@ -340,6 +340,47 @@ export async function deleteClubPhoto(
   return { success: true, data: undefined }
 }
 
+// ── Set Main Photo ──
+
+export async function setMainPhoto(
+  clubId: string,
+  photoId: string,
+): Promise<ActionResult<undefined>> {
+  const guard = await authGuard(clubId)
+  if (!guard.ok) return guard.result
+
+  const photo = await prisma.clubPhoto.findFirst({
+    where: { id: photoId, clubId: guard.club.id },
+  })
+  if (!photo) {
+    return { success: false, error: 'Photo not found.', code: 'NOT_FOUND' }
+  }
+
+  // Move the selected photo to position 0, shift others up
+  await prisma.$transaction(async (tx) => {
+    // Get all photos ordered by current position
+    const allPhotos = await tx.clubPhoto.findMany({
+      where: { clubId: guard.club.id },
+      orderBy: { position: 'asc' },
+      select: { id: true },
+    })
+
+    // Build new order: selected photo first, then the rest in their current order
+    const reordered = [photoId, ...allPhotos.map((p) => p.id).filter((id) => id !== photoId)]
+
+    for (let i = 0; i < reordered.length; i++) {
+      await tx.clubPhoto.update({
+        where: { id: reordered[i], clubId: guard.club.id },
+        data: { position: i },
+      })
+    }
+  })
+
+  revalidateClubPaths(guard.club)
+
+  return { success: true, data: undefined }
+}
+
 // ── Upload Logo ──
 
 export type UploadLogoResult = ActionResult<{ uploadUrl: string; key: string; publicUrl: string }>

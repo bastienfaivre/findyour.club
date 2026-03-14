@@ -7,10 +7,11 @@ import { generateQrCardImage } from '@/lib/og-image'
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ clubId: string }> },
 ) {
   const { clubId } = await params
+  const lang = new URL(request.url).searchParams.get('lang') || 'en'
   const session = await getAuthSession()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -36,7 +37,7 @@ export async function GET(
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  const clubUrl = `${BASE_URL}/en/${club.country}/${club.slug}`
+  const clubUrl = `${BASE_URL}/${lang}/${club.country}/${club.slug}`
   const qrDataUrl = await QRCode.toDataURL(clubUrl, { width: 400, margin: 2 })
 
   return generateQrCardImage({ clubName: club.name, qrDataUrl })

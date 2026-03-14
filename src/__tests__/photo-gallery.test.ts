@@ -55,6 +55,8 @@ const translations = {
   errorType: 'Invalid file type.',
   errorSize: 'File too large. Max {sizeMb} MB.',
   errorUpload: 'Upload failed.',
+  setAsMain: 'Set as main',
+  isMain: 'Main photo',
 }
 
 function makePhotos(count: number) {

@@ -4,13 +4,14 @@ import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { toast } from 'sonner'
-import { X } from 'lucide-react'
+import { X, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import {
   getPresignedUploadUrl,
   createClubPhoto,
   deleteClubPhoto,
+  setMainPhoto,
 } from '@/app/[lang]/(dashboard)/club/[clubId]/actions'
 import { ALLOWED_IMAGE_TYPES } from '@/lib/r2'
 import type { ClubPhoto } from './ClubProfileForm'
@@ -103,6 +104,17 @@ export function PhotoGallery({ clubId, clubName, photos, maxPhotos, maxImageSize
     })
   }
 
+  const handleSetMain = (photoId: string) => {
+    startTransition(async () => {
+      const result = await setMainPhoto(clubId, photoId)
+      if (result.success) {
+        router.refresh()
+      } else {
+        toast.error(result.error)
+      }
+    })
+  }
+
   const isLoading = isPending || uploadingCount > 0
 
   return (
@@ -112,42 +124,69 @@ export function PhotoGallery({ clubId, clubName, photos, maxPhotos, maxImageSize
         <span className="text-xs text-muted-foreground">{photos.length} / {maxPhotos}</span>
       </div>
 
-      {/* Thumbnail grid */}
+      {/* Photo card */}
       {photos.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {photos.map((photo) => (
-            <div key={photo.id} className="group relative aspect-square overflow-hidden rounded-lg border">
-              <Image
-                src={photo.url}
-                alt={photo.alt}
-                fill
-                className="object-cover"
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              />
-              {confirmDeleteId === photo.id ? (
-                <button
-                  type="button"
-                  onClick={() => { setConfirmDeleteId(null); handleDelete(photo.id) }}
-                  onBlur={() => setConfirmDeleteId(null)}
-                  disabled={isLoading}
-                  className="absolute right-1 top-1 rounded-full bg-destructive px-2 py-1 text-xs font-medium text-destructive-foreground ring-2 ring-ring"
-                  autoFocus
-                >
-                  {t.deleteConfirm}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setConfirmDeleteId(photo.id)}
-                  disabled={isLoading}
-                  className="absolute right-1 top-1 flex h-11 w-11 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-destructive text-destructive-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring"
-                  aria-label={t.delete}
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-          ))}
+        <div className="rounded-lg border bg-muted/30 p-3">
+          <div className="flex flex-wrap gap-3">
+            {photos.map((photo, index) => {
+              const isMain = index === 0
+              return (
+                <div key={photo.id} className={`group relative h-28 sm:h-36 shrink-0 overflow-hidden ${isMain ? 'ring-2 ring-primary' : ''}`}>
+                  <Image
+                    src={photo.url}
+                    alt={photo.alt}
+                    width={320}
+                    height={160}
+                    className="h-full w-auto object-contain"
+                    sizes="320px"
+                  />
+                  {/* Main photo indicator */}
+                  {isMain && (
+                    <span className="absolute left-1 bottom-1 flex h-7 items-center gap-1 rounded-full bg-primary px-2 text-xs font-medium text-primary-foreground">
+                      <Star className="h-3 w-3" />
+                      {t.isMain}
+                    </span>
+                  )}
+                  {/* Set as main button (only for non-main photos) */}
+                  {!isMain && (
+                    <button
+                      type="button"
+                      onClick={() => handleSetMain(photo.id)}
+                      disabled={isLoading}
+                      className="absolute left-1 bottom-1 flex h-7 items-center gap-1 rounded-full bg-background/80 px-2 text-xs font-medium text-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 backdrop-blur-sm"
+                      aria-label={t.setAsMain}
+                    >
+                      <Star className="h-3 w-3" />
+                      {t.setAsMain}
+                    </button>
+                  )}
+                  {/* Delete button */}
+                  {confirmDeleteId === photo.id ? (
+                    <button
+                      type="button"
+                      onClick={() => { setConfirmDeleteId(null); handleDelete(photo.id) }}
+                      onBlur={() => setConfirmDeleteId(null)}
+                      disabled={isLoading}
+                      className="absolute right-1 top-1 flex h-7 items-center rounded-full bg-destructive px-2 text-xs font-medium text-destructive-foreground ring-2 ring-ring"
+                      autoFocus
+                    >
+                      {t.deleteConfirm}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDeleteId(photo.id)}
+                      disabled={isLoading}
+                      className="absolute right-1 top-1 flex h-11 w-11 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-destructive text-destructive-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring"
+                      aria-label={t.delete}
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { List, FileSearch, X, Building2 as Building2Icon, SearchX, Search } from 'lucide-react'
+import { List, FileSearch, Building2 as Building2Icon, SearchX, Search } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,7 @@ import { useAdminSelection } from '@/components/app/AdminSelectionContext'
 import { ClubDetail } from './ClubDetail'
 import type { ActivityTypeOption, CountryOption } from './types'
 import { Badge } from '@/components/ui/badge'
+import { RemovableFilterBadge } from '@/components/ui/removable-filter-badge'
 import {
   Select,
   SelectContent,
@@ -199,43 +200,19 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
       {hasFilters && (
         <div className="flex items-center gap-2 flex-wrap">
           {activeCountryLabel && (
-            <Badge
-              variant="secondary"
-              className="cursor-pointer gap-1"
-              role="button"
-              tabIndex={0}
-              onClick={() => setFilterCountry(ALL)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilterCountry(ALL) } }}
-            >
+            <RemovableFilterBadge onRemove={() => setFilterCountry(ALL)}>
               {activeCountryLabel}
-              <X className="size-3" />
-            </Badge>
+            </RemovableFilterBadge>
           )}
           {activeActivityName && (
-            <Badge
-              variant="secondary"
-              className="cursor-pointer gap-1"
-              role="button"
-              tabIndex={0}
-              onClick={() => setFilterActivity(ALL)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilterActivity(ALL) } }}
-            >
+            <RemovableFilterBadge onRemove={() => setFilterActivity(ALL)}>
               {activeActivityName}
-              <X className="size-3" />
-            </Badge>
+            </RemovableFilterBadge>
           )}
           {activeStatusLabel && (
-            <Badge
-              variant="secondary"
-              className="cursor-pointer gap-1"
-              role="button"
-              tabIndex={0}
-              onClick={() => setFilterStatus(ALL)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilterStatus(ALL) } }}
-            >
+            <RemovableFilterBadge onRemove={() => setFilterStatus(ALL)}>
               {activeStatusLabel}
-              <X className="size-3" />
-            </Badge>
+            </RemovableFilterBadge>
           )}
           <button
             type="button"

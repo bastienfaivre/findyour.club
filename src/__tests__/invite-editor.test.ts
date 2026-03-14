@@ -6,14 +6,36 @@ vi.mock('@/server/auth', () => ({
 vi.mock('@/server/db', () => ({
   prisma: {
     club: { findUnique: vi.fn() },
-    clubMembership: { findFirst: vi.fn(), create: vi.fn(), deleteMany: vi.fn() },
+    clubMembership: { findFirst: vi.fn(), create: vi.fn(), deleteMany: vi.fn(), count: vi.fn().mockResolvedValue(0) },
     user: { findUnique: vi.fn(), create: vi.fn() },
     invitation: { findFirst: vi.fn(), create: vi.fn(), deleteMany: vi.fn() },
     $transaction: vi.fn((ops: unknown[]) => Promise.all(ops)),
+    featureFlag: { findUnique: vi.fn().mockResolvedValue(null) },
   },
 }))
 vi.mock('@/lib/email', () => ({
   sendEmail: vi.fn().mockResolvedValue(undefined),
+}))
+vi.mock('@/lib/rate-limit', () => ({
+  checkRateLimit: vi.fn().mockReturnValue(false),
+}))
+vi.mock('@/lib/i18n', () => ({
+  resolveUILang: vi.fn().mockReturnValue('en'),
+  isSupportedLanguage: vi.fn().mockReturnValue(true),
+  SUPPORTED_LANGUAGES: ['fr', 'de', 'it', 'en'],
+  PLATFORM_FALLBACK_LANG: 'en',
+}))
+vi.mock('@/lib/i18n/translations', () => ({
+  getTranslations: vi.fn().mockReturnValue({
+    emails: {
+      invitation: {
+        subject: 'You are invited to {clubName}',
+      },
+    },
+  }),
+}))
+vi.mock('@/lib/email-templates', () => ({
+  buildInvitationEmailHtml: vi.fn().mockReturnValue('<html>invite</html>'),
 }))
 
 import { getAuthSession } from '@/server/auth'

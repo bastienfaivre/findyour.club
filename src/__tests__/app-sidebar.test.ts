@@ -83,6 +83,8 @@ vi.mock('lucide-react', () => {
     User: icon('User'),
     Users: icon('Users'),
     MessageSquare: icon('MessageSquare'),
+    Map: icon('Map'),
+    Settings: icon('Settings'),
   }
 })
 
@@ -145,6 +147,7 @@ const defaultTranslations = {
     clubs: { title: 'Clubs' },
     users: { title: 'Users' },
     messages: { title: 'Messages' },
+    settings: { title: 'Settings' },
   },
   club: {
     sidebar: {
@@ -203,7 +206,7 @@ describe('AppSidebar', () => {
       expect(text).toContain('Apply')
     })
 
-    it('hides Apply link when authenticated user has clubs', () => {
+    it('still shows Apply link when authenticated user has clubs', () => {
       const tree = AppSidebar(
         buildProps({
           isAuthenticated: true,
@@ -211,15 +214,15 @@ describe('AppSidebar', () => {
         }),
       )
       const text = findText(tree)
-      expect(text).not.toContain('Apply')
+      expect(text).toContain('Apply')
     })
 
-    it('hides Apply link when authenticated user is operator', () => {
+    it('still shows Apply link when authenticated user is operator', () => {
       const tree = AppSidebar(
         buildProps({ isAuthenticated: true, isOperator: true }),
       )
       const text = findText(tree)
-      expect(text).not.toContain('Apply')
+      expect(text).toContain('Apply')
     })
   })
 

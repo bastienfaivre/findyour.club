@@ -19,7 +19,7 @@ import {
 import { PhoneInput } from '@/components/ui/phone-input'
 import { applicationSchema, slugRegex, type ApplicationInput } from '@/lib/schemas/application'
 import { SUPPORTED_LANGUAGES } from '@/lib/schemas/profile'
-import { SOCIAL_PLATFORMS } from '@/lib/social-platforms'
+import { SocialLinksFieldset } from '@/components/app/SocialLinksFieldset'
 import { submitApplication, type SubmitApplicationResult } from '@/app/[lang]/(dashboard)/apply/actions'
 import type { Translations } from '@/lib/i18n/translations'
 import type { SupportedLanguage } from '@/lib/i18n'
@@ -741,23 +741,17 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
           </div>
 
           {/* Social Media Links */}
-          <fieldset className="space-y-3">
-            <legend className="text-sm font-medium">{t.apply.fields.socialLinks}</legend>
-            {SOCIAL_PLATFORMS.map((platform) => {
-              const Icon = platform.icon
-              return (
-                <div key={platform.key} className="flex items-center gap-2">
-                  <Icon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                  <Input
-                    id={`apply-${platform.key}`}
-                    {...register(platform.key)}
-                    placeholder={platform.placeholder}
-                    aria-label={platform.label}
-                  />
-                </div>
-              )
-            })}
-          </fieldset>
+          <SocialLinksFieldset
+            label={t.apply.fields.socialLinks}
+            renderInput={(platform) => (
+              <Input
+                id={`apply-${platform.key}`}
+                {...register(platform.key)}
+                placeholder={platform.placeholder}
+                aria-label={platform.label}
+              />
+            )}
+          />
 
           {/* Desired URL Slug */}
           <SlugField register={register} errors={errors} control={control} lang={lang} t={t} />

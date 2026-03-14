@@ -219,13 +219,13 @@ describe('AboutPage', () => {
     const result = await AboutPage({ params: makeParams() })
     const text = findText(result)
     expect(text).toContain('About')
-    expect(text).toContain('every community deserves visibility')
+    expect(text).toContain('give social activities the visibility they deserve')
   })
 
   it('renders in French with translated content', async () => {
     const result = await AboutPage({ params: makeParams('fr') })
     const text = findText(result)
-    expect(text).toContain('A propos')
+    expect(text).toContain('À propos')
   })
 })
 

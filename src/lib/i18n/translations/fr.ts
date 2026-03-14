@@ -493,6 +493,8 @@ export const fr: Translations = {
           errorType: 'Type de fichier invalide. Seuls les formats JPEG, PNG et WebP sont acceptés.',
           errorSize: 'Le fichier est trop volumineux. Taille maximale : {sizeMb} Mo.',
           errorUpload: 'L\'envoi a échoué. Réessaie.',
+          setAsMain: 'Définir comme principale',
+          isMain: 'Photo principale',
         },
       },
       visibility: {
@@ -546,6 +548,8 @@ export const fr: Translations = {
         title: 'Promouvoir ton club',
         description: 'Télécharge du matériel pour faire connaître ton club.',
         comingSoon: 'Nous préparons du matériel à partager pour promouvoir ton club — badges, cartes QR, et plus. Reste à l\'écoute\u00a0!',
+        poster: 'Affiche imprimable (PDF)',
+        posterDescription: 'Une affiche A4 avec le nom de ton club et un QR code menant à ta page. Imprime-la et affiche-la sur ton panneau d\'affichage.',
         badge: 'Badge « Nous sommes sur findyour.club »',
         badgeDescription: 'Une image de marque à publier sur les réseaux sociaux ou à imprimer pour ton panneau d\'affichage.',
         qrCard: 'Carte QR Code',
@@ -601,8 +605,8 @@ export const fr: Translations = {
     },
   },
   platform: {
-    headline: 'Trouve ton club',
-    headlinePrefix: 'Trouve ton',
+    headline: 'Find your club',
+    headlinePrefix: 'Find your',
     headlineRotatingWords: [
       'club de foot',
       'cours de yoga',
@@ -671,7 +675,7 @@ export const fr: Translations = {
       content: [
         "À l'heure où la fidélité des gens aux clubs et associations se raréfie et où la tendance à rester seuls chez soi augmente, il est temps de leur redonner de la visibilité aux activités sociales !",
         "De plus, contrairement à ce que l'on peut imaginer avec les réseaux sociaux, c'est un calvaire de trouver les informations nécessaires sur les clubs et associations. Entre les clubs présents sur les réseaux sociaux, les autres absents, ceux dont le site internet n'est pas mis à jour depuis 4 ans, etc., trouver une simple information telle que « Comment rejoindre ? » devient une tâche complexe : naviguer entre Google Maps, les différents réseaux sociaux et les sites internet.",
-        "C'est dans ce désordre qu'est Internet que j'ai voulu créer findyour.club, une plateforme qui rassemble uniquement l'essentiel de chaque club, à savoir qui ils sont, ce qu'ils font, quand, et comment peut-on les rejoindre. Mon but est que tout le monde puisse, en un rien de temps, trouver une activité qui lui plaît autour de lui. C'est exactement pour ce genre de simplification de la vie de tous les jours que la technologie devrait être développée, mais ce n'est malheureusement pas le cas aujourd'hui, où la majorité des projets tech sont davantage développés dans un but de profit que dans un but d'utilité publique pure. Ce n'est pas une critique, c'est le monde dans lequel on vit ; je suis d'ailleurs le premier à le faire. Ce premier projet est pour moi une occasion d'utiliser mon temps et mes capacités pour concilier cette vision.",
+        "C'est dans ce désordre qu'est Internet que j'ai voulu créer findyour.club, une plateforme qui rassemble uniquement l'essentiel de chaque club, à savoir qui ils sont, ce qu'ils font, quand, et comment peut-on les rejoindre. Mon but est que tout le monde puisse, en un rien de temps, trouver une activité qui lui plaît autour de lui.",
       ],
       author: '— Bastien Faivre, fondateur de findyour.club',
     },
@@ -728,6 +732,7 @@ export const fr: Translations = {
     address: 'Adresse',
     photos: 'Photos',
     goToPhoto: 'Aller à la photo {n}',
+    closeLightbox: 'Fermer',
     shareButton: 'Partager',
     linkCopied: 'Lien copié !',
   },

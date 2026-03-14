@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import type { Translations } from '@/lib/i18n/translations/types'
 import { extractEditableFields } from '@/lib/schemas/application'
 import type { ApplicationEditableFields } from '@/lib/schemas/application'
-import { SOCIAL_PLATFORMS } from '@/lib/social-platforms'
+import { SocialLinksFieldset } from '@/components/app/SocialLinksFieldset'
 import { approveApplication, rejectApplication, getApplicantClubs } from '@/app/[lang]/(dashboard)/admin/applications/actions'
 import { useAdminSelection } from '@/components/app/AdminSelectionContext'
 import type { ApplicationWithRelations } from './ApplicationQueue'
@@ -314,19 +314,17 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
         </div>
 
         {/* Social Media Links */}
-        <fieldset className="space-y-3">
-          <Label>{ta.profileFields.socialLinks}</Label>
-          {SOCIAL_PLATFORMS.map(({ key, label, icon: Icon }) => (
-            <div key={key} className="flex items-center gap-2">
-              <Icon className="h-5 w-5 shrink-0 text-muted-foreground" />
-              <Input
-                placeholder={label}
-                value={(fields[key] as string) ?? ''}
-                onChange={(e) => updateField(key, e.target.value)}
-              />
-            </div>
-          ))}
-        </fieldset>
+        <SocialLinksFieldset
+          label={ta.profileFields.socialLinks}
+          labelAs="label"
+          renderInput={(platform) => (
+            <Input
+              placeholder={platform.label}
+              value={(fields[platform.key] as string) ?? ''}
+              onChange={(e) => updateField(platform.key, e.target.value)}
+            />
+          )}
+        />
 
         <div className="space-y-2">
           <Label htmlFor="app-slug">{ta.desiredSlug} <span className="text-destructive">*</span></Label>
@@ -403,6 +401,7 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
         visitWebsite: cs.visitWebsite,
         photos: cs.photos,
         goToPhoto: cs.goToPhoto,
+        closeLightbox: cs.closeLightbox,
         contactCta: cs.contactCta,
         preview: ta.previewTab,
       }}

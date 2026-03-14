@@ -1,47 +1,90 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi } from 'vitest'
 
+const {
+  MockClubHeroSection,
+  MockPhotoCarousel,
+  MockProfileSection,
+  MockContactInfo,
+} = vi.hoisted(() => {
+  const MockClubHeroSection = vi.fn((props: any) => ({
+    type: MockClubHeroSection,
+    props,
+    key: null,
+  }))
+  const MockPhotoCarousel = vi.fn((props: any) => ({
+    type: MockPhotoCarousel,
+    props,
+    key: null,
+  }))
+  const MockProfileSection = vi.fn(({ title, children }: any) => ({
+    type: MockProfileSection,
+    props: { title, children },
+    key: null,
+  }))
+  const MockContactInfo = vi.fn((props: any) => ({
+    type: MockContactInfo,
+    props,
+    key: null,
+  }))
+  return { MockClubHeroSection, MockPhotoCarousel, MockProfileSection, MockContactInfo }
+})
+
 vi.mock('@/components/app/club-site/ClubHeroSection', () => ({
-  ClubHeroSection: vi.fn(() => null),
+  ClubHeroSection: MockClubHeroSection,
 }))
 
 vi.mock('@/components/app/club-profile/PhotoCarousel', () => ({
-  PhotoCarousel: vi.fn(() => null),
+  PhotoCarousel: MockPhotoCarousel,
 }))
 
 vi.mock('@/components/app/club-profile/ProfileSection', () => ({
-  ProfileSection: vi.fn(({ title, children }: any) => ({
-    type: 'ProfileSection',
-    props: { title, children },
-    key: null,
-  })),
+  ProfileSection: MockProfileSection,
 }))
 
 vi.mock('@/components/app/club-profile/ContactInfo', () => ({
-  ContactInfo: vi.fn(() => null),
+  ContactInfo: MockContactInfo,
+}))
+
+vi.mock('@/lib/social-platforms', () => ({
+  SOCIAL_PLATFORMS: [],
+  SOCIAL_FIELD_KEYS: [],
 }))
 
 import { ProfilePreview } from '@/components/app/club-admin/ProfilePreview'
-import { ClubHeroSection } from '@/components/app/club-site/ClubHeroSection'
-import { PhotoCarousel } from '@/components/app/club-profile/PhotoCarousel'
-import { ProfileSection } from '@/components/app/club-profile/ProfileSection'
-import { ContactInfo } from '@/components/app/club-profile/ContactInfo'
 
 type AnyElement = { type: unknown; props: Record<string, any>; key: null }
 
-function findInTree(node: unknown, predicate: (n: unknown) => boolean): unknown[] {
+function expandElement(node: unknown): unknown {
+  if (node === null || node === undefined || typeof node !== 'object') return node
+  const el = node as { type?: unknown; props?: Record<string, unknown> }
+  if (typeof el.type === 'function' && el.props) {
+    try {
+      return (el.type as (props: Record<string, unknown>) => unknown)(el.props)
+    } catch {
+      return node
+    }
+  }
+  return node
+}
+
+function findInTree(node: unknown, predicate: (n: unknown) => boolean, depth = 0): unknown[] {
+  if (depth > 20) return []
   const results: unknown[] = []
+  if (node === null || node === undefined) return results
+  // Expand function-type React elements
+  node = expandElement(node)
   if (node === null || node === undefined) return results
   if (predicate(node)) results.push(node)
   if (typeof node !== 'object') return results
   if (Array.isArray(node)) {
-    for (const child of node) results.push(...findInTree(child, predicate))
+    for (const child of node) results.push(...findInTree(child, predicate, depth + 1))
     return results
   }
   const el = node as { props?: Record<string, unknown> }
   if (el.props) {
     for (const val of Object.values(el.props)) {
-      results.push(...findInTree(val, predicate))
+      results.push(...findInTree(val, predicate, depth + 1))
     }
   }
   return results
@@ -86,6 +129,7 @@ const defaultTranslations = {
   visitWebsite: 'Visit our website',
   photos: 'Photos',
   goToPhoto: 'Go to photo {n}',
+  closeLightbox: 'Close',
   contactCta: 'Contact us',
   preview: 'Preview',
 }
@@ -120,7 +164,7 @@ describe('ProfilePreview', () => {
       translations: defaultTranslations,
     })
 
-    const heroes = findByType(result, ClubHeroSection)
+    const heroes = findByType(result, MockClubHeroSection)
     expect(heroes).toHaveLength(1)
     expect(heroes[0].props.club).toEqual(
       expect.objectContaining({ name: 'Test Club' }),
@@ -136,7 +180,7 @@ describe('ProfilePreview', () => {
       translations: defaultTranslations,
     })
 
-    const sections = findByType(result, ProfileSection)
+    const sections = findByType(result, MockProfileSection)
     const descSection = sections.find((s) => s.props.title === 'Who we are & what we do')
     expect(descSection).toBeDefined()
     const text = findText(descSection!.props.children)
@@ -152,7 +196,7 @@ describe('ProfilePreview', () => {
       translations: defaultTranslations,
     })
 
-    const heroes = findByType(result, ClubHeroSection)
+    const heroes = findByType(result, MockClubHeroSection)
     expect(heroes).toHaveLength(1)
     expect(heroes[0].props.club.name).toBe('…')
   })
@@ -166,7 +210,7 @@ describe('ProfilePreview', () => {
       translations: defaultTranslations,
     })
 
-    const sections = findByType(result, ProfileSection)
+    const sections = findByType(result, MockProfileSection)
     const scheduleSection = sections.find((s) => s.props.title === 'Schedule')
     expect(scheduleSection).toBeDefined()
     const text = findText(scheduleSection!.props.children)
@@ -182,7 +226,7 @@ describe('ProfilePreview', () => {
       translations: defaultTranslations,
     })
 
-    const sections = findByType(result, ProfileSection)
+    const sections = findByType(result, MockProfileSection)
     const scheduleSection = sections.find((s) => s.props.title === 'Schedule')
     expect(scheduleSection).toBeUndefined()
   })
@@ -196,7 +240,7 @@ describe('ProfilePreview', () => {
       translations: defaultTranslations,
     })
 
-    const sections = findByType(result, ProfileSection)
+    const sections = findByType(result, MockProfileSection)
     const howToJoinSection = sections.find((s) => s.props.title === 'How to join')
     expect(howToJoinSection).toBeDefined()
     const text = findText(howToJoinSection!.props.children)
@@ -217,7 +261,7 @@ describe('ProfilePreview', () => {
       translations: defaultTranslations,
     })
 
-    const carousels = findByType(result, PhotoCarousel)
+    const carousels = findByType(result, MockPhotoCarousel)
     expect(carousels).toHaveLength(1)
     expect(carousels[0].props.photos).toHaveLength(2)
   })
@@ -231,7 +275,7 @@ describe('ProfilePreview', () => {
       translations: defaultTranslations,
     })
 
-    const contactInfos = findByType(result, ContactInfo)
+    const contactInfos = findByType(result, MockContactInfo)
     expect(contactInfos).toHaveLength(1)
     expect(contactInfos[0].props.email).toBe('contact@club.ch')
   })
