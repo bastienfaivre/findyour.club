@@ -20,6 +20,7 @@ import { PhoneInput } from '@/components/ui/phone-input'
 import { applicationSchema, slugRegex, type ApplicationInput } from '@/lib/schemas/application'
 import { SUPPORTED_LANGUAGES } from '@/lib/schemas/profile'
 import { SocialLinksFieldset } from '@/components/app/SocialLinksFieldset'
+import { SharePlatformButton } from '@/components/app/SharePlatformButton'
 import { submitApplication, type SubmitApplicationResult } from '@/app/[lang]/(dashboard)/apply/actions'
 import type { Translations } from '@/lib/i18n/translations'
 import type { SupportedLanguage } from '@/lib/i18n'
@@ -303,6 +304,25 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
 
   return (
     <form onSubmit={formOnSubmit} className="space-y-6" noValidate>
+      {/* Responsible person warning */}
+      {step === 1 && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-5 text-center dark:border-amber-900 dark:bg-amber-950/30">
+          <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+            {t.apply.responsibleWarning}
+          </p>
+          <p className="mt-2 text-sm text-amber-700 dark:text-amber-400">
+            {t.apply.responsibleShare}
+          </p>
+          <div className="mt-3 flex items-center justify-center">
+            <SharePlatformButton
+              label={t.apply.responsibleShareButton}
+              copiedMessage={t.clubSite.linkCopied}
+              className="border-amber-300 text-amber-800 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-200 dark:hover:bg-amber-900/40"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Step indicator */}
       <div className="flex items-center gap-2 text-sm">
         <span className={`flex items-center justify-center rounded-full h-7 w-7 text-xs font-medium ${step === 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>1</span>

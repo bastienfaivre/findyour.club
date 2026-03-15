@@ -332,6 +332,9 @@ export const fr: Translations = {
     reviewCommitment: 'Nous examinons chaque candidature dès que possible.',
     registrationsClosed: 'Les inscriptions de nouveaux clubs sont actuellement fermées. Reviens plus tard.',
     cta: 'C\'est parti — ça prend 10 minutes',
+    responsibleWarning: 'Ce formulaire doit être rempli par une personne responsable du club (par ex. un membre du comité, le/la président·e ou un·e entraîneur·euse).',
+    responsibleShare: 'Tu n\'es pas la bonne personne\u00a0? Partage ce lien avec les responsables de ton club\u00a0!',
+    responsibleShareButton: 'Partager findyour.club',
     steps: {
       aboutYou: 'À propos de toi',
       aboutYourClub: 'À propos de ton club',

@@ -344,6 +344,9 @@ export type Translations = {
     reviewCommitment: string
     registrationsClosed: string
     cta: string
+    responsibleWarning: string
+    responsibleShare: string
+    responsibleShareButton: string
     steps: {
       aboutYou: string
       aboutYourClub: string

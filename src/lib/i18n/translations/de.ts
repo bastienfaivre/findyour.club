@@ -332,6 +332,9 @@ export const de: Translations = {
     reviewCommitment: 'Wir prüfen jede Bewerbung so schnell wie möglich.',
     registrationsClosed: 'Neue Vereinsregistrierungen sind derzeit geschlossen. Bitte schau später wieder vorbei.',
     cta: 'Los geht\'s — dauert 10 Minuten',
+    responsibleWarning: 'Dieses Formular sollte von einer verantwortlichen Person des Vereins ausgefüllt werden (z.\u00a0B. Vorstandsmitglied, Präsident/in oder Trainer/in).',
+    responsibleShare: 'Du bist nicht die richtige Person? Teile diesen Link mit den Verantwortlichen deines Vereins!',
+    responsibleShareButton: 'findyour.club teilen',
     steps: {
       aboutYou: 'Über dich',
       aboutYourClub: 'Über deinen Verein',
