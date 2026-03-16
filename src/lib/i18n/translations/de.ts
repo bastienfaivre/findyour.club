@@ -239,6 +239,12 @@ export const de: Translations = {
       deleteClubDescription: 'Das löscht das Vereinsprofil, alle Fotos, alle Nachrichten und alle Mitgliedschaften. Diese Aktion kann nicht rückgängig gemacht werden.',
       deleteClubHint: 'Gib „{clubName}" ein, um zu bestätigen',
       clubDeleted: 'Verein erfolgreich gelöscht.',
+      freshness: {
+        title: 'Datenaktualität',
+        verified: 'Aktuell',
+        approaching: 'Bald fällig',
+        expired: 'Abgelaufen',
+      },
     },
     users: {
       title: 'Benutzer',
@@ -522,6 +528,20 @@ export const de: Translations = {
       settings: {
         title: 'Einstellungen',
         placeholder: 'Einstellungen kommen bald.',
+        verification: {
+          confirmButton: 'Bestätigen, dass die Daten aktuell sind',
+          confirmSuccess: 'Die Daten deines Vereins wurden überprüft. Nächste Überprüfung in 90 Tagen.',
+          countdown: {
+            healthy: 'Zuletzt überprüft vor {daysSince} Tagen — nächste Überprüfung in {daysRemaining} Tagen.',
+            approaching: 'Überprüfung in {daysRemaining} Tagen fällig — bitte überprüfe deine Daten unten und bestätige, dass sie aktuell sind.',
+            expired: 'Dein Verein hat seine Daten nicht kürzlich bestätigt — überprüfe und bestätige unten, um das Badge wiederherzustellen.',
+          },
+          banner: {
+            approaching: 'Überprüfung in {daysRemaining} Tagen fällig',
+            expired: 'Nicht kürzlich bestätigt',
+            andMore: 'und {count} weitere(r) Verein(e) benötigen Aufmerksamkeit',
+          },
+        },
         exportData: 'Vereinsdaten exportieren',
         exportDescription: 'Lade alle Vereinsdaten (Profil, Fotos, Nachrichten) als ZIP-Archiv herunter.',
         exportPreparing: 'Export wird vorbereitet…',
@@ -694,7 +714,9 @@ export const de: Translations = {
     clubCount: '{count} Vereine',
     clubAriaLabel: '{name} — {activity} in {location}',
     verifiedBadge: 'Jeder Verein wird manuell geprüft',
-    verifiedDetail: 'Jeder Verein wird bei der Bewerbung auf Legitimität geprüft. Nach der Genehmigung verwaltet der Verein seine Inhalte selbst — wir überprüfen nicht jede Aktualisierung.',
+    verifiedDetail: 'Jeder Verein wird bei der Bewerbung auf Legitimität geprüft. Nach der Genehmigung verwaltet der Verein seine Inhalte selbst und bestätigt regelmässig, dass seine Informationen aktuell sind.',
+    freshnessBadgeUpToDate: 'Aktuell',
+    freshnessBadgeNotVerified: 'Nicht kürzlich bestätigt',
     shareCtaMessage: 'Findest du einen Verein nicht, den du kennst? Teile findyour.club mit ihnen, damit sie beitreten können!',
     listCtaMessage: 'Bist du ein Verein? Lass dich kostenlos eintragen.',
   },
@@ -705,6 +727,7 @@ export const de: Translations = {
     schedule: 'Wann treffen wir uns',
     howToJoin: 'So trittst du bei',
     contactInfo: 'Kontaktinformationen',
+    freshnessExpiredBanner: 'Dieser Verein hat nicht kürzlich bestätigt, dass seine Informationen aktuell sind.',
     email: 'E-Mail',
     phone: 'Telefon',
     address: 'Adresse',
@@ -936,6 +959,20 @@ export const de: Translations = {
       intro: 'Wir haben eine Anfrage zum Zur\u00fccksetzen Ihres Passworts erhalten. Klicken Sie auf die Schaltfl\u00e4che unten, um ein neues Passwort zu w\u00e4hlen.',
       resetButton: 'Passwort zur\u00fccksetzen',
       expiry: 'Dieser Link l\u00e4uft in 1 Stunde ab. Wenn Sie kein Zur\u00fccksetzen angefordert haben, k\u00f6nnen Sie diese E-Mail ignorieren.',
+    },
+    verificationReminder: {
+      subject: 'Die Datenüberprüfung deines Vereins läuft in 10 Tagen ab \u2014 findyour.club',
+      heading: 'Überprüfung bald fällig',
+      intro: 'Die Daten von {clubName} wurden seit 80 Tagen nicht überprüft. Um dein „Aktuell"-Badge zu behalten, überprüfe und bestätige die Informationen deines Vereins.',
+      cta: 'Besuche die Einstellungen deines Vereins, um die Daten zu überprüfen und zu bestätigen, dass sie noch korrekt sind.',
+      verifyButton: 'Vereinsdaten überprüfen',
+    },
+    verificationExpired: {
+      subject: 'Dein Verein ist jetzt als nicht kürzlich überprüft markiert \u2014 findyour.club',
+      heading: 'Überprüfung abgelaufen',
+      intro: '{clubName} ist jetzt auf der Plattform als „Nicht kürzlich vom Verein bestätigt" markiert. Besucher sehen dieses Badge, bis du bestätigst, dass deine Daten aktuell sind.',
+      cta: 'Überprüfe die Informationen deines Vereins und bestätige, dass sie korrekt sind, um dein Badge wiederherzustellen.',
+      verifyButton: 'Vereinsdaten überprüfen',
     },
   },
 }

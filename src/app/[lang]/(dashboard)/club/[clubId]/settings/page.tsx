@@ -28,7 +28,9 @@ export default async function ClubSettingsPage({ params }: ClubSettingsPageProps
 
   const club = await prisma.club.findUnique({
     where: { id: clubId },
-    select: { id: true, name: true, slug: true, country: true, isPublished: true, forceOffline: true },
+    select: {
+      id: true, name: true, slug: true, country: true, isPublished: true, forceOffline: true,
+    },
   })
   if (!club) notFound()
 

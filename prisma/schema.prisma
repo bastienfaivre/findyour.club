@@ -207,6 +207,7 @@ model Club {
   storageLimitBytes BigInt      @default(5368709120) @map("storage_limit_bytes") // 5 GB default
   templateVersion   String      @default("1.0.0") @map("template_version")
   defaultLanguage   String      @default("fr") @map("default_language") // "en" | "fr" | "de" | "it"
+  lastVerifiedAt    DateTime?   @map("last_verified_at")
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
 

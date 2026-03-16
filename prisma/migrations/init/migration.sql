@@ -140,6 +140,7 @@ CREATE TABLE "clubs" (
     "storage_limit_bytes" BIGINT NOT NULL DEFAULT 5368709120,
     "template_version" TEXT NOT NULL DEFAULT '1.0.0',
     "default_language" TEXT NOT NULL DEFAULT 'fr',
+    "last_verified_at" TIMESTAMP(3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 

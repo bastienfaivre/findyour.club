@@ -67,6 +67,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
         logoUrl: true,
         logoAlt: true,
         activityType: true,
+        lastVerifiedAt: true,
         location: {
           select: {
             swissLocation: {
@@ -220,6 +221,8 @@ export default async function SearchPage({ params, searchParams }: Props) {
                     activityType={activityName}
                     locationName={locationName}
                     cantonName={cantonLabel}
+                    lastVerifiedAt={club.lastVerifiedAt}
+                    freshnessLabels={{ upToDate: t.directory.freshnessBadgeUpToDate, notVerified: t.directory.freshnessBadgeNotVerified }}
                     ariaLabel={t.directory.clubAriaLabel
                       .replace('{name}', club.name)
                       .replace('{activity}', activityName ?? '')

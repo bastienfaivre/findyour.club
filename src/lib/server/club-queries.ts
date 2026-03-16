@@ -67,6 +67,7 @@ export const getClubPublicData = cache(async (slug: string, country: string) =>
       telegramUrl: true,
       githubUrl: true,
       activityType: true,
+      lastVerifiedAt: true,
       location: {
         select: {
           swissLocation: {

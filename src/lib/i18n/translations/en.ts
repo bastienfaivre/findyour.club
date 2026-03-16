@@ -239,6 +239,12 @@ export const en: Translations = {
       deleteClubDescription: 'This will delete the club profile, all photos, all messages, and all memberships. This action cannot be undone.',
       deleteClubHint: 'Type "{clubName}" to confirm',
       clubDeleted: 'Club deleted successfully.',
+      freshness: {
+        title: 'Data freshness',
+        verified: 'Up to date',
+        approaching: 'Approaching',
+        expired: 'Expired',
+      },
     },
     users: {
       title: 'Users',
@@ -522,6 +528,20 @@ export const en: Translations = {
       settings: {
         title: 'Settings',
         placeholder: 'Settings coming soon.',
+        verification: {
+          confirmButton: 'Confirm data is up to date',
+          confirmSuccess: 'Your club data has been verified. Next verification due in 90 days.',
+          countdown: {
+            healthy: 'Last verified {daysSince} days ago — next verification due in {daysRemaining} days.',
+            approaching: 'Verification due in {daysRemaining} days — please review your data below and confirm it is up to date.',
+            expired: 'Your club has not recently confirmed its data — review and confirm below to restore your badge.',
+          },
+          banner: {
+            approaching: 'Verification due in {daysRemaining} days',
+            expired: 'Not recently confirmed',
+            andMore: 'and {count} more club(s) need attention',
+          },
+        },
         exportData: 'Export club data',
         exportDescription: 'Download all your club data (profile, photos, messages) as a ZIP archive.',
         exportPreparing: 'Preparing your export…',
@@ -694,7 +714,9 @@ export const en: Translations = {
     clubCount: '{count} clubs',
     clubAriaLabel: '{name} — {activity} in {location}',
     verifiedBadge: 'Every club is manually reviewed',
-    verifiedDetail: 'Each club is reviewed when they apply to ensure legitimacy. Once approved, clubs manage their own content — we do not re-verify every update.',
+    verifiedDetail: 'Each club is reviewed when they apply to ensure legitimacy. Once approved, clubs manage their own content and periodically confirm that their information is up to date.',
+    freshnessBadgeUpToDate: 'Up to date',
+    freshnessBadgeNotVerified: 'Not recently confirmed',
     shareCtaMessage: 'Not finding a club you know? Share findyour.club with them so they can join!',
     listCtaMessage: 'Are you a club? Get listed for free.',
   },
@@ -705,6 +727,7 @@ export const en: Translations = {
     schedule: 'When do we meet',
     howToJoin: 'How to join',
     contactInfo: 'Contact information',
+    freshnessExpiredBanner: 'This club has not recently confirmed that its information is up to date.',
     email: 'Email',
     phone: 'Phone',
     address: 'Address',
@@ -936,6 +959,20 @@ export const en: Translations = {
       intro: 'We received a request to reset your password. Click the button below to choose a new one.',
       resetButton: 'Reset password',
       expiry: 'This link expires in 1 hour. If you did not request a password reset, you can safely ignore this email.',
+    },
+    verificationReminder: {
+      subject: 'Your club\'s data verification is due in 10 days \u2014 findyour.club',
+      heading: 'Verification due soon',
+      intro: 'The data for {clubName} has not been verified in 80 days. To keep your "Up to date" badge, please review and confirm your club\'s information.',
+      cta: 'Visit your club settings to review your data and confirm it is still accurate.',
+      verifyButton: 'Verify club data',
+    },
+    verificationExpired: {
+      subject: 'Your club is now marked as not recently verified \u2014 findyour.club',
+      heading: 'Verification expired',
+      intro: '{clubName} is now marked as "Not recently confirmed by the club" on the platform. Visitors will see this badge until you confirm your data is up to date.',
+      cta: 'Review your club information and confirm it is accurate to restore your badge.',
+      verifyButton: 'Verify club data',
     },
   },
 }

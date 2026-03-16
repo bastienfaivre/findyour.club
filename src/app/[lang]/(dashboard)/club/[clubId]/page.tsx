@@ -5,6 +5,7 @@ import { prisma } from '@/server/db'
 import { getNumberSetting } from '@/lib/server/platform-settings'
 import { ClubProfileForm } from '@/components/app/club-admin/ClubProfileForm'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
+import { confirmClubData } from './actions'
 
 interface ClubAdminPageProps {
   params: Promise<{ lang: string; clubId: string }>
@@ -37,6 +38,7 @@ export default async function ClubAdminPage({ params }: ClubAdminPageProps) {
       githubUrl: true,
       logoUrl: true,
       logoAlt: true,
+      lastVerifiedAt: true,
       photos: {
         orderBy: { position: 'asc' },
         select: {
@@ -100,6 +102,8 @@ export default async function ClubAdminPage({ params }: ClubAdminPageProps) {
         logoAlt: club.logoAlt,
         photos: club.photos,
       }}
+      lastVerifiedAt={club.lastVerifiedAt}
+      confirmAction={confirmClubData}
     />
     </>
   )

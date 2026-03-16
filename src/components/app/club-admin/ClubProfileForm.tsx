@@ -21,6 +21,7 @@ import { PhoneInput } from '@/components/ui/phone-input'
 import { Pencil, Eye } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
+import { VerificationCountdown } from './VerificationCountdown'
 import type { Translations } from '@/lib/i18n/translations/types'
 import { SocialLinksFieldset } from '@/components/app/SocialLinksFieldset'
 
@@ -74,10 +75,13 @@ interface ClubProfileFormProps {
   initialData: ClubProfileData
   maxPhotos: number
   maxImageSizeBytes: number
+  lastVerifiedAt: Date | null
+  confirmAction: (clubId: string) => Promise<{ success: boolean; data?: { verifiedAt: string }; error?: string }>
 }
 
-export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations: cs, initialData, maxPhotos, maxImageSizeBytes }: ClubProfileFormProps) {
+export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations: cs, initialData, maxPhotos, maxImageSizeBytes, lastVerifiedAt, confirmAction }: ClubProfileFormProps) {
   const [isPending, startTransition] = useTransition()
+  const [isConfirming, startConfirmTransition] = useTransition()
   const { setIsDirty } = useAdminDirty()
   const p = t.clubProfile
 
@@ -157,6 +161,17 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
     })
   }
 
+  function handleConfirmUpToDate() {
+    startConfirmTransition(async () => {
+      const result = await confirmAction(clubId)
+      if (result.success) {
+        toast(t.settings.verification.confirmSuccess)
+      } else {
+        toast.error(result.error ?? 'An error occurred.')
+      }
+    })
+  }
+
   const previewBlock = (
     <ProfilePreview
       formValues={watchedValues}
@@ -183,6 +198,11 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
 
   const formBlock = (
     <form onSubmit={handleSubmit(onSubmit)}>
+      {lastVerifiedAt && (
+        <div className="mb-6">
+          <VerificationCountdown lastVerifiedAt={lastVerifiedAt} t={t.settings.verification.countdown} />
+        </div>
+      )}
       <fieldset disabled={isPending} className="space-y-6">
 
         {/* Logo */}
@@ -377,14 +397,17 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
         isDirty={isDirty}
         isPending={isPending}
         isValid={isValid}
+        isConfirming={isConfirming}
         translations={{
           save: t.save.save,
           discard: t.save.discard,
           discardConfirmTitle: t.save.discardConfirmTitle,
           discardConfirmDescription: t.save.discardConfirmDescription,
           keepEditing: t.save.keepEditing,
+          confirmUpToDate: t.settings.verification.confirmButton,
         }}
         onDiscard={() => { reset(); setPhoneKey((k) => k + 1) }}
+        onConfirmUpToDate={handleConfirmUpToDate}
       />
     </form>
   )

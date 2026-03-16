@@ -16,8 +16,16 @@ classification:
   domain: general
   complexity: low
   projectContext: greenfield
-lastEdited: '2026-03-09'
+lastEdited: '2026-03-15'
 editHistory:
+  - date: '2026-03-15'
+    changes: 'Data Freshness feature: Added 90-day verification cycle with lastVerifiedAt
+      timestamp, email notifications at day 80 and day 90, in-app banner (2FA-style),
+      confirmation flow in club settings page, verification countdown display with escalating
+      urgency, freshness badges on search results (green/amber), top banner overlay on expired
+      club pages. New FRs: FR58-FR66. Updated user journeys 1, 2, 4 with freshness edge cases.
+      Added success criteria and measurable outcome (≥80% compliance). Added innovation area #7
+      (Data Freshness as Trust Signal).'
   - date: '2026-03-09'
     changes: 'MVP scope refinement: Deferred Epic 7 entirely (Platform Operations & Health Monitoring)
       — FR34 (metrics), FR35 (health monitoring), FR39 (template migration), FR45 (analytics)
@@ -112,6 +120,10 @@ The differentiator is not the club page. It's being the single place where anyon
 can search "what can I join near me?" and get an answer. Every product decision traces back
 to that root: make social activities findable, and make joining frictionless.
 
+Data accuracy is a first-class concern. A built-in verification cycle ensures club
+information stays current: clubs that confirm their data earn a visible trust badge, and
+those that don't are transparently flagged. The directory is only as good as its data.
+
 ## Project Classification
 
 - **Project Type:** Web application — multi-tenant club directory and hosting platform
@@ -138,6 +150,10 @@ to that root: make social activities findable, and make joining frictionless.
   community of social activity groups
 - No admin ever encounters a destructive or irreversible action by accident; the admin
   dashboard prevents technical error states entirely
+- Club Admins keep their data current with minimal effort — a single confirmation action
+  every 90 days; the process requires reviewing existing data, not re-entering it
+- Public visitors can trust that club information is current, signaled by visible
+  verification badges on search results and club pages
 
 ### Business Success
 
@@ -178,6 +194,7 @@ to that root: make social activities findable, and make joining frictionless.
 | National recognition (CH) | ✓ | Month 12 |
 | European country #2 live | ✓ | Post-CH consolidation |
 | Marketing spend | CHF 0 | Ongoing |
+| Data freshness verification compliance | ≥ 80% of clubs verified | Ongoing |
 
 ## User Journeys
 
@@ -225,10 +242,29 @@ schedule. The operator sends a message through the platform: "Hi Marie, your sch
 shows last season's times — could you update it?" Marie sees the message as a banner in her
 admin dashboard and in her email. She updates the schedule field and saves. Done.
 
+**Edge case — data freshness verification:** Three months after Marie published her club
+page, she receives an email: "Your club's data verification is due in 10 days. Please review
+your information and confirm it's still accurate." Marie logs into her admin dashboard, where
+a persistent amber banner reminds her: "Verification due in 8 days — please review your data
+below." She opens the club settings page and sees a countdown: "Last verified 82 days ago —
+next verification due in 8 days." She scrolls through her club data — name, description,
+schedule, contact info — everything is still correct. She clicks "Confirm data is up to
+date." The countdown resets. Her club keeps its green "Up to date" badge on the search
+results page. She won't hear about this again for another 90 days.
+
+**Edge case — verification expires:** A different club admin ignores both the day-80 email
+and the day-90 expiry email. Their club's badge on search results switches from green "Up to
+date" to amber "Not recently verified." On the club's public page, a top banner warns
+visitors: "This club's information has not been recently verified." The admin eventually logs
+in, sees a red banner at the top of their settings: "Your club is marked as not recently
+verified — review and confirm your data below to restore your badge." They review, confirm,
+and the badge is restored immediately.
+
 **This journey reveals requirements for:** application form with profile fields, operator
 review with change request, admin dashboard with pre-populated profile, photo upload,
 explicit save, public single-page club view, directory listing, inline constraint display,
-operator message system, support contact form.
+operator message system, support contact form, data freshness verification cycle (90 days),
+email and in-app notifications, freshness badge on search results and club page.
 
 ---
 
@@ -254,9 +290,17 @@ wanted. He finds one anyway, visits their profile, checks the About section and 
 He sends a message asking if they accept beginners. The club president replies within a day.
 He shows up the following Saturday.
 
+**Edge case — data freshness signals:** On the search results page, Thomas notices small
+badges next to each club. Most show a green "Up to date" label. One club has an amber "Not
+recently verified" badge. He clicks on it anyway — the club page displays a top banner:
+"This club's information has not been recently verified." Thomas decides to contact them but
+tempers his expectations — the schedule might have changed. He gravitates toward the clubs
+with green badges first, trusting their information is current.
+
 **This journey reveals requirements for:** public site browsability (no account), contact
 form, search page with country, activity type, and location filters (master-detail layout),
-responsive mobile experience, SEO/searchability of the platform search page itself.
+responsive mobile experience, SEO/searchability of the platform search page itself, data
+freshness badges on search results and club pages as visitor trust signals.
 
 ---
 
@@ -351,13 +395,18 @@ The support queue has one ticket: a club admin asking how to update their profil
 The operator replies directly. The low ticket volume confirms the interface is working as
 intended.
 
+The operator glances at the data freshness overview: 22 of 24 clubs are verified, 1 is
+approaching its verification deadline, 1 has expired. No action needed — the automated
+notification system handles reminders. The expired club's badge already switched to "Not
+recently verified" on the search page. If the admin confirms, it will resolve itself.
+
 The operator closes the tab and goes back to building the next feature.
 
 **This journey reveals requirements for:** platform admin dashboard (application queue with
 profile content review, approval/rejection, metrics), automated URL path provisioning on
 approval, acceptance/rejection emails, unified operator message system (bidirectional threaded
 messaging), club page visibility control (admin publish + operator force-offline override),
-support messaging.
+support messaging, data freshness verification overview (verified/approaching/expired counts).
 
 ---
 
@@ -445,6 +494,15 @@ The product deliberately rejects SaaS mental models — growth metrics, engageme
 optimization, retention hacks — in favor of civic infrastructure positioning: the Yellow
 Pages for social activities. Stable, essential, invisible, community-serving. This shapes
 every product and business decision in a coherent and genuinely differentiated way.
+
+**7. Data Freshness as a Trust Signal**
+The platform's core value is accurate, trustworthy club data. The 90-day verification cycle
+enforces data currency through social pressure rather than punitive measures: clubs that
+confirm their data earn a visible "Up to date" badge; clubs that don't get a gentle "Not
+recently verified" label. This creates a self-regulating quality loop — the badge is a trust
+signal for visitors and a nudge mechanism for admins. Unlike review-based platforms where
+stale listings silently decay, the platform makes data freshness visible and actionable.
+No comparable club directory surfaces data recency as a first-class trust indicator.
 
 ### Market Context & Competitive Landscape
 
@@ -581,6 +639,8 @@ multi-page sites, but the application layer enforces a single profile page for M
 - Server-rendered for SEO (meta tags, Open Graph, JSON-LD, structured data)
 - Platform attribution link in footer
 - Full mobile/desktop parity
+- Top banner overlay on clubs whose data verification has expired, warning visitors the
+  information may not be current
 
 *Application Form:*
 - Collects club profile fields directly: name, activity type, description, schedule, contact
@@ -600,6 +660,13 @@ multi-page sites, but the application layer enforces a single profile page for M
   when ready
 - Messages: threaded bidirectional messaging with platform operator
 - Inline constraint display (file size, format, field length)
+- Data freshness verification: club settings page displays contextual countdown (days since
+  last verification, days until due) with escalating urgency styling (subtle when healthy,
+  amber when approaching, red when expired); admin can review all club data and confirm it
+  is up to date via a confirmation action at the bottom of the settings page; any profile
+  data edit auto-resets the 90-day verification cycle
+- Persistent in-app banner (2FA-style) when verification is due (from day 80) or expired,
+  directing admin to review and confirm data in club settings
 - Login at `/{lang}/auth/login` within the dashboard shell
 - WCAG 2.1 AA accessibility (best-effort AAA)
 
@@ -614,6 +681,8 @@ multi-page sites, but the application layer enforces a single profile page for M
   location — replaces standalone country directory), Apply, About, Support/Donate
 - All pages server-rendered for SEO
 - Directory is the primary product surface — the homepage
+- Search results display data freshness badge per club: green "Up to date" for verified clubs,
+  amber "Not recently verified" for expired clubs
 
 *Platform Admin Dashboard:*
 - Sections within the unified AppSidebar (not a separate app) — visible based on OPERATOR role
@@ -622,6 +691,7 @@ multi-page sites, but the application layer enforces a single profile page for M
 - Club moderation: send operator message, request changes, force club page offline/online
 - Threaded messaging: bidirectional conversations with club admins (not just one-way operator messages)
 - Club management (metrics, storage)
+- Data freshness overview: count of verified, approaching-deadline, and expired clubs
 - Configurable platform variables
 - Support ticket inbox
 
@@ -666,6 +736,7 @@ multi-page sites, but the application layer enforces a single profile page for M
 | Silent template migration breaks club content | Schema designed for content preservation from day one |
 | Single-page profile too limiting for some clubs | Architecture supports multi-page expansion post-MVP; single page validates the core directory model first |
 | Donation model insufficient for sustainability | Minimal infrastructure costs; civic grants supplement donations; paid storage tier considered as future option |
+| Majority of clubs ignore verification and badges turn amber | 90-day cycle is generous; day-80 email + in-app banner provide two nudges before expiry; amber badge creates social pressure from visitors; cycle is low-effort (review + confirm, not re-enter data) |
 
 ## Functional Requirements
 
@@ -749,6 +820,20 @@ multi-page sites, but the application layer enforces a single profile page for M
 ### Platform Funding
 
 - **FR50:** Public Visitor can access a donation/support page on the platform site to contribute to the platform's funding through voluntary donations
+
+### Data Freshness & Verification
+
+- **FR58:** System tracks a `lastVerifiedAt` timestamp per club, initialized to the approval date; timestamp resets when a Club Admin saves any profile data change or explicitly confirms data is up to date
+- **FR59:** System sends an email notification to all Club Admins of a club at day 80 of the 90-day verification cycle, informing them that data verification is due in 10 days
+- **FR60:** System sends an email notification to all Club Admins of a club at day 90 when the club's verification expires, informing them that the club is now marked as not recently verified
+- **FR61:** System displays a persistent in-app banner (same pattern as 2FA prompt) when a club's verification is due (from day 80) or expired, directing the admin to review and confirm data in club settings
+- **FR62:** Club Admin can review all club data and confirm it is up to date via a confirmation action on the club settings page; confirmation resets the 90-day verification cycle
+- **FR63:** Any club profile data edit (save) automatically resets the 90-day verification cycle — no separate confirmation needed
+- **FR64:** System displays a verification status badge on search results for each club: green "Up to date" when `lastVerifiedAt` is within 90 days, amber "Not recently verified" when expired
+- **FR65:** System displays a top banner overlay on the public club page when the club's verification has expired, informing visitors that the information has not been recently verified
+- **FR66:** Club settings page displays a contextual verification countdown: days since last verification and days until next verification due, with escalating visual urgency (subtle text when > 10 days remaining, amber when ≤ 10 days remaining, red when expired)
+- **FR67:** Platform Operator can view a data freshness overview showing the count of verified, approaching-deadline, and expired clubs
+- **FR68:** Verification status badge and banner update immediately upon admin confirmation or profile data save — no delayed propagation
 
 ## Non-Functional Requirements
 

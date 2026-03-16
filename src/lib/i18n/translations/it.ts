@@ -239,6 +239,12 @@ export const it: Translations = {
       deleteClubDescription: 'Questo eliminerà il profilo del club, tutte le foto, tutti i messaggi e tutte le iscrizioni. Questa azione non può essere annullata.',
       deleteClubHint: 'Digita "{clubName}" per confermare',
       clubDeleted: 'Club eliminato con successo.',
+      freshness: {
+        title: 'Freschezza dei dati',
+        verified: 'Aggiornato',
+        approaching: 'In scadenza',
+        expired: 'Scaduto',
+      },
     },
     users: {
       title: 'Utenti',
@@ -522,6 +528,20 @@ export const it: Translations = {
       settings: {
         title: 'Impostazioni',
         placeholder: 'Le impostazioni arriveranno presto.',
+        verification: {
+          confirmButton: 'Conferma che i dati sono aggiornati',
+          confirmSuccess: 'I dati del tuo club sono stati verificati. Prossima verifica tra 90 giorni.',
+          countdown: {
+            healthy: 'Ultima verifica {daysSince} giorni fa — prossima verifica tra {daysRemaining} giorni.',
+            approaching: 'Verifica tra {daysRemaining} giorni — controlla i tuoi dati qui sotto e conferma che sono aggiornati.',
+            expired: 'Il tuo club non ha recentemente confermato i suoi dati — controlla e conferma qui sotto per ripristinare il badge.',
+          },
+          banner: {
+            approaching: 'Verifica tra {daysRemaining} giorni',
+            expired: 'Non confermato di recente',
+            andMore: 'e {count} altro/i club necessitano attenzione',
+          },
+        },
         exportData: 'Esporta i dati del club',
         exportDescription: 'Scarica tutti i dati del club (profilo, foto, messaggi) come archivio ZIP.',
         exportPreparing: 'Preparazione dell\'esportazione…',
@@ -694,7 +714,9 @@ export const it: Translations = {
     clubCount: '{count} club',
     clubAriaLabel: '{name} — {activity} a {location}',
     verifiedBadge: 'Ogni club è verificato manualmente',
-    verifiedDetail: 'Ogni club viene verificato al momento della candidatura per assicurarne la legittimità. Una volta approvato, il club gestisce i propri contenuti — non verifichiamo ogni aggiornamento.',
+    verifiedDetail: 'Ogni club viene verificato al momento della candidatura per assicurarne la legittimità. Una volta approvato, il club gestisce i propri contenuti e conferma periodicamente che le sue informazioni sono aggiornate.',
+    freshnessBadgeUpToDate: 'Aggiornato',
+    freshnessBadgeNotVerified: 'Non confermato di recente',
     shareCtaMessage: 'Non trovi un club che conosci? Condividi findyour.club con loro perché possano unirsi!',
     listCtaMessage: 'Sei un club? Registrati gratuitamente.',
   },
@@ -705,6 +727,7 @@ export const it: Translations = {
     schedule: 'Quando ci troviamo',
     howToJoin: 'Come partecipare',
     contactInfo: 'Informazioni di contatto',
+    freshnessExpiredBanner: 'Questo club non ha recentemente confermato che le sue informazioni sono aggiornate.',
     email: 'E-mail',
     phone: 'Telefono',
     address: 'Indirizzo',
@@ -936,6 +959,20 @@ export const it: Translations = {
       intro: 'Abbiamo ricevuto una richiesta di reimpostazione della tua password. Clicca il pulsante qui sotto per sceglierne una nuova.',
       resetButton: 'Reimposta password',
       expiry: 'Questo link scade tra 1 ora. Se non hai richiesto la reimpostazione, puoi ignorare questa e-mail.',
+    },
+    verificationReminder: {
+      subject: 'La verifica dei dati del tuo club scade tra 10 giorni \u2014 findyour.club',
+      heading: 'Verifica in scadenza',
+      intro: 'I dati di {clubName} non vengono verificati da 80 giorni. Per mantenere il badge "Aggiornato", controlla e conferma le informazioni del tuo club.',
+      cta: 'Visita le impostazioni del tuo club per controllare i dati e confermare che sono ancora corretti.',
+      verifyButton: 'Verifica i dati del club',
+    },
+    verificationExpired: {
+      subject: 'Il tuo club è ora contrassegnato come non verificato di recente \u2014 findyour.club',
+      heading: 'Verifica scaduta',
+      intro: '{clubName} è ora contrassegnato come "Non confermato di recente dal club" sulla piattaforma. I visitatori vedranno questo badge finché non confermerai che i tuoi dati sono aggiornati.',
+      cta: 'Controlla le informazioni del tuo club e conferma che sono corrette per ripristinare il badge.',
+      verifyButton: 'Verifica i dati del club',
     },
   },
 }

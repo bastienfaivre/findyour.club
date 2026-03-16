@@ -51,6 +51,31 @@ function revalidateClubPaths(_club: { slug: string; country: string }) {
   revalidatePath('/[lang]/admin', 'layout')
 }
 
+// ── Confirm Club Data (verification reset) ──
+
+export type ConfirmClubDataResult = ActionResult<{ verifiedAt: string }>
+
+export async function confirmClubData(clubId: string): Promise<ConfirmClubDataResult> {
+  const guard = await authGuard(clubId)
+  if (!guard.ok) return guard.result
+
+  if (checkRateLimit(`verify:${guard.club.id}`, { windowMs: 3_600_000, maxAttempts: 10 })) {
+    return { success: false, error: 'Too many confirmation attempts. Please wait.', code: 'RATE_LIMITED' }
+  }
+
+  const now = new Date()
+  await prisma.club.update({
+    where: { id: guard.club.id },
+    data: { lastVerifiedAt: now },
+  })
+
+  revalidateClubPaths(guard.club)
+  // Also revalidate the dashboard layout (for banner refresh)
+  revalidatePath('/[lang]/(dashboard)', 'layout')
+
+  return { success: true, data: { verifiedAt: now.toISOString() } }
+}
+
 // ── Toggle Publish ──
 
 export type TogglePublishResult = ActionResult<{ isPublished: boolean }>
@@ -210,6 +235,7 @@ export async function saveClubProfile(
       whatsappUrl: parsed.data.whatsappUrl || null,
       telegramUrl: parsed.data.telegramUrl || null,
       githubUrl: parsed.data.githubUrl || null,
+      lastVerifiedAt: new Date(),
     },
   })
 
@@ -288,6 +314,11 @@ export async function createClubPhoto(
     const position = (maxPosition._max.position ?? -1) + 1
     const url = getPublicUrl(key)
 
+    await tx.club.update({
+      where: { id: guard.club.id },
+      data: { lastVerifiedAt: new Date() },
+    })
+
     return tx.clubPhoto.create({
       data: {
         clubId: guard.club.id,
@@ -333,7 +364,10 @@ export async function deleteClubPhoto(
 
   // Best-effort R2 deletion — always remove DB record
   try { await deleteObject(extractR2Key(photo.url)) } catch { /* R2 cleanup failed, orphaned object is acceptable */ }
-  await prisma.clubPhoto.delete({ where: { id: photoId, clubId: guard.club.id } })
+  await prisma.$transaction(async (tx) => {
+    await tx.clubPhoto.delete({ where: { id: photoId, clubId: guard.club.id } })
+    await tx.club.update({ where: { id: guard.club.id }, data: { lastVerifiedAt: new Date() } })
+  })
 
   revalidateClubPaths(guard.club)
 
@@ -437,7 +471,7 @@ export async function persistLogo(
 
   await prisma.club.update({
     where: { id: guard.club.id },
-    data: { logoUrl: getPublicUrl(key), logoAlt: trimmedAlt },
+    data: { logoUrl: getPublicUrl(key), logoAlt: trimmedAlt, lastVerifiedAt: new Date() },
   })
 
   revalidateClubPaths(guard.club)
@@ -466,7 +500,7 @@ export async function deleteLogo(clubId: string): Promise<ActionResult<undefined
 
   await prisma.club.update({
     where: { id: guard.club.id },
-    data: { logoUrl: null, logoAlt: null },
+    data: { logoUrl: null, logoAlt: null, lastVerifiedAt: new Date() },
   })
 
   revalidateClubPaths(guard.club)

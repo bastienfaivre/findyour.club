@@ -10,6 +10,8 @@ import { AdminDirtyProvider } from '@/components/app/club-admin/AdminDirtyContex
 import { PageTitleProvider, PageTitleDisplay, PageActionDisplay } from '@/components/app/admin/AdminPageTitle'
 import { SearchStateProvider } from '@/components/app/SearchStateContext'
 import { AdminSelectionProvider } from '@/components/app/AdminSelectionContext'
+import { VerificationBanner } from '@/components/app/club-admin/VerificationBanner'
+import { APPROACHING_THRESHOLD_DAYS } from '@/lib/verification'
 import { getStringSetting } from '@/lib/server/platform-settings'
 
 interface DashboardLayoutProps {
@@ -26,6 +28,7 @@ export default async function DashboardLayout({ children, params }: DashboardLay
 
   // Fetch user's active club memberships (only if authenticated)
   let clubs: Array<{ id: string; name: string; slug: string; country: string; unreadMessages: number }> = []
+  let clubsNeedingVerification: Array<{ id: string; name: string; lastVerifiedAt: Date }> = []
   let operatorUnreadMessages = 0
 
   if (session?.user?.id) {
@@ -33,11 +36,17 @@ export default async function DashboardLayout({ children, params }: DashboardLay
       where: { userId: session.user.id, status: 'ACTIVE' },
       select: {
         club: {
-          select: { id: true, name: true, slug: true, country: true },
+          select: { id: true, name: true, slug: true, country: true, lastVerifiedAt: true },
         },
       },
       orderBy: { club: { name: 'asc' } },
     })
+
+    // Compute clubs needing verification (lastVerifiedAt >= APPROACHING_THRESHOLD_DAYS ago)
+    const eightyDaysAgo = new Date(new Date().getTime() - APPROACHING_THRESHOLD_DAYS * 24 * 60 * 60 * 1000)
+    clubsNeedingVerification = memberships
+      .filter((m) => m.club.lastVerifiedAt && m.club.lastVerifiedAt < eightyDaysAgo)
+      .map((m) => ({ id: m.club.id, name: m.club.name, lastVerifiedAt: m.club.lastVerifiedAt! }))
 
     // Fetch read cursors for all clubs the user is a member of
     const clubIds = memberships.map((m) => m.club.id)
@@ -164,6 +173,13 @@ export default async function DashboardLayout({ children, params }: DashboardLay
               <div className="shrink-0 bg-amber-100 px-4 py-2 text-center text-sm font-medium text-amber-900 dark:bg-amber-900/30 dark:text-amber-200">
                 {maintenanceBanner}
               </div>
+            )}
+            {clubsNeedingVerification.length > 0 && (
+              <VerificationBanner
+                clubs={clubsNeedingVerification}
+                lang={lang}
+                t={t.club.admin.settings.verification.banner}
+              />
             )}
             <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
               <SidebarTrigger className="-ml-1" />

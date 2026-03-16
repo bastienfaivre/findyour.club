@@ -239,6 +239,12 @@ export const fr: Translations = {
       deleteClubDescription: 'Cela supprimera le profil du club, toutes les photos, tous les messages et toutes les adhésions. Cette action est irréversible.',
       deleteClubHint: 'Tape « {clubName} » pour confirmer',
       clubDeleted: 'Club supprimé avec succès.',
+      freshness: {
+        title: 'Fraîcheur des données',
+        verified: 'À jour',
+        approaching: 'Bientôt dû',
+        expired: 'Expiré',
+      },
     },
     users: {
       title: 'Utilisateurs',
@@ -522,6 +528,20 @@ export const fr: Translations = {
       settings: {
         title: 'Paramètres',
         placeholder: 'Les paramètres arrivent bientôt.',
+        verification: {
+          confirmButton: 'Confirmer que les données sont à jour',
+          confirmSuccess: 'Les données de ton club ont été vérifiées. Prochaine vérification dans 90 jours.',
+          countdown: {
+            healthy: 'Dernière vérification il y a {daysSince} jours — prochaine vérification dans {daysRemaining} jours.',
+            approaching: 'Vérification dans {daysRemaining} jours — vérifie tes données ci-dessous et confirme qu\'elles sont à jour.',
+            expired: 'Ton club n\'a pas récemment confirmé ses données — vérifie et confirme ci-dessous pour restaurer ton badge.',
+          },
+          banner: {
+            approaching: 'Vérification dans {daysRemaining} jours',
+            expired: 'Non confirmé récemment',
+            andMore: 'et {count} autre(s) club(s) nécessitent ton attention',
+          },
+        },
         exportData: 'Exporter les données du club',
         exportDescription: 'Télécharge toutes les données de ton club (profil, photos, messages) sous forme d\'archive ZIP.',
         exportPreparing: 'Préparation de l\'export…',
@@ -719,7 +739,9 @@ export const fr: Translations = {
     clubCount: '{count} clubs',
     clubAriaLabel: '{name} — {activity} à {location}',
     verifiedBadge: 'Chaque club est vérifié manuellement',
-    verifiedDetail: 'Chaque club est vérifié lors de sa candidature pour s\'assurer de sa légitimité. Une fois approuvé, le club gère son propre contenu — nous ne revérifions pas chaque mise à jour.',
+    verifiedDetail: 'Chaque club est vérifié lors de sa candidature pour s\'assurer de sa légitimité. Une fois approuvé, le club gère son propre contenu et confirme périodiquement que ses informations sont à jour.',
+    freshnessBadgeUpToDate: 'À jour',
+    freshnessBadgeNotVerified: 'Non confirmé récemment',
     shareCtaMessage: 'Tu ne trouves pas un club que tu connais ? Partage findyour.club avec eux pour qu\'ils puissent nous rejoindre !',
     listCtaMessage: 'Tu es un club ? Inscris-toi gratuitement.',
   },
@@ -730,6 +752,7 @@ export const fr: Translations = {
     schedule: 'Quand est-ce qu\'on se retrouve',
     howToJoin: 'Comment nous rejoindre',
     contactInfo: 'Coordonnées',
+    freshnessExpiredBanner: 'Ce club n\'a pas récemment confirmé que ses informations sont à jour.',
     email: 'E-mail',
     phone: 'Téléphone',
     address: 'Adresse',
@@ -961,6 +984,20 @@ export const fr: Translations = {
       intro: 'Nous avons re\u00e7u une demande de r\u00e9initialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour en choisir un nouveau.',
       resetButton: 'R\u00e9initialiser le mot de passe',
       expiry: 'Ce lien expire dans 1 heure. Si vous n\u2019avez pas demand\u00e9 de r\u00e9initialisation, vous pouvez ignorer cet e-mail.',
+    },
+    verificationReminder: {
+      subject: 'La vérification des données de ton club expire dans 10 jours \u2014 findyour.club',
+      heading: 'Vérification bientôt requise',
+      intro: 'Les données de {clubName} n\'ont pas été vérifiées depuis 80 jours. Pour conserver ton badge « À jour », vérifie et confirme les informations de ton club.',
+      cta: 'Rends-toi dans les paramètres de ton club pour vérifier tes données et confirmer qu\'elles sont toujours exactes.',
+      verifyButton: 'Vérifier les données du club',
+    },
+    verificationExpired: {
+      subject: 'Ton club est maintenant marqué comme non vérifié récemment \u2014 findyour.club',
+      heading: 'Vérification expirée',
+      intro: '{clubName} est maintenant marqué comme « Non confirmé récemment par le club » sur la plateforme. Les visiteurs verront ce badge jusqu\'à ce que tu confirmes que tes données sont à jour.',
+      cta: 'Vérifie les informations de ton club et confirme qu\'elles sont exactes pour restaurer ton badge.',
+      verifyButton: 'Vérifier les données du club',
     },
   },
 }

@@ -166,6 +166,7 @@ export async function approveApplication(applicationId: string, fields: Applicat
           whatsappUrl: fields.whatsappUrl,
           telegramUrl: fields.telegramUrl,
           githubUrl: fields.githubUrl,
+          lastVerifiedAt: new Date(),
           isPublished: true,
           forceOffline: false,
         },

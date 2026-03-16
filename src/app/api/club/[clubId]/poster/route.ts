@@ -12,6 +12,18 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
 const A4_W = 210
 const A4_H = 297
 
+// Cache favicon in memory — it never changes at runtime
+let faviconCache: Buffer | null = null
+async function getFavicon(): Promise<Buffer> {
+  if (!faviconCache) {
+    faviconCache = await readFile(join(process.cwd(), 'public', 'apple-touch-icon.png'))
+  }
+  return faviconCache
+}
+
+// Max logo download size (2 MB) to prevent OOM from malicious URLs
+const MAX_LOGO_BYTES = 2 * 1024 * 1024
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ clubId: string }> },
@@ -53,9 +65,7 @@ export async function GET(
   })
 
   // Read project favicon for QR center overlay
-  const faviconBytes = await readFile(
-    join(process.cwd(), 'public', 'apple-touch-icon.png'),
-  )
+  const faviconBytes = await getFavicon()
 
   // ── Fetch club logo if available ──
   let logoData: { bytes: Uint8Array; format: 'PNG' | 'JPEG' } | null = null
@@ -63,9 +73,13 @@ export async function GET(
     try {
       const logoRes = await fetch(club.logoUrl)
       if (logoRes.ok) {
+        const contentLength = Number(logoRes.headers.get('content-length') || '0')
+        if (contentLength > MAX_LOGO_BYTES) throw new Error('Logo too large')
+        const buf = await logoRes.arrayBuffer()
+        if (buf.byteLength > MAX_LOGO_BYTES) throw new Error('Logo too large')
         const contentType = logoRes.headers.get('content-type') || ''
         logoData = {
-          bytes: new Uint8Array(await logoRes.arrayBuffer()),
+          bytes: new Uint8Array(buf),
           format: contentType.includes('png') ? 'PNG' : 'JPEG',
         }
       }

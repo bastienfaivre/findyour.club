@@ -259,6 +259,7 @@ async function main() {
       instagramUrl: 'https://instagram.com/skiclubvalais',
       facebookUrl: 'https://facebook.com/skiclubvalais',
       youtubeUrl: 'https://youtube.com/@skiclubvalais',
+      lastVerifiedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago — healthy
       isPublished: true,
       forceOffline: false,
       accentColor: 'blue',
@@ -291,6 +292,7 @@ async function main() {
       xUrl: 'https://x.com/fclausannesport',
       tiktokUrl: 'https://tiktok.com/@fclausannesport',
       discordUrl: 'https://discord.gg/fclausanne',
+      lastVerifiedAt: new Date(Date.now() - 83 * 24 * 60 * 60 * 1000), // 83 days ago — approaching
       isPublished: true,
       forceOffline: false,
       accentColor: 'green',
@@ -323,6 +325,7 @@ async function main() {
       youtubeUrl: 'https://youtube.com/@bergclubzurich',
       whatsappUrl: 'https://chat.whatsapp.com/bergclubzurich',
       githubUrl: 'https://github.com/bergclub-zurich',
+      lastVerifiedAt: new Date(Date.now() - 95 * 24 * 60 * 60 * 1000), // 95 days ago — expired
       isPublished: true,
       forceOffline: false,
       accentColor: 'violet',
@@ -355,6 +358,7 @@ async function main() {
       facebookUrl: 'https://facebook.com/avirongeneve',
       xUrl: 'https://x.com/avirongeneve',
       telegramUrl: 'https://t.me/avirongeneve',
+      lastVerifiedAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000), // 45 days ago — healthy
       isPublished: true,
       forceOffline: false,
       accentColor: 'orange',
@@ -388,6 +392,7 @@ async function main() {
       youtubeUrl: 'https://youtube.com/@turnvereinbern',
       discordUrl: 'https://discord.gg/turnvereinbern',
       whatsappUrl: 'https://chat.whatsapp.com/turnvereinbern',
+      lastVerifiedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago — healthy
       isPublished: true,
       forceOffline: false,
       accentColor: 'rose',
@@ -960,8 +965,30 @@ async function main() {
     { name: 'FC Neuchâtel Jeunesse', slug: 'fc-neuchatel-jeunesse', activity: 'football', locIdx: 4, published: true, forceOffline: false },
   ]
 
-  for (const def of bulkClubDefs) {
+  // Varied lastVerifiedAt for bulk clubs: cycle through healthy, approaching, expired, and null
+  const bulkVerificationAges = [
+    15,   // healthy
+    50,   // healthy
+    82,   // approaching
+    92,   // expired
+    null, // never verified
+    5,    // healthy (very recent)
+    70,   // healthy
+    85,   // approaching
+    100,  // expired
+    60,   // healthy
+    25,   // healthy
+    88,   // approaching
+    95,   // expired
+    null, // never verified
+    40,   // healthy
+    75,   // healthy
+  ]
+
+  for (const [i, def] of bulkClubDefs.entries()) {
     const loc = bulkLocations[def.locIdx]
+    const ageDays = bulkVerificationAges[i % bulkVerificationAges.length]
+    const lastVerifiedAt = ageDays !== null ? new Date(Date.now() - ageDays * 24 * 60 * 60 * 1000) : null
     const club = await prisma.club.upsert({
       where: { slug_country: { slug: def.slug, country: 'ch' } },
       update: { locationId: loc.id },
@@ -980,6 +1007,7 @@ async function main() {
         defaultLanguage: def.locIdx <= 1 || def.locIdx === 4 || def.locIdx === 5 ? 'fr' : 'de',
         storageUsedBytes: BigInt(0),
         storageLimitBytes: BigInt(5368709120),
+        lastVerifiedAt,
       },
     })
     await prisma.clubMembership.upsert({

@@ -1,7 +1,12 @@
 ---
 stepsCompleted: [step-01-validate-prerequisites, step-02-design-epics, step-03-create-stories, step-04-final-validation]
-lastEdited: '2026-03-09'
+lastEdited: '2026-03-15'
 editHistory:
+  - date: '2026-03-15'
+    changes: 'Added Epic 11 (Data Freshness & Verification): 7 stories covering schema migration
+      (lastVerifiedAt), auto-reset on profile save, confirmation flow in club settings, verification
+      countdown display, in-app banner (2FA-style), email notifications (day 80 + day 90), freshness
+      badges on search results and club page banner, operator freshness overview. New FRs: FR58-FR68.'
   - date: '2026-03-09'
     changes: 'MVP scope refinement: Deferred Epic 7 entirely (Platform Operations & Health Monitoring).
       FR34, FR35, FR39, FR42, FR45 moved to post-MVP. FR38 partially retained via Epic 10.
@@ -116,6 +121,20 @@ FR46: ~~Deferred to post-MVP~~ Club Admin can select an accent color for their c
 **Platform Funding**
 
 FR50: Public Visitor can access a donation/support page on the platform site to contribute to the platform's funding through voluntary donations
+
+**Data Freshness & Verification**
+
+FR58: System tracks a `lastVerifiedAt` timestamp per club, initialized to approval date; resets on profile data save or explicit confirmation
+FR59: System sends email notification to all Club Admins at day 80 of the 90-day cycle (verification due in 10 days)
+FR60: System sends email notification to all Club Admins at day 90 when verification expires
+FR61: System displays persistent in-app banner (2FA-style) when verification is due (from day 80) or expired
+FR62: Club Admin can review all club data and confirm it is up to date via club settings page; resets 90-day cycle
+FR63: Any club profile data edit (save) automatically resets the 90-day verification cycle
+FR64: System displays verification badge on search results: green "Up to date" / amber "Not recently verified"
+FR65: System displays top banner overlay on public club page when verification has expired
+FR66: Club settings page displays contextual verification countdown with escalating visual urgency
+FR67: Platform Operator can view data freshness overview (verified/approaching/expired counts)
+FR68: Verification status badge and banner update immediately upon confirmation or profile save
 
 ### NonFunctional Requirements
 
@@ -301,6 +320,17 @@ NFR27: All platform-wide configurable variables adjustable via the admin dashboa
 | FR55 | Epic 4 | Operator message unread indicator in sidebar | MVP |
 | FR56 | Epic 4 | Unified message model (SupportMessage) | MVP |
 | FR57 | Epic 4 | Approval message bundled in acceptance email | MVP |
+| FR58 | Epic 11 | lastVerifiedAt timestamp tracking | MVP |
+| FR59 | Epic 11 | Email notification at day 80 | MVP |
+| FR60 | Epic 11 | Email notification at day 90 (expiry) | MVP |
+| FR61 | Epic 11 | In-app verification banner (2FA-style) | MVP |
+| FR62 | Epic 11 | Confirm data is up to date (club settings) | MVP |
+| FR63 | Epic 11 | Auto-reset verification on profile save | MVP |
+| FR64 | Epic 11 | Verification badge on search results | MVP |
+| FR65 | Epic 11 | Expired banner overlay on club page | MVP |
+| FR66 | Epic 11 | Verification countdown in club settings | MVP |
+| FR67 | Epic 11 | Operator freshness overview | MVP |
+| FR68 | Epic 11 | Immediate badge/banner update on confirm | MVP |
 
 ## Epic List
 
@@ -341,6 +371,10 @@ Rework the application form to collect club profile fields (description, schedul
 GDPR/nDSG data rights (export, deletion) are covered by Epic 9 (Stories 9.2, 9.3). Cookie consent (FR42) deferred — no non-essential cookies at MVP. Stories 8.1 and 8.3 superseded by 9.2 and 9.3 respectively. Stories 8.2 and 8.4 deferred (depend on analytics infrastructure).
 **FRs covered:** ~~FR40, FR41~~ (superseded by Epic 9), ~~FR42~~ (deferred)
 **NFRs addressed:** NFR6 (TLS encryption)
+
+### Epic 11: Data Freshness & Verification
+The platform enforces data currency through a 90-day verification cycle. Each club tracks a `lastVerifiedAt` timestamp (initialized on approval, reset on profile save or explicit confirmation). Club Admins receive email notifications at day 80 and day 90, plus a persistent in-app banner. The club settings page displays a verification countdown with escalating urgency and a confirmation action. Search results show a green/amber freshness badge per club; expired clubs display a top banner on their public page. The Platform Operator can view a freshness overview.
+**FRs covered:** FR58, FR59, FR60, FR61, FR62, FR63, FR64, FR65, FR66, FR67, FR68
 
 ---
 
@@ -2088,3 +2122,196 @@ So that visitors are aware of upcoming downtime and I can coordinate maintenance
 **Then** no banner is rendered — zero visual impact on the homepage.
 
 **Implementation notes:** The actual taking-offline of the platform during maintenance is handled at the infrastructure level (Docker/Nginx). This story only covers the scheduling UI and the visitor-facing announcement. The banner is a client component that reads the config via a lightweight API route or server component prop — no polling, just rendered on page load.
+
+## Epic 11: Data Freshness & Verification
+
+The platform enforces data currency through a 90-day verification cycle. Each club tracks a `lastVerifiedAt` timestamp (initialized on approval, reset on profile save or explicit confirmation). Club Admins receive email notifications at day 80 and day 90, plus a persistent in-app banner. The club settings page displays a verification countdown with escalating urgency and a confirmation action. Search results show a green/amber freshness badge per club; expired clubs display a top banner on their public page. The Platform Operator can view a freshness overview.
+
+### Story 11.1: Schema Migration & Auto-Reset on Profile Save
+
+As a platform engineer,
+I want `lastVerifiedAt` tracked per club and automatically reset whenever a Club Admin saves profile changes,
+So that the verification cycle has a data foundation and clubs that actively maintain their data never need to confirm separately.
+
+**Acceptance Criteria:**
+
+**Given** the Prisma migration is applied,
+**Then** the `Club` model has a new `lastVerifiedAt DateTime? @map("last_verified_at")` column; existing clubs have `lastVerifiedAt` set to their `createdAt` value via a data migration.
+
+**Given** a new club application is approved,
+**When** the approval server action completes,
+**Then** the new club's `lastVerifiedAt` is set to `now()`.
+
+**Given** a Club Admin saves any profile data change (name, description, schedule, contact info, how to join, external website URL, social links),
+**When** the profile save server action completes successfully,
+**Then** `lastVerifiedAt` is updated to `now()` in the same transaction.
+
+**Given** a Club Admin uploads or removes photos (which triggers a save),
+**Then** `lastVerifiedAt` is also reset to `now()`.
+
+**Implementation notes:** Add `lastVerifiedAt` to the `Club` model in `prisma/schema.prisma`. Update the existing profile save server action to include `lastVerifiedAt: new Date()` in the update payload. Update the approval server action to set `lastVerifiedAt` on club creation. Data migration: `UPDATE "Club" SET last_verified_at = created_at WHERE last_verified_at IS NULL`.
+
+**FRs covered:** FR58, FR63
+
+---
+
+### Story 11.2: Verification Confirmation Flow in Club Settings
+
+As a Club Admin,
+I want to review my club's data and explicitly confirm it is up to date from the club settings page,
+So that my club keeps its "Up to date" badge without needing to make actual edits.
+
+**Acceptance Criteria:**
+
+**Given** a Club Admin navigates to `/{lang}/club/{clubId}/settings`,
+**When** the page loads,
+**Then** the page displays a read-only summary of all current club profile data (name, description, schedule, contact info, how to join, external website URL) followed by a "Confirm data is up to date" button at the bottom.
+
+**Given** the Club Admin clicks "Confirm data is up to date",
+**When** the server action executes,
+**Then** `lastVerifiedAt` is updated to `now()`; a success toast confirms: "Your club data has been verified. Next verification due in 90 days."; the countdown display (Story 11.3) refreshes immediately.
+
+**Given** the club's `lastVerifiedAt` is within the last 90 days and no profile data has changed,
+**Then** the "Confirm data is up to date" button is still available — admins can confirm proactively at any time.
+
+**Implementation notes:** Add a `confirmClubData` server action in the club settings route. The action simply sets `lastVerifiedAt = new Date()` — no data validation beyond auth/membership checks. The data summary section should reuse the same field labels and values from the profile edit form but rendered as read-only text, so the admin is actually reviewing their data before confirming. The button should use the existing `Button` component. Translations needed for all 4 languages: confirmation button label, success toast message.
+
+**FRs covered:** FR62, FR68
+
+---
+
+### Story 11.3: Verification Countdown Display in Club Settings
+
+As a Club Admin,
+I want to see how many days since my last verification and how many days until my next verification is due,
+So that I know when I need to take action and can plan accordingly.
+
+**Acceptance Criteria:**
+
+**Given** a Club Admin navigates to `/{lang}/club/{clubId}/settings`,
+**When** `lastVerifiedAt` is within 80 days (healthy),
+**Then** a subtle muted text is displayed near the top of the settings page: "Last verified X days ago — next verification due in Y days".
+
+**Given** `lastVerifiedAt` is between 80 and 90 days ago (approaching),
+**When** the settings page loads,
+**Then** an amber-styled alert is displayed: "Verification due in Y days — please review your data below and confirm it is up to date"; the "Confirm data is up to date" button (Story 11.2) is visually emphasized.
+
+**Given** `lastVerifiedAt` is more than 90 days ago (expired),
+**When** the settings page loads,
+**Then** a red-styled alert is displayed at the top of the settings: "Your club is marked as not recently verified — review and confirm your data below to restore your badge"; the "Confirm data is up to date" button is visually emphasized with a primary/destructive variant.
+
+**Implementation notes:** Create a `VerificationCountdown` component that computes days from `lastVerifiedAt`. Three visual states: subtle (muted text), approaching (amber border/bg similar to the apply form warning card pattern), expired (red/destructive border/bg). The component takes `lastVerifiedAt: Date` as a prop — computation is pure client-side math. Translations needed for all 4 languages for each state's message.
+
+**FRs covered:** FR66
+
+---
+
+### Story 11.4: In-App Verification Banner
+
+As a Club Admin,
+I want to see a persistent banner across the dashboard when my club's verification is due or expired,
+So that I am reminded to verify my data regardless of which admin page I am on.
+
+**Acceptance Criteria:**
+
+**Given** a Club Admin is logged in and any of their clubs has `lastVerifiedAt` older than 80 days,
+**When** any page within the dashboard loads,
+**Then** a persistent banner is displayed below the header (same position and pattern as `TotpEnrollmentBanner`): amber background for approaching (80-90 days), red background for expired (>90 days); the banner includes the club name, a message ("Verification due in X days" or "Your club is marked as not recently verified"), and a link to the club's settings page.
+
+**Given** the admin has multiple clubs and more than one needs verification,
+**Then** one banner is shown per club that needs attention (stacked, max 3 visible with "and X more" overflow).
+
+**Given** the admin confirms or the verification period resets (via profile save),
+**Then** the banner for that club disappears immediately without a page reload (revalidation via server action).
+
+**Given** all of the admin's clubs are within the healthy verification window (< 80 days),
+**Then** no banner is displayed — zero visual impact.
+
+**Implementation notes:** Create a `VerificationBanner` component following the same pattern as `TotpEnrollmentBanner.tsx`. The banner data should be fetched as part of the existing layout server component data (alongside the TOTP enrollment check). Query: clubs where the current user is a member AND `lastVerifiedAt < now() - 80 days`. Use `revalidatePath` in the confirm/save server actions to refresh the banner state. Translations needed for all 4 languages.
+
+**FRs covered:** FR61
+
+---
+
+### Story 11.5: Email Notifications (Day 80 & Day 90)
+
+As a Club Admin,
+I want to receive email notifications when my club's data verification is approaching and when it expires,
+So that I am reminded to verify my data even if I don't log into the platform regularly.
+
+**Acceptance Criteria:**
+
+**Given** a club's `lastVerifiedAt` is exactly 80 days ago,
+**When** the daily verification check job runs,
+**Then** an email is sent to all Club Admins (members) of that club using the existing email infrastructure (`src/lib/email.ts`); the email subject is "Your club's data verification is due in 10 days" (translated); the email body includes the club name, a message explaining that verification is due, and a direct link to the club's settings page.
+
+**Given** a club's `lastVerifiedAt` is exactly 90 days ago,
+**When** the daily verification check job runs,
+**Then** an email is sent to all Club Admins of that club; the email subject is "Your club is now marked as not recently verified" (translated); the email body explains the badge has changed and includes a link to the settings page to confirm data.
+
+**Given** a club's `lastVerifiedAt` was reset (via save or confirmation) after the day-80 email was sent but before day 90,
+**Then** no day-90 email is sent (the cycle restarted).
+
+**Given** a club has already received its day-80 or day-90 email for the current cycle,
+**Then** the same email is not sent again for that cycle (idempotent — track via a `lastVerificationEmailSentAt` or by comparing dates).
+
+**Implementation notes:** Implement as a CRON job or scheduled task (daily, e.g., 08:00 UTC). Query: clubs where `lastVerifiedAt` is between 79-80 days ago (day-80 batch) or 89-90 days ago (day-90 batch) — use a 1-day window to handle timing. Use the existing `sendEmail` function and email template pattern from approval/rejection emails. Add email templates for both notifications in all 4 languages. Consider adding a `verificationReminderSentAt` and `verificationExpiredSentAt` to `Club` to prevent duplicate sends, or simply check if `lastVerifiedAt` falls in the exact day-80/day-90 window.
+
+**FRs covered:** FR59, FR60
+
+---
+
+### Story 11.6: Freshness Badges on Search Results & Club Page Banner
+
+As a Public Visitor,
+I want to see whether a club's information is up to date on search results and on the club page,
+So that I can trust the information I'm reading and make informed decisions about which clubs to contact.
+
+**Acceptance Criteria:**
+
+**Given** a Public Visitor views the search results page,
+**When** a club's `lastVerifiedAt` is within 90 days,
+**Then** a small green badge "Up to date" is displayed next to the club's name in the search result card.
+
+**Given** a Public Visitor views the search results page,
+**When** a club's `lastVerifiedAt` is older than 90 days,
+**Then** a small amber badge "Not recently verified" is displayed next to the club's name in the search result card.
+
+**Given** a Public Visitor navigates to a club's public page,
+**When** the club's `lastVerifiedAt` is older than 90 days,
+**Then** a top banner is displayed above the club content: amber background, text "This club's information has not been recently verified" (translated); the banner is non-dismissible.
+
+**Given** a Public Visitor navigates to a club's public page,
+**When** the club's `lastVerifiedAt` is within 90 days,
+**Then** no banner is displayed — the page renders normally.
+
+**Given** a Club Admin confirms their data or saves a profile update,
+**Then** the badge on search results and the club page banner update immediately on the next page load (server-rendered, no cache staleness beyond normal revalidation).
+
+**Implementation notes:** The search results page already renders club data server-side — add `lastVerifiedAt` to the query and compute the badge state. Create a `FreshnessBadge` component (green/amber variants) for the search card. For the club page banner, add a conditional banner component at the top of the club profile layout. Use the same amber styling pattern as the homepage bootstrap message (border-amber-200, bg-amber-50, etc.). Translations needed for all 4 languages: badge labels and banner text.
+
+**FRs covered:** FR64, FR65, FR68
+
+---
+
+### Story 11.7: Operator Data Freshness Overview
+
+As a Platform Operator,
+I want to see a summary of data freshness status across all clubs,
+So that I can monitor verification compliance and identify trends without taking manual action.
+
+**Acceptance Criteria:**
+
+**Given** the operator navigates to the admin dashboard (`/{lang}/admin`),
+**When** the page loads,
+**Then** a "Data Freshness" card or section is displayed showing three counts: number of clubs "Up to date" (green, verified within 90 days), number "Approaching deadline" (amber, 80-90 days), number "Expired" (red, >90 days).
+
+**Given** all clubs are verified (within 90 days),
+**Then** the approaching and expired counts show 0; the display uses a positive/healthy visual state.
+
+**Given** one or more clubs are expired,
+**Then** the expired count is displayed with a red accent; clicking the count navigates to the clubs list filtered by expired status (or shows an expanded list of expired club names).
+
+**Implementation notes:** Add a `getVerificationStats` query function that returns `{ verified: number, approaching: number, expired: number }` using SQL aggregation on `lastVerifiedAt`. Render as a simple stats card on the existing operator dashboard page (similar pattern to the existing metrics display). No new page needed — integrate into the existing dashboard layout.
+
+**FRs covered:** FR67

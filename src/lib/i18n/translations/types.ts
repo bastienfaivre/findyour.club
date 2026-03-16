@@ -247,6 +247,12 @@ export type Translations = {
       noPhotos: string
       members: string
       noMembers: string
+      freshness: {
+        title: string
+        verified: string
+        approaching: string
+        expired: string
+      }
     }
     users: {
       title: string
@@ -539,6 +545,20 @@ export type Translations = {
       settings: {
         title: string
         placeholder: string
+        verification: {
+          confirmButton: string
+          confirmSuccess: string
+          countdown: {
+            healthy: string
+            approaching: string
+            expired: string
+          }
+          banner: {
+            approaching: string
+            expired: string
+            andMore: string
+          }
+        }
         exportData: string
         exportDescription: string
         exportPreparing: string
@@ -702,6 +722,8 @@ export type Translations = {
     clubAriaLabel: string
     verifiedBadge: string
     verifiedDetail: string
+    freshnessBadgeUpToDate: string
+    freshnessBadgeNotVerified: string
     shareCtaMessage: string
     listCtaMessage: string
   }
@@ -712,6 +734,7 @@ export type Translations = {
     schedule: string
     howToJoin: string
     contactInfo: string
+    freshnessExpiredBanner: string
     email: string
     phone: string
     address: string
@@ -912,6 +935,24 @@ export type Translations = {
       intro: string
       resetButton: string
       expiry: string
+    }
+    verificationReminder: {
+      /** Use {clubName} as placeholder */
+      subject: string
+      heading: string
+      /** Use {clubName} as placeholder */
+      intro: string
+      cta: string
+      verifyButton: string
+    }
+    verificationExpired: {
+      /** Use {clubName} as placeholder */
+      subject: string
+      heading: string
+      /** Use {clubName} as placeholder */
+      intro: string
+      cta: string
+      verifyButton: string
     }
   }
 }

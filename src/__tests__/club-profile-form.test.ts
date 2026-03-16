@@ -328,6 +328,8 @@ function renderForm(overrides: Partial<typeof defaultData> = {}) {
     initialData: { ...defaultData, ...overrides },
     maxPhotos: 10,
     maxImageSizeBytes: 5 * 1024 * 1024,
+    lastVerifiedAt: new Date(),
+    confirmAction: async () => ({ success: true, data: { verifiedAt: new Date().toISOString() } }),
   })
 }
 

@@ -16,6 +16,7 @@ import { ProfilePage } from '@/components/app/club-profile/ProfilePage'
 import { ACCENT_COLORS } from '@/components/app/club-site/accent-colors'
 import { SharePrompt } from '@/components/app/club-site/SharePrompt'
 import { SearchBackTitle } from '@/components/app/club-profile/SearchBackTitle'
+import { VERIFICATION_CYCLE_DAYS } from '@/lib/verification'
 
 type Props = {
   params: Promise<{ lang: string; country: string; club: string }>
@@ -81,6 +82,8 @@ export default async function ClubPage({ params }: Props) {
   if (!club) notFound()
 
   const accentColor = ACCENT_COLORS[club.accentColor] ?? ACCENT_COLORS.zinc
+  const isVerificationExpired = !club.lastVerifiedAt
+    || Math.floor((new Date().getTime() - new Date(club.lastVerifiedAt).getTime()) / (1000 * 60 * 60 * 24)) >= VERIFICATION_CYCLE_DAYS
   const activityTypeLabel = club.activityType
     ? t.activityTypes[club.activityType] ?? null
     : null
@@ -125,6 +128,11 @@ export default async function ClubPage({ params }: Props) {
       } as React.CSSProperties}
     >
       <SearchBackTitle title={club.name} lang={lang} defaultCountry={country} />
+      {isVerificationExpired && (
+        <div role="alert" className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+          {t.clubSite.freshnessExpiredBanner}
+        </div>
+      )}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}

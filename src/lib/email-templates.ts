@@ -213,6 +213,40 @@ export function buildPasswordResetEmailHtml({ resetUrl, lang }: PasswordResetEma
   `, lang)
 }
 
+interface VerificationReminderEmailParams {
+  clubName: string
+  settingsUrl: string
+  lang: SupportedLanguage
+}
+
+export function buildVerificationReminderEmailHtml({ clubName, settingsUrl, lang }: VerificationReminderEmailParams): string {
+  const t = getTranslations(lang).emails.verificationReminder
+
+  return emailLayout(`
+    ${heading(t.heading)}
+    ${paragraph(t.intro.replace('{clubName}', `<strong>${escapeHtml(clubName)}</strong>`))}
+    ${paragraph(t.cta)}
+    ${primaryButton(t.verifyButton, settingsUrl)}
+  `, lang)
+}
+
+interface VerificationExpiredEmailParams {
+  clubName: string
+  settingsUrl: string
+  lang: SupportedLanguage
+}
+
+export function buildVerificationExpiredEmailHtml({ clubName, settingsUrl, lang }: VerificationExpiredEmailParams): string {
+  const t = getTranslations(lang).emails.verificationExpired
+
+  return emailLayout(`
+    ${heading(t.heading)}
+    ${paragraph(t.intro.replace('{clubName}', `<strong>${escapeHtml(clubName)}</strong>`))}
+    ${paragraph(t.cta)}
+    ${primaryButton(t.verifyButton, settingsUrl)}
+  `, lang)
+}
+
 export function escapeHtml(str: string): string {
   return str
     .replace(/&/g, '&amp;')
