@@ -448,333 +448,352 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
       {/* ── STEP 2: About Your Club ── */}
       <div className={step === 2 ? '' : 'hidden'}>
         <div className="space-y-6">
-          {/* Club Name */}
-          <div className="space-y-2">
-            <Label htmlFor="name">{t.apply.fields.name}<RequiredMark /></Label>
-            <Input
-              id="name"
-              {...register('name')}
-              placeholder={t.apply.placeholders.name}
-              aria-required="true"
-              aria-invalid={!!errors.name}
-            />
-            {errors.name && (
-              <p className="text-sm text-destructive">{t.apply.validation.nameRequired}</p>
-            )}
-          </div>
 
-          {/* Club Email with "same as" checkbox */}
-          <div className="space-y-2">
-            <Label htmlFor="clubEmail">{t.apply.fields.clubEmail}</Label>
-            <div className="flex items-center gap-2 mb-2">
-              <Checkbox
-                id="sameEmail"
-                checked={sameEmail}
-                onCheckedChange={(checked: boolean) => {
-                  setSameEmail(!!checked)
-                  if (checked) {
-                    setValue('clubEmail', '')
-                  }
-                }}
-              />
-              <Label htmlFor="sameEmail" className="text-sm font-normal cursor-pointer">
-                {t.apply.fields.sameAsMyEmail}
-              </Label>
-            </div>
-            {!sameEmail && (
+          {/* Section: Identity */}
+          <section className="rounded-lg border p-4 space-y-4">
+            <h3 className="text-sm font-medium">{t.apply.sections.identity}</h3>
+
+            {/* Club Name */}
+            <div className="space-y-2">
+              <Label htmlFor="name">{t.apply.fields.name}<RequiredMark /></Label>
               <Input
-                id="clubEmail"
-                type="email"
-                {...register('clubEmail')}
-                placeholder={t.apply.placeholders.clubEmail}
+                id="name"
+                {...register('name')}
+                placeholder={t.apply.placeholders.name}
+                aria-required="true"
+                aria-invalid={!!errors.name}
               />
-            )}
-            {sameEmail && (
-              <p className="text-sm text-muted-foreground">{watchedEmail}</p>
-            )}
-          </div>
-
-          {/* Activity Type */}
-          <div className="space-y-2">
-            <Label htmlFor="activityType">{t.apply.fields.activityType}<RequiredMark /></Label>
-            <p className="text-sm text-muted-foreground">{t.apply.helpers.activityType}</p>
-            <Controller
-              control={control}
-              name="activityType"
-              render={({ field }) => (
-                <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                  <SelectTrigger id="activityType" className="w-full" aria-required="true" aria-invalid={!!errors.activityType}>
-                    <SelectValue placeholder={t.apply.placeholders.activityType} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {activityTypes.map((at) => (
-                      <SelectItem key={at.slug} value={at.slug}>{at.name}</SelectItem>
-                    ))}
-                    <SelectItem key="other" value="other">{t.activityTypes.other}</SelectItem>
-                  </SelectContent>
-                </Select>
+              {errors.name && (
+                <p className="text-sm text-destructive">{t.apply.validation.nameRequired}</p>
               )}
-            />
-            {errors.activityType && (
-              <p className="text-sm text-destructive">{t.apply.validation.activityTypeRequired}</p>
-            )}
-            {watchedActivityType === 'other' && (
-              <div className="space-y-2 mt-2">
-                <Label htmlFor="otherDescription">{t.apply.fields.otherDescription}<RequiredMark /></Label>
+            </div>
+
+            {/* Activity Type */}
+            <div className="space-y-2">
+              <Label htmlFor="activityType">{t.apply.fields.activityType}<RequiredMark /></Label>
+              <p className="text-sm text-muted-foreground">{t.apply.helpers.activityType}</p>
+              <Controller
+                control={control}
+                name="activityType"
+                render={({ field }) => (
+                  <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                    <SelectTrigger id="activityType" className="w-full" aria-required="true" aria-invalid={!!errors.activityType}>
+                      <SelectValue placeholder={t.apply.placeholders.activityType} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {activityTypes.map((at) => (
+                        <SelectItem key={at.slug} value={at.slug}>{at.name}</SelectItem>
+                      ))}
+                      <SelectItem key="other" value="other">{t.activityTypes.other}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.activityType && (
+                <p className="text-sm text-destructive">{t.apply.validation.activityTypeRequired}</p>
+              )}
+              {watchedActivityType === 'other' && (
+                <div className="space-y-2 mt-2">
+                  <Label htmlFor="otherDescription">{t.apply.fields.otherDescription}<RequiredMark /></Label>
+                  <Input
+                    id="otherDescription"
+                    {...register('otherDescription')}
+                    placeholder={t.apply.placeholders.otherDescription}
+                    aria-required="true"
+                    aria-invalid={!!errors.otherDescription}
+                  />
+                  {errors.otherDescription && (
+                    <p className="text-sm text-destructive">{t.apply.validation.otherDescriptionRequired}</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Country */}
+            <div className="space-y-2">
+              <Label htmlFor="country">{t.apply.fields.country}<RequiredMark /></Label>
+              <Controller
+                control={control}
+                name="country"
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange} disabled={countries.length <= 1}>
+                    <SelectTrigger id="country" className="w-full" aria-required="true">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map((c) => (
+                        <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+
+            {/* Location Typeahead */}
+            <div className="space-y-2">
+              <Label htmlFor="location">{t.apply.fields.location}<RequiredMark /></Label>
+              <div className="relative" ref={locationWrapperRef}>
                 <Input
-                  id="otherDescription"
-                  {...register('otherDescription')}
-                  placeholder={t.apply.placeholders.otherDescription}
+                  id="location"
+                  role="combobox"
+                  value={locationQuery}
+                  onChange={(e) => {
+                    const q = e.target.value
+                    setLocationQuery(q)
+                    searchLocations(q)
+                    if (getValues('location')) {
+                      setValue('location', undefined as never, { shouldValidate: false })
+                    }
+                  }}
+                  onKeyDown={handleLocationKeyDown}
+                  onBlur={() => {
+                    if (!getValues('location')) {
+                      setLocationQuery('')
+                    }
+                    void trigger('location')
+                  }}
+                  placeholder={t.apply.placeholders.location}
                   aria-required="true"
-                  aria-invalid={!!errors.otherDescription}
+                  aria-invalid={!!errors.location}
+                  aria-expanded={locationOpen}
+                  aria-controls="location-listbox"
+                  aria-activedescendant={
+                    activeLocationIndex >= 0 ? `location-option-${activeLocationIndex}` : undefined
+                  }
+                  autoComplete="off"
                 />
-                {errors.otherDescription && (
-                  <p className="text-sm text-destructive">{t.apply.validation.otherDescriptionRequired}</p>
+                {locationOpen && locationResults.length > 0 && (
+                  <ul
+                    id="location-listbox"
+                    ref={listboxRef}
+                    role="listbox"
+                    className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-md border bg-popover p-1 shadow-md"
+                  >
+                    {locationResults.map((loc, index) => (
+                      <li
+                        key={loc.swisstopoId}
+                        id={`location-option-${index}`}
+                        role="option"
+                        aria-selected={index === activeLocationIndex}
+                        className={`w-full cursor-pointer rounded-sm px-2 py-1.5 text-left text-sm ${
+                          index === activeLocationIndex
+                            ? 'bg-accent text-accent-foreground'
+                            : 'hover:bg-accent hover:text-accent-foreground'
+                        }`}
+                        onMouseDown={(e) => {
+                          e.preventDefault()
+                          selectLocation(loc)
+                        }}
+                      >
+                        {loc.name} ({loc.cantonCode}){loc.plz ? ` — ${loc.plz}` : ''}
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
-            )}
-          </div>
-
-          {/* Country */}
-          <div className="space-y-2">
-            <Label htmlFor="country">{t.apply.fields.country}<RequiredMark /></Label>
-            <Controller
-              control={control}
-              name="country"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange} disabled={countries.length <= 1}>
-                  <SelectTrigger id="country" className="w-full" aria-required="true">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {countries.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </div>
-
-          {/* Location Typeahead */}
-          <div className="space-y-2">
-            <Label htmlFor="location">{t.apply.fields.location}<RequiredMark /></Label>
-            <div className="relative" ref={locationWrapperRef}>
-              <Input
-                id="location"
-                role="combobox"
-                value={locationQuery}
-                onChange={(e) => {
-                  const q = e.target.value
-                  setLocationQuery(q)
-                  searchLocations(q)
-                  if (getValues('location')) {
-                    setValue('location', undefined as never, { shouldValidate: false })
-                  }
-                }}
-                onKeyDown={handleLocationKeyDown}
-                onBlur={() => {
-                  if (!getValues('location')) {
-                    setLocationQuery('')
-                  }
-                  void trigger('location')
-                }}
-                placeholder={t.apply.placeholders.location}
-                aria-required="true"
-                aria-invalid={!!errors.location}
-                aria-expanded={locationOpen}
-                aria-controls="location-listbox"
-                aria-activedescendant={
-                  activeLocationIndex >= 0 ? `location-option-${activeLocationIndex}` : undefined
-                }
-                autoComplete="off"
-              />
-              {locationOpen && locationResults.length > 0 && (
-                <ul
-                  id="location-listbox"
-                  ref={listboxRef}
-                  role="listbox"
-                  className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-md border bg-popover p-1 shadow-md"
-                >
-                  {locationResults.map((loc, index) => (
-                    <li
-                      key={loc.swisstopoId}
-                      id={`location-option-${index}`}
-                      role="option"
-                      aria-selected={index === activeLocationIndex}
-                      className={`w-full cursor-pointer rounded-sm px-2 py-1.5 text-left text-sm ${
-                        index === activeLocationIndex
-                          ? 'bg-accent text-accent-foreground'
-                          : 'hover:bg-accent hover:text-accent-foreground'
-                      }`}
-                      onMouseDown={(e) => {
-                        e.preventDefault()
-                        selectLocation(loc)
-                      }}
-                    >
-                      {loc.name} ({loc.cantonCode}){loc.plz ? ` — ${loc.plz}` : ''}
-                    </li>
-                  ))}
-                </ul>
+              {errors.location && (
+                <p className="text-sm text-destructive">{t.apply.validation.locationRequired}</p>
               )}
             </div>
-            {errors.location && (
-              <p className="text-sm text-destructive">{t.apply.validation.locationRequired}</p>
-            )}
-          </div>
+          </section>
 
-          {/* Profile Details */}
-          <h3 className="text-lg font-semibold pt-2">{t.apply.fields.profileDetails}</h3>
+          {/* Section: About */}
+          <section className="rounded-lg border p-4 space-y-4">
+            <h3 className="text-sm font-medium">{t.apply.sections.about}</h3>
 
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">{t.apply.fields.description}<RequiredMark /></Label>
-            <p className="text-sm text-muted-foreground">{t.apply.helpers.description}</p>
-            <Textarea
-              id="description"
-              {...register('description')}
-              placeholder={t.apply.placeholders.description}
-              maxLength={1000}
-              aria-required="true"
-              aria-invalid={!!errors.description}
-            />
-            {errors.description && (
-              <p className="text-sm text-destructive">
-                {errors.description.type === 'too_big'
-                  ? t.apply.validation.descriptionMaxLength
-                  : t.apply.validation.descriptionRequired}
-              </p>
-            )}
-          </div>
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="description">{t.apply.fields.description}<RequiredMark /></Label>
+              <p className="text-sm text-muted-foreground">{t.apply.helpers.description}</p>
+              <Textarea
+                id="description"
+                {...register('description')}
+                placeholder={t.apply.placeholders.description}
+                maxLength={1000}
+                aria-required="true"
+                aria-invalid={!!errors.description}
+              />
+              {errors.description && (
+                <p className="text-sm text-destructive">
+                  {errors.description.type === 'too_big'
+                    ? t.apply.validation.descriptionMaxLength
+                    : t.apply.validation.descriptionRequired}
+                </p>
+              )}
+            </div>
 
-          {/* Schedule */}
-          <div className="space-y-2">
-            <Label htmlFor="schedule">{t.apply.fields.schedule}<RequiredMark /></Label>
-            <p className="text-sm text-muted-foreground">{t.apply.helpers.schedule}</p>
-            <Textarea
-              id="schedule"
-              {...register('schedule')}
-              placeholder={t.apply.placeholders.schedule}
-              maxLength={500}
-              aria-required="true"
-              aria-invalid={!!errors.schedule}
-            />
-            {errors.schedule && (
-              <p className="text-sm text-destructive">
-                {errors.schedule.type === 'too_big'
-                  ? t.apply.validation.scheduleMaxLength
-                  : t.apply.validation.scheduleRequired}
-              </p>
-            )}
-          </div>
+            {/* Schedule */}
+            <div className="space-y-2">
+              <Label htmlFor="schedule">{t.apply.fields.schedule}<RequiredMark /></Label>
+              <p className="text-sm text-muted-foreground">{t.apply.helpers.schedule}</p>
+              <Textarea
+                id="schedule"
+                {...register('schedule')}
+                placeholder={t.apply.placeholders.schedule}
+                maxLength={500}
+                aria-required="true"
+                aria-invalid={!!errors.schedule}
+              />
+              {errors.schedule && (
+                <p className="text-sm text-destructive">
+                  {errors.schedule.type === 'too_big'
+                    ? t.apply.validation.scheduleMaxLength
+                    : t.apply.validation.scheduleRequired}
+                </p>
+              )}
+            </div>
 
-          {/* How to Join */}
-          <div className="space-y-2">
-            <Label htmlFor="howToJoin">{t.apply.fields.howToJoin}<RequiredMark /></Label>
-            <p className="text-sm text-muted-foreground">{t.apply.helpers.howToJoin}</p>
-            <Textarea
-              id="howToJoin"
-              {...register('howToJoin')}
-              placeholder={t.apply.placeholders.howToJoin}
-              maxLength={1000}
-              aria-required="true"
-              aria-invalid={!!errors.howToJoin}
-            />
-            {errors.howToJoin && (
-              <p className="text-sm text-destructive">{t.apply.validation.howToJoinRequired}</p>
-            )}
-          </div>
+            {/* How to Join */}
+            <div className="space-y-2">
+              <Label htmlFor="howToJoin">{t.apply.fields.howToJoin}<RequiredMark /></Label>
+              <p className="text-sm text-muted-foreground">{t.apply.helpers.howToJoin}</p>
+              <Textarea
+                id="howToJoin"
+                {...register('howToJoin')}
+                placeholder={t.apply.placeholders.howToJoin}
+                maxLength={1000}
+                aria-required="true"
+                aria-invalid={!!errors.howToJoin}
+              />
+              {errors.howToJoin && (
+                <p className="text-sm text-destructive">{t.apply.validation.howToJoinRequired}</p>
+              )}
+            </div>
+          </section>
 
-          {/* Contact Phone */}
-          <div className="space-y-2">
-            <Label htmlFor="contactPhone">{t.apply.fields.contactPhone}</Label>
-            {watchedPhone && (
+          {/* Section: Contact */}
+          <section className="rounded-lg border p-4 space-y-4">
+            <h3 className="text-sm font-medium">{t.apply.sections.contact}</h3>
+
+            {/* Club Email with "same as" checkbox */}
+            <div className="space-y-2">
+              <Label htmlFor="clubEmail">{t.apply.fields.clubEmail}</Label>
               <div className="flex items-center gap-2 mb-2">
                 <Checkbox
-                  id="samePhone"
-                  checked={samePhone}
+                  id="sameEmail"
+                  checked={sameEmail}
                   onCheckedChange={(checked: boolean) => {
-                    setSamePhone(!!checked)
+                    setSameEmail(!!checked)
                     if (checked) {
-                      setValue('contactPhone', watchedPhone)
-                    } else {
-                      setValue('contactPhone', '')
+                      setValue('clubEmail', '')
                     }
                   }}
                 />
-                <Label htmlFor="samePhone" className="text-sm font-normal cursor-pointer">
-                  {t.apply.fields.sameAsMyPhone}
+                <Label htmlFor="sameEmail" className="text-sm font-normal cursor-pointer">
+                  {t.apply.fields.sameAsMyEmail}
                 </Label>
               </div>
-            )}
-            {!samePhone && (
-              <Controller
-                control={control}
-                name="contactPhone"
-                render={({ field }) => (
-                  <PhoneInput
-                    id="contactPhone"
-                    value={field.value ?? ''}
-                    onChange={(val) => field.onChange(val ?? '')}
-                    placeholder={t.apply.placeholders.contactPhone}
-                    aria-invalid={!!errors.contactPhone}
+              {!sameEmail && (
+                <Input
+                  id="clubEmail"
+                  type="email"
+                  {...register('clubEmail')}
+                  placeholder={t.apply.placeholders.clubEmail}
+                />
+              )}
+              {sameEmail && (
+                <p className="text-sm text-muted-foreground">{watchedEmail}</p>
+              )}
+            </div>
+
+            {/* Contact Phone */}
+            <div className="space-y-2">
+              <Label htmlFor="contactPhone">{t.apply.fields.contactPhone}</Label>
+              {watchedPhone && (
+                <div className="flex items-center gap-2 mb-2">
+                  <Checkbox
+                    id="samePhone"
+                    checked={samePhone}
+                    onCheckedChange={(checked: boolean) => {
+                      setSamePhone(!!checked)
+                      if (checked) {
+                        setValue('contactPhone', watchedPhone)
+                      } else {
+                        setValue('contactPhone', '')
+                      }
+                    }}
                   />
-                )}
+                  <Label htmlFor="samePhone" className="text-sm font-normal cursor-pointer">
+                    {t.apply.fields.sameAsMyPhone}
+                  </Label>
+                </div>
+              )}
+              {!samePhone && (
+                <Controller
+                  control={control}
+                  name="contactPhone"
+                  render={({ field }) => (
+                    <PhoneInput
+                      id="contactPhone"
+                      value={field.value ?? ''}
+                      onChange={(val) => field.onChange(val ?? '')}
+                      placeholder={t.apply.placeholders.contactPhone}
+                      aria-invalid={!!errors.contactPhone}
+                    />
+                  )}
+                />
+              )}
+              {samePhone && watchedPhone && (
+                <p className="text-sm text-muted-foreground">{watchedPhone}</p>
+              )}
+              {errors.contactPhone && !samePhone && (
+                <p className="text-sm text-destructive">{t.apply.validation.contactPhoneInvalid}</p>
+              )}
+            </div>
+
+            {/* Contact Address */}
+            <div className="space-y-2">
+              <Label htmlFor="contactAddress">{t.apply.fields.contactAddress}</Label>
+              <Textarea
+                id="contactAddress"
+                {...register('contactAddress')}
+                placeholder={t.apply.placeholders.contactAddress}
+                maxLength={500}
+                aria-invalid={!!errors.contactAddress}
               />
-            )}
-            {samePhone && watchedPhone && (
-              <p className="text-sm text-muted-foreground">{watchedPhone}</p>
-            )}
-            {errors.contactPhone && !samePhone && (
-              <p className="text-sm text-destructive">{t.apply.validation.contactPhoneInvalid}</p>
-            )}
-          </div>
+              {errors.contactAddress && (
+                <p className="text-sm text-destructive">{t.apply.validation.contactAddressMaxLength}</p>
+              )}
+            </div>
 
-          {/* Contact Address */}
-          <div className="space-y-2">
-            <Label htmlFor="contactAddress">{t.apply.fields.contactAddress}</Label>
-            <Textarea
-              id="contactAddress"
-              {...register('contactAddress')}
-              placeholder={t.apply.placeholders.contactAddress}
-              maxLength={500}
-              aria-invalid={!!errors.contactAddress}
-            />
-            {errors.contactAddress && (
-              <p className="text-sm text-destructive">{t.apply.validation.contactAddressMaxLength}</p>
-            )}
-          </div>
-
-          {/* External Website URL */}
-          <div className="space-y-2">
-            <Label htmlFor="externalWebsiteUrl">{t.apply.fields.externalWebsiteUrl}</Label>
-            <Input
-              id="externalWebsiteUrl"
-              type="url"
-              {...register('externalWebsiteUrl')}
-              placeholder="https://..."
-              aria-invalid={!!errors.externalWebsiteUrl}
-            />
-            {errors.externalWebsiteUrl && (
-              <p className="text-sm text-destructive">{t.apply.validation.externalWebsiteUrlInvalid}</p>
-            )}
-          </div>
-
-          {/* Social Media Links */}
-          <SocialLinksFieldset
-            label={t.apply.fields.socialLinks}
-            renderInput={(platform) => (
+            {/* External Website URL */}
+            <div className="space-y-2">
+              <Label htmlFor="externalWebsiteUrl">{t.apply.fields.externalWebsiteUrl}</Label>
               <Input
-                id={`apply-${platform.key}`}
-                {...register(platform.key)}
-                placeholder={platform.placeholder}
-                aria-label={platform.label}
+                id="externalWebsiteUrl"
+                type="url"
+                {...register('externalWebsiteUrl')}
+                placeholder="https://..."
+                aria-invalid={!!errors.externalWebsiteUrl}
               />
-            )}
-          />
+              {errors.externalWebsiteUrl && (
+                <p className="text-sm text-destructive">{t.apply.validation.externalWebsiteUrlInvalid}</p>
+              )}
+            </div>
+          </section>
 
-          {/* Desired URL Slug */}
-          <SlugField register={register} errors={errors} control={control} lang={lang} t={t} />
+          {/* Section: Social Media */}
+          <section className="rounded-lg border p-4 space-y-4">
+            <h3 className="text-sm font-medium">{t.apply.sections.social}</h3>
+            <SocialLinksFieldset
+              label={t.apply.fields.socialLinks}
+              renderInput={(platform) => (
+                <Input
+                  id={`apply-${platform.key}`}
+                  {...register(platform.key)}
+                  placeholder={platform.placeholder}
+                  aria-label={platform.label}
+                />
+              )}
+            />
+          </section>
+
+          {/* Section: Club URL */}
+          <section className="rounded-lg border p-4 space-y-4">
+            <h3 className="text-sm font-medium">{t.apply.sections.url}</h3>
+            <SlugField register={register} errors={errors} control={control} lang={lang} t={t} />
+          </section>
 
           {/* Turnstile */}
           {siteKey && (

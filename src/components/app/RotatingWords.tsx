@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef, useSyncExternalStore } from 'react'
 
 interface RotatingWordsProps {
   prefix: string
@@ -35,6 +35,15 @@ export function RotatingWords({ prefix, words, interval = 2500 }: RotatingWordsP
   const [wordWidths, setWordWidths] = useState<number[]>([])
   const [colorIndex, setColorIndex] = useState(0)
   const [isWrapped, setIsWrapped] = useState(false)
+  const prefersReducedMotion = useSyncExternalStore(
+    (cb) => {
+      const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+      mq.addEventListener('change', cb)
+      return () => mq.removeEventListener('change', cb)
+    },
+    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    () => false,
+  )
   const measureRef = useRef<HTMLSpanElement>(null)
   const prefixRef = useRef<HTMLSpanElement>(null)
   const rotatingRef = useRef<HTMLSpanElement>(null)
@@ -90,12 +99,14 @@ export function RotatingWords({ prefix, words, interval = 2500 }: RotatingWordsP
   }, [words.length])
 
   useEffect(() => {
+    if (prefersReducedMotion) return
     const timer = setInterval(next, interval)
     return () => clearInterval(timer)
-  }, [next, interval])
+  }, [next, interval, prefersReducedMotion])
 
-  const animStyle: React.CSSProperties =
-    phase === 'exit'
+  const animStyle: React.CSSProperties = prefersReducedMotion
+    ? { transform: 'translateY(0)', opacity: 1 }
+    : phase === 'exit'
       ? { transform: 'translateY(100%)', opacity: 0 }
       : phase === 'entering'
         ? { transform: 'translateY(-100%)', opacity: 0, transition: 'none' }

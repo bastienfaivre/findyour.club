@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import Image from 'next/image'
-import { Loader2, Pencil, Eye, X, Download } from 'lucide-react'
+import { Loader2, Pencil, Eye, X } from 'lucide-react'
 import type { Translations } from '@/lib/i18n/translations/types'
 import { extractClubEditableFields } from '@/lib/schemas/club'
 import type { ClubEditableFields } from '@/lib/schemas/club'
@@ -18,6 +18,9 @@ import { ForceOfflineDialog } from './ForceOfflineDialog'
 import { LiftOfflineButton } from './LiftOfflineButton'
 import { ProfilePreview } from '@/components/app/club-admin/ProfilePreview'
 import { LogoUpload, type LogoActions } from '@/components/app/club-admin/LogoUpload'
+import { EmbedBadge } from '@/components/app/club-admin/EmbedBadge'
+import { DownloadButton } from '@/components/app/admin/DownloadButton'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -60,6 +63,7 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
   const [error, setError] = useState<string | null>(null)
   const tc = t.admin.clubs
   const cs = t.clubSite
+  const p = t.club.admin.promote
 
   const navigateToUser = (userId: string) => {
     setSelectedUserId(userId)
@@ -240,6 +244,8 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
           labelAs="label"
           renderInput={(platform) => (
             <Input
+              id={`club-${platform.key}`}
+              aria-label={platform.label}
               placeholder={platform.label}
               value={(fields[platform.key] as string) ?? ''}
               onChange={(e) => updateField(platform.key, e.target.value)}
@@ -359,22 +365,50 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
       <Separator />
 
       {/* Promote */}
-      <section className="space-y-3">
-        <h3 className="text-sm font-medium">{t.club.admin.promote.title}</h3>
-        <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline" size="sm">
-            <a href={`/api/club/${club.id}/badge`} download="badge.png">
-              <Download className="h-4 w-4" />
-              {t.club.admin.promote.badge}
-            </a>
-          </Button>
-          <Button asChild variant="outline" size="sm">
-            <a href={`/api/club/${club.id}/qr-card`} download="qr-card.png">
-              <Download className="h-4 w-4" />
-              {t.club.admin.promote.qrCard}
-            </a>
-          </Button>
-        </div>
+      <section className="space-y-4">
+        <h3 className="text-sm font-medium">{p.title}</h3>
+        <p className="text-sm text-muted-foreground">{p.description}</p>
+
+        <EmbedBadge
+          badgeUrl={`${typeof window !== 'undefined' ? window.location.origin : ''}/api/badge/${club.country}/${club.slug}`}
+          clubUrl={`${typeof window !== 'undefined' ? window.location.origin : ''}/${locale}/${club.country}/${club.slug}`}
+          clubName={club.name}
+          labels={{
+            title: p.embedTitle,
+            description: p.embedDescription,
+            copySnippet: p.copySnippet,
+            copied: p.copied,
+            preview: p.preview,
+          }}
+        />
+
+        <Card className="py-0 gap-0">
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium">{p.story}</p>
+              <p className="text-sm text-muted-foreground">{p.storyDescription}</p>
+            </div>
+            <DownloadButton
+              href={`/api/club/${club.id}/story?lang=${locale}`}
+              filename={`${club.name.toLowerCase().replace(/\s+/g, '-')}-story.png`}
+              label={p.download}
+            />
+          </CardContent>
+        </Card>
+
+        <Card className="py-0 gap-0">
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium">{p.poster}</p>
+              <p className="text-sm text-muted-foreground">{p.posterDescription}</p>
+            </div>
+            <DownloadButton
+              href={`/api/club/${club.id}/poster?lang=${locale}`}
+              filename={`${club.name.toLowerCase().replace(/\s+/g, '-')}-poster.pdf`}
+              label={p.download}
+            />
+          </CardContent>
+        </Card>
       </section>
 
       <Separator />
@@ -396,6 +430,7 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                 autoComplete="off"
+                aria-label={tc.deleteClubHint.replace('{clubName}', club.name)}
               />
             </div>
             <AlertDialogFooter>

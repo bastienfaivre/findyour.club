@@ -10,6 +10,7 @@ import { generatePlatformMetadata } from '@/components/app/seo/metadata'
 import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
 import { getBooleanSetting } from '@/lib/server/platform-settings'
+import { Card, CardContent } from '@/components/ui/card'
 
 type Props = {
   params: Promise<{ lang: string }>
@@ -40,17 +41,17 @@ export default async function ApplyPage({
 
   if (!registrationsOpen) {
     return (
-      <div className="py-8 sm:py-16 lg:py-24">
+      <>
         <AdminPageTitle title={t.nav.apply} />
-        <div className="mx-auto max-w-2xl text-center">
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+        <div className="mx-auto max-w-2xl text-center space-y-6">
+          <h1 className="text-2xl font-bold tracking-tight">
             {t.apply.title}
           </h1>
-          <p className="mt-6 text-lg text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             {t.apply.registrationsClosed}
           </p>
         </div>
-      </div>
+      </>
     )
   }
 
@@ -88,31 +89,37 @@ export default async function ApplyPage({
   ]
 
   return (
-    <div className="py-8 sm:py-16 lg:py-24">
+    <>
       <AdminPageTitle title={t.nav.apply} />
-      <div className="mx-auto max-w-2xl">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          {t.apply.title}
-        </h1>
-        <p className="mt-3 text-lg text-muted-foreground">
-          {t.apply.subtitle}
-        </p>
+      <div className="mx-auto max-w-2xl space-y-8">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {t.apply.title}
+          </h1>
+          <p className="mt-3 text-sm text-muted-foreground">
+            {t.apply.subtitle}
+          </p>
+        </div>
 
-        <ul className="mt-6 space-y-2">
-          {benefits.map((benefit) => (
-            <li key={benefit} className="flex items-start gap-2">
-              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
-              <span className="text-sm">{benefit}</span>
-            </li>
-          ))}
-        </ul>
+        <Card className="py-0 gap-0">
+          <CardContent className="space-y-4 p-4">
+            <ul className="space-y-2">
+              {benefits.map((benefit) => (
+                <li key={benefit} className="flex items-start gap-2">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-600 dark:text-green-400" />
+                  <span className="text-sm">{benefit}</span>
+                </li>
+              ))}
+            </ul>
 
-        <p className="mt-4 text-sm font-medium">{t.apply.noCatch}</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t.apply.reviewCommitment}
-        </p>
+            <p className="text-sm font-medium">{t.apply.noCatch}</p>
+            <p className="text-sm text-muted-foreground">
+              {t.apply.reviewCommitment}
+            </p>
+          </CardContent>
+        </Card>
 
-        <div className="mt-10">
+        <section className="space-y-4">
           <ApplyForm
             lang={uiLang}
             t={t}
@@ -123,8 +130,8 @@ export default async function ApplyPage({
             }))}
             userProfile={userProfile}
           />
-        </div>
+        </section>
       </div>
-    </div>
+    </>
   )
 }

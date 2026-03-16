@@ -91,7 +91,6 @@ export default async function HomePage({ params }: Props) {
             <p>{t.platform.taglineBullets.intro}</p>
             <div className="mt-2 grid grid-cols-2 gap-x-2 gap-y-0.5 text-left [&>strong]:justify-self-end">
               <strong>{t.platform.taglineBullets.whoLabel}</strong><span>{t.platform.taglineBullets.whoText}</span>
-              <strong>{t.platform.taglineBullets.whatLabel}</strong><span>{t.platform.taglineBullets.whatText}</span>
               <strong>{t.platform.taglineBullets.whenLabel}</strong><span>{t.platform.taglineBullets.whenText}</span>
               <strong>{t.platform.taglineBullets.howLabel}</strong><span>{t.platform.taglineBullets.howText}</span>
             </div>

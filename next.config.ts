@@ -12,11 +12,7 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'picsum.photos',
       },
-      {
-        protocol: 'https',
-        hostname: 'ui-avatars.com',
-      },
-      // Add your R2 public hostname here for production, e.g.:
+// Add your R2 public hostname here for production, e.g.:
       // { protocol: 'https', hostname: 'pub-xxx.r2.dev' },
     ],
     // Allow image optimization to fetch from localhost (MinIO) in dev.

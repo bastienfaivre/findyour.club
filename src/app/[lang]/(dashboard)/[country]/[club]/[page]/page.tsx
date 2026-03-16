@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { isValidCountry, getCountryName } from '@/lib/country'
@@ -7,6 +8,7 @@ import { isValidActivityType } from '@/lib/activity-types'
 import { isValidCanton } from '@/lib/server/canton-queries'
 import { getClubPublicData } from '@/lib/server/club-queries'
 import { getPageBySlug } from '@/lib/server/page-queries'
+import { trackPageEvent } from '@/lib/server/page-tracking'
 import { generateClubMetadata, generateCategoryMetadata } from '@/components/app/seo/metadata'
 import { ElementRenderer } from '@/components/app/club-site/ElementRenderer'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
@@ -86,6 +88,17 @@ export default async function InnerPage({ params }: Props) {
 
   const page = await getPageBySlug(pageSlug, club.id)
   if (!page) notFound()
+
+  // Track page view (fire-and-forget, server-side, no cookies)
+  const hdrs = await headers()
+  trackPageEvent({
+    clubId: club.id,
+    pageSlug: `${parentSlug}/${pageSlug}`,
+    eventType: 'page_view',
+    ip: hdrs.get('x-forwarded-for')?.split(',')[0]?.trim(),
+    referrer: hdrs.get('referer'),
+    country,
+  })
 
   const accentColor = ACCENT_COLORS[club.accentColor] ?? ACCENT_COLORS.zinc
 

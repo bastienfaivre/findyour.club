@@ -1,10 +1,10 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { NextResponse } from 'next/server'
-import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
 import { generateBadgeImage } from '@/lib/og-image'
 import { VERIFICATION_CYCLE_DAYS } from '@/lib/verification'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 let faviconDataUrl: string | null = null
 async function getFaviconDataUrl(): Promise<string> {
@@ -16,29 +16,19 @@ async function getFaviconDataUrl(): Promise<string> {
 }
 
 export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ clubId: string }> },
+  request: Request,
+  { params }: { params: Promise<{ country: string; slug: string }> },
 ) {
-  const { clubId } = await params
-  const session = await getAuthSession()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const { country, slug } = await params
 
-  // Allow club members (OWNER or EDITOR) and platform operators
-  const isOperator = session.user.role === 'OPERATOR'
-  if (!isOperator) {
-    const membership = await prisma.clubMembership.findFirst({
-      where: { userId: session.user.id, clubId, status: 'ACTIVE' },
-      select: { id: true },
-    })
-    if (!membership) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+  // Rate limit by IP: 60 requests per minute per IP
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1'
+  if (checkRateLimit(`badge:${ip}`, { windowMs: 60_000, maxAttempts: 60 })) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
   }
 
   const club = await prisma.club.findUnique({
-    where: { id: clubId },
+    where: { slug_country: { slug, country } },
     select: { name: true, logoUrl: true, lastVerifiedAt: true },
   })
   if (!club) {
@@ -48,10 +38,18 @@ export async function GET(
   const favicon = await getFaviconDataUrl()
   const isVerified = club.lastVerifiedAt != null &&
     (Date.now() - new Date(club.lastVerifiedAt).getTime()) < VERIFICATION_CYCLE_DAYS * 86_400_000
-  return generateBadgeImage({
+  const response = await generateBadgeImage({
     clubName: club.name,
     clubLogoUrl: club.logoUrl,
     faviconDataUrl: favicon,
     verified: isVerified,
   })
+
+  // Cache for 1 day, revalidate in background for up to 7 days
+  response.headers.set(
+    'Cache-Control',
+    'public, max-age=86400, stale-while-revalidate=604800',
+  )
+
+  return response
 }

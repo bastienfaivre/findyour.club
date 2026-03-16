@@ -1,8 +1,9 @@
 import { ImageResponse } from 'next/og'
 
 export const OG_SIZE = { width: 1200, height: 630 }
-export const BADGE_SIZE = { width: 800, height: 200 }
+export const BADGE_SIZE = { width: 1600, height: 200 }
 export const QR_CARD_SIZE = { width: 744, height: 1052 } // ~A6 at 2x
+export const STORY_SIZE = { width: 1080, height: 1920 } // Instagram story
 export const OG_CONTENT_TYPE = 'image/png'
 
 /**
@@ -336,8 +337,19 @@ export function generateCategoryOgImage({
 
 /**
  * Generate a "We're on findyour.club" badge for a club.
+ * Includes the club logo (if available) and the platform favicon.
  */
-export function generateBadgeImage({ clubName }: { clubName: string }) {
+export function generateBadgeImage({
+  clubName,
+  clubLogoUrl,
+  faviconDataUrl,
+  verified,
+}: {
+  clubName: string
+  clubLogoUrl?: string | null
+  faviconDataUrl: string
+  verified?: boolean
+}) {
   return new ImageResponse(
     (
       <div
@@ -347,36 +359,90 @@ export function generateBadgeImage({ clubName }: { clubName: string }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#09090b',
-          color: '#fafafa',
           fontFamily: 'sans-serif',
-          padding: '24px 48px',
         }}
       >
         <div
           style={{
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
-            gap: '8px',
+            backgroundColor: '#09090b',
+            color: '#fafafa',
+            padding: '24px 40px',
+            gap: '28px',
+            borderRadius: '16px',
+          }}
+        >
+        {/* Club logo */}
+        {clubLogoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
+          <img
+            src={clubLogoUrl}
+            width={120}
+            height={120}
+            style={{ borderRadius: '16px', objectFit: 'contain' }}
+          />
+        )}
+
+        {/* Text block */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
           }}
         >
           <div
             style={{
-              fontSize: 36,
-              fontWeight: 700,
+              fontSize: 40,
+              fontWeight: 800,
               letterSpacing: '-0.02em',
-              textAlign: 'center',
+              lineHeight: 1.1,
+              whiteSpace: 'nowrap',
             }}
           >
             {clubName}
           </div>
-          <div style={{ fontSize: 22, color: '#a1a1aa', textAlign: 'center' }}>
-            is on
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <div style={{ fontSize: 22, color: '#71717a', fontWeight: 700 }}>
+              is on
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text */}
+            <img
+              src={faviconDataUrl}
+              width={28}
+              height={28}
+              style={{ borderRadius: '6px' }}
+            />
+            <div style={{ fontSize: 28, fontWeight: 800 }}>
+              findyour.club
+            </div>
           </div>
-          <div style={{ fontSize: 28, fontWeight: 600, textAlign: 'center' }}>
-            findyour.club
-          </div>
+          {verified && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                marginTop: '4px',
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="8" fill="#22c55e" />
+                <path d="M5 8.5L7 10.5L11 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <div style={{ fontSize: 16, color: '#22c55e', fontWeight: 700 }}>
+                Verified
+              </div>
+            </div>
+          )}
+        </div>
         </div>
       </div>
     ),
@@ -444,5 +510,101 @@ export function generateQrCardImage({
       </div>
     ),
     QR_CARD_SIZE,
+  )
+}
+
+/**
+ * Generate an Instagram story image for a club.
+ * 1080x1920, dark branded design with club logo, name, platform branding, and club URL.
+ */
+export function generateStoryImage({
+  clubName,
+  clubLogoUrl,
+  clubUrl,
+}: {
+  clubName: string
+  clubLogoUrl?: string | null
+  clubUrl: string
+}) {
+  // Strip protocol for display
+  const displayUrl = clubUrl.replace(/^https?:\/\//, '')
+
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#09090b',
+          color: '#fafafa',
+          fontFamily: 'sans-serif',
+          padding: '100px 60px',
+          gap: '60px',
+        }}
+      >
+        {/* Club logo */}
+        {clubLogoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
+          <img
+            src={clubLogoUrl}
+            width={240}
+            height={240}
+            style={{ borderRadius: '32px', objectFit: 'contain' }}
+          />
+        )}
+
+        {/* Club name */}
+        <div
+          style={{
+            fontSize: 72,
+            fontWeight: 800,
+            letterSpacing: '-0.03em',
+            lineHeight: 1.1,
+            textAlign: 'center',
+            maxWidth: '900px',
+          }}
+        >
+          {clubName}
+        </div>
+
+        {/* "is now on" + platform name */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '16px',
+          }}
+        >
+          <div style={{ fontSize: 36, color: '#71717a', fontWeight: 700 }}>
+            is now on
+          </div>
+          <div style={{ fontSize: 52, fontWeight: 800 }}>
+            findyour.club
+          </div>
+        </div>
+
+        {/* Club URL — for use with Instagram link sticker */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            backgroundColor: '#18181b',
+            padding: '20px 40px',
+            borderRadius: '16px',
+            marginTop: '20px',
+          }}
+        >
+          <div style={{ fontSize: 28, color: '#a1a1aa', fontWeight: 600 }}>
+            {displayUrl}
+          </div>
+        </div>
+      </div>
+    ),
+    STORY_SIZE,
   )
 }

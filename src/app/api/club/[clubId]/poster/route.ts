@@ -68,7 +68,7 @@ export async function GET(
   const faviconBytes = await getFavicon()
 
   // ── Fetch club logo if available ──
-  let logoData: { bytes: Uint8Array; format: 'PNG' | 'JPEG' } | null = null
+  let logoData: { bytes: Uint8Array; format: 'PNG' | 'JPEG'; width: number; height: number } | null = null
   if (club.logoUrl) {
     try {
       const logoRes = await fetch(club.logoUrl)
@@ -78,10 +78,14 @@ export async function GET(
         const buf = await logoRes.arrayBuffer()
         if (buf.byteLength > MAX_LOGO_BYTES) throw new Error('Logo too large')
         const contentType = logoRes.headers.get('content-type') || ''
-        logoData = {
-          bytes: new Uint8Array(buf),
-          format: contentType.includes('png') ? 'PNG' : 'JPEG',
-        }
+        const format = contentType.includes('png') ? 'PNG' as const : 'JPEG' as const
+        const bytes = new Uint8Array(buf)
+
+        // Read intrinsic dimensions to preserve aspect ratio
+        const tmpDoc = new jsPDF()
+        const props = tmpDoc.getImageProperties(bytes)
+
+        logoData = { bytes, format, width: props.width, height: props.height }
       }
     } catch {
       // Skip logo if fetch fails
@@ -89,7 +93,7 @@ export async function GET(
   }
 
   // ── Compute content height for vertical centering ──
-  const logoSize = 28
+  const logoSize = 60
   const qrSize = 75
   const clubNameLineH = 36 * 0.4 // approximate mm per line at 36pt
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
@@ -129,15 +133,25 @@ export async function GET(
   // ── Content (vertically centered inside card) ──
   let y = cardY + cardPadTop
 
-  // Logo
+  // Logo — scale to fit within logoSize box, preserving aspect ratio
   if (logoData) {
+    const aspect = logoData.width / logoData.height
+    let drawW: number
+    let drawH: number
+    if (aspect >= 1) {
+      drawW = logoSize
+      drawH = logoSize / aspect
+    } else {
+      drawH = logoSize
+      drawW = logoSize * aspect
+    }
     doc.addImage(
       logoData.bytes,
       logoData.format,
-      (A4_W - logoSize) / 2,
-      y,
-      logoSize,
-      logoSize,
+      (A4_W - drawW) / 2,
+      y + (logoSize - drawH) / 2,
+      drawW,
+      drawH,
     )
     y += logoSize + 16
   }

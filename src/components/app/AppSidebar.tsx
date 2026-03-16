@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -13,6 +13,8 @@ import {
   ClipboardList,
   FileText,
   Building2,
+  ExternalLink,
+  BarChart3,
 
   LogIn,
   LogOut,
@@ -99,7 +101,24 @@ export function AppSidebar({
   const { searchQuery } = useSearchState()
   const { setOpenMobile } = useSidebar()
   const [dismissedClubs, setDismissedClubs] = useState<Set<string>>(new Set())
+  const [promoteDismissed, setPromoteDismissed] = useState<Set<string>>(new Set())
+  // Reading from localStorage must happen after hydration to avoid SSR/client mismatch.
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('fyc:promote-dismissed')
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- must defer to avoid hydration mismatch
+      if (stored) setPromoteDismissed(new Set(JSON.parse(stored)))
+    } catch { /* ignore */ }
+  }, [])
   const basePath = `/${lang}`
+
+  const dismissPromote = (clubId: string) => {
+    setPromoteDismissed((prev) => {
+      const next = new Set(prev).add(clubId)
+      localStorage.setItem('fyc:promote-dismissed', JSON.stringify([...next]))
+      return next
+    })
+  }
 
   const closeMobileSidebar = () => setOpenMobile(false)
 
@@ -220,6 +239,14 @@ export function AppSidebar({
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isItemActive(pathname, `${basePath}/admin/stats`, false)}>
+                      <Link href={`${basePath}/admin/stats`}>
+                        <BarChart3 />
+                        <span>{t.admin.stats.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={isItemActive(pathname, `${basePath}/admin/settings`, false)}>
                       <Link href={`${basePath}/admin/settings`}>
                         <Settings />
@@ -274,8 +301,13 @@ export function AppSidebar({
                               </SidebarMenuSubItem>
                               <SidebarMenuSubItem>
                                 <SidebarMenuSubButton asChild isActive={isItemActive(pathname, `${clubPath}/promote`, false)}>
-                                  <Link href={`${clubPath}/promote`}>
-                                    <span>{t.club.sidebar.promote}</span>
+                                  <Link href={`${clubPath}/promote`} onClick={() => dismissPromote(club.id)}>
+                                    <span className="flex items-center gap-2">
+                                      {t.club.sidebar.promote}
+                                      {!promoteDismissed.has(club.id) && (
+                                        <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" aria-hidden="true" />
+                                      )}
+                                    </span>
                                   </Link>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
@@ -283,6 +315,23 @@ export function AppSidebar({
                                 <SidebarMenuSubButton asChild isActive={isItemActive(pathname, `${clubPath}/settings`, false)}>
                                   <Link href={`${clubPath}/settings`}>
                                     <span>{t.club.sidebar.settings}</span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                              <SidebarMenuSubItem>
+                                <SidebarMenuSubButton asChild isActive={isItemActive(pathname, `${clubPath}/help`, false)}>
+                                  <Link href={`${clubPath}/help`}>
+                                    <span>{t.club.sidebar.help}</span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                              <SidebarMenuSubItem>
+                                <SidebarMenuSubButton asChild>
+                                  <Link href={`${basePath}/${club.country}/${club.slug}`} target="_blank">
+                                    <span className="flex items-center gap-1.5">
+                                      {t.club.sidebar.viewPublicPage}
+                                      <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                                    </span>
                                   </Link>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>

@@ -15,8 +15,7 @@ export function ClubHeroSection({ club }: ClubHeroSectionProps) {
         name={club.name}
         logoUrl={club.logoUrl}
         logoAlt={club.logoAlt}
-        size="lg"
-        neutralFallback
+        size="xl"
       />
 
       <h1 className="text-2xl sm:text-4xl font-bold">{club.name}</h1>

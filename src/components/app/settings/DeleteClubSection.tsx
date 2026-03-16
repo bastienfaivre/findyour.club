@@ -74,9 +74,6 @@ export function DeleteClubSection({ clubId, clubName, lang, exportUrl, t }: Dele
 
   return (
     <section className="space-y-4">
-      <div className="border-b border-destructive/30 pb-2">
-        <h2 className="text-lg font-medium text-destructive">{t.title}</h2>
-      </div>
       <p className="text-sm text-muted-foreground">{t.description}</p>
 
       <AlertDialog open={open} onOpenChange={handleOpenChange}>

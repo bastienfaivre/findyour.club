@@ -196,12 +196,12 @@ export default async function AdminSettingsPage({ params }: AdminSettingsPagePro
 
 function SettingsSection({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-4">
+    <section className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold">{title}</h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{title}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
       </div>
       {children}
-    </div>
+    </section>
   )
 }

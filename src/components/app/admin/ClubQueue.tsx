@@ -11,6 +11,9 @@ import { ClubDetail } from './ClubDetail'
 import type { ActivityTypeOption, CountryOption } from './types'
 import { Badge } from '@/components/ui/badge'
 import { RemovableFilterBadge } from '@/components/ui/removable-filter-badge'
+import { ClubAvatar } from '@/components/app/ClubAvatar'
+import { FreshnessBadge } from '@/components/app/directory/FreshnessBadge'
+import { countryCodeToFlag } from '@/lib/country'
 import {
   Select,
   SelectContent,
@@ -54,6 +57,7 @@ export type ClubListItem = {
       translations: { name: string }[]
     } | null
   } | null
+  lastVerifiedAt: Date | null
   photos: { id: string; url: string; alt: string; position: number }[]
   members: {
     role: string
@@ -154,6 +158,7 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
           value={searchQuery}
           onChange={(e) => { setSearchQuery(e.target.value); setPageSize(20) }}
           placeholder={t.admin.searchPlaceholder}
+          aria-label={t.admin.searchPlaceholder}
           className="pl-9"
         />
       </div>
@@ -227,7 +232,7 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
   )
 
   const listBlock = (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {filteredClubs.length === 0 ? (
         <div className="flex flex-col items-center py-8 text-muted-foreground">
           <SearchX className="size-8 mb-2 opacity-50" />
@@ -239,6 +244,10 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
             const activityLabel = club.activityType
               ? (t.activityTypes[club.activityType] ?? club.activityType)
               : null
+            const locationName = club.location?.swissLocation?.translations[0]?.name ?? null
+            const countryLabel = countries.find((c) => c.code === club.country)?.label ?? club.country
+            const locationLine = [countryLabel, locationName].filter(Boolean).join(', ')
+            const owner = club.members.find(m => m.role === 'OWNER')
 
             return (
               <button
@@ -246,31 +255,41 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
                 type="button"
                 onClick={() => handleSelect(club.id)}
                 className={cn(
-                  'w-full text-left rounded-lg border p-3 transition-colors',
+                  'w-full text-left flex items-center gap-4 rounded-xl border p-3 transition-colors',
                   selectedId === club.id
                     ? 'border-primary bg-accent'
                     : 'hover:bg-muted/50'
                 )}
               >
-                <p className="font-medium truncate">{club.name}</p>
-                <div className="flex flex-wrap items-center gap-2 mt-1">
-                  {activityLabel && (
-                    <Badge variant="secondary" className="text-xs">{activityLabel}</Badge>
-                  )}
-                  <span className="text-xs text-muted-foreground">{club.country.toUpperCase()}</span>
-                  {club.isPublished && !club.forceOffline ? (
-                    <Badge variant="success" className="ml-auto text-xs">{tc.online}</Badge>
-                  ) : (
-                    <Badge variant="destructive" className="ml-auto text-xs">{tc.offline}</Badge>
-                  )}
-                </div>
-                {club.members.length > 0 && (
+                <ClubAvatar name={club.name} logoUrl={club.logoUrl} logoAlt={club.logoAlt} size="lg" className="size-14 shrink-0" />
+                <div className="flex flex-col gap-1 min-w-0 flex-1">
+                  <span className="font-semibold truncate leading-tight">{club.name}</span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {activityLabel && (
+                      <Badge variant="secondary" className="text-xs">{activityLabel}</Badge>
+                    )}
+                    {club.isPublished && !club.forceOffline ? (
+                      <Badge variant="success" className="text-xs">{tc.online}</Badge>
+                    ) : club.forceOffline ? (
+                      <Badge variant="destructive" className="text-xs">{tc.moderatedOffline}</Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-xs">{tc.offline}</Badge>
+                    )}
+                    <FreshnessBadge
+                      className="ml-auto"
+                      lastVerifiedAt={club.lastVerifiedAt ?? null}
+                      upToDateLabel={td.freshnessBadgeUpToDate}
+                      approachingLabel={td.freshnessBadgeApproaching}
+                      notVerifiedLabel={td.freshnessBadgeNotVerified}
+                    />
+                  </div>
                   <span className="text-xs text-muted-foreground truncate">
-                    {club.members.find(m => m.role === 'OWNER')?.user.firstName
-                      ? `${club.members.find(m => m.role === 'OWNER')?.user.firstName} ${club.members.find(m => m.role === 'OWNER')?.user.lastName}`
-                      : club.members.find(m => m.role === 'OWNER')?.user.email ?? club.members[0].user.email}
+                    {countryCodeToFlag(club.country)} {locationLine}
+                    {owner && (
+                      <> · {owner.user.firstName ? `${owner.user.firstName} ${owner.user.lastName}` : owner.user.email}</>
+                    )}
                   </span>
-                )}
+                </div>
               </button>
             )
           })}

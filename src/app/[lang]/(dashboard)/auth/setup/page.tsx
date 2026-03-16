@@ -50,6 +50,7 @@ export default async function SetupPage({ params }: SetupPageProps) {
         </div>
         <SetupPasswordForm
           defaultLanguage={user?.preferredLanguage ?? uiLang}
+          lang={uiLang}
           profileLocked={profileLocked}
           defaultProfile={{
             firstName: user?.firstName ?? '',

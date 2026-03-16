@@ -31,12 +31,13 @@ interface SetupPasswordFormT {
 interface SetupPasswordFormProps {
   t: SetupPasswordFormT
   defaultLanguage: string
+  lang: string
   /** When true, profile fields (name, phone, language) are read-only. */
   profileLocked: boolean
   defaultProfile: { firstName: string; lastName: string; phone: string }
 }
 
-export function SetupPasswordForm({ t, defaultLanguage, profileLocked, defaultProfile }: SetupPasswordFormProps) {
+export function SetupPasswordForm({ t, defaultLanguage, lang, profileLocked, defaultProfile }: SetupPasswordFormProps) {
   const [firstName, setFirstName] = useState(defaultProfile.firstName)
   const [lastName, setLastName] = useState(defaultProfile.lastName)
   const [phone, setPhone] = useState(defaultProfile.phone)
@@ -53,7 +54,7 @@ export function SetupPasswordForm({ t, defaultLanguage, profileLocked, defaultPr
     setError(null)
 
     startTransition(async () => {
-      const result = await setupPassword({ firstName, lastName, phone, preferredLanguage, password, confirmPassword })
+      const result = await setupPassword({ firstName, lastName, phone, preferredLanguage, password, confirmPassword }, lang)
       if (result && !result.success) {
         setError(result.error)
       }

@@ -239,7 +239,7 @@ async function main() {
   // ─── Clubs (5 fully populated clubs) ─────────────────────────────────
   const clubValais = await prisma.club.upsert({
     where: { slug_country: { slug: 'ski-club-valais', country: 'ch' } },
-    update: { locationId: locationSion.id, logoUrl: 'https://ui-avatars.com/api/?name=Ski+Club+Valais&background=2563eb&color=fff&size=200&bold=true', logoAlt: 'Ski Club Valais logo' },
+    update: { locationId: locationSion.id, logoUrl: null, logoAlt: null },
     create: {
       name: 'Ski Club Valais',
       slug: 'ski-club-valais',
@@ -248,8 +248,8 @@ async function main() {
       activityType: 'skiing',
       locationId: locationSion.id,
       email: 'contact@ski-club-valais.ch',
-      logoUrl: 'https://ui-avatars.com/api/?name=Ski+Club+Valais&background=2563eb&color=fff&size=200&bold=true',
-      logoAlt: 'Ski Club Valais logo',
+      logoUrl: null,
+      logoAlt: null,
       description: 'Le Ski Club Valais, c\'est 70 ans de passion pour la montagne. On a trois groupes : les enfants dès 6 ans qui apprennent les bases dans la bonne humeur, les juniors qui s\'entraînent sérieusement pour les compétitions régionales, et les adultes qui sortent ensemble chaque week-end pour le plaisir. On ski en français, mais si tu parles une autre langue, viens quand même — la neige s\'en fiche.',
       schedule: 'Enfants (6–12 ans) : mercredis 14h–16h et samedis matin 9h–11h, pistes de Crans-Montana.\nJuniors (13–17 ans) : mardis et jeudis 17h–19h, plus les week-ends en compétition.\nAdultes : sorties en groupe chaque samedi à 9h — la destination change selon la météo. On s\'organise via notre groupe WhatsApp, demande-nous de t\'ajouter quand tu viens.',
       howToJoin: 'Viens à une séance d\'essai gratuite avec ton équipement, on s\'occupe du reste. Pas de skis ? Dis-le-nous à l\'avance, on peut t\'aider. La cotisation annuelle est de CHF 150 pour les adultes et CHF 80 pour les juniors. Pas encore prêt·e à sauter le pas ? Envoie-nous un message sur Instagram — tu trouveras le lien dans la section contact en bas de page.',
@@ -271,7 +271,7 @@ async function main() {
 
   const clubLausanne = await prisma.club.upsert({
     where: { slug_country: { slug: 'fc-lausanne-sport', country: 'ch' } },
-    update: { locationId: locationLausanne.id, logoUrl: 'https://ui-avatars.com/api/?name=FC+Lausanne+Sport&background=16a34a&color=fff&size=200&bold=true', logoAlt: 'FC Lausanne Sport logo' },
+    update: { locationId: locationLausanne.id, logoUrl: null, logoAlt: null },
     create: {
       name: 'FC Lausanne Sport',
       slug: 'fc-lausanne-sport',
@@ -280,8 +280,8 @@ async function main() {
       activityType: 'football',
       locationId: locationLausanne.id,
       email: 'info@fc-lausanne-sport.ch',
-      logoUrl: 'https://ui-avatars.com/api/?name=FC+Lausanne+Sport&background=16a34a&color=fff&size=200&bold=true',
-      logoAlt: 'FC Lausanne Sport logo',
+      logoUrl: null,
+      logoAlt: null,
       description: 'FC Lausanne Sport, c\'est quatre équipes, quatre ambiances. Les U8–U12 découvrent le foot dans la joie les mercredis après-midi. Les U13–U16 s\'entraînent dur et jouent le championnat régional. L\'équipe adulte mixte joue pour le plaisir, pas pour la gloire. Et les vétérans (35+) prouvent que le foot, ça ne s\'arrête jamais. On est un club francophone, mais si tu ne parles pas encore français, viens quand même — le ballon, lui, comprend tout le monde.',
       schedule: 'U8–U12 : mercredis 14h–16h, terrain synthétique de la Pontaise.\nU13–U16 : mardis et jeudis 17h30–19h30, même terrain.\nAdultes : mardis et jeudis 20h–22h, plus les matchs le samedi.\nVétérans (35+) : dimanches matin 10h–12h. On a un groupe WhatsApp pour chaque équipe — demande-nous d\'être ajouté quand tu viens.',
       howToJoin: 'Pointe-toi à un entraînement, aucune inscription nécessaire. Si tu veux rester, la cotisation est de CHF 200/an pour les adultes et CHF 100/an pour les moins de 18 ans — l\'équipement est fourni la première saison. Pas encore sûr·e ? Envoie-nous un message sur Instagram, on t\'explique tout — le lien est dans la section contact en bas.',
@@ -304,7 +304,7 @@ async function main() {
 
   const clubZurich = await prisma.club.upsert({
     where: { slug_country: { slug: 'bergclub-zurich', country: 'ch' } },
-    update: { locationId: locationZurich.id, logoUrl: 'https://ui-avatars.com/api/?name=Bergclub+Z%C3%BCrich&background=7c3aed&color=fff&size=200&bold=true', logoAlt: 'Bergclub Zürich logo' },
+    update: { locationId: locationZurich.id, logoUrl: null, logoAlt: null },
     create: {
       name: 'Bergclub Zürich',
       slug: 'bergclub-zurich',
@@ -313,8 +313,8 @@ async function main() {
       activityType: 'mountaineering',
       locationId: locationZurich.id,
       email: 'info@bergclub-zurich.ch',
-      logoUrl: 'https://ui-avatars.com/api/?name=Bergclub+Z%C3%BCrich&background=7c3aed&color=fff&size=200&bold=true',
-      logoAlt: 'Bergclub Zürich logo',
+      logoUrl: null,
+      logoAlt: null,
       description: 'Bergclub Zürich ist mehr als ein Verein — es sind drei Gruppen mit drei verschiedenen Tempos. Die Einsteiger-Gruppe macht gemütliche Tagestouren und lernt die Grundlagen des Berggehens. Die Fortgeschrittenen wagen sich an Klettersteige und leichte Hochtouren. Und die Alpinisten planen anspruchsvolle Mehrtagestouren im Sommer und Skitourengehen im Winter. Wenn du Lust auf die Berge hast, ist bei uns garantiert eine Gruppe dabei, die zu dir passt.',
       schedule: 'Einsteiger-Gruppe: jeden zweiten Sonntag, Tagestouren im Zürcher Oberland — Treffpunkt je nach Tour.\nFortgeschrittene & Alpinisten: jeden zweiten Samstag, Ziele werden kurzfristig per WhatsApp kommuniziert.\nKlettertraining für alle: montags 19–21 Uhr in der Kletterhalle Gaswerk, Zürich.\nStammtisch: erster Mittwoch im Monat im Zeughauskeller — alle sind willkommen.',
       howToJoin: 'Komm einfach zum nächsten Stammtisch oder Klettertraining — keine Voranmeldung nötig. Eine Schnuppertour ist gratis. Wenn es passt, beträgt der Jahresbeitrag CHF 120 für Erwachsene und CHF 60 für Studierende. Noch unentschlossen? Schreib uns eine Nachricht auf Instagram — den Link findest du im Kontaktbereich unten.',
@@ -337,7 +337,7 @@ async function main() {
 
   const clubGeneva = await prisma.club.upsert({
     where: { slug_country: { slug: 'aviron-geneve', country: 'ch' } },
-    update: { locationId: locationGeneva.id, logoUrl: 'https://ui-avatars.com/api/?name=Aviron+Gen%C3%A8ve&background=f97316&color=fff&size=200&bold=true', logoAlt: 'Aviron Genève logo' },
+    update: { locationId: locationGeneva.id, logoUrl: null, logoAlt: null },
     create: {
       name: 'Aviron Genève',
       slug: 'aviron-geneve',
@@ -346,8 +346,8 @@ async function main() {
       activityType: 'rowing',
       locationId: locationGeneva.id,
       email: 'contact@aviron-geneve.ch',
-      logoUrl: 'https://ui-avatars.com/api/?name=Aviron+Gen%C3%A8ve&background=f97316&color=fff&size=200&bold=true',
-      logoAlt: 'Aviron Genève logo',
+      logoUrl: null,
+      logoAlt: null,
       description: 'L\'Aviron Genève, c\'est 150 ans de rame sur le Léman. On a trois groupes bien distincts : les débutants qui découvrent l\'aviron avec nos moniteurs brevetés (aucune expérience requise), les loisirs qui rament pour le plaisir et la forme, et les compétiteurs qui s\'entraînent sérieusement pour les régates suisses et européennes. Notre hangar à bateaux est aux Eaux-Vives, à deux pas du lac. On s\'entraîne en français, mais on accueille volontiers les anglophones et les italophones — notre équipe est internationale.',
       schedule: 'Cours débutants : samedis 9h–12h (par groupes de 8, inscription requise).\nLoisirs : mardis et jeudis 18h–20h, plus sorties libres le samedi matin.\nCompétition : lundis, mercredis et vendredis dès 6h30 — le programme est intense mais la vue sur le Léman au lever du soleil vaut tout. Les créneaux sont confirmés via notre groupe WhatsApp la veille.',
       howToJoin: 'Commence par un cours d\'initiation — 4 séances pour CHF 80, aucune expérience nécessaire. Un test de natation (200m) est obligatoire pour des raisons de sécurité. Si tu accroches, la cotisation annuelle est de CHF 350 pour les adultes et CHF 180 pour les juniors. Des questions ? Envoie-nous un message sur Instagram — le lien est dans la section contact ci-dessous.',
@@ -370,7 +370,7 @@ async function main() {
 
   const clubBern = await prisma.club.upsert({
     where: { slug_country: { slug: 'turnverein-bern', country: 'ch' } },
-    update: { locationId: locationBern.id, logoUrl: 'https://ui-avatars.com/api/?name=Turnverein+Bern&background=e11d48&color=fff&size=200&bold=true', logoAlt: 'Turnverein Bern logo' },
+    update: { locationId: locationBern.id, logoUrl: null, logoAlt: null },
     create: {
       name: 'Turnverein Bern',
       slug: 'turnverein-bern',
@@ -379,8 +379,8 @@ async function main() {
       activityType: 'gymnastics',
       locationId: locationBern.id,
       email: 'info@turnverein-bern.ch',
-      logoUrl: 'https://ui-avatars.com/api/?name=Turnverein+Bern&background=e11d48&color=fff&size=200&bold=true',
-      logoAlt: 'Turnverein Bern logo',
+      logoUrl: null,
+      logoAlt: null,
       description: 'Turnverein Bern — 160 Jahre und immer noch auf den Beinen. Wir haben vier aktive Gruppen: das Kinderturnen für die Kleinen ab 6 Jahren, bei dem Spass und Bewegung im Vordergrund stehen; die Jugendgruppe (13–17) mit Wettkampftraining am Gerät; die Erwachsenengruppe für Geräteturnen und Akrobatik; und unsere Trampolin-Sektion, die für alle offen ist. Anfänger sind genauso willkommen wie Fortgeschrittene — es gibt immer eine passende Gruppe.',
       schedule: 'Kinderturnen (6–12 J.): dienstags 17–18:30 Uhr, Sporthalle Länggasse.\nJugend (13–17 J.): montags und mittwochs 18–20 Uhr, gleiche Halle.\nErwachsene Geräteturnen: montags 20–22 Uhr.\nTrampolin & Akrobatik (alle Altersgruppen): donnerstags 19–21 Uhr.\nOffenes Training: samstags 10–12 Uhr — komm einfach vorbei, kein Training wie das andere.',
       howToJoin: 'Die ersten drei Trainings sind kostenlos — komm einfach vorbei, keine Anmeldung nötig. Wenn du bleiben möchtest, beträgt der Jahresbeitrag CHF 180 für Erwachsene und CHF 90 für Kinder und Jugendliche. Keine Turnerfahrung nötig, wir fangen gerne von Null an. Noch Fragen? Schreib uns auf Instagram — den Link findest du im Kontaktbereich unten.',
@@ -482,36 +482,6 @@ async function main() {
   // ─── Support Messages (bidirectional conversations) ──────────────────
   await prisma.supportMessage.createMany({
     data: [
-      // Ski Club Valais conversation
-      {
-        clubId: clubValais.id,
-        senderId: operator.id,
-        senderRole: 'OPERATOR',
-        body: 'Bienvenue sur la plateforme ! Votre club a été approuvé. Complétez votre profil et mettez votre page en ligne quand vous êtes prêt.',
-        createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
-      },
-      {
-        clubId: clubValais.id,
-        senderId: adminValais.id,
-        senderRole: 'CLUB_ADMIN',
-        body: 'Merci ! Nous avons commencé à remplir le profil. Comment ajouter un logo ?',
-        createdAt: new Date(Date.now() - 59 * 24 * 60 * 60 * 1000),
-      },
-      {
-        clubId: clubValais.id,
-        senderId: operator.id,
-        senderRole: 'OPERATOR',
-        body: 'Vous pouvez ajouter un logo depuis la page "Profil du club". Cliquez sur la zone logo et téléchargez une image carrée.',
-        createdAt: new Date(Date.now() - 58 * 24 * 60 * 60 * 1000),
-      },
-      {
-        clubId: clubValais.id,
-        senderId: operator.id,
-        senderRole: 'OPERATOR',
-        body: 'Rappel : pensez à télécharger un logo pour votre club. Les pages avec logo reçoivent 3x plus de visites.',
-        createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-      },
-
       // FC Lausanne Sport conversation
       {
         clubId: clubLausanne.id,

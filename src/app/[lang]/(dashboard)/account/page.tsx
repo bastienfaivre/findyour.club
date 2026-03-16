@@ -11,6 +11,15 @@ import { DeleteAccountSection } from '@/components/app/auth/DeleteAccountSection
 import { ProfileSection } from '@/components/app/auth/ProfileSection'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 
+function SettingsSection({ title, variant, children }: { title: string; variant?: 'danger'; children: React.ReactNode }) {
+  return (
+    <section className="space-y-4">
+      <h2 className={`text-sm font-semibold uppercase tracking-wide ${variant === 'danger' ? 'text-destructive' : 'text-muted-foreground'}`}>{title}</h2>
+      {children}
+    </section>
+  )
+}
+
 interface AccountPageProps {
   params: Promise<{ lang: string }>
 }
@@ -42,11 +51,8 @@ export default async function AccountPage({ params }: AccountPageProps) {
         {t.auth.signedInAs} <span className="font-medium">{session.user.email}</span>
       </p>
 
-      <section className="space-y-4">
-        <div className="border-b pb-2">
-          <h2 className="text-lg font-medium">{t.auth.profile.title}</h2>
-          <p className="text-sm text-muted-foreground">{t.auth.profile.description}</p>
-        </div>
+      <SettingsSection title={t.auth.profile.title}>
+        <p className="text-sm text-muted-foreground">{t.auth.profile.description}</p>
         <ProfileSection
           initialData={{
             firstName: userProfile?.firstName ?? '',
@@ -57,12 +63,9 @@ export default async function AccountPage({ params }: AccountPageProps) {
           t={t.auth.profile}
           commonT={{ save: t.common.save }}
         />
-      </section>
+      </SettingsSection>
 
-      <section className="space-y-4">
-        <div className="border-b pb-2">
-          <h2 className="text-lg font-medium">{t.auth.changePassword}</h2>
-        </div>
+      <SettingsSection title={t.auth.changePassword}>
         <ChangePasswordForm t={{
           currentPassword: t.auth.fields.currentPassword,
           newPassword: t.auth.fields.newPassword,
@@ -72,12 +75,9 @@ export default async function AccountPage({ params }: AccountPageProps) {
           updatePassword: t.auth.form.updatePassword,
           passwordChanged: t.auth.form.passwordChanged,
         }} />
-      </section>
+      </SettingsSection>
 
-      <section className="space-y-4">
-        <div className="border-b pb-2">
-          <h2 className="text-lg font-medium">{t.auth.twoFactor}</h2>
-        </div>
+      <SettingsSection title={t.auth.twoFactor}>
         <ManageTotpSection totpEnabled={session.user.totpEnabled} lang={lang} t={{
           totpEnabled: t.auth.form.totpEnabled,
           totpNotEnrolled: t.auth.form.totpNotEnrolled,
@@ -89,12 +89,9 @@ export default async function AccountPage({ params }: AccountPageProps) {
           disable2fa: t.auth.form.disable2fa,
           totpConfirmDisable: t.auth.form.totpConfirmDisable,
         }} commonT={{ confirm: t.common.confirm, cancel: t.common.cancel }} />
-      </section>
+      </SettingsSection>
 
-      <section className="space-y-4">
-        <div className="border-b pb-2">
-          <h2 className="text-lg font-medium">{t.auth.passkeys}</h2>
-        </div>
+      <SettingsSection title={t.auth.passkeys}>
         <ManagePasskeysSection passkeys={passkeys} lang={lang} t={{
           noPasskeys: t.auth.form.noPasskeys,
           passkeyAdded: t.auth.form.passkeyAdded,
@@ -107,7 +104,7 @@ export default async function AccountPage({ params }: AccountPageProps) {
           passkeyCompleteFailed: t.auth.form.passkeyCompleteFailed,
           passkeyRegistrationFailed: t.auth.form.passkeyRegistrationFailed,
         }} commonT={{ confirm: t.common.confirm, cancel: t.common.cancel }} />
-      </section>
+      </SettingsSection>
 
       <DeleteAccountSection lang={lang} t={t.auth.deleteAccount} />
     </div>

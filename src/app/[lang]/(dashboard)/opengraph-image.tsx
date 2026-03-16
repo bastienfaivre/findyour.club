@@ -1,16 +1,11 @@
-import { resolveUILang } from '@/lib/i18n'
-import { getTranslations } from '@/lib/i18n/translations'
 import { generateStaticOgImage, OG_SIZE, OG_CONTENT_TYPE } from '@/lib/og-image'
 
 export const size = OG_SIZE
 export const contentType = OG_CONTENT_TYPE
 
-export default async function Image({ params }: { params: Promise<{ lang: string }> }) {
-  const { lang } = await params
-  const t = getTranslations(resolveUILang(lang))
-
+export default async function Image() {
   return generateStaticOgImage({
-    title: t.platform.headline,
-    subtitle: t.platform.tagline,
+    title: 'findyour.club',
+    subtitle: 'Find any club near you — who they are, when they meet, how to join. Free and verified.',
   })
 }

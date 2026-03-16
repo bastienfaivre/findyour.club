@@ -180,6 +180,7 @@ export function ChatThread({ messages: initialMessages, sendAction, loadOlderAct
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={t.placeholder}
+          aria-label={t.placeholder}
           rows={1}
           className="min-h-[44px] max-h-32 resize-none"
           disabled={isPending}

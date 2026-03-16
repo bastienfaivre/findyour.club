@@ -131,12 +131,13 @@ export function LogoUpload({ clubId, logoUrl, logoAlt, maxImageSizeBytes = DEFAU
 
       <div className="flex items-start gap-4">
         {logoUrl && (
-          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border">
+          <div className="flex h-20 w-20 shrink-0 items-center justify-center">
             <Image
               src={logoUrl}
               alt={logoAlt ?? ''}
-              fill
-              className="object-cover"
+              width={80}
+              height={80}
+              className="max-h-full max-w-full object-contain"
               sizes="80px"
             />
           </div>
@@ -173,8 +174,8 @@ export function LogoUpload({ clubId, logoUrl, logoAlt, maxImageSizeBytes = DEFAU
                     <AlertDialogDescription>{t.remove}?</AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel />
-                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90" />
+                    <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t.confirm}</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>

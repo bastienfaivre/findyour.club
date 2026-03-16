@@ -121,7 +121,7 @@ export function PhotoCarousel({ photos, ariaLabel, goToPhotoLabel, closeLabel }:
               <button
                 type="button"
                 onClick={prev}
-                className="absolute left-2 top-1/2 z-20 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 text-foreground shadow backdrop-blur-sm transition-opacity hover:bg-background"
+                className="absolute left-1 top-1/2 z-20 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-full bg-background/80 text-foreground shadow backdrop-blur-sm transition-opacity hover:bg-background"
                 aria-label={goToPhotoLabel.replace('{n}', String(prevIndex + 1))}
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -129,7 +129,7 @@ export function PhotoCarousel({ photos, ariaLabel, goToPhotoLabel, closeLabel }:
               <button
                 type="button"
                 onClick={next}
-                className="absolute right-2 top-1/2 z-20 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 text-foreground shadow backdrop-blur-sm transition-opacity hover:bg-background"
+                className="absolute right-1 top-1/2 z-20 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-full bg-background/80 text-foreground shadow backdrop-blur-sm transition-opacity hover:bg-background"
                 aria-label={goToPhotoLabel.replace('{n}', String(nextIndex + 1))}
               >
                 <ChevronRight className="h-4 w-4" />
@@ -140,16 +140,18 @@ export function PhotoCarousel({ photos, ariaLabel, goToPhotoLabel, closeLabel }:
 
         {/* Dot indicators */}
         {count > 1 && (
-          <div className="absolute bottom-2 left-1/2 z-20 -translate-x-1/2 flex gap-1.5">
+          <div className="absolute bottom-0 left-1/2 z-20 -translate-x-1/2 flex gap-1">
             {photos.map((photo, i) => (
               <button
                 key={photo.id}
                 type="button"
                 onClick={() => setCurrent(i)}
-                className={`h-2 w-2 rounded-full transition-colors ${i === current ? 'bg-foreground' : 'bg-foreground/30'}`}
+                className="flex items-center justify-center h-11 w-11"
                 aria-label={goToPhotoLabel.replace('{n}', String(i + 1))}
                 aria-current={i === current ? 'true' : undefined}
-              />
+              >
+                <span className={`block h-2 w-2 rounded-full transition-colors ${i === current ? 'bg-foreground' : 'bg-foreground/30'}`} />
+              </button>
             ))}
           </div>
         )}
@@ -169,7 +171,7 @@ export function PhotoCarousel({ photos, ariaLabel, goToPhotoLabel, closeLabel }:
           <button
             type="button"
             onClick={() => setLightboxOpen(false)}
-            className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+            className="absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
             aria-label={closeLabel}
           >
             <X className="h-4 w-4" />
@@ -233,7 +235,7 @@ export function PhotoCarousel({ photos, ariaLabel, goToPhotoLabel, closeLabel }:
               <button
                 type="button"
                 onClick={prev}
-                className="absolute left-3 top-1/2 z-20 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+                className="absolute left-3 top-1/2 z-20 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
                 aria-label={goToPhotoLabel.replace('{n}', String(prevIndex + 1))}
               >
                 <ChevronLeft className="h-5 w-5" />
@@ -241,7 +243,7 @@ export function PhotoCarousel({ photos, ariaLabel, goToPhotoLabel, closeLabel }:
               <button
                 type="button"
                 onClick={next}
-                className="absolute right-3 top-1/2 z-20 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+                className="absolute right-3 top-1/2 z-20 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
                 aria-label={goToPhotoLabel.replace('{n}', String(nextIndex + 1))}
               >
                 <ChevronRight className="h-5 w-5" />

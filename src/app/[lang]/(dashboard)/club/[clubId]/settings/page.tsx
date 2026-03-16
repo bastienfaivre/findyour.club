@@ -14,6 +14,15 @@ import { inviteEditor, transferOwnership, revokeAccess, cancelInvite } from './a
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 import { getNumberSetting } from '@/lib/server/platform-settings'
 
+function SettingsSection({ title, variant, children }: { title: string; variant?: 'danger'; children: React.ReactNode }) {
+  return (
+    <section className="space-y-4">
+      <h2 className={`text-sm font-semibold uppercase tracking-wide ${variant === 'danger' ? 'text-destructive' : 'text-muted-foreground'}`}>{title}</h2>
+      {children}
+    </section>
+  )
+}
+
 interface ClubSettingsPageProps {
   params: Promise<{ lang: string; clubId: string }>
 }
@@ -79,46 +88,50 @@ export default async function ClubSettingsPage({ params }: ClubSettingsPageProps
   const boundCancelInvite = cancelInvite.bind(null, clubId)
 
   const publicPageUrl = `/${lang}/${club.country}/${club.slug}`
+  const s = t.club.admin.settings.sections
 
   return (
-    <div className="max-w-xl space-y-8">
+    <div className="max-w-xl space-y-10">
       <AdminPageTitle title={t.club.admin.settings.title} />
 
-      {/* Visibility Toggle */}
+      {/* Section: Visibility */}
+      <SettingsSection title={s.visibility}>
+        {isOwner && (
+          <VisibilityToggle
+            isPublished={club.isPublished}
+            forceOffline={club.forceOffline}
+            clubId={clubId}
+            translations={t.club.admin.visibility}
+          />
+        )}
+
+        <Button variant="outline" asChild>
+          <Link href={publicPageUrl} target="_blank">
+            <ExternalLink className="h-4 w-4" />
+            {t.club.admin.sidebar.viewPublicPage}
+          </Link>
+        </Button>
+      </SettingsSection>
+
+      {/* Section: Team (owners only) */}
       {isOwner && (
-        <VisibilityToggle
-          isPublished={club.isPublished}
-          forceOffline={club.forceOffline}
-          clubId={clubId}
-          translations={t.club.admin.visibility}
-        />
+        <SettingsSection title={s.team}>
+          <MembershipPanel
+            memberships={memberships}
+            currentUserId={session.user.id}
+            maxEditors={maxEditors}
+            inviteAction={boundInviteEditor}
+            transferOwnershipAction={boundTransferOwnership}
+            revokeAccessAction={boundRevokeAccess}
+            cancelInviteAction={boundCancelInvite}
+            t={t.club.membership}
+          />
+        </SettingsSection>
       )}
 
-      {/* View public page */}
-      <Button variant="outline" asChild>
-        <Link href={publicPageUrl} target="_blank">
-          <ExternalLink className="h-4 w-4" />
-          {t.club.admin.sidebar.viewPublicPage}
-        </Link>
-      </Button>
-
-      {/* Membership Panel (owners only) */}
+      {/* Section: Data (owners only) */}
       {isOwner && (
-        <MembershipPanel
-          memberships={memberships}
-          currentUserId={session.user.id}
-          maxEditors={maxEditors}
-          inviteAction={boundInviteEditor}
-          transferOwnershipAction={boundTransferOwnership}
-          revokeAccessAction={boundRevokeAccess}
-          cancelInviteAction={boundCancelInvite}
-          t={t.club.membership}
-        />
-      )}
-
-      {/* Data Export (owners only) */}
-      {isOwner && (
-        <section className="space-y-2">
+        <SettingsSection title={s.data}>
           <p className="text-sm text-muted-foreground">{t.club.admin.settings.exportDescription}</p>
           <ExportDataButton
             exportUrl={`/api/club/${clubId}/export`}
@@ -129,18 +142,20 @@ export default async function ClubSettingsPage({ params }: ClubSettingsPageProps
               exportError: t.club.admin.settings.exportError,
             }}
           />
-        </section>
+        </SettingsSection>
       )}
 
-      {/* Delete Club (owners only) */}
+      {/* Section: Danger Zone (owners only) */}
       {isOwner && (
-        <DeleteClubSection
-          clubId={clubId}
-          clubName={club.name}
-          lang={lang}
-          exportUrl={`/api/club/${clubId}/export`}
-          t={t.club.admin.settings.deleteClub}
-        />
+        <SettingsSection title={s.danger} variant="danger">
+          <DeleteClubSection
+            clubId={clubId}
+            clubName={club.name}
+            lang={lang}
+            exportUrl={`/api/club/${clubId}/export`}
+            t={t.club.admin.settings.deleteClub}
+          />
+        </SettingsSection>
       )}
     </div>
   )

@@ -4,16 +4,18 @@ interface SocialLinksFieldsetProps {
   label: string
   /** 'legend' for form fieldsets, 'label' for admin views */
   labelAs?: 'legend' | 'label'
+  /** Optional extra element rendered after the label (e.g. a HelpTip) */
+  labelExtra?: React.ReactNode
   renderInput: (platform: SocialPlatform) => React.ReactNode
 }
 
-export function SocialLinksFieldset({ label, labelAs = 'legend', renderInput }: SocialLinksFieldsetProps) {
+export function SocialLinksFieldset({ label, labelAs = 'legend', labelExtra, renderInput }: SocialLinksFieldsetProps) {
   return (
     <fieldset className="space-y-3">
       {labelAs === 'legend' ? (
-        <legend className="text-sm font-medium">{label}</legend>
+        <legend className="text-sm font-medium flex items-center gap-1.5">{label}{labelExtra}</legend>
       ) : (
-        <label className="text-sm font-medium">{label}</label>
+        <label className="text-sm font-medium flex items-center gap-1.5">{label}{labelExtra}</label>
       )}
       {SOCIAL_PLATFORMS.map((platform) => {
         const Icon = platform.icon

@@ -8,13 +8,11 @@ import { setupPasswordSchema } from '@/lib/schemas/user'
 import { decodeSetupCookie, SETUP_COOKIE_NAME, encodeTotpVerifiedCookie } from '@/lib/setup-cookie'
 import { SESSION_COOKIE_NAME } from '@/server/auth'
 
-const POST_AUTH_REDIRECT = '/'
-
 export type SetupPasswordResult =
   | { success: false; error: string; code: 'UNAUTHORIZED' | 'ALREADY_CONFIGURED' | 'VALIDATION_ERROR' | 'PASSWORD_BREACHED' | 'SERVER_ERROR' }
   | { success: true }
 
-export async function setupPassword(input: unknown): Promise<SetupPasswordResult> {
+export async function setupPassword(input: unknown, lang?: string): Promise<SetupPasswordResult> {
   // Validate setup session cookie
   const cookieStore = await cookies()
   const setupCookie = cookieStore.get(SETUP_COOKIE_NAME)
@@ -134,5 +132,13 @@ export async function setupPassword(input: unknown): Promise<SetupPasswordResult
   // Clear the setup_session cookie — user is now fully authenticated
   cookieStore.delete(SETUP_COOKIE_NAME)
 
-  redirect(POST_AUTH_REDIRECT)
+  // Redirect to the user's first club profile page (if they have one)
+  const firstMembership = await prisma.clubMembership.findFirst({
+    where: { userId, status: 'ACTIVE' },
+    select: { clubId: true },
+    orderBy: { joinedAt: 'desc' },
+  })
+
+  const langPrefix = lang ? `/${lang}` : ''
+  redirect(firstMembership ? `${langPrefix}/club/${firstMembership.clubId}` : `${langPrefix}/`)
 }

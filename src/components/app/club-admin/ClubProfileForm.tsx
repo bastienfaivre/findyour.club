@@ -8,6 +8,7 @@ import { clubProfileSaveSchema, type ClubProfileSaveInput } from '@/lib/schemas/
 import { saveClubProfile, type SaveClubProfileResult } from '@/app/[lang]/(dashboard)/club/[clubId]/actions'
 import { useAdminDirty } from './AdminDirtyContext'
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes'
+import { useAutosave } from '@/hooks/use-autosave'
 import { SaveBar } from './SaveBar'
 import { UnsavedChangesDialog } from './UnsavedChangesDialog'
 import { LogoUpload, type LogoActions } from './LogoUpload'
@@ -18,12 +19,31 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { PhoneInput } from '@/components/ui/phone-input'
-import { Pencil, Eye } from 'lucide-react'
+import { Pencil, Eye, CheckCircle2, Circle, RotateCcw } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { HelpTip } from '@/components/ui/help-tip'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 import { VerificationCountdown } from './VerificationCountdown'
 import type { Translations } from '@/lib/i18n/translations/types'
 import { SocialLinksFieldset } from '@/components/app/SocialLinksFieldset'
+import { WelcomeBanner } from './WelcomeBanner'
+
+function FormSection({ title, filled, children }: { title: string; filled: boolean; children: React.ReactNode }) {
+  return (
+    <section className="rounded-lg border p-4 space-y-4">
+      <div className="flex items-center gap-2">
+        {filled ? (
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />
+        ) : (
+          <Circle className="h-4 w-4 shrink-0 text-muted-foreground/40" />
+        )}
+        <h3 className="text-sm font-medium">{title}</h3>
+      </div>
+      {children}
+    </section>
+  )
+}
 
 export interface ClubPhoto {
   id: string
@@ -131,6 +151,13 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
   // Navigation protection
   const { showDialog, confirmNavigation, cancelNavigation } = useUnsavedChanges({ isDirty })
 
+  // Autosave to localStorage
+  const getValues = form.getValues
+  const { draft, clearDraft, dismissDraft } = useAutosave<ClubProfileSaveInput>(
+    `club-profile-draft-${clubId}`,
+    { isDirty, getCurrentValues: getValues },
+  )
+
   const onSubmit = (data: ClubProfileSaveInput) => {
     // Normalize empty strings to null for optional nullable fields
     const normalized: ClubProfileSaveInput = {
@@ -152,6 +179,7 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
       const result: SaveClubProfileResult = await saveClubProfile(clubId, normalized)
       if (result.success) {
         reset(normalized)
+        clearDraft()
         toast(t.save.savedSuccessfully, {
           description: new Date(result.data.savedAt).toLocaleTimeString(),
         })
@@ -196,201 +224,274 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
     />
   )
 
+  // Section completeness checks (based on watched live values + initial media data)
+  const sectionsFilled = {
+    identity: !!watchedValues.name,
+    about: !!watchedValues.description && !!watchedValues.schedule && !!watchedValues.howToJoin,
+    contact: !!watchedValues.email,
+    social: !!(watchedValues.instagramUrl || watchedValues.facebookUrl || watchedValues.xUrl || watchedValues.tiktokUrl || watchedValues.discordUrl || watchedValues.youtubeUrl || watchedValues.whatsappUrl || watchedValues.telegramUrl || watchedValues.githubUrl),
+    media: !!(initialData.logoUrl || initialData.photos.length > 0),
+  }
+  const filledCount = Object.values(sectionsFilled).filter(Boolean).length
+  const totalCount = Object.keys(sectionsFilled).length
+
   const formBlock = (
     <form onSubmit={handleSubmit(onSubmit)}>
+      <WelcomeBanner clubId={clubId} translations={t.welcome} />
+
+      {draft && (
+        <div className="mb-6 flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950/30">
+          <RotateCcw className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <p className="flex-1 text-sm text-amber-800 dark:text-amber-300">{t.save.draftFound}</p>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="shrink-0"
+            onClick={() => {
+              reset(draft)
+              dismissDraft()
+            }}
+          >
+            {t.save.draftRestore}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="shrink-0"
+            onClick={dismissDraft}
+          >
+            {t.save.draftDiscard}
+          </Button>
+        </div>
+      )}
+
       {lastVerifiedAt && (
         <div className="mb-6">
           <VerificationCountdown lastVerifiedAt={lastVerifiedAt} t={t.settings.verification.countdown} />
         </div>
       )}
+
+      {/* Completeness indicator */}
+      <div className="mb-6 flex items-center gap-3">
+        <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+          <div
+            className="h-full rounded-full bg-green-500 transition-all duration-300"
+            style={{ width: `${(filledCount / totalCount) * 100}%` }}
+          />
+        </div>
+        <span className="text-xs text-muted-foreground whitespace-nowrap">
+          {p.completeness.label.replace('{filled}', String(filledCount)).replace('{total}', String(totalCount))}
+        </span>
+      </div>
+
       <fieldset disabled={isPending} className="space-y-6">
 
-        {/* Logo */}
-        <LogoUpload
-          clubId={clubId}
-          logoUrl={initialData.logoUrl}
-          logoAlt={initialData.logoAlt}
-          maxImageSizeBytes={maxImageSizeBytes}
-          translations={p.logo}
-          actions={logoActions}
-        />
+        {/* Section: Identity — Logo & Name */}
+        <FormSection title={p.sections.identity} filled={sectionsFilled.identity}>
+          <div className="space-y-2">
+            <Label htmlFor="name">{p.fields.name} <span className="text-destructive">*</span></Label>
+            <Input
+              id="name"
+              {...register('name')}
+              placeholder={p.placeholders.name}
+              maxLength={200}
+              aria-required="true"
+              aria-describedby={errors.name ? 'name-error' : undefined}
+              aria-invalid={!!errors.name}
+            />
+            {errors.name && (
+              <p id="name-error" className="text-sm text-destructive">{p.validation.nameRequired}</p>
+            )}
+          </div>
+        </FormSection>
 
-        {/* Club Name */}
-        <div className="space-y-2">
-          <Label htmlFor="name">{p.fields.name} <span className="text-destructive">*</span></Label>
-          <Input
-            id="name"
-            {...register('name')}
-            placeholder={p.placeholders.name}
-            maxLength={200}
-            aria-required="true"
-            aria-describedby={errors.name ? 'name-error' : undefined}
-            aria-invalid={!!errors.name}
-          />
-          {errors.name && (
-            <p id="name-error" className="text-sm text-destructive">{p.validation.nameRequired}</p>
-          )}
-        </div>
+        {/* Section: About — Description, Schedule, How to Join */}
+        <FormSection title={p.sections.about} filled={sectionsFilled.about}>
+          <div className="space-y-2">
+            <Label htmlFor="description">{p.fields.description} <span className="text-destructive">*</span></Label>
+            <p className="text-sm text-muted-foreground">{p.helpers.description}</p>
+            <Textarea
+              id="description"
+              {...register('description')}
+              placeholder={p.placeholders.description}
+              maxLength={5000}
+              rows={4}
+              aria-required="true"
+              aria-describedby={errors.description ? 'description-error' : undefined}
+              aria-invalid={!!errors.description}
+            />
+            {errors.description && (
+              <p id="description-error" className="text-sm text-destructive">
+                {errors.description.type === 'too_big' ? p.validation.descriptionMaxLength : p.validation.descriptionRequired}
+              </p>
+            )}
+          </div>
 
-        {/* Description */}
-        <div className="space-y-2">
-          <Label htmlFor="description">{p.fields.description} <span className="text-destructive">*</span></Label>
-          <p className="text-sm text-muted-foreground">{p.helpers.description}</p>
-          <Textarea
-            id="description"
-            {...register('description')}
-            placeholder={p.placeholders.description}
-            maxLength={5000}
-            rows={4}
-            aria-required="true"
-            aria-describedby={errors.description ? 'description-error' : undefined}
-            aria-invalid={!!errors.description}
-          />
-          {errors.description && (
-            <p id="description-error" className="text-sm text-destructive">
-              {errors.description.type === 'too_big' ? p.validation.descriptionMaxLength : p.validation.descriptionRequired}
-            </p>
-          )}
-        </div>
+          <div className="space-y-2">
+            <Label htmlFor="schedule">{p.fields.schedule} <span className="text-destructive">*</span></Label>
+            <p className="text-sm text-muted-foreground">{p.helpers.schedule}</p>
+            <Textarea
+              id="schedule"
+              {...register('schedule')}
+              placeholder={p.placeholders.schedule}
+              maxLength={2000}
+              rows={3}
+              aria-required="true"
+              aria-describedby={errors.schedule ? 'schedule-error' : undefined}
+              aria-invalid={!!errors.schedule}
+            />
+            {errors.schedule && (
+              <p id="schedule-error" className="text-sm text-destructive">
+                {errors.schedule.type === 'too_big' ? p.validation.scheduleMaxLength : p.validation.scheduleRequired}
+              </p>
+            )}
+          </div>
 
-        {/* Schedule */}
-        <div className="space-y-2">
-          <Label htmlFor="schedule">{p.fields.schedule} <span className="text-destructive">*</span></Label>
-          <p className="text-sm text-muted-foreground">{p.helpers.schedule}</p>
-          <Textarea
-            id="schedule"
-            {...register('schedule')}
-            placeholder={p.placeholders.schedule}
-            maxLength={2000}
-            rows={3}
-            aria-required="true"
-            aria-describedby={errors.schedule ? 'schedule-error' : undefined}
-            aria-invalid={!!errors.schedule}
-          />
-          {errors.schedule && (
-            <p id="schedule-error" className="text-sm text-destructive">
-              {errors.schedule.type === 'too_big' ? p.validation.scheduleMaxLength : p.validation.scheduleRequired}
-            </p>
-          )}
-        </div>
+          <div className="space-y-2">
+            <Label htmlFor="howToJoin">{p.fields.howToJoin} <span className="text-destructive">*</span></Label>
+            <p className="text-sm text-muted-foreground">{p.helpers.howToJoin}</p>
+            <Textarea
+              id="howToJoin"
+              {...register('howToJoin')}
+              placeholder={p.placeholders.howToJoin}
+              maxLength={2000}
+              rows={3}
+              aria-required="true"
+              aria-describedby={errors.howToJoin ? 'howToJoin-error' : undefined}
+              aria-invalid={!!errors.howToJoin}
+            />
+            {errors.howToJoin && (
+              <p id="howToJoin-error" className="text-sm text-destructive">
+                {errors.howToJoin.type === 'too_big' ? p.validation.howToJoinMaxLength : p.validation.howToJoinRequired}
+              </p>
+            )}
+          </div>
+        </FormSection>
 
-        {/* How to Join */}
-        <div className="space-y-2">
-          <Label htmlFor="howToJoin">{p.fields.howToJoin} <span className="text-destructive">*</span></Label>
-          <p className="text-sm text-muted-foreground">{p.helpers.howToJoin}</p>
-          <Textarea
-            id="howToJoin"
-            {...register('howToJoin')}
-            placeholder={p.placeholders.howToJoin}
-            maxLength={2000}
-            rows={3}
-            aria-required="true"
-            aria-describedby={errors.howToJoin ? 'howToJoin-error' : undefined}
-            aria-invalid={!!errors.howToJoin}
-          />
-          {errors.howToJoin && (
-            <p id="howToJoin-error" className="text-sm text-destructive">
-              {errors.howToJoin.type === 'too_big' ? p.validation.howToJoinMaxLength : p.validation.howToJoinRequired}
-            </p>
-          )}
-        </div>
+        {/* Section: Contact */}
+        <FormSection title={p.sections.contact} filled={sectionsFilled.contact}>
+          <div className="space-y-2">
+            <span className="flex items-center gap-1.5">
+              <Label htmlFor="contactEmail">{p.fields.contactEmail}</Label>
+              <HelpTip content={p.tips.contactEmail} />
+            </span>
+            <Input
+              id="contactEmail"
+              type="email"
+              {...register('email')}
+              placeholder={p.placeholders.contactEmail}
+              aria-describedby={errors.email ? 'email-error' : undefined}
+              aria-invalid={!!errors.email}
+            />
+            {errors.email && (
+              <p id="email-error" className="text-sm text-destructive">{p.validation.emailInvalid}</p>
+            )}
+          </div>
 
-        {/* Contact Email */}
-        <div className="space-y-2">
-          <Label htmlFor="contactEmail">{p.fields.contactEmail}</Label>
-          <Input
-            id="contactEmail"
-            type="email"
-            {...register('email')}
-            placeholder={p.placeholders.contactEmail}
-            aria-describedby={errors.email ? 'email-error' : undefined}
-            aria-invalid={!!errors.email}
-          />
-          {errors.email && (
-            <p id="email-error" className="text-sm text-destructive">{p.validation.emailInvalid}</p>
-          )}
-        </div>
+          <div className="space-y-2">
+            <span className="flex items-center gap-1.5">
+              <Label htmlFor="contactPhone">{p.fields.contactPhone}</Label>
+              <HelpTip content={p.tips.contactPhone} />
+            </span>
+            <Controller
+              name="contactPhone"
+              control={control}
+              render={({ field }) => (
+                <PhoneInput
+                  key={phoneKey}
+                  id="contactPhone"
+                  value={field.value ?? ''}
+                  onChange={(val) => field.onChange(val ?? '')}
+                  placeholder={p.placeholders.contactPhone}
+                  disabled={isPending}
+                  aria-describedby={errors.contactPhone ? 'contactPhone-error' : undefined}
+                  aria-invalid={!!errors.contactPhone}
+                />
+              )}
+            />
+            {errors.contactPhone && (
+              <p id="contactPhone-error" className="text-sm text-destructive">{p.validation.contactPhoneInvalid}</p>
+            )}
+          </div>
 
-        {/* Contact Phone */}
-        <div className="space-y-2">
-          <Label htmlFor="contactPhone">{p.fields.contactPhone}</Label>
-          <Controller
-            name="contactPhone"
-            control={control}
-            render={({ field }) => (
-              <PhoneInput
-                key={phoneKey}
-                id="contactPhone"
-                value={field.value ?? ''}
-                onChange={(val) => field.onChange(val ?? '')}
-                placeholder={p.placeholders.contactPhone}
-                disabled={isPending}
-                aria-describedby={errors.contactPhone ? 'contactPhone-error' : undefined}
-                aria-invalid={!!errors.contactPhone}
+          <div className="space-y-2">
+            <span className="flex items-center gap-1.5">
+              <Label htmlFor="contactAddress">{p.fields.contactAddress}</Label>
+              <HelpTip content={p.tips.contactAddress} />
+            </span>
+            <Textarea
+              id="contactAddress"
+              {...register('contactAddress')}
+              placeholder={p.placeholders.contactAddress}
+              maxLength={500}
+              rows={2}
+              aria-describedby={errors.contactAddress ? 'contactAddress-error' : undefined}
+              aria-invalid={!!errors.contactAddress}
+            />
+            {errors.contactAddress && (
+              <p id="contactAddress-error" className="text-sm text-destructive">{p.validation.contactAddressMaxLength}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <span className="flex items-center gap-1.5">
+              <Label htmlFor="externalWebsiteUrl">{p.fields.externalWebsiteUrl}</Label>
+              <HelpTip content={p.tips.externalWebsiteUrl} />
+            </span>
+            <Input
+              id="externalWebsiteUrl"
+              {...register('externalWebsiteUrl')}
+              placeholder={p.placeholders.externalWebsiteUrl}
+              aria-describedby={errors.externalWebsiteUrl ? 'externalWebsiteUrl-error' : undefined}
+              aria-invalid={!!errors.externalWebsiteUrl}
+            />
+            {errors.externalWebsiteUrl && (
+              <p id="externalWebsiteUrl-error" className="text-sm text-destructive">{p.validation.externalWebsiteUrlInvalid}</p>
+            )}
+          </div>
+        </FormSection>
+
+        {/* Section: Social Media */}
+        <FormSection title={p.sections.social} filled={sectionsFilled.social}>
+          <SocialLinksFieldset
+            label={p.fields.socialLinks}
+            labelExtra={<HelpTip content={p.tips.socialLinks} />}
+            renderInput={(platform) => (
+              <Input
+                id={platform.key}
+                {...register(platform.key)}
+                placeholder={platform.placeholder}
+                aria-label={platform.label}
+                aria-describedby={errors[platform.key] ? `${platform.key}-error` : undefined}
+                aria-invalid={!!errors[platform.key]}
               />
             )}
           />
-          {errors.contactPhone && (
-            <p id="contactPhone-error" className="text-sm text-destructive">{p.validation.contactPhoneInvalid}</p>
-          )}
-        </div>
+        </FormSection>
 
-        {/* Contact Address */}
-        <div className="space-y-2">
-          <Label htmlFor="contactAddress">{p.fields.contactAddress}</Label>
-          <Textarea
-            id="contactAddress"
-            {...register('contactAddress')}
-            placeholder={p.placeholders.contactAddress}
-            maxLength={500}
-            rows={2}
-            aria-describedby={errors.contactAddress ? 'contactAddress-error' : undefined}
-            aria-invalid={!!errors.contactAddress}
+        {/* Section: Logo & Photos */}
+        <FormSection title={p.sections.media} filled={sectionsFilled.media}>
+          <LogoUpload
+            clubId={clubId}
+            logoUrl={initialData.logoUrl}
+            logoAlt={initialData.logoAlt}
+            maxImageSizeBytes={maxImageSizeBytes}
+            translations={p.logo}
+            actions={logoActions}
           />
-          {errors.contactAddress && (
-            <p id="contactAddress-error" className="text-sm text-destructive">{p.validation.contactAddressMaxLength}</p>
-          )}
-        </div>
 
-        {/* External Website URL */}
-        <div className="space-y-2">
-          <Label htmlFor="externalWebsiteUrl">{p.fields.externalWebsiteUrl}</Label>
-          <Input
-            id="externalWebsiteUrl"
-            {...register('externalWebsiteUrl')}
-            placeholder={p.placeholders.externalWebsiteUrl}
-            aria-describedby={errors.externalWebsiteUrl ? 'externalWebsiteUrl-error' : undefined}
-            aria-invalid={!!errors.externalWebsiteUrl}
+          <PhotoGallery
+            clubId={clubId}
+            clubName={initialData.name}
+            photos={initialData.photos}
+            maxPhotos={maxPhotos}
+            maxImageSizeBytes={maxImageSizeBytes}
+            translations={p.photos}
           />
-          {errors.externalWebsiteUrl && (
-            <p id="externalWebsiteUrl-error" className="text-sm text-destructive">{p.validation.externalWebsiteUrlInvalid}</p>
-          )}
-        </div>
+        </FormSection>
 
-        {/* Social Media Links */}
-        <SocialLinksFieldset
-          label={p.fields.socialLinks}
-          renderInput={(platform) => (
-            <Input
-              id={platform.key}
-              {...register(platform.key)}
-              placeholder={platform.placeholder}
-              aria-label={platform.label}
-              aria-describedby={errors[platform.key] ? `${platform.key}-error` : undefined}
-              aria-invalid={!!errors[platform.key]}
-            />
-          )}
-        />
-
-        {/* Photos */}
-        <PhotoGallery
-          clubId={clubId}
-          clubName={initialData.name}
-          photos={initialData.photos}
-          maxPhotos={maxPhotos}
-          maxImageSizeBytes={maxImageSizeBytes}
-          translations={p.photos}
-        />
       </fieldset>
 
       <SaveBar

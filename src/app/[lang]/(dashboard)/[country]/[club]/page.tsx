@@ -1,11 +1,13 @@
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { isValidCountry, getCountryName } from '@/lib/country'
 import { isValidActivityType } from '@/lib/activity-types'
 import { getClubPublicData } from '@/lib/server/club-queries'
 import { isValidCanton } from '@/lib/server/canton-queries'
+import { trackPageEvent } from '@/lib/server/page-tracking'
 import {
   generateClubMetadata,
   generateClubJsonLd,
@@ -80,6 +82,17 @@ export default async function ClubPage({ params }: Props) {
   // Club page
   const club = await getClubPublicData(slug, country)
   if (!club) notFound()
+
+  // Track page view (fire-and-forget, server-side, no cookies)
+  const hdrs = await headers()
+  trackPageEvent({
+    clubId: club.id,
+    pageSlug: slug,
+    eventType: 'page_view',
+    ip: hdrs.get('x-forwarded-for')?.split(',')[0]?.trim(),
+    referrer: hdrs.get('referer'),
+    country,
+  })
 
   const accentColor = ACCENT_COLORS[club.accentColor] ?? ACCENT_COLORS.zinc
   const isVerificationExpired = !club.lastVerifiedAt

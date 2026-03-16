@@ -47,6 +47,7 @@ export function LanguageSwitcher({ currentLang, dropUp }: { currentLang: string;
         <Button
           variant="ghost"
           size="sm"
+          aria-label="Change language"
           className={`gap-1 text-muted-foreground${isPending ? ' opacity-60' : ''}`}
         >
           <span className="uppercase">{activeLang}</span>

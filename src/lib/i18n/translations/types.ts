@@ -276,6 +276,27 @@ export type Translations = {
       noConversations: string
       selectConversation: string
     }
+    stats: {
+      title: string
+      description: string
+      overview: string
+      totalClubs: string
+      publishedClubs: string
+      totalUsers: string
+      totalApplications: string
+      pendingApplications: string
+      pageViews: string
+      pageViewsDescription: string
+      last7Days: string
+      last30Days: string
+      allTime: string
+      topClubs: string
+      topClubsDescription: string
+      /** Use {count} as placeholder */
+      views: string
+      noData: string
+      uniqueVisitors: string
+    }
     settings: {
       title: string
       description: string
@@ -373,7 +394,6 @@ export type Translations = {
       activityType: string
       location: string
       description: string
-      profileDetails: string
       howToJoin: string
       schedule: string
       contactPhone: string
@@ -382,6 +402,13 @@ export type Translations = {
       socialLinks: string
       desiredSlug: string
       otherDescription: string
+    }
+    sections: {
+      identity: string
+      about: string
+      contact: string
+      social: string
+      url: string
     }
     helpers: {
       activityType: string
@@ -445,13 +472,67 @@ export type Translations = {
         promote: string
         messages: string
         settings: string
+        help: string
         viewPublicPage: string
+      }
+      help: {
+        title: string
+        intro: string
+        pages: {
+          profile: {
+            title: string
+            description: string
+            subsections: {
+              identity: string
+              about: string
+              contact: string
+              social: string
+              media: string
+              verification: string
+              completeness: string
+            }
+          }
+          promote: {
+            title: string
+            description: string
+            items: string[]
+          }
+          settings: {
+            title: string
+            description: string
+            subsections: {
+              visibility: string
+              team: string
+              data: string
+              danger: string
+            }
+          }
+          messages: {
+            title: string
+            description: string
+            items: string[]
+          }
+        }
+        ownerOnly: string
+        tip: string
+        tipContent: string
       }
       clubProfile: {
         title: string
         placeholder: string
         preview: string
         editTab: string
+        sections: {
+          identity: string
+          about: string
+          contact: string
+          social: string
+          media: string
+        }
+        completeness: {
+          /** Use {filled} and {total} as placeholders */
+          label: string
+        }
         fields: {
           name: string
           description: string
@@ -467,6 +548,13 @@ export type Translations = {
           description: string
           schedule: string
           howToJoin: string
+        }
+        tips: {
+          contactEmail: string
+          contactPhone: string
+          contactAddress: string
+          externalWebsiteUrl: string
+          socialLinks: string
         }
         placeholders: {
           name: string
@@ -495,6 +583,8 @@ export type Translations = {
           title: string
           change: string
           remove: string
+          cancel: string
+          confirm: string
           altLabel: string
           altPlaceholder: string
           altRequired: string
@@ -542,9 +632,21 @@ export type Translations = {
         /** Use {count} as placeholder */
         unreadBadge: string
       }
+      welcome: {
+        title: string
+        description: string
+        steps: string[]
+        dismiss: string
+      }
       settings: {
         title: string
         placeholder: string
+        sections: {
+          visibility: string
+          team: string
+          data: string
+          danger: string
+        }
         verification: {
           confirmButton: string
           confirmSuccess: string
@@ -585,6 +687,8 @@ export type Translations = {
         title: string
         description: string
         comingSoon: string
+        story: string
+        storyDescription: string
         poster: string
         posterDescription: string
         badge: string
@@ -592,6 +696,11 @@ export type Translations = {
         qrCard: string
         qrCardDescription: string
         download: string
+        embedTitle: string
+        embedDescription: string
+        copySnippet: string
+        copied: string
+        preview: string
       }
       save: {
         save: string
@@ -605,6 +714,9 @@ export type Translations = {
         stay: string
         leave: string
         keepEditing: string
+        draftFound: string
+        draftRestore: string
+        draftDiscard: string
       }
       navigation: string
       openMenu: string
@@ -656,8 +768,6 @@ export type Translations = {
       intro: string
       whoLabel: string
       whoText: string
-      whatLabel: string
-      whatText: string
       whenLabel: string
       whenText: string
       howLabel: string
@@ -723,6 +833,7 @@ export type Translations = {
     verifiedBadge: string
     verifiedDetail: string
     freshnessBadgeUpToDate: string
+    freshnessBadgeApproaching: string
     freshnessBadgeNotVerified: string
     shareCtaMessage: string
     listCtaMessage: string

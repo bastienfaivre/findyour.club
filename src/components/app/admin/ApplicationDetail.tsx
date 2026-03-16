@@ -319,6 +319,8 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
           labelAs="label"
           renderInput={(platform) => (
             <Input
+              id={`app-${platform.key}`}
+              aria-label={platform.label}
               placeholder={platform.label}
               value={(fields[platform.key] as string) ?? ''}
               onChange={(e) => updateField(platform.key, e.target.value)}

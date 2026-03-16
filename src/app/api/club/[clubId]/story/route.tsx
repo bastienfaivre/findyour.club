@@ -1,31 +1,21 @@
-import { readFile } from 'node:fs/promises'
-import { join } from 'node:path'
 import { NextResponse } from 'next/server'
 import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
-import { generateBadgeImage } from '@/lib/og-image'
-import { VERIFICATION_CYCLE_DAYS } from '@/lib/verification'
+import { generateStoryImage } from '@/lib/og-image'
 
-let faviconDataUrl: string | null = null
-async function getFaviconDataUrl(): Promise<string> {
-  if (!faviconDataUrl) {
-    const buf = await readFile(join(process.cwd(), 'public', 'apple-touch-icon.png'))
-    faviconDataUrl = `data:image/png;base64,${buf.toString('base64')}`
-  }
-  return faviconDataUrl
-}
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ clubId: string }> },
 ) {
   const { clubId } = await params
+  const lang = new URL(request.url).searchParams.get('lang') || 'en'
   const session = await getAuthSession()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Allow club members (OWNER or EDITOR) and platform operators
   const isOperator = session.user.role === 'OPERATOR'
   if (!isOperator) {
     const membership = await prisma.clubMembership.findFirst({
@@ -39,19 +29,17 @@ export async function GET(
 
   const club = await prisma.club.findUnique({
     where: { id: clubId },
-    select: { name: true, logoUrl: true, lastVerifiedAt: true },
+    select: { name: true, slug: true, country: true, logoUrl: true },
   })
   if (!club) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  const favicon = await getFaviconDataUrl()
-  const isVerified = club.lastVerifiedAt != null &&
-    (Date.now() - new Date(club.lastVerifiedAt).getTime()) < VERIFICATION_CYCLE_DAYS * 86_400_000
-  return generateBadgeImage({
+  const clubUrl = `${BASE_URL}/${lang}/${club.country}/${club.slug}`
+
+  return generateStoryImage({
     clubName: club.name,
     clubLogoUrl: club.logoUrl,
-    faviconDataUrl: favicon,
-    verified: isVerified,
+    clubUrl,
   })
 }

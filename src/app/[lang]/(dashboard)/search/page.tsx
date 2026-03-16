@@ -7,6 +7,7 @@ import { getTranslations } from '@/lib/i18n/translations'
 import { generatePlatformMetadata } from '@/components/app/seo/metadata'
 import { SharePlatformButton } from '@/components/app/SharePlatformButton'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { ClubCard, ClubCardSkeleton } from '@/components/app/directory/ClubCard'
 import { PaginatedGrid } from '@/components/app/directory/PaginatedGrid'
 import { DirectoryFilters } from '@/components/app/directory/DirectoryFilters'
@@ -129,7 +130,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
   return (
     <div>
       <AdminPageTitle title={t.nav.search} />
-      <h1 className="text-2xl font-bold mb-6">{t.nav.search}</h1>
+      <h1 className="text-2xl font-bold tracking-tight mb-6">{t.nav.search}</h1>
 
       <Suspense fallback={null}>
         <DirectoryFilters
@@ -164,21 +165,21 @@ export default async function SearchPage({ params, searchParams }: Props) {
           <p className="mt-1 text-sm">
             {t.directory.noResultsHint}
           </p>
-          <div className="mt-6 rounded-lg border p-5 text-center max-w-md">
-            <p className="text-sm text-foreground">{t.directory.shareCtaMessage}</p>
-            <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-              <SharePlatformButton label={t.platform.bootstrapShare} copiedMessage={t.clubSite.linkCopied} className="" />
-            </div>
-            <p className="mt-4 text-sm text-foreground">{t.directory.listCtaMessage}</p>
-            <div className="mt-2">
+          <Card className="py-0 gap-0 mt-4 max-w-md mx-auto">
+            <CardContent className="p-4 text-center space-y-4">
+              <p className="text-sm text-foreground">{t.directory.shareCtaMessage}</p>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <SharePlatformButton label={t.platform.bootstrapShare} copiedMessage={t.clubSite.linkCopied} className="" />
+              </div>
+              <p className="text-sm text-foreground">{t.directory.listCtaMessage}</p>
               <Button variant="outline" size="sm" asChild>
                 <Link href={`/${lang}/apply`}>
                   <ClipboardList className="h-3.5 w-3.5" />
                   {t.platform.bootstrapListClub}
                 </Link>
               </Button>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       ) : (
         <>
@@ -232,18 +233,20 @@ export default async function SearchPage({ params, searchParams }: Props) {
               })}
             </PaginatedGrid>
           </Suspense>
-          <div className="mt-8 rounded-lg border p-5 text-center">
-            <p className="text-sm text-muted-foreground">{t.directory.shareCtaMessage}</p>
-            <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-              <SharePlatformButton label={t.platform.bootstrapShare} copiedMessage={t.clubSite.linkCopied} className="" />
-              <Button variant="outline" size="sm" asChild>
-                <Link href={`/${lang}/apply`}>
-                  <ClipboardList className="h-3.5 w-3.5" />
-                  {t.platform.bootstrapListClub}
-                </Link>
-              </Button>
-            </div>
-          </div>
+          <Card className="py-0 gap-0 mt-6">
+            <CardContent className="p-4 text-center space-y-3">
+              <p className="text-sm text-muted-foreground">{t.directory.shareCtaMessage}</p>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <SharePlatformButton label={t.platform.bootstrapShare} copiedMessage={t.clubSite.linkCopied} className="" />
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/${lang}/apply`}>
+                    <ClipboardList className="h-3.5 w-3.5" />
+                    {t.platform.bootstrapListClub}
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </>
       )}
     </div>
