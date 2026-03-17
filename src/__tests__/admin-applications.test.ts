@@ -94,7 +94,7 @@ const DEFAULT_FIELDS: ApplicationEditableFields = {
   country: 'ch',
   description: 'A great ski club in Valais',
   activityType: 'skiing',
-  location: { swisstopoId: '2117', plz: '1950', cantonCode: 'VS', name: 'Sion' },
+  location: { swisstopoId: '2117', cantonCode: 'VS', name: 'Sion' },
   schedule: 'Saturdays 09:00–12:00',
   contactPhone: '+41 27 123 45 67',
   contactAddress: 'Rue de la Gare 1, 1950 Sion',

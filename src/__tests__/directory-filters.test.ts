@@ -59,10 +59,6 @@ vi.mock('@/components/app/admin/LocationTypeahead', () => ({
   }),
 }))
 
-vi.mock('@/lib/country', () => ({
-  countryCodeToFlag: (code: string) => `flag-${code}`,
-}))
-
 vi.mock('lucide-react', () => ({
   X: ({ className }: any) => ({
     type: 'X',

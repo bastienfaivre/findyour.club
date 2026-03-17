@@ -39,7 +39,6 @@ const VALID_INPUT = {
   otherDescription: 'Skiing club',
   location: {
     swisstopoId: '2117',
-    plz: '1950',
     cantonCode: 'VS',
     name: 'Sion',
   },
@@ -105,7 +104,6 @@ describe('submitApplication()', () => {
     })
     expect(upsertSwissLocation).toHaveBeenCalledWith({
       swisstopoId: '2117',
-      plz: '1950',
       cantonCode: 'VS',
       displayName: 'Sion',
     })

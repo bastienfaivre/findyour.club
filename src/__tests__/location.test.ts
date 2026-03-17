@@ -19,7 +19,6 @@ const LOCATION = { id: 'location-1' }
 
 const VALID_INPUT = {
   swisstopoId: '2117',
-  plz: '1200',
   cantonCode: 'GE',
   displayName: 'Genève',
 }
@@ -75,7 +74,6 @@ describe('upsertSwissLocation', () => {
     expect(prisma.swissLocation.create).toHaveBeenCalledWith({
       data: {
         swisstopoId: '2117',
-        plz: '1200',
         cantonCode: 'GE',
         translations: {
           createMany: {

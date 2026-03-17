@@ -186,7 +186,6 @@ async function main() {
   // ─── Locations ───────────────────────────────────────────────────────
   async function createSwissLocation(
     swisstopoId: string,
-    plz: string,
     cantonCode: string,
     names: { fr: string; de: string; it: string; en: string },
   ) {
@@ -195,7 +194,6 @@ async function main() {
       update: {},
       create: {
         swisstopoId,
-        plz,
         cantonCode,
         translations: {
           createMany: {
@@ -218,19 +216,19 @@ async function main() {
     return location
   }
 
-  const locationSion = await createSwissLocation('6266', '1950', 'VS', {
+  const locationSion = await createSwissLocation('6266', 'VS', {
     fr: 'Sion', de: 'Sitten', it: 'Sion', en: 'Sion',
   })
-  const locationLausanne = await createSwissLocation('5586', '1000', 'VD', {
+  const locationLausanne = await createSwissLocation('5586', 'VD', {
     fr: 'Lausanne', de: 'Lausanne', it: 'Losanna', en: 'Lausanne',
   })
-  const locationZurich = await createSwissLocation('261', '8001', 'ZH', {
+  const locationZurich = await createSwissLocation('261', 'ZH', {
     fr: 'Zurich', de: 'Zürich', it: 'Zurigo', en: 'Zurich',
   })
-  const locationGeneva = await createSwissLocation('6621', '1200', 'GE', {
+  const locationGeneva = await createSwissLocation('6621', 'GE', {
     fr: 'Genève', de: 'Genf', it: 'Ginevra', en: 'Geneva',
   })
-  const locationBern = await createSwissLocation('351', '3000', 'BE', {
+  const locationBern = await createSwissLocation('351', 'BE', {
     fr: 'Berne', de: 'Bern', it: 'Berna', en: 'Bern',
   })
 
@@ -872,16 +870,16 @@ async function main() {
   })
 
   const bulkLocations = [
-    await createSwissLocation('10001', '3920', 'VS', { fr: 'Zermatt', de: 'Zermatt', it: 'Zermatt', en: 'Zermatt' }),
-    await createSwissLocation('10002', '3800', 'BE', { fr: 'Interlaken', de: 'Interlaken', it: 'Interlaken', en: 'Interlaken' }),
-    await createSwissLocation('10003', '6900', 'TI', { fr: 'Lugano', de: 'Lugano', it: 'Lugano', en: 'Lugano' }),
-    await createSwissLocation('10004', '7500', 'GR', { fr: 'Saint-Moritz', de: 'St. Moritz', it: 'San Maurizio', en: 'St. Moritz' }),
-    await createSwissLocation('10005', '2000', 'NE', { fr: 'Neuchâtel', de: 'Neuenburg', it: 'Neuchâtel', en: 'Neuchâtel' }),
-    await createSwissLocation('10006', '1700', 'FR', { fr: 'Fribourg', de: 'Freiburg', it: 'Friburgo', en: 'Fribourg' }),
-    await createSwissLocation('10007', '9000', 'SG', { fr: 'Saint-Gall', de: 'St. Gallen', it: 'San Gallo', en: 'St. Gallen' }),
-    await createSwissLocation('10008', '6000', 'LU', { fr: 'Lucerne', de: 'Luzern', it: 'Lucerna', en: 'Lucerne' }),
-    await createSwissLocation('10009', '8200', 'SH', { fr: 'Schaffhouse', de: 'Schaffhausen', it: 'Sciaffusa', en: 'Schaffhausen' }),
-    await createSwissLocation('10010', '4500', 'SO', { fr: 'Soleure', de: 'Solothurn', it: 'Soletta', en: 'Solothurn' }),
+    await createSwissLocation('6300', 'VS', { fr: 'Zermatt', de: 'Zermatt', it: 'Zermatt', en: 'Zermatt' }),
+    await createSwissLocation('581', 'BE', { fr: 'Interlaken', de: 'Interlaken', it: 'Interlaken', en: 'Interlaken' }),
+    await createSwissLocation('5192', 'TI', { fr: 'Lugano', de: 'Lugano', it: 'Lugano', en: 'Lugano' }),
+    await createSwissLocation('3787', 'GR', { fr: 'Saint-Moritz', de: 'St. Moritz', it: 'St. Moritz', en: 'St. Moritz' }),
+    await createSwissLocation('6458', 'NE', { fr: 'Neuchâtel', de: 'Neuenburg', it: 'Neuchâtel', en: 'Neuchâtel' }),
+    await createSwissLocation('2196', 'FR', { fr: 'Fribourg', de: 'Freiburg', it: 'Friburgo', en: 'Fribourg' }),
+    await createSwissLocation('3203', 'SG', { fr: 'Saint-Gall', de: 'St. Gallen', it: 'San Gallo', en: 'St. Gallen' }),
+    await createSwissLocation('1061', 'LU', { fr: 'Lucerne', de: 'Luzern', it: 'Lucerna', en: 'Lucerne' }),
+    await createSwissLocation('2939', 'SH', { fr: 'Schaffhouse', de: 'Schaffhausen', it: 'Sciaffusa', en: 'Schaffhausen' }),
+    await createSwissLocation('2601', 'SO', { fr: 'Soleure', de: 'Solothurn', it: 'Soletta', en: 'Solothurn' }),
   ]
 
   const _bulkActivities = ['skiing', 'football', 'mountaineering', 'rowing', 'gymnastics', 'yoga', 'swimming', 'chess'] as const
@@ -990,13 +988,13 @@ async function main() {
 
   // ─── Applications (complete data) ─────────────────────────────────────
   // Create locations for applications
-  const locationMontreux = await createSwissLocation('5886', '1820', 'VD', {
+  const locationMontreux = await createSwissLocation('5886', 'VD', {
     fr: 'Montreux', de: 'Montreux', it: 'Montreux', en: 'Montreux',
   })
-  const locationBasel = await createSwissLocation('2701', '4000', 'BS', {
+  const locationBasel = await createSwissLocation('2701', 'BS', {
     fr: 'Bâle', de: 'Basel', it: 'Basilea', en: 'Basel',
   })
-  const locationLucerne = await createSwissLocation('1061', '6000', 'LU', {
+  const locationLucerne = await createSwissLocation('1061', 'LU', {
     fr: 'Lucerne', de: 'Luzern', it: 'Lucerna', en: 'Lucerne',
   })
 

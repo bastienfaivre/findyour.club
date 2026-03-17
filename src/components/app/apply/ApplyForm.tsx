@@ -36,7 +36,6 @@ const LANG_LABELS: Record<string, string> = {
 
 type LocationResult = {
   swisstopoId: string
-  plz: string
   name: string
   cantonCode: string
 }
@@ -127,16 +126,13 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
         'location',
         {
           swisstopoId: loc.swisstopoId,
-          plz: loc.plz,
           cantonCode: loc.cantonCode,
           name: loc.name,
         },
         { shouldValidate: true },
       )
       void trigger('location')
-      const display = loc.plz
-        ? `${loc.name} (${loc.cantonCode}) — ${loc.plz}`
-        : `${loc.name} (${loc.cantonCode})`
+      const display = `${loc.name} (${loc.cantonCode})`
       setLocationQuery(display)
       setLocationOpen(false)
       setLocationResults([])
@@ -532,7 +528,7 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
                           selectLocation(loc)
                         }}
                       >
-                        <CantonFlag code={loc.cantonCode} /> {loc.name} ({loc.cantonCode}){loc.plz ? ` — ${loc.plz}` : ''}
+                        <CantonFlag code={loc.cantonCode} /> {loc.name} ({loc.cantonCode})
                       </li>
                     ))}
                   </ul>

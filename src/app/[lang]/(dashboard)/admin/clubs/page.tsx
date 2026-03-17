@@ -60,7 +60,6 @@ export default async function ClubsPage({ params }: ClubsPageProps) {
           swissLocation: {
             select: {
               swisstopoId: true,
-              plz: true,
               cantonCode: true,
               translations: { where: { language: uiLang }, select: { name: true } },
             },

@@ -27,10 +27,6 @@ vi.mock('@/components/ui/badge', () => ({
   }),
 }))
 
-vi.mock('@/lib/country', () => ({
-  countryCodeToFlag: (code: string) => `flag-${code}`,
-}))
-
 import { ClubCard, ClubCardSkeleton } from '@/components/app/directory/ClubCard'
 import { Badge } from '@/components/ui/badge'
 import { ClubAvatar } from '@/components/app/ClubAvatar'

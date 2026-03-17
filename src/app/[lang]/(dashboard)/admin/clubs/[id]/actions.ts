@@ -238,7 +238,6 @@ export async function updateClubFields(
     if (fields.location) {
       const { locationId } = await upsertSwissLocation({
         swisstopoId: fields.location.swisstopoId,
-        plz: fields.location.plz,
         cantonCode: fields.location.cantonCode,
         displayName: fields.location.name,
       })

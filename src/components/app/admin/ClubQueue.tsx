@@ -52,7 +52,6 @@ export type ClubListItem = {
   location: {
     swissLocation: {
       swisstopoId: string
-      plz: string
       cantonCode: string
       translations: { name: string }[]
     } | null

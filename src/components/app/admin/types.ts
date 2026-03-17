@@ -15,7 +15,6 @@ export interface CantonOption {
 
 export type LocationResult = {
   swisstopoId: string
-  plz: string
   name: string
   cantonCode: string
 }

@@ -63,7 +63,7 @@ export function DirectoryFilters({
   // Restore LocationInput from URL params
   const [locationValue, setLocationValue] = useState<LocationInput | null>(() => {
     if (currentLocation && currentLocationName) {
-      return { swisstopoId: currentLocation, plz: '', cantonCode: currentLocationCanton, name: currentLocationName }
+      return { swisstopoId: currentLocation, cantonCode: currentLocationCanton, name: currentLocationName }
     }
     return null
   })

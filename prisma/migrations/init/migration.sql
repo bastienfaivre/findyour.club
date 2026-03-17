@@ -214,7 +214,6 @@ CREATE TABLE "swiss_canton_translations" (
 CREATE TABLE "swiss_locations" (
     "id" TEXT NOT NULL,
     "swisstopo_id" TEXT NOT NULL,
-    "plz" TEXT NOT NULL,
     "canton_code" TEXT NOT NULL,
 
     CONSTRAINT "swiss_locations_pkey" PRIMARY KEY ("id")

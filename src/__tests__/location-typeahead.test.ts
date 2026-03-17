@@ -25,8 +25,8 @@ vi.mock('react', async () => {
 })
 
 vi.mock('@/lib/schemas/application', () => ({
-  formatLocationDisplay: (v: { name: string; cantonCode: string; plz: string }) =>
-    `${v.name} (${v.cantonCode}) — ${v.plz}`,
+  formatLocationDisplay: (v: { name: string; cantonCode: string }) =>
+    `${v.name} (${v.cantonCode})`,
 }))
 
 vi.mock('@/components/ui/input', () => ({
@@ -74,7 +74,7 @@ function findText(node: unknown): string {
 
 const defaultProps = {
   id: 'location',
-  value: null as { swisstopoId: string; plz: string; cantonCode: string; name: string } | null,
+  value: null as { swisstopoId: string; cantonCode: string; name: string } | null,
   country: 'ch',
   locale: 'en',
   placeholder: 'Search location...',
@@ -82,8 +82,8 @@ const defaultProps = {
 }
 
 const mockLocations = [
-  { swisstopoId: '6266', plz: '1950', cantonCode: 'VS', name: 'Sion' },
-  { swisstopoId: '5586', plz: '1000', cantonCode: 'VD', name: 'Lausanne' },
+  { swisstopoId: '6266', cantonCode: 'VS', name: 'Sion' },
+  { swisstopoId: '5586', cantonCode: 'VD', name: 'Lausanne' },
 ]
 
 describe('LocationTypeahead', () => {
@@ -103,11 +103,11 @@ describe('LocationTypeahead', () => {
   })
 
   it('shows selected location name when value is provided', () => {
-    const value = { swisstopoId: '6266', plz: '1950', cantonCode: 'VS', name: 'Sion' }
+    const value = { swisstopoId: '6266', cantonCode: 'VS', name: 'Sion' }
     const tree = LocationTypeahead({ ...defaultProps, value }) as AnyElement
     const inputs = findInTree(tree, (n) => (n as AnyElement).type === Input)
     expect(inputs.length).toBeGreaterThanOrEqual(1)
-    expect((inputs[0] as AnyElement).props.value).toBe('Sion (VS) — 1950')
+    expect((inputs[0] as AnyElement).props.value).toBe('Sion (VS)')
   })
 
   it('has correct ARIA attributes on input', () => {

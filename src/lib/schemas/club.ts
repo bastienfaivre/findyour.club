@@ -91,7 +91,6 @@ export function extractClubEditableFields(club: {
   location?: {
     swissLocation?: {
       swisstopoId: string
-      plz: string
       cantonCode: string
       translations: { name: string }[]
     } | null
@@ -106,7 +105,6 @@ export function extractClubEditableFields(club: {
     location: swissLoc
       ? {
           swisstopoId: swissLoc.swisstopoId,
-          plz: swissLoc.plz,
           cantonCode: swissLoc.cantonCode,
           name: swissLoc.translations[0]?.name ?? '',
         }

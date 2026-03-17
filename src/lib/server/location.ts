@@ -3,7 +3,6 @@ import { SWISSTOPO_SEARCH_API } from './swisstopo-constants'
 
 export type UpsertSwissLocationInput = {
   swisstopoId: string
-  plz: string
   cantonCode: string
   displayName: string // localized name used as swisstopo search reference
 }
@@ -47,7 +46,6 @@ export async function upsertSwissLocation(
     const swissLoc = await tx.swissLocation.create({
       data: {
         swisstopoId: input.swisstopoId,
-        plz: input.plz,
         cantonCode: input.cantonCode,
         translations: { createMany: { data: translations } },
       },

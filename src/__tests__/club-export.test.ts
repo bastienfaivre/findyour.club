@@ -67,7 +67,6 @@ const mockClub = {
   logoAlt: 'Ski Club Logo',
   location: {
     swissLocation: {
-      plz: 1950,
       cantonCode: 'VS',
       translations: [{ language: 'fr', name: 'Sion' }],
     },

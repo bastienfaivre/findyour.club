@@ -44,7 +44,6 @@ export function LocationTypeahead({ id, value, country, locale, placeholder, onC
   const selectLocation = useCallback((loc: LocationResult) => {
     const locationInput: LocationInput = {
       swisstopoId: loc.swisstopoId,
-      plz: loc.plz,
       cantonCode: loc.cantonCode,
       name: loc.name,
     }
@@ -135,7 +134,7 @@ export function LocationTypeahead({ id, value, country, locale, placeholder, onC
         >
           {results.map((loc, index) => (
             <li
-              key={`${loc.swisstopoId}-${loc.plz ?? index}`}
+              key={`${loc.swisstopoId}-${index}`}
               id={`${id}-option-${index}`}
               role="option"
               aria-selected={index === activeIndex}
@@ -149,7 +148,7 @@ export function LocationTypeahead({ id, value, country, locale, placeholder, onC
                 selectLocation(loc)
               }}
             >
-              <CantonFlag code={loc.cantonCode} /> {loc.name} ({loc.cantonCode}){loc.plz ? ` — ${loc.plz}` : ''}
+              <CantonFlag code={loc.cantonCode} /> {loc.name} ({loc.cantonCode})
             </li>
           ))}
         </ul>

@@ -6,7 +6,6 @@ import { SUPPORTED_LANGUAGES, phoneSchema } from '@/lib/schemas/profile'
 
 export const locationSchema = z.object({
   swisstopoId: z.string().min(1).max(20),
-  plz: z.string().max(10),
   cantonCode: z.string().regex(/^[A-Z]{2}$/),
   name: z.string().min(1).max(200),
 })
@@ -120,7 +119,6 @@ export function extractEditableFields(app: {
   location?: {
     swissLocation?: {
       swisstopoId: string
-      plz: string
       cantonCode: string
       translations: { name: string }[]
     } | null
@@ -140,7 +138,6 @@ export function extractEditableFields(app: {
     location: swissLoc
       ? {
           swisstopoId: swissLoc.swisstopoId,
-          plz: swissLoc.plz,
           cantonCode: swissLoc.cantonCode,
           name: swissLoc.translations[0]?.name ?? '',
         }
@@ -161,7 +158,5 @@ export function extractEditableFields(app: {
  */
 export function formatLocationDisplay(loc: LocationInput): string {
   const canton = loc.cantonCode ? ` (${loc.cantonCode})` : ''
-  return loc.plz
-    ? `${loc.name}${canton} — ${loc.plz}`
-    : `${loc.name}${canton}`
+  return `${loc.name}${canton}`
 }

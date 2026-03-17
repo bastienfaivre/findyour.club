@@ -314,7 +314,6 @@ model SwissCantonTranslation {
 model SwissLocation {
   id          String @id @default(cuid())
   swisstopoId String @unique @map("swisstopo_id")
-  plz         String // primary postal code (display only)
   cantonCode  String @map("canton_code")
 
   canton       SwissCanton               @relation(fields: [cantonCode], references: [code])

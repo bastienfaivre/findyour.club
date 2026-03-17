@@ -46,7 +46,6 @@ export async function submitApplication(data: unknown): Promise<SubmitApplicatio
 
     const { locationId } = await upsertSwissLocation({
       swisstopoId: location.swisstopoId,
-      plz: location.plz,
       cantonCode: location.cantonCode,
       displayName: location.name,
     })

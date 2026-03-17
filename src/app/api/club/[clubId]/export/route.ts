@@ -56,7 +56,6 @@ export async function GET(
         select: {
           swissLocation: {
             select: {
-              plz: true,
               cantonCode: true,
               translations: { select: { language: true, name: true } },
             },
@@ -144,7 +143,6 @@ export async function GET(
       createdAt: club.createdAt.toISOString(),
       location: club.location?.swissLocation
         ? {
-            plz: club.location.swissLocation.plz,
             cantonCode: club.location.swissLocation.cantonCode,
             names: Object.fromEntries(
               club.location.swissLocation.translations.map((t) => [t.language, t.name]),
