@@ -150,6 +150,7 @@ export type Translations = {
       submittedAt: string
       email: string
       desiredSlug: string
+      desiredSlugHint: string
       location: string
       country: string
       showMore: string
@@ -304,6 +305,10 @@ export type Translations = {
       // Email toggles
       emailToggles: string
       emailTogglesDescription: string
+      applicationSubmitted: string
+      applicationSubmittedDescription: string
+      applicationSubmittedRecipient: string
+      applicationSubmittedRecipientDescription: string
       applicationRejected: string
       applicationRejectedDescription: string
       operatorMessage: string
@@ -1012,6 +1017,14 @@ export type Translations = {
       defaultReason: string
       reapply: string
       regards: string
+    }
+    applicationSubmitted: {
+      /** Use {clubName} as placeholder */
+      subject: string
+      heading: string
+      /** Use {applicantName} and {clubName} as placeholders */
+      intro: string
+      reviewButton: string
     }
     operatorMessage: {
       /** Use {clubName} as placeholder */

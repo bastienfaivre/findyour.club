@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { PhoneInput } from '@/components/ui/phone-input'
-import { applicationSchema, slugRegex, type ApplicationInput } from '@/lib/schemas/application'
+import { applicationSchema, type ApplicationInput } from '@/lib/schemas/application'
 import { SUPPORTED_LANGUAGES } from '@/lib/schemas/profile'
 import { SocialLinksFieldset } from '@/components/app/SocialLinksFieldset'
 import { SharePlatformButton } from '@/components/app/SharePlatformButton'
@@ -56,61 +56,6 @@ type Props = {
 
 function RequiredMark() {
   return <span className="text-destructive" aria-hidden="true"> *</span>
-}
-
-function SlugField({
-  register,
-  errors,
-  control,
-  lang,
-  t,
-}: {
-  register: ReturnType<typeof useForm<ApplicationInput>>['register']
-  errors: ReturnType<typeof useForm<ApplicationInput>>['formState']['errors']
-  control: ReturnType<typeof useForm<ApplicationInput>>['control']
-  lang: SupportedLanguage
-  t: Translations
-}) {
-  const slugValue = useWatch({ control, name: 'desiredSlug' }) ?? ''
-  const countryValue = useWatch({ control, name: 'country' }) ?? 'ch'
-  const origin = typeof window !== 'undefined' ? window.location.origin : ''
-  const trimmed = slugValue.trim()
-  const isValid = trimmed.length > 0 && slugRegex.test(trimmed)
-  const showFormatWarning = trimmed.length > 0 && !isValid
-  const preview = isValid ? `${origin}/${lang}/${countryValue}/${trimmed}` : null
-
-  return (
-    <div className="space-y-2">
-      <Label htmlFor="desiredSlug">{t.apply.fields.desiredSlug}<RequiredMark /></Label>
-      <Input
-        id="desiredSlug"
-        {...register('desiredSlug')}
-        placeholder={t.apply.placeholders.desiredSlug}
-        maxLength={60}
-        aria-required="true"
-        aria-describedby={errors.desiredSlug ? 'desiredSlug-error' : 'desiredSlug-hint'}
-        aria-invalid={!!errors.desiredSlug || showFormatWarning}
-      />
-      {preview && (
-        <p className="text-sm text-muted-foreground font-mono break-all">
-          {preview}
-        </p>
-      )}
-      {showFormatWarning && (
-        <p className="text-sm text-destructive">
-          {t.apply.validation.desiredSlugInvalid}
-        </p>
-      )}
-      <p id="desiredSlug-hint" className="text-sm text-muted-foreground">
-        {t.apply.desiredSlugHint}
-      </p>
-      {errors.desiredSlug && !showFormatWarning && (
-        <p id="desiredSlug-error" className="text-sm text-destructive">
-          {t.apply.validation.desiredSlugRequired}
-        </p>
-      )}
-    </div>
-  )
 }
 
 export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Props) {
@@ -787,12 +732,6 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
                 />
               )}
             />
-          </section>
-
-          {/* Section: Club URL */}
-          <section className="rounded-lg border p-4 space-y-4">
-            <h3 className="text-sm font-medium">{t.apply.sections.url}</h3>
-            <SlugField register={register} errors={errors} control={control} lang={lang} t={t} />
           </section>
 
           {/* Turnstile */}

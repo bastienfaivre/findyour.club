@@ -49,7 +49,6 @@ const VALID_INPUT = {
   contactPhone: '+41 27 123 45 67',
   contactAddress: 'Rue de la Gare 1, 1950 Sion',
   externalWebsiteUrl: 'https://skiclub-valais.ch',
-  desiredSlug: 'ski-club-valais',
   turnstileToken: 'test-token',
 }
 
@@ -133,13 +132,6 @@ describe('submitApplication()', () => {
     const result = await submitApplication({ ...VALID_INPUT, email: 'not-an-email' })
 
     expect(result).toMatchObject({ success: false, code: 'VALIDATION_ERROR' })
-  })
-
-  it('returns VALIDATION_ERROR for invalid desiredSlug format', async () => {
-    const result = await submitApplication({ ...VALID_INPUT, desiredSlug: '--UPPER--' })
-
-    expect(result).toMatchObject({ success: false, code: 'VALIDATION_ERROR' })
-    expect(verifyTurnstileToken).not.toHaveBeenCalled()
   })
 
   it('returns TURNSTILE_FAILED when token verification fails', async () => {

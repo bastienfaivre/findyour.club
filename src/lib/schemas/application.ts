@@ -48,7 +48,6 @@ export const applicationSchema = z.object({
   whatsappUrl: optionalUrl,
   telegramUrl: optionalUrl,
   githubUrl: optionalUrl,
-  desiredSlug: z.string().trim().min(1, 'Desired URL slug is required').max(60).regex(slugRegex, 'Only lowercase letters, numbers, and hyphens allowed'),
   turnstileToken: z.string().min(1, 'Bot protection is required'),
 }).refine(
   (data) => data.activityType !== 'other' || (data.otherDescription && data.otherDescription.trim().length > 0),

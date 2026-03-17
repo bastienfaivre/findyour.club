@@ -69,6 +69,23 @@ export default async function AdminSettingsPage({ params }: AdminSettingsPagePro
               <span className="shrink-0 text-xs text-muted-foreground">{s.alwaysEnabled}</span>
             </div>
             <EmailToggleRow
+              settingKey="email.application_submitted"
+              label={s.applicationSubmitted}
+              description={s.applicationSubmittedDescription}
+              defaultChecked={booleans['email.application_submitted']}
+              savedLabel={s.saved}
+            />
+            {booleans['email.application_submitted'] && (
+              <TextSettingRow
+                settingKey="email.application_submitted_recipient"
+                label={s.applicationSubmittedRecipient}
+                description={s.applicationSubmittedRecipientDescription}
+                defaultValue={strings['email.application_submitted_recipient']}
+                savedLabel={s.saved}
+                placeholder="contact@findyour.club"
+              />
+            )}
+            <EmailToggleRow
               settingKey="email.application_rejected"
               label={s.applicationRejected}
               description={s.applicationRejectedDescription}

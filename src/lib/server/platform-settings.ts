@@ -3,6 +3,7 @@ import { prisma } from '@/server/db'
 // ── Setting keys and their default values ──
 
 const BOOLEAN_DEFAULTS = {
+  'email.application_submitted': true,
   'email.application_rejected': false,
   'email.operator_message': false,
   'email.force_offline': false,
@@ -25,6 +26,7 @@ const NUMBER_DEFAULTS = {
 
 const STRING_DEFAULTS = {
   'maintenance_banner': '',
+  'email.application_submitted_recipient': 'contact@findyour.club',
 } as const
 
 export type BooleanSettingKey = keyof typeof BOOLEAN_DEFAULTS

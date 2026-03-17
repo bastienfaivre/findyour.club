@@ -328,11 +328,16 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
           )}
         />
 
-        <div className="space-y-2">
-          <Label htmlFor="app-slug">{ta.desiredSlug} <span className="text-destructive">*</span></Label>
-          <Input id="app-slug" value={fields.desiredSlug} onChange={(e) => updateField('desiredSlug', e.target.value)} maxLength={60} />
-        </div>
       </fieldset>
+
+      <Separator />
+
+      {/* URL Slug — operator-defined */}
+      <div className="space-y-2">
+        <Label htmlFor="app-slug">{ta.desiredSlug} <span className="text-destructive">*</span></Label>
+        <p className="text-sm text-muted-foreground">{ta.desiredSlugHint}</p>
+        <Input id="app-slug" value={fields.desiredSlug} onChange={(e) => updateField('desiredSlug', e.target.value)} maxLength={60} disabled={isPending} />
+      </div>
 
       <Separator />
 

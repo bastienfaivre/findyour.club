@@ -140,6 +140,23 @@ export function buildRejectionEmailHtml({ clubName, rejectionReason, lang }: Rej
   `, lang)
 }
 
+interface ApplicationSubmittedEmailParams {
+  applicantName: string
+  clubName: string
+  reviewUrl: string
+  lang: SupportedLanguage
+}
+
+export function buildApplicationSubmittedEmailHtml({ applicantName, clubName, reviewUrl, lang }: ApplicationSubmittedEmailParams): string {
+  const t = getTranslations(lang).emails.applicationSubmitted
+
+  return emailLayout(`
+    ${heading(t.heading)}
+    ${paragraph(t.intro.replace('{applicantName}', `<strong>${escapeHtml(applicantName)}</strong>`).replace('{clubName}', `<strong>${escapeHtml(clubName)}</strong>`))}
+    ${primaryButton(t.reviewButton, reviewUrl)}
+  `, lang)
+}
+
 interface OperatorMessageEmailParams {
   clubName: string
   message: string

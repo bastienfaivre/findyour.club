@@ -6,7 +6,11 @@ import { applicationSchema } from '@/lib/schemas/application'
 import { verifyTurnstileToken } from '@/lib/turnstile'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { upsertSwissLocation } from '@/lib/server/location'
-import { getBooleanSetting, getNumberSetting } from '@/lib/server/platform-settings'
+import { getBooleanSetting, getNumberSetting, getStringSetting } from '@/lib/server/platform-settings'
+import { generateSlug } from '@/lib/slug'
+import { sendEmail } from '@/lib/email'
+import { buildApplicationSubmittedEmailHtml } from '@/lib/email-templates'
+import { getTranslations } from '@/lib/i18n/translations'
 
 export type SubmitApplicationResult =
   | { success: true }
@@ -33,7 +37,7 @@ export async function submitApplication(data: unknown): Promise<SubmitApplicatio
       return { success: false, error: 'Invalid form data.', code: 'VALIDATION_ERROR' }
     }
 
-    const { applicantFirstName, applicantLastName, applicantPhone, applicantPreferredLanguage, name, email, clubEmail, country, activityType, otherDescription, location, description, schedule, contactPhone, contactAddress, howToJoin, externalWebsiteUrl, instagramUrl, facebookUrl, xUrl, tiktokUrl, discordUrl, youtubeUrl, whatsappUrl, telegramUrl, githubUrl, desiredSlug, turnstileToken } = parsed.data
+    const { applicantFirstName, applicantLastName, applicantPhone, applicantPreferredLanguage, name, email, clubEmail, country, activityType, otherDescription, location, description, schedule, contactPhone, contactAddress, howToJoin, externalWebsiteUrl, instagramUrl, facebookUrl, xUrl, tiktokUrl, discordUrl, youtubeUrl, whatsappUrl, telegramUrl, githubUrl, turnstileToken } = parsed.data
 
     const turnstileValid = await verifyTurnstileToken(turnstileToken)
     if (!turnstileValid) {
@@ -75,8 +79,26 @@ export async function submitApplication(data: unknown): Promise<SubmitApplicatio
         whatsappUrl: whatsappUrl || null,
         telegramUrl: telegramUrl || null,
         githubUrl: githubUrl || null,
-        desiredSlug,
+        desiredSlug: generateSlug(name),
       },
+    })
+
+    // Fire-and-forget: notify the operator about the new application
+    getBooleanSetting('email.application_submitted').then(async (enabled) => {
+      if (!enabled) return
+      try {
+        const recipient = await getStringSetting('email.application_submitted_recipient')
+        if (!recipient) return
+        const lang = 'en' as const
+        const t = getTranslations(lang).emails.applicationSubmitted
+        const applicantName = `${applicantFirstName} ${applicantLastName}`
+        const reviewUrl = `${process.env.NEXT_PUBLIC_BASE_URL ?? 'https://findyour.club'}/en/admin/applications`
+        const html = buildApplicationSubmittedEmailHtml({ applicantName, clubName: name, reviewUrl, lang })
+        const subject = t.subject.replace('{clubName}', name)
+        await sendEmail({ to: recipient, subject, html })
+      } catch (err) {
+        console.error('[application-submitted-email] Failed to send notification:', err)
+      }
     })
 
     return { success: true }
