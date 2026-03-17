@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select'
 import { RemovableFilterBadge } from '@/components/ui/removable-filter-badge'
 import { Button } from '@/components/ui/button'
-import { countryCodeToFlag } from '@/lib/country'
+import { CountryFlag, CantonFlag } from '@/components/ui/country-flag'
 import { LocationTypeahead } from '@/components/app/admin/LocationTypeahead'
 import type { LocationInput } from '@/lib/schemas/application'
 
@@ -137,7 +137,7 @@ export function DirectoryFilters({
             <SelectItem value={ALL}>{labels.allCountries}</SelectItem>
             {countries.map((c) => (
               <SelectItem key={c.code} value={c.code}>
-                {countryCodeToFlag(c.code)} {c.name}
+                <CountryFlag code={c.code} /> {c.name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -155,7 +155,7 @@ export function DirectoryFilters({
               <SelectItem value={ALL}>{labels.allCantons}</SelectItem>
               {cantons.map((c) => (
                 <SelectItem key={c.code} value={c.code}>
-                  {c.name}
+                  <CantonFlag code={c.code} /> {c.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -195,7 +195,7 @@ export function DirectoryFilters({
         <div className="flex items-center gap-2 flex-wrap">
           {activeCountryName && (
             <RemovableFilterBadge onRemove={() => updateParams('country', ALL)}>
-              {activeCountry && countryCodeToFlag(activeCountry.code)} {activeCountryName}
+              {activeCountry && <CountryFlag code={activeCountry.code} />} {activeCountryName}
             </RemovableFilterBadge>
           )}
           {activeCantonName && (

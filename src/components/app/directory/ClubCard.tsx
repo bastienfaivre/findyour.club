@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { ClubAvatar } from '@/components/app/ClubAvatar'
 import { FreshnessBadge } from '@/components/app/directory/FreshnessBadge'
-import { countryCodeToFlag } from '@/lib/country'
+import { CountryFlag, CantonFlag } from '@/components/ui/country-flag'
 
 type ClubCardProps = {
   name: string
@@ -14,6 +14,7 @@ type ClubCardProps = {
   logoAlt?: string | null
   activityType?: string | null
   locationName?: string | null
+  cantonCode?: string | null
   cantonName?: string | null
   lastVerifiedAt?: Date | null
   freshnessLabels?: { upToDate: string; notVerified: string }
@@ -30,13 +31,12 @@ export function ClubCard({
   logoAlt,
   activityType,
   locationName,
+  cantonCode,
   cantonName,
   lastVerifiedAt,
   freshnessLabels,
   ariaLabel,
 }: ClubCardProps) {
-  const location = [locationName, cantonName].filter(Boolean).join(', ')
-
   return (
     <Link
       href={`/${lang}/${country}/${slug}`}
@@ -57,7 +57,9 @@ export function ClubCard({
           )}
         </div>
         <span className="text-xs text-muted-foreground truncate">
-          {countryCodeToFlag(country)} {[countryName, location].filter(Boolean).join(', ')}
+          <CountryFlag code={country} /> {countryName}
+          {cantonCode && cantonName && <>{', '}<CantonFlag code={cantonCode} /> {cantonName}</>}
+          {locationName && <>{', '}{locationName}</>}
         </span>
       </div>
     </Link>

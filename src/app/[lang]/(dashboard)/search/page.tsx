@@ -221,6 +221,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
                     logoAlt={club.logoAlt}
                     activityType={activityName}
                     locationName={locationName}
+                    cantonCode={cantonCode}
                     cantonName={cantonLabel}
                     lastVerifiedAt={club.lastVerifiedAt}
                     freshnessLabels={{ upToDate: t.directory.freshnessBadgeUpToDate, notVerified: t.directory.freshnessBadgeNotVerified }}

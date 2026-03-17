@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { countryCodeToFlag } from '@/lib/country'
+import { CountryFlag } from '@/components/ui/country-flag'
 
 type CountryButtonProps = {
   country: string
@@ -18,10 +18,8 @@ export function CountryButton({
   lang,
   comingSoon,
 }: CountryButtonProps) {
-  const flag = countryCodeToFlag(country)
-
   const className =
-    'flex min-w-[180px] items-center gap-3 rounded-[10px] border px-4 py-[10px] text-left text-card-foreground transition-all' +
+    'flex items-center gap-3 rounded-[10px] border px-4 py-[10px] text-left text-card-foreground transition-all' +
     (comingSoon
       ? ' opacity-45 cursor-default'
       : ' hover:border-muted-foreground hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring')
@@ -29,8 +27,8 @@ export function CountryButton({
   if (comingSoon) {
     return (
       <span className={className}>
-        <span aria-hidden="true" className="flex w-6 shrink-0 items-center justify-center text-xl leading-none">
-          {flag}
+        <span aria-hidden="true" className="flex w-7 shrink-0 items-center justify-center">
+          <CountryFlag code={country} className="h-7 w-auto" />
         </span>
         <div className="flex flex-col gap-px">
           <span className="text-[13px] font-semibold">{countryName}</span>
@@ -48,8 +46,8 @@ export function CountryButton({
       aria-label={ariaLabel}
       className={className}
     >
-      <span aria-hidden="true" className="flex w-6 shrink-0 items-center justify-center text-xl leading-none">
-        {flag}
+      <span aria-hidden="true" className="flex w-7 shrink-0 items-center justify-center">
+        <CountryFlag code={country} className="h-7 w-auto" />
       </span>
       <div className="flex flex-col gap-px">
         <span className="text-[13px] font-semibold">{countryName}</span>

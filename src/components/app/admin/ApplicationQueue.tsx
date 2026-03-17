@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { CountryFlag, CantonFlag } from '@/components/ui/country-flag'
 
 export type ApplicationWithRelations = Application & {
   location: (Location & {
@@ -160,7 +161,7 @@ export function ApplicationQueue({ applications, activityTypes, countries, canto
           <SelectContent>
             <SelectItem value={ALL}>{ta.allCountries}</SelectItem>
             {availableCountries.map((c) => (
-              <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+              <SelectItem key={c.code} value={c.code}><CountryFlag code={c.code} /> {c.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -173,7 +174,7 @@ export function ApplicationQueue({ applications, activityTypes, countries, canto
             <SelectContent>
               <SelectItem value={ALL}>{td.allCantons}</SelectItem>
               {availableCantons.map((c) => (
-                <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
+                <SelectItem key={c.code} value={c.code}><CantonFlag code={c.code} /> {c.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -255,7 +256,7 @@ export function ApplicationQueue({ applications, activityTypes, countries, canto
                   {activityLabel && (
                     <Badge variant="secondary" className="text-xs">{activityLabel}</Badge>
                   )}
-                  <span className="text-xs text-muted-foreground">{app.country.toUpperCase()}</span>
+                  <span className="text-xs text-muted-foreground"><CountryFlag code={app.country} /></span>
                   <span className="text-xs text-muted-foreground">{date}</span>
                 </div>
               </button>

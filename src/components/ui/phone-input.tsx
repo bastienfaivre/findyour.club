@@ -10,6 +10,7 @@ import {
 } from 'libphonenumber-js'
 import { cn } from '@/lib/utils'
 import { countryCodeToFlag } from '@/lib/country'
+import { CountryFlag } from '@/components/ui/country-flag'
 import { ChevronDown } from 'lucide-react'
 
 interface PhoneInputProps {
@@ -141,7 +142,7 @@ export function PhoneInput({
     <div className="flex">
       {/* Country selector */}
       <div className="relative flex items-center gap-1 rounded-l-md border border-input bg-muted/50 px-2 text-sm dark:bg-input/30">
-        <span className="text-base leading-none">{countryCodeToFlag(country)}</span>
+        <CountryFlag code={country} className="h-3.5 w-auto" />
         <span className="text-muted-foreground text-xs">{callingCode}</span>
         <ChevronDown className="h-3 w-3 text-muted-foreground" />
         <select

@@ -5,6 +5,7 @@ import type { LocationInput } from '@/lib/schemas/application'
 import { formatLocationDisplay } from '@/lib/schemas/application'
 import { Input } from '@/components/ui/input'
 import type { LocationResult } from './types'
+import { CantonFlag } from '@/components/ui/country-flag'
 
 interface LocationTypeaheadProps {
   id: string
@@ -148,7 +149,7 @@ export function LocationTypeahead({ id, value, country, locale, placeholder, onC
                 selectLocation(loc)
               }}
             >
-              {loc.name} ({loc.cantonCode}){loc.plz ? ` — ${loc.plz}` : ''}
+              <CantonFlag code={loc.cantonCode} /> {loc.name} ({loc.cantonCode}){loc.plz ? ` — ${loc.plz}` : ''}
             </li>
           ))}
         </ul>

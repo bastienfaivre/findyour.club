@@ -19,6 +19,7 @@ import { LiftOfflineButton } from './LiftOfflineButton'
 import { ProfilePreview } from '@/components/app/club-admin/ProfilePreview'
 import { LogoUpload, type LogoActions } from '@/components/app/club-admin/LogoUpload'
 import { EmbedBadge } from '@/components/app/club-admin/EmbedBadge'
+import { CountryFlag } from '@/components/ui/country-flag'
 import { DownloadButton } from '@/components/app/admin/DownloadButton'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -171,7 +172,7 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
             </SelectTrigger>
             <SelectContent>
               {countries.map((c) => (
-                <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                <SelectItem key={c.code} value={c.code}><CountryFlag code={c.code} /> {c.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>

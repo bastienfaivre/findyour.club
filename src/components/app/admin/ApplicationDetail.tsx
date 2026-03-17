@@ -14,6 +14,7 @@ import { useAdminSelection } from '@/components/app/AdminSelectionContext'
 import type { ApplicationWithRelations } from './ApplicationQueue'
 import type { ActivityTypeOption, CountryOption } from './types'
 import { LocationTypeahead } from './LocationTypeahead'
+import { CountryFlag } from '@/components/ui/country-flag'
 import { ProfilePreview } from '@/components/app/club-admin/ProfilePreview'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -246,7 +247,7 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
             </SelectTrigger>
             <SelectContent>
               {countries.map((c) => (
-                <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                <SelectItem key={c.code} value={c.code}><CountryFlag code={c.code} /> {c.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>

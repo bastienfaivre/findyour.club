@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge'
 import { RemovableFilterBadge } from '@/components/ui/removable-filter-badge'
 import { ClubAvatar } from '@/components/app/ClubAvatar'
 import { FreshnessBadge } from '@/components/app/directory/FreshnessBadge'
-import { countryCodeToFlag } from '@/lib/country'
+import { CountryFlag, CantonFlag } from '@/components/ui/country-flag'
 import {
   Select,
   SelectContent,
@@ -170,7 +170,7 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
           <SelectContent>
             <SelectItem value={ALL}>{t.admin.applications.allCountries}</SelectItem>
             {availableCountries.map((c) => (
-              <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+              <SelectItem key={c.code} value={c.code}><CountryFlag code={c.code} /> {c.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -245,8 +245,8 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
               ? (t.activityTypes[club.activityType] ?? club.activityType)
               : null
             const locationName = club.location?.swissLocation?.translations[0]?.name ?? null
+            const cantonCode = club.location?.swissLocation?.cantonCode ?? null
             const countryLabel = countries.find((c) => c.code === club.country)?.label ?? club.country
-            const locationLine = [countryLabel, locationName].filter(Boolean).join(', ')
             const owner = club.members.find(m => m.role === 'OWNER')
 
             return (
@@ -284,7 +284,9 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
                     />
                   </div>
                   <span className="text-xs text-muted-foreground truncate">
-                    {countryCodeToFlag(club.country)} {locationLine}
+                    <CountryFlag code={club.country} /> {countryLabel}
+                    {cantonCode && <>{', '}<CantonFlag code={cantonCode} /> {cantonCode.toUpperCase()}</>}
+                    {locationName && <>{', '}{locationName}</>}
                     {owner && (
                       <> · {owner.user.firstName ? `${owner.user.firstName} ${owner.user.lastName}` : owner.user.email}</>
                     )}

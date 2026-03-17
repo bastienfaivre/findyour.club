@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { PhoneInput } from '@/components/ui/phone-input'
+import { CountryFlag, CantonFlag } from '@/components/ui/country-flag'
 import { applicationSchema, type ApplicationInput } from '@/lib/schemas/application'
 import { SUPPORTED_LANGUAGES } from '@/lib/schemas/profile'
 import { SocialLinksFieldset } from '@/components/app/SocialLinksFieldset'
@@ -467,7 +468,7 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
                     </SelectTrigger>
                     <SelectContent>
                       {countries.map((c) => (
-                        <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                        <SelectItem key={c.code} value={c.code}><CountryFlag code={c.code} /> {c.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -531,7 +532,7 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
                           selectLocation(loc)
                         }}
                       >
-                        {loc.name} ({loc.cantonCode}){loc.plz ? ` — ${loc.plz}` : ''}
+                        <CantonFlag code={loc.cantonCode} /> {loc.name} ({loc.cantonCode}){loc.plz ? ` — ${loc.plz}` : ''}
                       </li>
                     ))}
                   </ul>
