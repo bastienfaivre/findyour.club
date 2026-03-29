@@ -48,3 +48,5 @@ next-env.d.ts
 # SSL certificates (managed by certbot - never commit)
 nginx/ssl/*
 !nginx/ssl/.gitkeep
+
+/.playwright-mcp

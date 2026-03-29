@@ -24,6 +24,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN pnpm prisma generate
 ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
+ARG NEXT_PUBLIC_TURNSTILE_SITE_KEY
 RUN pnpm build
 
 # Stage 3: Production runner (NO build tools)
