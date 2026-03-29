@@ -9,7 +9,7 @@
  * 2. Add translations in all language files (en, fr, de, it)
  * 3. Deploy
  */
-export const ACTIVITY_TYPES = [] as const
+export const ACTIVITY_TYPES = ['volleyball'] as const
 
 export type ActivityTypeSlug = (typeof ACTIVITY_TYPES)[number]
 

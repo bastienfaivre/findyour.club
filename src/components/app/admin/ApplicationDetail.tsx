@@ -93,7 +93,7 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
 
   const submittedDate = new Date(application.submittedAt).toLocaleDateString(locale)
 
-  const canApprove = fields.name.trim() && fields.email.trim() && fields.description.trim() && fields.desiredSlug.trim()
+  const canApprove = fields.name.trim() && fields.email.trim() && fields.description.trim() && fields.desiredSlug.trim() && fields.activityType !== 'other'
 
   const handleApprove = () => {
     setError(null)

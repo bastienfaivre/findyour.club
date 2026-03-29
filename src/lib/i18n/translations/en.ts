@@ -1034,6 +1034,7 @@ export const en: Translations = {
     browseByRegion: 'Browse by region',
   },
   activityTypes: {
+    volleyball: 'Volleyball',
     other: 'Other',
   },
   emails: {

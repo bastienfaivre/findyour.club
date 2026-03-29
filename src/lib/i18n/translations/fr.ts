@@ -1059,6 +1059,7 @@ export const fr: Translations = {
     browseByRegion: 'Parcourir par région',
   },
   activityTypes: {
+    volleyball: 'Volleyball',
     other: 'Autre',
   },
   emails: {

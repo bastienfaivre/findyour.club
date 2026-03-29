@@ -99,6 +99,9 @@ export async function approveApplication(applicationId: string, fields: Applicat
     const trimmedSlug = fields.desiredSlug.trim()
     const trimmedMessage = operatorMessage?.trim() || undefined
 
+    if (fields.activityType === 'other') {
+      return { success: false, error: 'Activity type "Other" must be changed to a real type before approving.', code: 'SLUG_INVALID' }
+    }
     if (!trimmedSlug) {
       return { success: false, error: 'A URL slug is required.', code: 'SLUG_REQUIRED' }
     }
