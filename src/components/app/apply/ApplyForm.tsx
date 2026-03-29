@@ -737,7 +737,12 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
               ref={turnstileRef}
               siteKey={siteKey}
               onSuccess={(token) => setValue('turnstileToken', token, { shouldValidate: true })}
+              onExpire={() => { setValue('turnstileToken', '', { shouldValidate: true }); turnstileRef.current?.reset() }}
+              onError={() => setValue('turnstileToken', '', { shouldValidate: true })}
             />
+          )}
+          {errors.turnstileToken && (
+            <p className="text-sm text-destructive">{t.apply.errors.turnstileFailed}</p>
           )}
 
           {/* Back / Submit */}
