@@ -12,7 +12,7 @@ import { getNumberSetting } from '@/lib/server/platform-settings'
 
 export type LoginResult =
   | { success: false; error: string; code: 'VALIDATION_ERROR' | 'INVALID_CREDENTIALS' | 'RATE_LIMITED' | 'SERVER_ERROR' }
-  | { success: true; totpEnabled: boolean; role: UserRole }
+  | { success: true; totpEnabled: boolean; role: UserRole; firstClubId: string | null }
 
 /**
  * Authenticates a user with email/password and creates a database session directly.
@@ -40,7 +40,10 @@ export async function loginWithCredentials(input: unknown): Promise<LoginResult>
 
   const user = await prisma.user.findUnique({
     where: { email: parsed.data.email },
-    select: { id: true, role: true, passwordHash: true, totpEnabled: true },
+    select: {
+      id: true, role: true, passwordHash: true, totpEnabled: true,
+      memberships: { where: { status: 'ACTIVE' }, select: { clubId: true }, take: 1, orderBy: { joinedAt: 'asc' } },
+    },
   })
 
   if (!user || !user.passwordHash) {
@@ -88,5 +91,6 @@ export async function loginWithCredentials(input: unknown): Promise<LoginResult>
     })
   }
 
-  return { success: true, totpEnabled: user.totpEnabled, role: user.role }
+  const firstClubId = user.memberships[0]?.clubId ?? null
+  return { success: true, totpEnabled: user.totpEnabled, role: user.role, firstClubId }
 }

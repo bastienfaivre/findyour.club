@@ -46,7 +46,7 @@ export function SaveBar({ isDirty, isPending, isValid, isConfirming, translation
               ) : (
                 <span className="relative flex items-center gap-2">
                   {t.save}
-                  <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden="true" />
+                  <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" aria-hidden="true" />
                 </span>
               )}
             </Button>

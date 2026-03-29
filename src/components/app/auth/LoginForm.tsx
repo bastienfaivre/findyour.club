@@ -44,8 +44,14 @@ export function LoginForm({ callbackUrl, lang, t }: LoginFormProps) {
       // If TOTP enrolled → challenge required (callbackUrl not carried through TOTP flow)
       if (result.totpEnabled) {
         router.push(`/${lang}/auth/totp`)
+      } else if (callbackUrl) {
+        router.push(callbackUrl)
+      } else if (result.role === 'OPERATOR') {
+        router.push(`/${lang}/admin/stats`)
+      } else if (result.firstClubId) {
+        router.push(`/${lang}/club/${result.firstClubId}`)
       } else {
-        router.push(callbackUrl ?? `/${lang}/`)
+        router.push(`/${lang}/`)
       }
     })
   }

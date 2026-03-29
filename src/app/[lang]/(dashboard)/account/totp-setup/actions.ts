@@ -7,8 +7,7 @@ import { totpVerifySchema } from '@/lib/schemas/user'
 import { verifyTotpCode } from '@/lib/totp'
 import { encodeTotpVerifiedCookie } from '@/lib/setup-cookie'
 import { checkRateLimit, clearRateLimit } from '@/lib/rate-limit'
-
-const POST_AUTH_REDIRECT = '/'
+import { isSupportedLanguage, PLATFORM_FALLBACK_LANG } from '@/lib/i18n'
 
 export type EnrollTotpResult =
   | { success: false; error: string; code: 'UNAUTHORIZED' | 'VALIDATION_ERROR' | 'TOTP_INVALID' | 'SERVER_ERROR' | 'RATE_LIMITED' }
@@ -92,7 +91,9 @@ export async function enrollTotp(input: unknown): Promise<EnrollTotpResult> {
     domain: process.env.COOKIE_DOMAIN,
   })
 
-  redirect(POST_AUTH_REDIRECT)
+  const langValue = cookieStore.get('platform_lang')?.value
+  const lang = isSupportedLanguage(langValue) ? langValue : PLATFORM_FALLBACK_LANG
+  redirect(`/${lang}/account`)
 }
 
 /**

@@ -460,7 +460,7 @@ export const en: Translations = {
     settings: 'Settings',
     admin: {
       sidebar: {
-        clubProfile: 'Club Profile',
+        clubProfile: 'Profile',
         promote: 'Promote',
         messages: 'Messages',
         settings: 'Settings',

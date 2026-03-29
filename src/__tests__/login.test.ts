@@ -75,35 +75,35 @@ describe('loginWithCredentials()', () => {
   })
 
   it('returns { success: true, role: CLUB_ADMIN, totpEnabled: false } on valid CLUB_ADMIN login', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'u1', role: 'CLUB_ADMIN', passwordHash: '$hash', totpEnabled: false } as never)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'u1', role: 'CLUB_ADMIN', passwordHash: '$hash', totpEnabled: false, memberships: [{ clubId: 'club-1' }] } as never)
     vi.mocked(argon2.verify).mockResolvedValue(true)
     vi.mocked(prisma.session.create).mockResolvedValue({} as never)
 
     const result = await loginWithCredentials({ email: 'a@b.com', password: 'correct' })
 
-    expect(result).toMatchObject({ success: true, role: 'CLUB_ADMIN', totpEnabled: false })
+    expect(result).toMatchObject({ success: true, role: 'CLUB_ADMIN', totpEnabled: false, firstClubId: 'club-1' })
     expect(prisma.session.create).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ userId: 'u1' }) })
     )
   })
 
   it('returns { success: true, role: OPERATOR, totpEnabled: false } on valid OPERATOR login', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'op1', role: 'OPERATOR', passwordHash: '$hash', totpEnabled: false } as never)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'op1', role: 'OPERATOR', passwordHash: '$hash', totpEnabled: false, memberships: [] } as never)
     vi.mocked(argon2.verify).mockResolvedValue(true)
     vi.mocked(prisma.session.create).mockResolvedValue({} as never)
 
     const result = await loginWithCredentials({ email: 'op@platform.com', password: 'correct' })
 
-    expect(result).toMatchObject({ success: true, role: 'OPERATOR', totpEnabled: false })
+    expect(result).toMatchObject({ success: true, role: 'OPERATOR', totpEnabled: false, firstClubId: null })
   })
 
   it('returns { success: true, totpEnabled: true } when TOTP is enrolled', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'u1', role: 'CLUB_ADMIN', passwordHash: '$hash', totpEnabled: true } as never)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'u1', role: 'CLUB_ADMIN', passwordHash: '$hash', totpEnabled: true, memberships: [{ clubId: 'club-1' }] } as never)
     vi.mocked(argon2.verify).mockResolvedValue(true)
     vi.mocked(prisma.session.create).mockResolvedValue({} as never)
 
     const result = await loginWithCredentials({ email: 'a@b.com', password: 'correct' })
 
-    expect(result).toMatchObject({ success: true, role: 'CLUB_ADMIN', totpEnabled: true })
+    expect(result).toMatchObject({ success: true, role: 'CLUB_ADMIN', totpEnabled: true, firstClubId: 'club-1' })
   })
 })

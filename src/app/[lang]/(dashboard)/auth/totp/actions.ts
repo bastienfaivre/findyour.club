@@ -8,6 +8,7 @@ import { totpVerifySchema } from '@/lib/schemas/user'
 import { verifyTotpCode } from '@/lib/totp'
 import { checkRateLimit, clearRateLimit } from '@/lib/rate-limit'
 import { encodeTotpVerifiedCookie } from '@/lib/setup-cookie'
+import { isSupportedLanguage, PLATFORM_FALLBACK_LANG } from '@/lib/i18n'
 
 export type TotpChallengeResult =
   | { success: false; error: string; code: 'UNAUTHENTICATED' | 'VALIDATION_ERROR' | 'TOTP_INVALID' | 'RATE_LIMITED' | 'TOTP_NOT_CONFIGURED' }
@@ -53,7 +54,10 @@ export async function verifyTotpChallenge(input: unknown): Promise<TotpChallenge
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { totpSecret: true },
+    select: {
+      totpSecret: true, role: true,
+      memberships: { where: { status: 'ACTIVE' }, select: { clubId: true }, take: 1, orderBy: { joinedAt: 'asc' } },
+    },
   })
 
   if (!user?.totpSecret) {
@@ -81,5 +85,14 @@ export async function verifyTotpChallenge(input: unknown): Promise<TotpChallenge
     domain: process.env.COOKIE_DOMAIN,
   })
 
-  redirect('/')
+  const langValue = cookieStore.get('platform_lang')?.value
+  const lang = isSupportedLanguage(langValue) ? langValue : PLATFORM_FALLBACK_LANG
+  const firstClubId = user.memberships[0]?.clubId
+  if (user.role === 'OPERATOR') {
+    redirect(`/${lang}/admin/stats`)
+  } else if (firstClubId) {
+    redirect(`/${lang}/club/${firstClubId}`)
+  } else {
+    redirect(`/${lang}/`)
+  }
 }

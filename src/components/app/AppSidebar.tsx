@@ -15,6 +15,9 @@ import {
   Building2,
   ExternalLink,
   BarChart3,
+  Megaphone,
+  HelpCircle,
+  UserPen,
 
   LogIn,
   LogOut,
@@ -57,6 +60,7 @@ interface ClubEntry {
   slug: string
   country: string
   unreadMessages: number
+  isPublished: boolean
 }
 
 export interface AppSidebarProps {
@@ -228,13 +232,13 @@ export function AppSidebar({
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={isItemActive(pathname, `${basePath}/admin/messages`, false)}>
                       <Link href={`${basePath}/admin/messages`}>
-                        <MessageSquare />
-                        <span className="flex items-center gap-2">
-                          {t.admin.messages.title}
+                        <span className="relative shrink-0">
+                          <MessageSquare className="size-4" />
                           {operatorUnreadMessages > 0 && (
-                            <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" aria-hidden="true" />
+                            <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500 animate-pulse" aria-hidden="true" />
                           )}
                         </span>
+                        <span>{t.admin.messages.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -272,16 +276,19 @@ export function AppSidebar({
                     const clubPath = `${basePath}/club/${club.id}`
                     const isClubActive = isItemActive(pathname, clubPath, false)
                     const hasUnread = club.unreadMessages > 0 && !dismissedClubs.has(club.id)
+                    const hasAnyBadge = hasUnread || !club.isPublished || !promoteDismissed.has(club.id)
                     return (
                       <Collapsible key={club.id} defaultOpen={isClubActive} className="group/collapsible">
                         <SidebarMenuItem>
                           <CollapsibleTrigger asChild>
                             <SidebarMenuButton isActive={isClubActive}>
-                              <Building2 />
+                              <span className="relative shrink-0">
+                                <Building2 className="size-4" />
+                                {hasAnyBadge && (
+                                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500 animate-pulse" aria-hidden="true" />
+                                )}
+                              </span>
                               <span className="truncate">{club.name}</span>
-                              {hasUnread && (
-                                <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse shrink-0 group-data-[state=open]/collapsible:hidden" aria-hidden="true" />
-                              )}
                               <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
                             </SidebarMenuButton>
                           </CollapsibleTrigger>
@@ -290,30 +297,38 @@ export function AppSidebar({
                               <SidebarMenuSubItem>
                                 <SidebarMenuSubButton asChild isActive={isItemActive(pathname, clubPath, true)}>
                                   <Link href={clubPath}>
-                                    <span className="flex items-center gap-2">
-                                      {t.club.sidebar.clubProfile}
+                                    <span className="relative shrink-0">
+                                      <UserPen className="size-4" />
                                       {isItemActive(pathname, clubPath, true) && isDirty && (
-                                        <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden="true" />
+                                        <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500 animate-pulse" aria-hidden="true" />
                                       )}
                                     </span>
+                                    <span>{t.club.sidebar.clubProfile}</span>
                                   </Link>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
                               <SidebarMenuSubItem>
                                 <SidebarMenuSubButton asChild isActive={isItemActive(pathname, `${clubPath}/promote`, false)}>
                                   <Link href={`${clubPath}/promote`} onClick={() => dismissPromote(club.id)}>
-                                    <span className="flex items-center gap-2">
-                                      {t.club.sidebar.promote}
+                                    <span className="relative shrink-0">
+                                      <Megaphone className="size-4" />
                                       {!promoteDismissed.has(club.id) && (
-                                        <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" aria-hidden="true" />
+                                        <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500 animate-pulse" aria-hidden="true" />
                                       )}
                                     </span>
+                                    <span>{t.club.sidebar.promote}</span>
                                   </Link>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
                               <SidebarMenuSubItem>
                                 <SidebarMenuSubButton asChild isActive={isItemActive(pathname, `${clubPath}/settings`, false)}>
                                   <Link href={`${clubPath}/settings`}>
+                                    <span className="relative shrink-0">
+                                      <Settings className="size-4" />
+                                      {!club.isPublished && (
+                                        <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500 animate-pulse" aria-hidden="true" />
+                                      )}
+                                    </span>
                                     <span>{t.club.sidebar.settings}</span>
                                   </Link>
                                 </SidebarMenuSubButton>
@@ -321,6 +336,7 @@ export function AppSidebar({
                               <SidebarMenuSubItem>
                                 <SidebarMenuSubButton asChild isActive={isItemActive(pathname, `${clubPath}/help`, false)}>
                                   <Link href={`${clubPath}/help`}>
+                                    <HelpCircle className="size-4" />
                                     <span>{t.club.sidebar.help}</span>
                                   </Link>
                                 </SidebarMenuSubButton>
@@ -328,10 +344,8 @@ export function AppSidebar({
                               <SidebarMenuSubItem>
                                 <SidebarMenuSubButton asChild>
                                   <Link href={`${basePath}/${club.country}/${club.slug}`} target="_blank">
-                                    <span className="flex items-center gap-1.5">
-                                      {t.club.sidebar.viewPublicPage}
-                                      <ExternalLink className="h-3 w-3 text-muted-foreground" />
-                                    </span>
+                                    <ExternalLink className="size-4" />
+                                    <span>{t.club.sidebar.viewPublicPage}</span>
                                   </Link>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
@@ -341,12 +355,13 @@ export function AppSidebar({
                                     href={`${clubPath}/messages`}
                                     onClick={() => setDismissedClubs((prev) => new Set(prev).add(club.id))}
                                   >
-                                    <span className="flex items-center gap-2">
-                                      {t.club.sidebar.messages}
+                                    <span className="relative shrink-0">
+                                      <MessageSquare className="size-4" />
                                       {hasUnread && (
-                                        <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" aria-hidden="true" />
+                                        <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500 animate-pulse" aria-hidden="true" />
                                       )}
                                     </span>
+                                    <span>{t.club.sidebar.messages}</span>
                                   </Link>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
@@ -371,13 +386,13 @@ export function AppSidebar({
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={isItemActive(pathname, `${basePath}/account`, false)}>
                       <Link href={`${basePath}/account`}>
-                        <User />
-                        <span className="flex items-center gap-2">
-                          {t.auth.accountSettings}
+                        <span className="relative shrink-0">
+                          <User className="size-4" />
                           {!totpEnabled && (
-                            <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" aria-hidden="true" />
+                            <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500 animate-pulse" aria-hidden="true" />
                           )}
                         </span>
+                        <span>{t.auth.accountSettings}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

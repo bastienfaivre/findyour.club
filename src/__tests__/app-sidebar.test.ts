@@ -85,6 +85,11 @@ vi.mock('lucide-react', () => {
     MessageSquare: icon('MessageSquare'),
     Map: icon('Map'),
     Settings: icon('Settings'),
+    ExternalLink: icon('ExternalLink'),
+    BarChart3: icon('BarChart3'),
+    Megaphone: icon('Megaphone'),
+    HelpCircle: icon('HelpCircle'),
+    UserPen: icon('UserPen'),
   }
 })
 
@@ -148,12 +153,16 @@ const defaultTranslations = {
     users: { title: 'Users' },
     messages: { title: 'Messages' },
     settings: { title: 'Settings' },
+    stats: { title: 'Stats' },
   },
   club: {
     sidebar: {
-      clubProfile: 'Club Profile',
+      clubProfile: 'Profile',
       messages: 'Club Messages',
       settings: 'Settings',
+      promote: 'Promote',
+      help: 'Help',
+      viewPublicPage: 'View Public Page',
     },
   },
   layout: {
@@ -210,7 +219,7 @@ describe('AppSidebar', () => {
       const tree = AppSidebar(
         buildProps({
           isAuthenticated: true,
-          clubs: [{ id: 'c1', name: 'Test Club', slug: 'test-club', country: 'ch', unreadMessages: 0 }],
+          clubs: [{ id: 'c1', name: 'Test Club', slug: 'test-club', country: 'ch', unreadMessages: 0, isPublished: true }],
         }),
       )
       const text = findText(tree)
@@ -255,7 +264,7 @@ describe('AppSidebar', () => {
       expect(messagesLink).toBeDefined()
       const dots = findInTree(messagesLink, (n) => {
         const el = n as AnyElement
-        return typeof el.props?.className === 'string' && el.props.className.includes('bg-orange-500')
+        return typeof el.props?.className === 'string' && el.props.className.includes('bg-red-500')
       })
       expect(dots.length).toBeGreaterThanOrEqual(1)
     })
@@ -269,7 +278,7 @@ describe('AppSidebar', () => {
       expect(messagesLink).toBeDefined()
       const dots = findInTree(messagesLink, (n) => {
         const el = n as AnyElement
-        return typeof el.props?.className === 'string' && el.props.className.includes('bg-orange-500')
+        return typeof el.props?.className === 'string' && el.props.className.includes('bg-red-500')
       })
       expect(dots.length).toBe(0)
     })
@@ -281,8 +290,8 @@ describe('AppSidebar', () => {
         buildProps({
           isAuthenticated: true,
           clubs: [
-            { id: 'c1', name: 'Alpine Club', slug: 'alpine-club', country: 'ch', unreadMessages: 0 },
-            { id: 'c2', name: 'River Club', slug: 'river-club', country: 'ch', unreadMessages: 0 },
+            { id: 'c1', name: 'Alpine Club', slug: 'alpine-club', country: 'ch', unreadMessages: 0, isPublished: true },
+            { id: 'c2', name: 'River Club', slug: 'river-club', country: 'ch', unreadMessages: 0, isPublished: true },
           ],
         }),
       )
@@ -302,11 +311,11 @@ describe('AppSidebar', () => {
       const tree = AppSidebar(
         buildProps({
           isAuthenticated: true,
-          clubs: [{ id: 'c1', name: 'Alpine Club', slug: 'alpine-club', country: 'ch', unreadMessages: 0 }],
+          clubs: [{ id: 'c1', name: 'Alpine Club', slug: 'alpine-club', country: 'ch', unreadMessages: 0, isPublished: true }],
         }),
       )
       const text = findText(tree)
-      expect(text).toContain('Club Profile')
+      expect(text).toContain('Profile')
       expect(text).toContain('Settings')
       expect(text).toContain('Club Messages')
     })
@@ -315,13 +324,13 @@ describe('AppSidebar', () => {
       const tree = AppSidebar(
         buildProps({
           isAuthenticated: true,
-          clubs: [{ id: 'c1', name: 'Alpine Club', slug: 'alpine-club', country: 'ch', unreadMessages: 5 }],
+          clubs: [{ id: 'c1', name: 'Alpine Club', slug: 'alpine-club', country: 'ch', unreadMessages: 5, isPublished: true }],
         }),
       )
       const dots = findInTree(tree, (n) => {
         const el = n as AnyElement
         return typeof el.props?.className === 'string' &&
-          el.props.className.includes('bg-orange-500') &&
+          el.props.className.includes('bg-red-500') &&
           el.props.className.includes('animate-pulse')
       })
       expect(dots.length).toBeGreaterThanOrEqual(1)
@@ -331,22 +340,18 @@ describe('AppSidebar', () => {
       const tree = AppSidebar(
         buildProps({
           isAuthenticated: true,
-          clubs: [{ id: 'c1', name: 'Alpine Club', slug: 'alpine-club', country: 'ch', unreadMessages: 0 }],
+          clubs: [{ id: 'c1', name: 'Alpine Club', slug: 'alpine-club', country: 'ch', unreadMessages: 0, isPublished: true }],
         }),
       )
-      // Find dots within the club section (exclude account section)
-      // The club links use /en/club/c1 paths
-      const clubLinks = findLinks(tree).filter((l) => typeof l.props.href === 'string' && l.props.href.includes('/club/c1'))
-      // Check for orange dots within club links
-      let clubDots = 0
-      for (const link of clubLinks) {
-        const dots = findInTree(link, (n) => {
-          const el = n as AnyElement
-          return typeof el.props?.className === 'string' && el.props.className.includes('bg-orange-500')
-        })
-        clubDots += dots.length
-      }
-      expect(clubDots).toBe(0)
+      // Check specifically the messages link for badge dots
+      const messagesLink = findLinks(tree).find((l) => typeof l.props.href === 'string' && l.props.href.includes('/club/c1/messages'))
+      const dots = messagesLink
+        ? findInTree(messagesLink, (n) => {
+            const el = n as AnyElement
+            return typeof el.props?.className === 'string' && el.props.className.includes('bg-red-500')
+          })
+        : []
+      expect(dots.length).toBe(0)
     })
   })
 
@@ -373,7 +378,7 @@ describe('AppSidebar', () => {
       expect(accountLink).toBeDefined()
       const dots = findInTree(accountLink, (n) => {
         const el = n as AnyElement
-        return typeof el.props?.className === 'string' && el.props.className.includes('bg-orange-500')
+        return typeof el.props?.className === 'string' && el.props.className.includes('bg-red-500')
       })
       expect(dots.length).toBeGreaterThanOrEqual(1)
     })
@@ -385,7 +390,7 @@ describe('AppSidebar', () => {
       expect(accountLink).toBeDefined()
       const dots = findInTree(accountLink, (n) => {
         const el = n as AnyElement
-        return typeof el.props?.className === 'string' && el.props.className.includes('bg-orange-500')
+        return typeof el.props?.className === 'string' && el.props.className.includes('bg-red-500')
       })
       expect(dots.length).toBe(0)
     })

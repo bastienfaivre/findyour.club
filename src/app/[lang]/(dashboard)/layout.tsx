@@ -3,9 +3,10 @@ import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
 import { AppSidebar } from '@/components/app/AppSidebar'
+import { SidebarTriggerWithBadge } from '@/components/app/SidebarTriggerWithBadge'
 import { AdminDirtyProvider } from '@/components/app/club-admin/AdminDirtyContext'
 import { PageTitleProvider, PageTitleDisplay, PageActionDisplay } from '@/components/app/admin/AdminPageTitle'
 import { SearchStateProvider } from '@/components/app/SearchStateContext'
@@ -27,7 +28,7 @@ export default async function DashboardLayout({ children, params }: DashboardLay
   const isOperator = session?.user?.role === 'OPERATOR'
 
   // Fetch user's active club memberships (only if authenticated)
-  let clubs: Array<{ id: string; name: string; slug: string; country: string; unreadMessages: number }> = []
+  let clubs: Array<{ id: string; name: string; slug: string; country: string; unreadMessages: number; isPublished: boolean }> = []
   let clubsNeedingVerification: Array<{ id: string; name: string; lastVerifiedAt: Date }> = []
   let operatorUnreadMessages = 0
 
@@ -36,7 +37,7 @@ export default async function DashboardLayout({ children, params }: DashboardLay
       where: { userId: session.user.id, status: 'ACTIVE' },
       select: {
         club: {
-          select: { id: true, name: true, slug: true, country: true, lastVerifiedAt: true },
+          select: { id: true, name: true, slug: true, country: true, lastVerifiedAt: true, isPublished: true },
         },
       },
       orderBy: { club: { name: 'asc' } },
@@ -140,6 +141,10 @@ export default async function DashboardLayout({ children, params }: DashboardLay
   const sidebarState = cookieStore.get('sidebar_state')?.value
   const sidebarOpen = sidebarState === 'true'
 
+  const hasTotpBadge = isAuthenticated && !(session?.user?.totpEnabled ?? false)
+  const hasClubBadges = clubs.some((c) => !c.isPublished || c.unreadMessages > 0)
+  const hasBadges = hasTotpBadge || hasClubBadges || operatorUnreadMessages > 0
+
   return (
     <SearchStateProvider>
       <AdminSelectionProvider>
@@ -182,7 +187,7 @@ export default async function DashboardLayout({ children, params }: DashboardLay
               />
             )}
             <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-              <SidebarTrigger className="-ml-1" />
+              <SidebarTriggerWithBadge hasBadges={hasBadges} className="-ml-1" />
               <Separator orientation="vertical" className="mr-2 !h-4" />
               <PageTitleDisplay />
               <div className="ml-auto">

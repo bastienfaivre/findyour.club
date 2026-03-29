@@ -69,37 +69,39 @@ describe('verifyTotpChallenge()', () => {
     expect(result).toMatchObject({ success: false, code: 'TOTP_INVALID' })
   })
 
-  it('sets encrypted totp_verified cookie and redirects CLUB_ADMIN to /', async () => {
+  it('sets encrypted totp_verified cookie and redirects CLUB_ADMIN to club page', async () => {
     const mockCookieSet = vi.fn()
+    const mockCookieGet = vi.fn((name: string) => name === 'platform_lang' ? { value: 'en' } : undefined)
     const { cookies } = await import('next/headers')
-    vi.mocked(cookies).mockResolvedValueOnce({ set: mockCookieSet, get: vi.fn() } as never)
+    vi.mocked(cookies).mockResolvedValueOnce({ set: mockCookieSet, get: mockCookieGet } as never)
 
     vi.mocked(getServerSession).mockResolvedValue({ user: { id: 'u1', role: 'CLUB_ADMIN' } } as never)
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ totpSecret: 'SECRET' } as never)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ totpSecret: 'SECRET', role: 'CLUB_ADMIN', memberships: [{ clubId: 'club-1' }] } as never)
     vi.mocked(verifyTotpCode).mockResolvedValue(true)
 
-    await expect(verifyTotpChallenge({ code: '123456' })).rejects.toThrow('NEXT_REDIRECT:/')
+    await expect(verifyTotpChallenge({ code: '123456' })).rejects.toThrow('NEXT_REDIRECT:/en/club/club-1')
 
     expect(mockCookieSet).toHaveBeenCalledWith(
       'totp_verified',
       expect.any(String),
       expect.objectContaining({ httpOnly: true })
     )
-    expect(redirect).toHaveBeenCalledWith('/')
+    expect(redirect).toHaveBeenCalledWith('/en/club/club-1')
   })
 
-  it('redirects OPERATOR to / after successful TOTP verification', async () => {
+  it('redirects OPERATOR to admin stats after successful TOTP verification', async () => {
     const mockCookieSet = vi.fn()
+    const mockCookieGet = vi.fn((name: string) => name === 'platform_lang' ? { value: 'en' } : undefined)
     const { cookies } = await import('next/headers')
-    vi.mocked(cookies).mockResolvedValueOnce({ set: mockCookieSet, get: vi.fn() } as never)
+    vi.mocked(cookies).mockResolvedValueOnce({ set: mockCookieSet, get: mockCookieGet } as never)
 
     vi.mocked(getServerSession).mockResolvedValue({ user: { id: 'u1', role: 'OPERATOR' } } as never)
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ totpSecret: 'SECRET' } as never)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ totpSecret: 'SECRET', role: 'OPERATOR', memberships: [] } as never)
     vi.mocked(verifyTotpCode).mockResolvedValue(true)
 
-    await expect(verifyTotpChallenge({ code: '123456' })).rejects.toThrow('NEXT_REDIRECT:/')
+    await expect(verifyTotpChallenge({ code: '123456' })).rejects.toThrow('NEXT_REDIRECT:/en/admin/stats')
 
-    expect(redirect).toHaveBeenCalledWith('/')
+    expect(redirect).toHaveBeenCalledWith('/en/admin/stats')
   })
 
   it('blocks after 5 failed attempts from same IP (rate limit)', async () => {
