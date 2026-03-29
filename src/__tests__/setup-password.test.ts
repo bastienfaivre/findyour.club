@@ -12,7 +12,7 @@ vi.mock('@/server/db', () => ({
   prisma: {
     user: { update: vi.fn(), findUnique: vi.fn() },
     session: { create: vi.fn() },
-    clubMembership: { updateMany: vi.fn() },
+    clubMembership: { updateMany: vi.fn(), findFirst: vi.fn() },
     invitation: { deleteMany: vi.fn() },
     $transaction: vi.fn((ops: unknown[]) => Promise.all(ops)),
   },

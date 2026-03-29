@@ -9,7 +9,7 @@ import type { Translations } from '@/lib/i18n/translations/types'
 import { extractEditableFields } from '@/lib/schemas/application'
 import type { ApplicationEditableFields } from '@/lib/schemas/application'
 import { SocialLinksFieldset } from '@/components/app/SocialLinksFieldset'
-import { approveApplication, rejectApplication, getApplicantClubs } from '@/app/[lang]/(dashboard)/admin/applications/actions'
+import { approveApplication, rejectApplication, saveApplication, getApplicantClubs } from '@/app/[lang]/(dashboard)/admin/applications/actions'
 import { useAdminSelection } from '@/components/app/AdminSelectionContext'
 import type { ApplicationWithRelations } from './ApplicationQueue'
 import type { ActivityTypeOption, CountryOption } from './types'
@@ -109,6 +109,7 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
         clubEmail: fields.clubEmail?.trim() || null,
         country: fields.country,
         activityType: fields.activityType,
+        otherDescription: fields.otherDescription?.trim() || null,
         location: fields.location,
         description: fields.description.trim(),
         schedule: fields.schedule?.trim() || null,
@@ -147,6 +148,49 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
       if (result.success) {
         toast.success(ta.rejectedWithEmail.replace('{email}', application.email))
         onActionComplete(application.id)
+        router.refresh()
+      } else {
+        const key = ERROR_CODE_MAP[result.code]
+        setError(key ? ta.errors[key] : result.error)
+      }
+    })
+  }
+
+  const handleSave = () => {
+    setError(null)
+    startTransition(async () => {
+      const trimmedFields: ApplicationEditableFields = {
+        applicantFirstName: fields.applicantFirstName?.trim() || null,
+        applicantLastName: fields.applicantLastName?.trim() || null,
+        email: fields.email.trim(),
+        applicantPhone: fields.applicantPhone?.trim() || null,
+        applicantPreferredLanguage: fields.applicantPreferredLanguage,
+        name: fields.name.trim(),
+        clubEmail: fields.clubEmail?.trim() || null,
+        country: fields.country,
+        activityType: fields.activityType,
+        otherDescription: fields.otherDescription?.trim() || null,
+        location: fields.location,
+        description: fields.description.trim(),
+        schedule: fields.schedule?.trim() || null,
+        contactPhone: fields.contactPhone?.trim() || null,
+        contactAddress: fields.contactAddress?.trim() || null,
+        howToJoin: fields.howToJoin?.trim() || null,
+        externalWebsiteUrl: fields.externalWebsiteUrl?.trim() || null,
+        instagramUrl: fields.instagramUrl?.trim() || null,
+        facebookUrl: fields.facebookUrl?.trim() || null,
+        xUrl: fields.xUrl?.trim() || null,
+        tiktokUrl: fields.tiktokUrl?.trim() || null,
+        discordUrl: fields.discordUrl?.trim() || null,
+        youtubeUrl: fields.youtubeUrl?.trim() || null,
+        whatsappUrl: fields.whatsappUrl?.trim() || null,
+        telegramUrl: fields.telegramUrl?.trim() || null,
+        githubUrl: fields.githubUrl?.trim() || null,
+        desiredSlug: fields.desiredSlug.trim(),
+      }
+      const result = await saveApplication(application.id, trimmedFields)
+      if (result.success) {
+        toast.success(ta.changesSaved)
         router.refresh()
       } else {
         const key = ERROR_CODE_MAP[result.code]
@@ -255,7 +299,10 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
 
         <div className="space-y-2">
           <Label htmlFor="app-activityType">{ta.activityType}</Label>
-          <Select value={fields.activityType ?? ''} onValueChange={(v) => updateField('activityType', v || null)}>
+          <Select value={fields.activityType ?? ''} onValueChange={(v) => {
+            updateField('activityType', v || null)
+            if (v !== 'other') updateField('otherDescription', null)
+          }}>
             <SelectTrigger id="app-activityType" className="w-full">
               <SelectValue />
             </SelectTrigger>
@@ -263,9 +310,23 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
               {activityTypes.map((at) => (
                 <SelectItem key={at.slug} value={at.slug}>{at.name}</SelectItem>
               ))}
+              <SelectItem value="other">{t.activityTypes.other}</SelectItem>
             </SelectContent>
           </Select>
         </div>
+
+        {fields.activityType === 'other' && (
+          <div className="space-y-2">
+            <Label htmlFor="app-otherDescription">{t.apply.fields.otherDescription}</Label>
+            <Input
+              id="app-otherDescription"
+              value={fields.otherDescription ?? ''}
+              onChange={(e) => updateField('otherDescription', e.target.value)}
+              placeholder={t.apply.placeholders.otherDescription}
+              maxLength={200}
+            />
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="app-location">{ta.location}</Label>
@@ -357,6 +418,10 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
 
       {/* Action buttons */}
       <div className="flex gap-3">
+        <Button variant="outline" onClick={handleSave} disabled={isPending}>
+          {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          {ta.saveChanges}
+        </Button>
         <Button onClick={() => setApproveDialogOpen(true)} disabled={isPending || !canApprove}>
           {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           {ta.approve}

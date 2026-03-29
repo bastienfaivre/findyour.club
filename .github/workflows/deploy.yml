@@ -25,6 +25,7 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - run: pnpm prisma generate
+      - run: pnpm test
       - run: pnpm lint
       - run: pnpm tsc --noEmit
       - run: pnpm build

@@ -176,6 +176,8 @@ export const de: Translations = {
       clubSection: 'Vereinsinformationen',
       existingClubs: 'Bestehende Vereine',
       noExistingClubs: 'Dieser Bewerber hat keine bestehenden Vereine.',
+      saveChanges: 'Änderungen speichern',
+      changesSaved: 'Änderungen gespeichert.',
       operatorMessage: {
         label: 'Nachricht an den Vereinsadministrator',
         placeholder: 'Optionales Feedback für den Vereinsadministrator (z. B. „Bitte ergänze deine Zeiten vor der Veröffentlichung")',

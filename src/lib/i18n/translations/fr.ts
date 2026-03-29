@@ -176,6 +176,8 @@ export const fr: Translations = {
       clubSection: 'Informations du club',
       existingClubs: 'Clubs existants',
       noExistingClubs: "Ce candidat n'a pas de club existant.",
+      saveChanges: 'Enregistrer',
+      changesSaved: 'Modifications enregistrées.',
       operatorMessage: {
         label: "Message pour l'administrateur du club",
         placeholder: "Commentaire facultatif pour l'administrateur du club (ex. « Ajoutez plus de détails à vos horaires avant de publier »)",

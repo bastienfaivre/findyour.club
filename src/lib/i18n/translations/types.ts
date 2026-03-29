@@ -180,6 +180,8 @@ export type Translations = {
       clubSection: string
       existingClubs: string
       noExistingClubs: string
+      saveChanges: string
+      changesSaved: string
       operatorMessage: {
         label: string
         placeholder: string

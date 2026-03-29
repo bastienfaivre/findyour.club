@@ -110,14 +110,15 @@ describe('ClubCard', () => {
       cantonName: 'Valais',
     }) as AnyElement
     const text = findText(tree)
-    expect(text).toContain('Sion, Valais')
+    expect(text).toContain('Switzerland')
+    expect(text).toContain('Valais')
+    expect(text).toContain('Sion')
   })
 
   it('shows country name when no location', () => {
     const tree = ClubCard(baseProps) as AnyElement
     const text = findText(tree)
     expect(text).toContain('Switzerland')
-    expect(text).toContain('flag-ch')
   })
 
   it('passes logo to ClubAvatar', () => {

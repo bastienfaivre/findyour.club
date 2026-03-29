@@ -22,6 +22,11 @@ vi.mock('lucide-react', () => ({
     props: { className },
     key: null,
   })),
+  CheckCircle2: vi.fn(({ className }: { className?: string }) => ({
+    type: 'CheckCircle2',
+    props: { className },
+    key: null,
+  })),
 }))
 
 vi.mock('react', async () => {
@@ -76,7 +81,7 @@ describe('SaveBar', () => {
   it('renders Save and Discard buttons', async () => {
     const { SaveBar } = await import('@/components/app/club-admin/SaveBar')
     const result = SaveBar({
-      isDirty: false,
+      isDirty: true,
       isPending: false,
       isValid: true,
       translations: defaultTranslations,
@@ -98,11 +103,11 @@ describe('SaveBar', () => {
       onDiscard: vi.fn(),
     })
 
-    const amberDots = findInTree(result, (n) => {
+    const dots = findInTree(result, (n) => {
       const el = n as AnyElement
-      return typeof el.props?.className === 'string' && el.props.className.includes('bg-amber-500')
+      return typeof el.props?.className === 'string' && el.props.className.includes('bg-red-500')
     })
-    expect(amberDots.length).toBeGreaterThanOrEqual(1)
+    expect(dots.length).toBeGreaterThanOrEqual(1)
   })
 
   it('does not render amber dot when isDirty is false', async () => {

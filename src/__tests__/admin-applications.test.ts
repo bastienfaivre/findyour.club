@@ -94,6 +94,7 @@ const DEFAULT_FIELDS: ApplicationEditableFields = {
   country: 'ch',
   description: 'A great ski club in Valais',
   activityType: 'skiing',
+  otherDescription: null,
   location: { swisstopoId: '2117', cantonCode: 'VS', name: 'Sion' },
   schedule: 'Saturdays 09:00–12:00',
   contactPhone: '+41 27 123 45 67',
@@ -611,7 +612,7 @@ describe('buildAcceptanceEmailHtml()', () => {
     expect(html).toContain('Ski Club Valais')
     expect(html).toContain('http://localhost:3000/fr/ch/ski-club-valais')
     expect(html).toContain('http://localhost:3000/fr/auth/magic-link?token=abc123')
-    expect(html).toContain('1 hour')
+    expect(html).toContain('24 hours')
     expect(html).toContain('set your password')
   })
 

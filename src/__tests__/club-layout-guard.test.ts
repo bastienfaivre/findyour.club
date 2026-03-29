@@ -22,6 +22,14 @@ vi.mock('@/lib/server/club-queries', () => ({
   getClubBySlug: vi.fn(),
   getClubPublicData: vi.fn(),
 }))
+vi.mock('next/headers', () => ({
+  headers: vi.fn(async () => ({
+    get: vi.fn(() => null),
+  })),
+}))
+vi.mock('@/lib/server/page-tracking', () => ({
+  trackPageEvent: vi.fn(),
+}))
 
 vi.mock('@/lib/country', () => ({
   isValidCountry: vi.fn((country: string) => ['ch', 'fr', 'de'].includes(country)),

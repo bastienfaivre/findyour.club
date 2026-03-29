@@ -176,6 +176,8 @@ export const en: Translations = {
       clubSection: 'Club Information',
       existingClubs: 'Existing clubs',
       noExistingClubs: 'This applicant has no existing clubs.',
+      saveChanges: 'Save Changes',
+      changesSaved: 'Changes saved.',
       operatorMessage: {
         label: 'Message to club admin',
         placeholder: 'Optional feedback for the club admin (e.g., "Please add more detail to your schedule before going online")',

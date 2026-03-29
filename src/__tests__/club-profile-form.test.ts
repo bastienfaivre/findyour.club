@@ -87,6 +87,11 @@ vi.mock('lucide-react', () => ({
   Pencil: () => ({ type: 'Pencil', props: {}, key: null }),
   Eye: () => ({ type: 'Eye', props: {}, key: null }),
   Youtube: () => ({ type: 'Youtube', props: {}, key: null }),
+  RotateCcw: () => ({ type: 'RotateCcw', props: {}, key: null }),
+  AlertTriangle: () => ({ type: 'AlertTriangle', props: {}, key: null }),
+  CheckCircle2: () => ({ type: 'CheckCircle2', props: {}, key: null }),
+  XCircle: () => ({ type: 'XCircle', props: {}, key: null }),
+  CircleHelp: () => ({ type: 'CircleHelp', props: {}, key: null }),
 }))
 
 vi.mock('@/components/ui/phone-input', () => ({
@@ -204,6 +209,16 @@ const translations = {
     preview: 'Preview',
     editTab: 'Edit',
     placeholder: 'Placeholder',
+    completeness: {
+      label: '{filled}/{total} fields completed',
+    },
+    sections: {
+      identity: 'Identity',
+      about: 'About',
+      contact: 'Contact',
+      social: 'Social',
+      media: 'Media',
+    },
     fields: {
       name: 'Club Name',
       description: 'Description',
@@ -242,6 +257,13 @@ const translations = {
       contactPhoneInvalid: 'Invalid phone.',
       contactAddressMaxLength: 'Too long.',
       externalWebsiteUrlInvalid: 'Invalid URL.',
+    },
+    tips: {
+      contactEmail: 'Tip for contact email',
+      contactPhone: 'Tip for contact phone',
+      contactAddress: 'Tip for contact address',
+      externalWebsiteUrl: 'Tip for website',
+      socialLinks: 'Tip for social links',
     },
     logo: {
       title: 'Logo',
@@ -286,7 +308,15 @@ const translations = {
     empty: 'No messages',
     unreadBadge: '{count} new',
   },
-  settings: {},
+  settings: {
+    verification: {
+      countdown: {
+        healthy: 'Verified {daysSince} days ago ({daysRemaining} days remaining)',
+        approaching: 'Verification expires in {daysRemaining} days',
+        expired: 'Verification expired',
+      },
+    },
+  },
   save: {
     save: 'Save',
     discard: 'Discard',
@@ -299,6 +329,9 @@ const translations = {
     stay: 'Stay',
     leave: 'Leave',
     keepEditing: 'Keep editing',
+    draftFound: 'You have unsaved changes from a previous session.',
+    draftRestore: 'Restore',
+    draftDiscard: 'Discard draft',
   },
   navigation: 'Admin navigation',
   openMenu: 'Open menu',

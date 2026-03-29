@@ -15,6 +15,14 @@ vi.mock('@/lib/country', () => ({
   isValidCountry: vi.fn((country: string) => country === 'ch'),
   getCountryName: vi.fn(() => 'Switzerland'),
 }))
+vi.mock('next/headers', () => ({
+  headers: vi.fn(async () => ({
+    get: vi.fn(() => null),
+  })),
+}))
+vi.mock('@/lib/server/page-tracking', () => ({
+  trackPageEvent: vi.fn(),
+}))
 vi.mock('next/image', () => ({
   default: vi.fn((_props: Record<string, unknown>) => null),
 }))

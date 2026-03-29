@@ -24,15 +24,17 @@ const mockClubPhoto = {
   delete: vi.fn().mockResolvedValue({}),
 }
 
+const mockClub = {
+  update: vi.fn().mockResolvedValue({}),
+  findUnique: vi.fn(),
+}
+
 vi.mock('@/server/db', () => ({
   prisma: {
-    club: {
-      update: vi.fn().mockResolvedValue({}),
-      findUnique: vi.fn(),
-    },
+    club: mockClub,
     clubPhoto: mockClubPhoto,
     $transaction: vi.fn((fn: (tx: unknown) => Promise<unknown>) => {
-      return fn({ clubPhoto: mockClubPhoto })
+      return fn({ clubPhoto: mockClubPhoto, club: mockClub })
     }),
     featureFlag: { findUnique: vi.fn().mockResolvedValue(null) },
   },
@@ -257,7 +259,7 @@ describe('uploadLogo / deleteLogo', () => {
 
     expect(result.success).toBe(true)
     expect(prisma.club.update).toHaveBeenCalledWith(expect.objectContaining({
-      data: { logoUrl: null, logoAlt: null },
+      data: expect.objectContaining({ logoUrl: null, logoAlt: null }),
     }))
   })
 })

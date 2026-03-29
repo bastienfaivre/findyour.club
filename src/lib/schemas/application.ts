@@ -68,6 +68,7 @@ export interface ApplicationEditableFields {
   clubEmail: string | null
   country: string
   activityType: string | null
+  otherDescription: string | null
   location: LocationInput | null
   description: string
   schedule: string | null
@@ -100,6 +101,7 @@ export function extractEditableFields(app: {
   clubEmail?: string | null
   country: string
   activityType: string | null
+  otherDescription?: string | null
   description: string
   schedule: string | null
   howToJoin: string | null
@@ -134,7 +136,8 @@ export function extractEditableFields(app: {
     name: app.name,
     clubEmail: app.clubEmail ?? null,
     country: app.country,
-    activityType: app.activityType,
+    activityType: app.activityType ?? (app.otherDescription ? 'other' : null),
+    otherDescription: app.otherDescription ?? null,
     location: swissLoc
       ? {
           swisstopoId: swissLoc.swisstopoId,

@@ -20,6 +20,75 @@ export type ApplicationActionResult =
   | { success: true }
   | { success: false; error: string; code: 'NOT_FOUND' | 'ALREADY_REVIEWED' | 'UNAUTHORIZED' | 'SLUG_REQUIRED' | 'SLUG_INVALID' | 'SLUG_CONFLICT' | 'EMAIL_FAILED' | 'SERVER_ERROR' }
 
+export async function saveApplication(applicationId: string, fields: ApplicationEditableFields): Promise<ApplicationActionResult> {
+  try {
+    const session = await getAuthSession()
+    if (!session?.user || session.user.role !== 'OPERATOR') {
+      return { success: false, error: 'Unauthorized.', code: 'UNAUTHORIZED' }
+    }
+
+    const application = await prisma.application.findUnique({
+      where: { id: applicationId },
+      select: { id: true, status: true },
+    })
+
+    if (!application) {
+      return { success: false, error: 'Application not found.', code: 'NOT_FOUND' }
+    }
+    if (application.status !== 'PENDING') {
+      return { success: false, error: 'Application already reviewed.', code: 'ALREADY_REVIEWED' }
+    }
+
+    // Resolve location
+    let resolvedLocationId: string | null = null
+    if (fields.location) {
+      const { locationId } = await upsertSwissLocation({
+        swisstopoId: fields.location.swisstopoId,
+        cantonCode: fields.location.cantonCode,
+        displayName: fields.location.name,
+      })
+      resolvedLocationId = locationId
+    }
+
+    await prisma.application.update({
+      where: { id: applicationId },
+      data: {
+        applicantFirstName: fields.applicantFirstName,
+        applicantLastName: fields.applicantLastName,
+        applicantPhone: fields.applicantPhone,
+        applicantPreferredLanguage: fields.applicantPreferredLanguage,
+        name: fields.name,
+        email: fields.email,
+        clubEmail: fields.clubEmail,
+        country: fields.country,
+        activityType: fields.activityType === 'other' ? null : fields.activityType,
+        otherDescription: fields.activityType === 'other' ? (fields.otherDescription?.trim() || null) : null,
+        locationId: resolvedLocationId,
+        description: fields.description,
+        schedule: fields.schedule,
+        contactPhone: fields.contactPhone,
+        contactAddress: fields.contactAddress,
+        howToJoin: fields.howToJoin,
+        externalWebsiteUrl: fields.externalWebsiteUrl,
+        instagramUrl: fields.instagramUrl,
+        facebookUrl: fields.facebookUrl,
+        xUrl: fields.xUrl,
+        tiktokUrl: fields.tiktokUrl,
+        discordUrl: fields.discordUrl,
+        youtubeUrl: fields.youtubeUrl,
+        whatsappUrl: fields.whatsappUrl,
+        telegramUrl: fields.telegramUrl,
+        githubUrl: fields.githubUrl,
+        desiredSlug: fields.desiredSlug.trim() || null,
+      },
+    })
+
+    return { success: true }
+  } catch {
+    return { success: false, error: 'An unexpected error occurred.', code: 'SERVER_ERROR' }
+  }
+}
+
 export async function approveApplication(applicationId: string, fields: ApplicationEditableFields, operatorMessage?: string): Promise<ApplicationActionResult> {
   try {
     const session = await getAuthSession()
@@ -111,7 +180,8 @@ export async function approveApplication(applicationId: string, fields: Applicat
           clubEmail: fields.clubEmail,
           country: fields.country,
           description: fields.description,
-          activityType: fields.activityType,
+          activityType: fields.activityType === 'other' ? null : fields.activityType,
+          otherDescription: fields.activityType === 'other' ? (fields.otherDescription?.trim() || null) : null,
           locationId: resolvedLocationId,
           schedule: fields.schedule,
           contactPhone: fields.contactPhone,
@@ -147,7 +217,7 @@ export async function approveApplication(applicationId: string, fields: Applicat
           country: fields.country,
           status: 'ACTIVE',
           email: clubEmail,
-          activityType: fields.activityType,
+          activityType: fields.activityType === 'other' ? null : fields.activityType,
           locationId: resolvedLocationId,
           defaultLanguage,
           description: fields.description,
