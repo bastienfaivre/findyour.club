@@ -40,8 +40,24 @@ export function trackPageEvent(opts: {
   const ipHash = opts.ip ? hashIp(opts.ip) : null
 
   // Fire-and-forget — don't await, don't throw
-  prisma.pageEvent
-    .create({
+  const doTrack = async () => {
+    // Deduplicate: skip if same IP already viewed this club today
+    if (ipHash && opts.eventType === 'page_view') {
+      const today = new Date()
+      today.setUTCHours(0, 0, 0, 0)
+      const existing = await prisma.pageEvent.findFirst({
+        where: {
+          clubId: opts.clubId,
+          ipHash,
+          eventType: 'page_view',
+          visitedAt: { gte: today },
+        },
+        select: { id: true },
+      })
+      if (existing) return
+    }
+
+    await prisma.pageEvent.create({
       data: {
         clubId: opts.clubId,
         pageSlug: opts.pageSlug,
@@ -51,7 +67,9 @@ export function trackPageEvent(opts: {
         country: opts.country?.slice(0, 2) ?? null,
       },
     })
-    .catch(() => {
-      // Silently ignore tracking failures — never break the user experience
-    })
+  }
+
+  doTrack().catch(() => {
+    // Silently ignore tracking failures — never break the user experience
+  })
 }
