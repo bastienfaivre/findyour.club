@@ -653,3 +653,37 @@ ALTER TABLE "ticket_replies" ADD CONSTRAINT "ticket_replies_operator_id_fkey" FO
 -- AddForeignKey
 ALTER TABLE "health_checks" ADD CONSTRAINT "health_checks_club_id_fkey" FOREIGN KEY ("club_id") REFERENCES "clubs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+-- Seed Swiss Cantons (reference data required for application form)
+INSERT INTO "swiss_cantons" ("code") VALUES
+('AG'),('AI'),('AR'),('BE'),('BL'),('BS'),('FR'),('GE'),('GL'),('GR'),
+('JU'),('LU'),('NE'),('NW'),('OW'),('SG'),('SH'),('SO'),('SZ'),('TG'),
+('TI'),('UR'),('VD'),('VS'),('ZG'),('ZH');
+
+INSERT INTO "swiss_canton_translations" ("canton_code", "language", "name") VALUES
+('AG', 'de', 'Aargau'), ('AG', 'fr', 'Argovie'), ('AG', 'it', 'Argovia'), ('AG', 'en', 'Aargau'),
+('AI', 'de', 'Appenzell Innerrhoden'), ('AI', 'fr', 'Appenzell Rhodes-Intérieures'), ('AI', 'it', 'Appenzello Interno'), ('AI', 'en', 'Appenzell Inner Rhodes'),
+('AR', 'de', 'Appenzell Ausserrhoden'), ('AR', 'fr', 'Appenzell Rhodes-Extérieures'), ('AR', 'it', 'Appenzello Esterno'), ('AR', 'en', 'Appenzell Outer Rhodes'),
+('BE', 'de', 'Bern'), ('BE', 'fr', 'Berne'), ('BE', 'it', 'Berna'), ('BE', 'en', 'Bern'),
+('BL', 'de', 'Basel-Landschaft'), ('BL', 'fr', 'Bâle-Campagne'), ('BL', 'it', 'Basilea Campagna'), ('BL', 'en', 'Basel-Country'),
+('BS', 'de', 'Basel-Stadt'), ('BS', 'fr', 'Bâle-Ville'), ('BS', 'it', 'Basilea Città'), ('BS', 'en', 'Basel-City'),
+('FR', 'de', 'Freiburg'), ('FR', 'fr', 'Fribourg'), ('FR', 'it', 'Friburgo'), ('FR', 'en', 'Fribourg'),
+('GE', 'de', 'Genf'), ('GE', 'fr', 'Genève'), ('GE', 'it', 'Ginevra'), ('GE', 'en', 'Geneva'),
+('GL', 'de', 'Glarus'), ('GL', 'fr', 'Glaris'), ('GL', 'it', 'Glarona'), ('GL', 'en', 'Glarus'),
+('GR', 'de', 'Graubünden'), ('GR', 'fr', 'Grisons'), ('GR', 'it', 'Grigioni'), ('GR', 'en', 'Graubünden'),
+('JU', 'de', 'Jura'), ('JU', 'fr', 'Jura'), ('JU', 'it', 'Giura'), ('JU', 'en', 'Jura'),
+('LU', 'de', 'Luzern'), ('LU', 'fr', 'Lucerne'), ('LU', 'it', 'Lucerna'), ('LU', 'en', 'Lucerne'),
+('NE', 'de', 'Neuenburg'), ('NE', 'fr', 'Neuchâtel'), ('NE', 'it', 'Neuchâtel'), ('NE', 'en', 'Neuchâtel'),
+('NW', 'de', 'Nidwalden'), ('NW', 'fr', 'Nidwald'), ('NW', 'it', 'Nidvaldo'), ('NW', 'en', 'Nidwalden'),
+('OW', 'de', 'Obwalden'), ('OW', 'fr', 'Obwald'), ('OW', 'it', 'Obvaldo'), ('OW', 'en', 'Obwalden'),
+('SG', 'de', 'St. Gallen'), ('SG', 'fr', 'Saint-Gall'), ('SG', 'it', 'San Gallo'), ('SG', 'en', 'St. Gallen'),
+('SH', 'de', 'Schaffhausen'), ('SH', 'fr', 'Schaffhouse'), ('SH', 'it', 'Sciaffusa'), ('SH', 'en', 'Schaffhausen'),
+('SO', 'de', 'Solothurn'), ('SO', 'fr', 'Soleure'), ('SO', 'it', 'Soletta'), ('SO', 'en', 'Solothurn'),
+('SZ', 'de', 'Schwyz'), ('SZ', 'fr', 'Schwytz'), ('SZ', 'it', 'Svitto'), ('SZ', 'en', 'Schwyz'),
+('TG', 'de', 'Thurgau'), ('TG', 'fr', 'Thurgovie'), ('TG', 'it', 'Turgovia'), ('TG', 'en', 'Thurgau'),
+('TI', 'de', 'Tessin'), ('TI', 'fr', 'Tessin'), ('TI', 'it', 'Ticino'), ('TI', 'en', 'Ticino'),
+('UR', 'de', 'Uri'), ('UR', 'fr', 'Uri'), ('UR', 'it', 'Uri'), ('UR', 'en', 'Uri'),
+('VD', 'de', 'Waadt'), ('VD', 'fr', 'Vaud'), ('VD', 'it', 'Vaud'), ('VD', 'en', 'Vaud'),
+('VS', 'de', 'Wallis'), ('VS', 'fr', 'Valais'), ('VS', 'it', 'Vallese'), ('VS', 'en', 'Valais'),
+('ZG', 'de', 'Zug'), ('ZG', 'fr', 'Zoug'), ('ZG', 'it', 'Zugo'), ('ZG', 'en', 'Zug'),
+('ZH', 'de', 'Zürich'), ('ZH', 'fr', 'Zurich'), ('ZH', 'it', 'Zurigo'), ('ZH', 'en', 'Zurich');
+
