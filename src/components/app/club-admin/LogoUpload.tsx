@@ -139,6 +139,7 @@ export function LogoUpload({ clubId, logoUrl, logoAlt, maxImageSizeBytes = DEFAU
               height={80}
               className="max-h-full max-w-full object-contain"
               sizes="80px"
+              {...(logoUrl.endsWith('.svg') && { unoptimized: true })}
             />
           </div>
         )}
@@ -184,7 +185,7 @@ export function LogoUpload({ clubId, logoUrl, logoAlt, maxImageSizeBytes = DEFAU
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/jpeg,image/png,image/webp,image/svg+xml"
             className="hidden"
             onChange={handleFileSelect}
           />

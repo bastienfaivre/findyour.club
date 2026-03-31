@@ -22,6 +22,7 @@ const PLACEHOLDER = '/apple-touch-icon.png'
 
 export function ClubAvatar({ name, logoUrl, logoAlt, size = 'md', className }: ClubAvatarProps) {
   const px = sizePx[size]
+  const isSvg = logoUrl?.endsWith('.svg')
 
   return (
     <div className={cn('shrink-0 relative flex items-center justify-center', sizeClasses[size], className)}>
@@ -35,6 +36,7 @@ export function ClubAvatar({ name, logoUrl, logoAlt, size = 'md', className }: C
           !logoUrl && 'opacity-40',
         )}
         sizes={`${px}px`}
+        {...(isSvg && { unoptimized: true })}
       />
     </div>
   )

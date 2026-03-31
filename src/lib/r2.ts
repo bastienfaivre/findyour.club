@@ -1,7 +1,7 @@
-import { S3Client, DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3'
+import { S3Client, DeleteObjectCommand, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
-export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const
+export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'] as const
 export const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024 // 5 MB
 
 function requireEnv(name: string): string {
@@ -37,7 +37,7 @@ function getBucket(): string {
  * Generate a presigned PUT URL for direct client-side upload to R2/MinIO.
  * Key format: {clubId}/{cuid}.{ext} — prevents predictable URL enumeration.
  */
-const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp'])
+const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'svg'])
 
 export async function generateUploadUrl(clubId: string, fileExtension: string): Promise<{ uploadUrl: string; key: string }> {
   const ext = fileExtension.toLowerCase()
@@ -66,6 +66,22 @@ export async function deleteObject(key: string): Promise<void> {
 }
 
 /**
+ * Read an object from R2/MinIO and return its contents as a Buffer.
+ */
+export async function getObjectBuffer(key: string): Promise<Buffer> {
+  const res = await getS3().send(new GetObjectCommand({ Bucket: getBucket(), Key: key }))
+  const bytes = await res.Body!.transformToByteArray()
+  return Buffer.from(bytes)
+}
+
+/**
+ * Write a Buffer to R2/MinIO with the given content type.
+ */
+export async function putObject(key: string, body: Buffer, contentType: string): Promise<void> {
+  await getS3().send(new PutObjectCommand({ Bucket: getBucket(), Key: key, Body: body, ContentType: contentType }))
+}
+
+/**
  * Returns the public URL for a stored object.
  */
 export function getPublicUrl(key: string): string {
@@ -86,6 +102,7 @@ function extensionToMime(ext: string): string {
     jpeg: 'image/jpeg',
     png: 'image/png',
     webp: 'image/webp',
+    svg: 'image/svg+xml',
   }
   return map[ext.toLowerCase()] ?? 'application/octet-stream'
 }

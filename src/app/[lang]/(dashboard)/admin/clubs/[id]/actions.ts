@@ -11,7 +11,8 @@ import { getTranslations } from '@/lib/i18n/translations'
 import { slugRegex } from '@/lib/schemas/application'
 import { isReservedSlug } from '@/lib/slug'
 import { upsertSwissLocation } from '@/lib/server/location'
-import { deleteObject, extractR2Key, generateUploadUrl, getPublicUrl, ALLOWED_IMAGE_TYPES } from '@/lib/r2'
+import { deleteObject, extractR2Key, generateUploadUrl, getPublicUrl, getObjectBuffer, putObject, ALLOWED_IMAGE_TYPES } from '@/lib/r2'
+import { sanitizeSvg } from '@/lib/svg-sanitize'
 import type { ClubEditableFields } from '@/lib/schemas/club'
 
 export type { ClubEditableFields } from '@/lib/schemas/club'
@@ -342,7 +343,7 @@ export async function operatorUploadClubLogo(
       return { success: false, error: 'Club not found.', code: 'NOT_FOUND' }
     }
 
-    const ext = contentType.split('/')[1] === 'jpeg' ? 'jpg' : contentType.split('/')[1]
+    const ext = contentType === 'image/jpeg' ? 'jpg' : contentType === 'image/svg+xml' ? 'svg' : contentType.split('/')[1]
     const { uploadUrl, key } = await generateUploadUrl(club.id, ext)
     const publicUrl = getPublicUrl(key)
 
@@ -373,6 +374,13 @@ export async function operatorPersistClubLogo(
 
     if (!key.startsWith(`${club.id}/`)) {
       return { success: false, error: 'Invalid file key.', code: 'INVALID_KEY' }
+    }
+
+    // Sanitize SVG uploads
+    if (key.endsWith('.svg')) {
+      const raw = await getObjectBuffer(key)
+      const sanitized = sanitizeSvg(raw.toString('utf-8'))
+      await putObject(key, Buffer.from(sanitized, 'utf-8'), 'image/svg+xml')
     }
 
     if (club.logoUrl) {

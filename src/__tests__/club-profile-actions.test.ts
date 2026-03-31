@@ -40,12 +40,18 @@ vi.mock('@/server/db', () => ({
   },
 }))
 
+vi.mock('@/lib/svg-sanitize', () => ({
+  sanitizeSvg: vi.fn((raw: string) => raw),
+}))
+
 vi.mock('@/lib/r2', () => ({
   generateUploadUrl: vi.fn().mockResolvedValue({ uploadUrl: 'https://presigned-url.example.com', key: 'club-1/abc.jpg' }),
   deleteObject: vi.fn().mockResolvedValue(undefined),
   getPublicUrl: vi.fn((key: string) => `http://localhost:9000/findyour-club/${key}`),
   extractR2Key: vi.fn((url: string) => url.replace('http://localhost:9000/findyour-club/', '')),
-  ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp'],
+  ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
+  getObjectBuffer: vi.fn().mockResolvedValue(Buffer.from('<svg></svg>')),
+  putObject: vi.fn().mockResolvedValue(undefined),
   MAX_IMAGE_SIZE_BYTES: 5242880,
 }))
 
@@ -237,11 +243,20 @@ describe('uploadLogo / deleteLogo', () => {
     }
   })
 
-  it('uploadLogo rejects invalid type', async () => {
+  it('uploadLogo accepts SVG type', async () => {
     await mockAuth().setup()
 
     const { uploadLogo } = await import('@/app/[lang]/(dashboard)/club/[clubId]/actions')
     const result = await uploadLogo('club-1', 'image/svg+xml')
+
+    expect(result.success).toBe(true)
+  })
+
+  it('uploadLogo rejects invalid type', async () => {
+    await mockAuth().setup()
+
+    const { uploadLogo } = await import('@/app/[lang]/(dashboard)/club/[clubId]/actions')
+    const result = await uploadLogo('club-1', 'image/gif')
 
     expect(result.success).toBe(false)
   })

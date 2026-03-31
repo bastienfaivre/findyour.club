@@ -1,11 +1,11 @@
 import type { ComponentType, SVGProps } from 'react'
-import { Youtube } from 'lucide-react'
 import {
   InstagramIcon,
   FacebookIcon,
   XIcon,
   TikTokIcon,
   DiscordIcon,
+  YouTubeIcon,
   WhatsAppIcon,
   TelegramIcon,
   GitHubIcon,
@@ -38,7 +38,7 @@ export const SOCIAL_PLATFORMS: SocialPlatform[] = [
   { key: 'xUrl', label: 'X', icon: XIcon, placeholder: 'https://x.com/...' },
   { key: 'tiktokUrl', label: 'TikTok', icon: TikTokIcon, placeholder: 'https://tiktok.com/@...' },
   { key: 'discordUrl', label: 'Discord', icon: DiscordIcon, placeholder: 'https://discord.gg/...' },
-  { key: 'youtubeUrl', label: 'YouTube', icon: Youtube as ComponentType<SVGProps<SVGSVGElement>>, placeholder: 'https://youtube.com/...' },
+  { key: 'youtubeUrl', label: 'YouTube', icon: YouTubeIcon, placeholder: 'https://youtube.com/...' },
   { key: 'whatsappUrl', label: 'WhatsApp', icon: WhatsAppIcon, placeholder: 'https://chat.whatsapp.com/...' },
   { key: 'telegramUrl', label: 'Telegram', icon: TelegramIcon, placeholder: 'https://t.me/...' },
   { key: 'githubUrl', label: 'GitHub', icon: GitHubIcon, placeholder: 'https://github.com/...' },

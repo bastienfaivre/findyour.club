@@ -5,7 +5,8 @@ import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
 import { getClubActiveMembership } from '@/lib/server/club-queries'
 import { clubProfileSaveSchema, type ClubProfileSaveInput } from '@/lib/schemas/club'
-import { generateUploadUrl, deleteObject, extractR2Key, getPublicUrl, ALLOWED_IMAGE_TYPES } from '@/lib/r2'
+import { generateUploadUrl, deleteObject, extractR2Key, getPublicUrl, ALLOWED_IMAGE_TYPES, getObjectBuffer, putObject } from '@/lib/r2'
+import { sanitizeSvg } from '@/lib/svg-sanitize'
 import { getNumberSetting } from '@/lib/server/platform-settings'
 import { checkRateLimit } from '@/lib/rate-limit'
 
@@ -427,7 +428,7 @@ export async function uploadLogo(
   if (!guard.ok) return guard.result
 
   if (!ALLOWED_IMAGE_TYPES.includes(contentType as typeof ALLOWED_IMAGE_TYPES[number])) {
-    return { success: false, error: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.', code: 'INVALID_TYPE' }
+    return { success: false, error: 'Invalid file type. Only JPEG, PNG, WebP, and SVG are allowed.', code: 'INVALID_TYPE' }
   }
 
   const maxImageTransactions = await getNumberSetting('limit.image_transactions_per_day')
@@ -435,7 +436,7 @@ export async function uploadLogo(
     return { success: false, error: 'Daily image transaction limit reached. Please try again tomorrow.', code: 'IMAGE_RATE_LIMITED' }
   }
 
-  const ext = contentType.split('/')[1] === 'jpeg' ? 'jpg' : contentType.split('/')[1]
+  const ext = contentType === 'image/jpeg' ? 'jpg' : contentType === 'image/svg+xml' ? 'svg' : contentType.split('/')[1]
   const { uploadUrl, key } = await generateUploadUrl(guard.club.id, ext)
   const publicUrl = getPublicUrl(key)
 
@@ -459,6 +460,13 @@ export async function persistLogo(
 
   // Validate alt text length
   const trimmedAlt = alt.slice(0, 500)
+
+  // Sanitize SVG uploads
+  if (key.endsWith('.svg')) {
+    const raw = await getObjectBuffer(key)
+    const sanitized = sanitizeSvg(raw.toString('utf-8'))
+    await putObject(key, Buffer.from(sanitized, 'utf-8'), 'image/svg+xml')
+  }
 
   // Delete old logo from R2 if exists
   const club = await prisma.club.findUnique({
