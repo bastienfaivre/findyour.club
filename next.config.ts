@@ -1,14 +1,15 @@
 import type { NextConfig } from 'next'
 
-// R2/MinIO origin needed for CSP (image display + presigned uploads)
-const r2Origin = process.env.R2_PUBLIC_URL
-  ? new URL(process.env.R2_PUBLIC_URL).origin
-  : undefined
-const r2Endpoint = process.env.R2_ENDPOINT
-  ? new URL(process.env.R2_ENDPOINT).origin
-  : undefined
-// Deduplicate — in dev both may point to localhost:9000
-const storageOrigins = [...new Set([r2Origin, r2Endpoint].filter(Boolean))].join(' ')
+/**
+ * Compute R2/MinIO origins for CSP at request time (not build time)
+ * so that runtime env vars in standalone mode are picked up.
+ */
+function getStorageOrigins(): string {
+  const origins = new Set<string>()
+  try { if (process.env.R2_PUBLIC_URL) origins.add(new URL(process.env.R2_PUBLIC_URL).origin) } catch { /* ignore */ }
+  try { if (process.env.R2_ENDPOINT) origins.add(new URL(process.env.R2_ENDPOINT).origin) } catch { /* ignore */ }
+  return [...origins].join(' ')
+}
 
 const nextConfig: NextConfig = {
   output: 'standalone',
@@ -30,6 +31,8 @@ const nextConfig: NextConfig = {
     dangerouslyAllowLocalIP: true,
   },
   async headers() {
+    const storageOrigins = getStorageOrigins()
+
     return [
       {
         source: '/(.*)',
