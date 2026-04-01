@@ -1,5 +1,5 @@
 import { Mail, Phone, MapPin, Globe } from 'lucide-react'
-import { SOCIAL_PLATFORMS, type SocialFieldKey } from '@/lib/social-platforms'
+import { SOCIAL_PLATFORMS, extractHandle, type SocialFieldKey } from '@/lib/social-platforms'
 
 type SocialLinks = Partial<Record<SocialFieldKey, string | null>>
 
@@ -85,19 +85,23 @@ export function ContactInfo({
       )}
 
       {activeSocials.length > 0 && (
-        <div className="flex flex-wrap gap-3 pt-2">
+        <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:flex-wrap sm:gap-x-4">
           {activeSocials.map((platform) => {
             const Icon = platform.icon
+            const url = socialLinks![platform.key]!
+            const handle = extractHandle(platform, url)
+            const displayLabel = handle ?? url.replace(/^https?:\/\//, '').replace(/\/$/, '')
             return (
               <a
                 key={platform.key}
-                href={socialLinks![platform.key]!}
+                href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={platform.label}
-                className="text-muted-foreground transition-colors hover:text-foreground"
+                aria-label={`${platform.label} ${displayLabel}`}
+                className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
               >
-                <Icon className="h-5 w-5" aria-hidden="true" />
+                <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                <span className="text-sm truncate">{displayLabel}</span>
               </a>
             )
           })}
