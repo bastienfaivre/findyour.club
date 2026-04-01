@@ -13,9 +13,10 @@ function getDailySalt(): string {
   const today = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
   if (cachedSalt?.date === today) return cachedSalt.value
 
-  // Generate a deterministic-per-day but unpredictable salt
-  // Uses CRON_SECRET as entropy source so it's not guessable
-  const secret = process.env.CRON_SECRET ?? 'fallback-dev-salt'
+  // Generate a deterministic-per-day but unpredictable salt.
+  // Uses a dedicated env var (falls back to CRON_SECRET) to avoid coupling auth secrets with analytics.
+  const secret = process.env.IP_HASH_SECRET ?? process.env.CRON_SECRET
+  if (!secret) throw new Error('IP_HASH_SECRET or CRON_SECRET must be set')
   const salt = createHash('sha256').update(`${secret}:${today}`).digest('hex')
   cachedSalt = { date: today, value: salt }
   return salt

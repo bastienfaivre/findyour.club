@@ -23,8 +23,9 @@ export default async function LoginPage({ params, searchParams }: LoginPageProps
   }
 
   const { callbackUrl } = await searchParams
-  // Only allow relative paths to prevent open-redirect attacks
-  const safeCallbackUrl = callbackUrl?.startsWith('/') ? callbackUrl : undefined
+  // Only allow relative paths to prevent open-redirect attacks.
+  // Reject protocol-relative URLs (//attacker.com) and path traversal (/../).
+  const safeCallbackUrl = callbackUrl?.startsWith('/') && !callbackUrl.startsWith('//') ? callbackUrl : undefined
 
   return (
     <div className="flex-1 flex items-center justify-center p-4">

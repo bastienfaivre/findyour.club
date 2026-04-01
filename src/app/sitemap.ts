@@ -38,7 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     clubs = await prisma.club.findMany({
-      where: { status: 'ACTIVE' },
+      where: { status: 'ACTIVE', isPublished: true, forceOffline: false },
       select: {
         slug: true,
         country: true,

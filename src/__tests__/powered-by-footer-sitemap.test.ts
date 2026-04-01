@@ -43,7 +43,7 @@ describe('Platform sitemap', () => {
     )
   })
 
-  it('excludes SUSPENDED clubs (only queries ACTIVE)', async () => {
+  it('excludes SUSPENDED, unpublished, and force-offline clubs', async () => {
     vi.mocked(prisma.club.findMany).mockResolvedValue([] as never)
 
     const sitemap = (await import('@/app/sitemap')).default
@@ -51,7 +51,7 @@ describe('Platform sitemap', () => {
 
     expect(prisma.club.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { status: 'ACTIVE' },
+        where: { status: 'ACTIVE', isPublished: true, forceOffline: false },
       })
     )
   })

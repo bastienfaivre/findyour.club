@@ -19,8 +19,13 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000
  * If lastVerifiedAt resets between day 80 and day 90, no day-90 email is sent.
  */
 export async function GET(request: Request) {
+  const cronSecret = process.env.CRON_SECRET
+  if (!cronSecret) {
+    console.error('[cron] CRON_SECRET is not set — rejecting request')
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
   const secret = request.headers.get('authorization')
-  if (secret !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (secret !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -117,10 +122,27 @@ export async function GET(request: Request) {
     }
   }
 
+  // ── PII Retention: scrub rejected applications older than 90 days ──
+  const retentionCutoff = new Date(now.getTime() - 90 * MS_PER_DAY)
+  const { count: scrubbed } = await prisma.application.updateMany({
+    where: {
+      status: 'REJECTED',
+      reviewedAt: { lt: retentionCutoff },
+      applicantFirstName: { not: '[redacted]' },
+    },
+    data: {
+      applicantFirstName: '[redacted]',
+      applicantLastName: '[redacted]',
+      applicantPhone: null,
+      email: '[redacted]@redacted.invalid',
+    },
+  })
+
   return NextResponse.json({
     reminderClubs: reminderClubs.length,
     expiredClubs: expiredClubs.length,
     emailsSent: sent,
     emailErrors: errors,
+    rejectedApplicationsScrubbed: scrubbed,
   })
 }

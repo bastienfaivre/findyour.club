@@ -38,6 +38,12 @@ export async function loginWithCredentials(input: unknown): Promise<LoginResult>
     return { success: false, error: 'Invalid email or password.', code: 'VALIDATION_ERROR' }
   }
 
+  // Per-email rate limit — prevents brute-force even if attacker spoofs x-forwarded-for
+  const emailRateLimitKey = `login:email:${parsed.data.email.toLowerCase()}`
+  if (checkRateLimit(emailRateLimitKey, { windowMs: 3_600_000, maxAttempts: 10 })) {
+    return { success: false, error: 'Too many attempts. Please wait before trying again.', code: 'RATE_LIMITED' }
+  }
+
   const user = await prisma.user.findUnique({
     where: { email: parsed.data.email },
     select: {
@@ -55,8 +61,9 @@ export async function loginWithCredentials(input: unknown): Promise<LoginResult>
     return { success: false, error: 'Invalid email or password.', code: 'INVALID_CREDENTIALS' }
   }
 
-  // Clear rate limit on successful credential verification
+  // Clear rate limits on successful credential verification
   clearRateLimit(rateLimitKey)
+  clearRateLimit(emailRateLimitKey)
 
   // Create a database session directly (same pattern as setupPassword)
   const sessionToken = randomBytes(32).toString('hex')

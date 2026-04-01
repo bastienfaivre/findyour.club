@@ -3,8 +3,8 @@ import { unzipSync, strFromU8 } from 'fflate'
 
 vi.mock('@/server/db', () => ({
   prisma: {
-    clubMembership: { findFirst: vi.fn() },
-    club: { findUnique: vi.fn() },
+    club: { findFirst: vi.fn() },
+    auditLog: { create: vi.fn().mockResolvedValue({}) },
   },
 }))
 vi.mock('@/server/auth', () => ({
@@ -16,8 +16,7 @@ import { prisma } from '@/server/db'
 import { getAuthSession } from '@/server/auth'
 
 const mockGetAuthSession = getAuthSession as ReturnType<typeof vi.fn>
-const mockFindFirst = prisma.clubMembership.findFirst as ReturnType<typeof vi.fn>
-const mockFindUnique = prisma.club.findUnique as ReturnType<typeof vi.fn>
+const mockClubFindFirst = prisma.club.findFirst as ReturnType<typeof vi.fn>
 
 // Mock global fetch for image downloads
 const mockFetch = vi.fn()
@@ -75,7 +74,7 @@ const mockClub = {
     { url: 'https://cdn.example.com/photo1.jpg', alt: 'Mountain', position: 0 },
   ],
   supportMessages: [
-    { senderRole: 'OPERATOR', body: 'Welcome!', createdAt: new Date('2026-01-02') },
+    { senderRole: 'USER', body: 'Hello!', createdAt: new Date('2026-01-02') },
   ],
 }
 
@@ -113,37 +112,20 @@ describe('GET /api/club/[clubId]/export', () => {
     expect(body.error).toBe('Unauthorized')
   })
 
-  it('returns 403 when user is not OWNER', async () => {
+  it('returns 403 when user is not OWNER or club not found', async () => {
     mockGetAuthSession.mockResolvedValue({ user: { id: 'user-1' } })
-    mockFindFirst.mockResolvedValue(null)
+    mockClubFindFirst.mockResolvedValue(null)
 
     const response = await callGET()
 
     expect(response.status).toBe(403)
     const body = await response.json()
     expect(body.error).toBe('Forbidden')
-    expect(mockFindFirst).toHaveBeenCalledWith({
-      where: { userId: 'user-1', clubId: 'club-1', status: 'ACTIVE', role: 'OWNER' },
-      select: { id: true },
-    })
-  })
-
-  it('returns 404 when club not found', async () => {
-    mockGetAuthSession.mockResolvedValue({ user: { id: 'user-1' } })
-    mockFindFirst.mockResolvedValue({ id: 'membership-1' })
-    mockFindUnique.mockResolvedValue(null)
-
-    const response = await callGET()
-
-    expect(response.status).toBe(404)
-    const body = await response.json()
-    expect(body.error).toBe('Not found')
   })
 
   it('returns 200 ZIP archive with data.json for valid owner', async () => {
     mockGetAuthSession.mockResolvedValue({ user: { id: 'user-1' } })
-    mockFindFirst.mockResolvedValue({ id: 'membership-1' })
-    mockFindUnique.mockResolvedValue(mockClub)
+    mockClubFindFirst.mockResolvedValue(mockClub)
 
     const response = await callGET()
 
@@ -155,8 +137,7 @@ describe('GET /api/club/[clubId]/export', () => {
 
   it('has Content-Disposition header with correct filename', async () => {
     mockGetAuthSession.mockResolvedValue({ user: { id: 'user-1' } })
-    mockFindFirst.mockResolvedValue({ id: 'membership-1' })
-    mockFindUnique.mockResolvedValue(mockClub)
+    mockClubFindFirst.mockResolvedValue(mockClub)
 
     const response = await callGET()
 
@@ -169,8 +150,7 @@ describe('GET /api/club/[clubId]/export', () => {
 
   it('includes club metadata, logo reference, photo references, and messages in data.json', async () => {
     mockGetAuthSession.mockResolvedValue({ user: { id: 'user-1' } })
-    mockFindFirst.mockResolvedValue({ id: 'membership-1' })
-    mockFindUnique.mockResolvedValue(mockClub)
+    mockClubFindFirst.mockResolvedValue(mockClub)
 
     const response = await callGET()
     const data = await extractData(response)
@@ -186,8 +166,8 @@ describe('GET /api/club/[clubId]/export', () => {
     ])
     expect(data.messages).toEqual([
       {
-        senderRole: 'OPERATOR',
-        body: 'Welcome!',
+        senderRole: 'USER',
+        body: 'Hello!',
         createdAt: new Date('2026-01-02').toISOString(),
       },
     ])
@@ -195,8 +175,7 @@ describe('GET /api/club/[clubId]/export', () => {
 
   it('includes actual image files in the ZIP archive', async () => {
     mockGetAuthSession.mockResolvedValue({ user: { id: 'user-1' } })
-    mockFindFirst.mockResolvedValue({ id: 'membership-1' })
-    mockFindUnique.mockResolvedValue(mockClub)
+    mockClubFindFirst.mockResolvedValue(mockClub)
 
     const response = await callGET()
     const files = await extractZip(response)
@@ -210,8 +189,7 @@ describe('GET /api/club/[clubId]/export', () => {
 
   it('handles null location gracefully', async () => {
     mockGetAuthSession.mockResolvedValue({ user: { id: 'user-1' } })
-    mockFindFirst.mockResolvedValue({ id: 'membership-1' })
-    mockFindUnique.mockResolvedValue({ ...mockClub, location: null })
+    mockClubFindFirst.mockResolvedValue({ ...mockClub, location: null })
 
     const response = await callGET()
 
@@ -223,8 +201,7 @@ describe('GET /api/club/[clubId]/export', () => {
 
   it('handles null logoUrl by setting logo to null and excluding logo file', async () => {
     mockGetAuthSession.mockResolvedValue({ user: { id: 'user-1' } })
-    mockFindFirst.mockResolvedValue({ id: 'membership-1' })
-    mockFindUnique.mockResolvedValue({ ...mockClub, logoUrl: null, logoAlt: null })
+    mockClubFindFirst.mockResolvedValue({ ...mockClub, logoUrl: null, logoAlt: null })
 
     const response = await callGET()
 

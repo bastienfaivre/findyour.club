@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { zipSync, strToU8 } from 'fflate'
 import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
+import { logAuditEvent } from '@/lib/server/audit'
 
 export async function GET(
   _request: Request,
@@ -13,18 +14,12 @@ export async function GET(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Verify the caller is an OWNER of this club
-  const membership = await prisma.clubMembership.findFirst({
-    where: { userId: session.user.id, clubId, status: 'ACTIVE', role: 'OWNER' },
-    select: { id: true },
-  })
-  if (!membership) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
-
-  // Fetch all club data
-  const club = await prisma.club.findUnique({
-    where: { id: clubId },
+  // Atomic membership check + data fetch to prevent TOCTOU race condition
+  const club = await prisma.club.findFirst({
+    where: {
+      id: clubId,
+      memberships: { some: { userId: session.user.id, status: 'ACTIVE', role: 'OWNER' } },
+    },
     select: {
       name: true,
       slug: true,
@@ -67,14 +62,17 @@ export async function GET(
         orderBy: { position: 'asc' },
       },
       supportMessages: {
+        where: { senderRole: { not: 'OPERATOR' } },
         select: { senderRole: true, body: true, createdAt: true },
         orderBy: { createdAt: 'asc' },
       },
     },
   })
   if (!club) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
+
+  logAuditEvent({ actorId: session.user.id, action: 'CLUB_EXPORT', targetId: clubId })
 
   // Download images in parallel
   const imageDownloads: { url: string; baseName: string }[] = []
@@ -89,7 +87,7 @@ export async function GET(
 
   const imageResults = await Promise.allSettled(
     imageDownloads.map(async ({ url, baseName }) => {
-      const res = await fetch(url)
+      const res = await fetch(url, { signal: AbortSignal.timeout(10_000) })
       if (!res.ok) return null
       const contentType = res.headers.get('Content-Type') ?? ''
       const ext = mimeToExt(contentType) ?? extFromUrl(url)

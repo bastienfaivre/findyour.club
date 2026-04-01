@@ -71,7 +71,7 @@ export async function GET(
   let logoData: { bytes: Uint8Array; format: 'PNG' | 'JPEG'; width: number; height: number } | null = null
   if (club.logoUrl) {
     try {
-      const logoRes = await fetch(club.logoUrl)
+      const logoRes = await fetch(club.logoUrl, { signal: AbortSignal.timeout(10_000) })
       if (logoRes.ok) {
         const contentLength = Number(logoRes.headers.get('content-length') || '0')
         if (contentLength > MAX_LOGO_BYTES) throw new Error('Logo too large')
