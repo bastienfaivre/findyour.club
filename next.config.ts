@@ -1,5 +1,15 @@
 import type { NextConfig } from 'next'
 
+// R2/MinIO origin needed for CSP (image display + presigned uploads)
+const r2Origin = process.env.R2_PUBLIC_URL
+  ? new URL(process.env.R2_PUBLIC_URL).origin
+  : undefined
+const r2Endpoint = process.env.R2_ENDPOINT
+  ? new URL(process.env.R2_ENDPOINT).origin
+  : undefined
+// Deduplicate — in dev both may point to localhost:9000
+const storageOrigins = [...new Set([r2Origin, r2Endpoint].filter(Boolean))].join(' ')
+
 const nextConfig: NextConfig = {
   output: 'standalone',
   images: {
@@ -36,9 +46,9 @@ const nextConfig: NextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https:",
+              `img-src 'self' data: blob: https: ${storageOrigins}`.trim(),
               "font-src 'self'",
-              "connect-src 'self' https://api.pwnedpasswords.com https://challenges.cloudflare.com https://map.geo.admin.ch",
+              `connect-src 'self' https://api.pwnedpasswords.com https://challenges.cloudflare.com https://map.geo.admin.ch ${storageOrigins}`.trim(),
               "frame-src https://challenges.cloudflare.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",
