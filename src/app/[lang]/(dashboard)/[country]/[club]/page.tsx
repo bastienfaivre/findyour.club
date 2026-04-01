@@ -176,6 +176,7 @@ export default async function ClubPage({ params }: Props) {
           telegramUrl: club.telegramUrl,
           githubUrl: club.githubUrl,
           photos: club.photos,
+          activityTypeLabel: activityTypeLabel,
         }}
         translations={{
           description: t.clubSite.description,

@@ -6,10 +6,10 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 
 export const metadata: Metadata = {
   title: {
-    default: 'findyour.club — Find your club',
+    default: 'findyour.club',
     template: '%s — findyour.club',
   },
-  description: 'Find your club — the open directory for sports clubs. Browse by activity, region, and discover how to join.',
+  description: 'findyour.club — the open directory for sports clubs. Browse by activity, region, and discover how to join.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
   icons: {
     icon: [

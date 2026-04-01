@@ -322,7 +322,7 @@ export function generatePlatformOrgJsonLd(): Record<string, unknown> {
     '@type': 'Organization',
     name: 'findyour.club',
     url: BASE_URL,
-    description: 'Find your club — the open directory for sports clubs.',
+    description: 'findyour.club — the open directory for sports clubs.',
   }
 }
 

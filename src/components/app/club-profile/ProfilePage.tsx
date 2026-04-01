@@ -9,6 +9,7 @@ type ProfilePageProps = {
     name: string
     logoUrl: string | null
     logoAlt: string | null
+    activityTypeLabel?: string | null
     description: string | null
     schedule: string | null
     howToJoin: string | null
@@ -41,6 +42,7 @@ export function ProfilePage({ club, translations }: ProfilePageProps) {
           name: club.name,
           logoUrl: club.logoUrl,
           logoAlt: club.logoAlt,
+          activityTypeLabel: club.activityTypeLabel,
         }}
       />
 

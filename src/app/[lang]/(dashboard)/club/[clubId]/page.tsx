@@ -21,6 +21,7 @@ export default async function ClubAdminPage({ params }: ClubAdminPageProps) {
     select: {
       name: true,
       email: true,
+      activityType: true,
       description: true,
       schedule: true,
       howToJoin: true,
@@ -64,6 +65,7 @@ export default async function ClubAdminPage({ params }: ClubAdminPageProps) {
     <ClubProfileForm
       clubId={clubId}
       translations={t.club.admin}
+      activityTypeLabel={club.activityType ? (t.activityTypes[club.activityType] ?? club.activityType) : null}
       maxPhotos={maxPhotos}
       maxImageSizeBytes={maxImageSizeBytes}
       clubSiteTranslations={{

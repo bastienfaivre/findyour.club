@@ -93,13 +93,14 @@ interface ClubProfileFormProps {
     photos: string
   }
   initialData: ClubProfileData
+  activityTypeLabel?: string | null
   maxPhotos: number
   maxImageSizeBytes: number
   lastVerifiedAt: Date | null
   confirmAction: (clubId: string) => Promise<{ success: boolean; data?: { verifiedAt: string }; error?: string }>
 }
 
-export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations: cs, initialData, maxPhotos, maxImageSizeBytes, lastVerifiedAt, confirmAction }: ClubProfileFormProps) {
+export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations: cs, initialData, activityTypeLabel, maxPhotos, maxImageSizeBytes, lastVerifiedAt, confirmAction }: ClubProfileFormProps) {
   const [isPending, startTransition] = useTransition()
   const [isConfirming, startConfirmTransition] = useTransition()
   const { setIsDirty } = useAdminDirty()
@@ -205,6 +206,7 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
       formValues={watchedValues}
       logoUrl={initialData.logoUrl}
       logoAlt={initialData.logoAlt}
+      activityTypeLabel={activityTypeLabel}
       photos={initialData.photos}
       translations={{
         description: cs.description,
