@@ -1,16 +1,5 @@
 import type { NextConfig } from 'next'
 
-/**
- * Compute R2/MinIO origins for CSP at request time (not build time)
- * so that runtime env vars in standalone mode are picked up.
- */
-function getStorageOrigins(): string {
-  const origins = new Set<string>()
-  try { if (process.env.R2_PUBLIC_URL) origins.add(new URL(process.env.R2_PUBLIC_URL).origin) } catch { /* ignore */ }
-  try { if (process.env.R2_ENDPOINT) origins.add(new URL(process.env.R2_ENDPOINT).origin) } catch { /* ignore */ }
-  return [...origins].join(' ')
-}
-
 const nextConfig: NextConfig = {
   output: 'standalone',
   images: {
@@ -31,8 +20,6 @@ const nextConfig: NextConfig = {
     dangerouslyAllowLocalIP: true,
   },
   async headers() {
-    const storageOrigins = getStorageOrigins()
-
     return [
       {
         source: '/(.*)',
@@ -43,21 +30,7 @@ const nextConfig: NextConfig = {
           { key: 'X-DNS-Prefetch-Control', value: 'on' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
           { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
-          {
-            key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com",
-              "style-src 'self' 'unsafe-inline'",
-              `img-src 'self' data: blob: https: ${storageOrigins}`.trim(),
-              "font-src 'self'",
-              `connect-src 'self' https://api.pwnedpasswords.com https://challenges.cloudflare.com https://map.geo.admin.ch ${storageOrigins}`.trim(),
-              "frame-src https://challenges.cloudflare.com",
-              "frame-ancestors 'none'",
-              "base-uri 'self'",
-              "form-action 'self'",
-            ].join('; '),
-          },
+          // CSP is set dynamically in middleware.ts to include runtime R2 origins
         ],
       },
     ]

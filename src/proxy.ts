@@ -5,6 +5,32 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { isSupportedLanguage, resolveUILang } from '@/lib/i18n'
 
+function getStorageOrigins(): string {
+  const origins = new Set<string>()
+  try { if (process.env.R2_PUBLIC_URL) origins.add(new URL(process.env.R2_PUBLIC_URL).origin) } catch { /* ignore */ }
+  try { if (process.env.R2_ENDPOINT) origins.add(new URL(process.env.R2_ENDPOINT).origin) } catch { /* ignore */ }
+  return [...origins].join(' ')
+}
+
+function setCspHeaders(response: NextResponse) {
+  const storageOrigins = getStorageOrigins()
+  response.headers.set(
+    'Content-Security-Policy',
+    [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com",
+      "style-src 'self' 'unsafe-inline'",
+      `img-src 'self' data: blob: https: ${storageOrigins}`.trim(),
+      "font-src 'self'",
+      `connect-src 'self' https://api.pwnedpasswords.com https://challenges.cloudflare.com https://map.geo.admin.ch ${storageOrigins}`.trim(),
+      "frame-src https://challenges.cloudflare.com",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join('; '),
+  )
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const segments = pathname.split('/').filter(Boolean)
@@ -17,6 +43,7 @@ export function proxy(request: NextRequest) {
     response.cookies.set('platform_lang', firstSegment, {
       path: '/', maxAge: 60 * 60 * 24 * 365, sameSite: 'lax', secure: isProduction,
     })
+    setCspHeaders(response)
     return response
   }
 
@@ -29,7 +56,9 @@ export function proxy(request: NextRequest) {
   const lang = resolveUILang(preferred)
   const url = request.nextUrl.clone()
   url.pathname = `/${lang}${pathname}`
-  return NextResponse.redirect(url)
+  const response = NextResponse.redirect(url)
+  setCspHeaders(response)
+  return response
 }
 
 export const config = {
