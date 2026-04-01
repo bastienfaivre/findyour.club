@@ -247,7 +247,7 @@ describe('generateClubMetadata', () => {
       lang: 'fr',
       activityTypeLabel: 'Skiing',
     })
-    expect(metadata.title).toBe('Ski Club Valais — findyour.club')
+    expect(metadata.title).toBe('Ski Club Valais')
     expect(metadata.description).toBe('Welcome to our ski club!')
     expect(metadata.robots).toBe('index, follow')
     expect(metadata.alternates?.canonical).toContain('/fr/ch/ski-club-valais')
@@ -262,7 +262,7 @@ describe('generateClubMetadata', () => {
       country: 'ch',
       lang: 'en',
     })
-    expect(metadata.title).toBe('Test Club — findyour.club')
+    expect(metadata.title).toBe('Test Club')
   })
 
   it('truncates long descriptions to 160 chars', () => {
