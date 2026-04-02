@@ -41,13 +41,13 @@ export function ClubCard({
     <Link
       href={`/${lang}/${country}/${slug}`}
       aria-label={ariaLabel}
-      className="group/card flex items-center gap-4 overflow-hidden rounded-xl border p-3 text-card-foreground transition-all hover:border-muted-foreground hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      className="flex items-center gap-4 overflow-hidden rounded-xl border p-3 text-card-foreground transition-all hover:border-muted-foreground hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
       <ClubAvatar name={name} logoUrl={logoUrl} logoAlt={logoAlt} size="lg" className="size-14 shrink-0" />
       <div className="flex flex-col gap-1 min-w-0 flex-1">
         <span className="font-semibold truncate leading-tight">{name}</span>
         <div className="flex items-center gap-1.5">
-          {activityType && <Badge variant="secondary" className="text-xs group-hover/card:bg-muted-foreground/20">{activityType}</Badge>}
+          {activityType && <Badge variant="secondary" className="text-xs">{activityType}</Badge>}
           {freshnessLabels && (
             <FreshnessBadge className="ml-auto"
               lastVerifiedAt={lastVerifiedAt ?? null}
