@@ -3,6 +3,7 @@ import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { prisma } from '@/server/db'
 import { getNumberSetting } from '@/lib/server/platform-settings'
+import { getCountryName } from '@/lib/country'
 import { ClubProfileForm } from '@/components/app/club-admin/ClubProfileForm'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 import { confirmClubData } from './actions'
@@ -39,7 +40,18 @@ export default async function ClubAdminPage({ params }: ClubAdminPageProps) {
       githubUrl: true,
       logoUrl: true,
       logoAlt: true,
+      country: true,
       lastVerifiedAt: true,
+      location: {
+        select: {
+          swissLocation: {
+            select: {
+              cantonCode: true,
+              translations: { select: { language: true, name: true } },
+            },
+          },
+        },
+      },
       photos: {
         orderBy: { position: 'asc' },
         select: {
@@ -52,6 +64,13 @@ export default async function ClubAdminPage({ params }: ClubAdminPageProps) {
     },
   })
   if (!club) notFound()
+
+  const countryName = getCountryName(club.country as import('@/lib/country').Country, uiLang)
+  const locationName =
+    club.location?.swissLocation?.translations?.find((tr) => tr.language === uiLang)?.name
+    ?? club.location?.swissLocation?.translations?.[0]?.name
+    ?? null
+  const cantonCode = club.location?.swissLocation?.cantonCode ?? null
 
   const [maxPhotos, maxImageSizeMb] = await Promise.all([
     getNumberSetting('limit.max_photos_per_club'),
@@ -66,6 +85,10 @@ export default async function ClubAdminPage({ params }: ClubAdminPageProps) {
       clubId={clubId}
       translations={t.club.admin}
       activityTypeLabel={club.activityType ? (t.activityTypes[club.activityType] ?? club.activityType) : null}
+      country={club.country}
+      countryName={countryName}
+      cantonCode={cantonCode}
+      locationName={locationName}
       maxPhotos={maxPhotos}
       maxImageSizeBytes={maxImageSizeBytes}
       clubSiteTranslations={{

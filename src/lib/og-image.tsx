@@ -120,11 +120,17 @@ export function generateClubOgImage({
   clubName,
   activityType,
   location,
+  logoUrl,
+  faviconDataUrl,
 }: {
   clubName: string
   activityType?: string | null
   location?: string | null
+  logoUrl?: string | null
+  faviconDataUrl?: string | null
 }) {
+  const logoSrc = logoUrl || faviconDataUrl
+
   return new ImageResponse(
     (
       <div
@@ -169,49 +175,66 @@ export function generateClubOgImage({
           </div>
         </div>
 
-        {/* Center: club info */}
+        {/* Center: logo + club info */}
         <div
           style={{
             display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
+            alignItems: 'center',
+            gap: '40px',
             flex: 1,
-            justifyContent: 'center',
           }}
         >
+          {logoSrc && (
+            // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
+            <img
+              src={logoSrc}
+              width={160}
+              height={160}
+              style={{ borderRadius: '20px', objectFit: 'contain', flexShrink: 0 }}
+            />
+          )}
           <div
             style={{
-              fontSize: 64,
-              fontWeight: 700,
-              lineHeight: 1.1,
-              letterSpacing: '-0.03em',
-              maxWidth: '1000px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+              justifyContent: 'center',
             }}
           >
-            {clubName}
-          </div>
-          <div
-            style={{
-              fontSize: 28,
-              color: '#71717a',
-            }}
-          >
-            is on findyour.club
-          </div>
-          {(activityType || location) && (
             <div
               style={{
-                display: 'flex',
-                gap: '24px',
-                fontSize: 24,
-                color: '#52525b',
+                fontSize: 64,
+                fontWeight: 700,
+                lineHeight: 1.1,
+                letterSpacing: '-0.03em',
+                maxWidth: '800px',
               }}
             >
-              {activityType && <span>{activityType}</span>}
-              {activityType && location && <span style={{ color: '#3f3f46' }}>·</span>}
-              {location && <span>{location}</span>}
+              {clubName}
             </div>
-          )}
+            <div
+              style={{
+                fontSize: 28,
+                color: '#71717a',
+              }}
+            >
+              is on findyour.club
+            </div>
+            {(activityType || location) && (
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '24px',
+                  fontSize: 24,
+                  color: '#52525b',
+                }}
+              >
+                {activityType && <span>{activityType}</span>}
+                {activityType && location && <span style={{ color: '#3f3f46' }}>·</span>}
+                {location && <span>{location}</span>}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Bottom: accent line */}

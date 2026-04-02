@@ -9,6 +9,10 @@ interface ProfilePreviewProps {
   logoUrl: string | null
   logoAlt: string | null
   activityTypeLabel?: string | null
+  country?: string | null
+  countryName?: string | null
+  cantonCode?: string | null
+  locationName?: string | null
   photos: ClubPhoto[]
   translations: {
     description: string
@@ -27,7 +31,7 @@ interface ProfilePreviewProps {
   }
 }
 
-export function ProfilePreview({ formValues, logoUrl, logoAlt, activityTypeLabel, photos, translations: t }: ProfilePreviewProps) {
+export function ProfilePreview({ formValues, logoUrl, logoAlt, activityTypeLabel, country, countryName, cantonCode, locationName, photos, translations: t }: ProfilePreviewProps) {
   return (
     <div className="flex flex-col h-full min-h-0">
       <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">{t.preview}</p>
@@ -43,6 +47,10 @@ export function ProfilePreview({ formValues, logoUrl, logoAlt, activityTypeLabel
             howToJoin: formValues.howToJoin || null,
             email: formValues.email,
             activityTypeLabel,
+            country,
+            countryName,
+            cantonCode,
+            locationName,
             photos,
           }}
           translations={{
