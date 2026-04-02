@@ -117,13 +117,10 @@ export function generateStaticOgImage({
  * Shows club name, activity type, location, and platform branding.
  */
 export function generateClubOgImage({
-  clubName,
-  activityType,
-  location,
   logoUrl,
   faviconDataUrl,
 }: {
-  clubName: string
+  clubName?: string
   activityType?: string | null
   location?: string | null
   logoUrl?: string | null
@@ -138,115 +135,20 @@ export function generateClubOgImage({
           width: '100%',
           height: '100%',
           display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          backgroundColor: '#09090b',
-          color: '#fafafa',
-          fontFamily: 'sans-serif',
-          padding: '60px 80px',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#ffffff',
         }}
       >
-        {/* Top: platform name */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-          }}
-        >
-          <div
-            style={{
-              width: '8px',
-              height: '32px',
-              borderRadius: '4px',
-              backgroundColor: '#a1a1aa',
-              display: 'flex',
-            }}
+        {logoSrc && (
+          // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
+          <img
+            src={logoSrc}
+            width={400}
+            height={400}
+            style={{ objectFit: 'contain' }}
           />
-          <div
-            style={{
-              fontSize: 30,
-              fontWeight: 600,
-              letterSpacing: '-0.02em',
-              color: '#a1a1aa',
-            }}
-          >
-            findyour.club
-          </div>
-        </div>
-
-        {/* Center: logo + club info */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '40px',
-            flex: 1,
-          }}
-        >
-          {logoSrc && (
-            // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
-            <img
-              src={logoSrc}
-              width={160}
-              height={160}
-              style={{ borderRadius: '20px', objectFit: 'contain', flexShrink: 0 }}
-            />
-          )}
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
-              justifyContent: 'center',
-            }}
-          >
-            <div
-              style={{
-                fontSize: 64,
-                fontWeight: 700,
-                lineHeight: 1.1,
-                letterSpacing: '-0.03em',
-                maxWidth: '800px',
-              }}
-            >
-              {clubName}
-            </div>
-            <div
-              style={{
-                fontSize: 28,
-                color: '#71717a',
-              }}
-            >
-              is on findyour.club
-            </div>
-            {(activityType || location) && (
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '24px',
-                  fontSize: 24,
-                  color: '#52525b',
-                }}
-              >
-                {activityType && <span>{activityType}</span>}
-                {activityType && location && <span style={{ color: '#3f3f46' }}>·</span>}
-                {location && <span>{location}</span>}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Bottom: accent line */}
-        <div
-          style={{
-            width: '120px',
-            height: '4px',
-            borderRadius: '2px',
-            backgroundColor: '#27272a',
-            display: 'flex',
-          }}
-        />
+        )}
       </div>
     ),
     OG_SIZE,
