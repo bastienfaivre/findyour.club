@@ -277,7 +277,7 @@ describe('generateClubMetadata', () => {
     expect(metadata.description!.length).toBeLessThanOrEqual(160)
   })
 
-  it('includes OpenGraph images when logoUrl is provided', () => {
+  it('does not override og:image — opengraph-image.tsx handles it', () => {
     const metadata = generateClubMetadata({
       clubName: 'Test',
       clubDescription: 'Hello',
@@ -286,7 +286,7 @@ describe('generateClubMetadata', () => {
       country: 'ch',
       lang: 'en',
     })
-    expect(metadata.openGraph).toHaveProperty('images')
+    expect(metadata.openGraph).not.toHaveProperty('images')
   })
 })
 
