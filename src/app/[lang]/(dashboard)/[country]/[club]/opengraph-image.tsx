@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import sharp from 'sharp'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { isValidCountry } from '@/lib/country'
@@ -51,11 +52,30 @@ export default async function Image({
 
   const faviconDataUrl = await getFaviconDataUrl()
 
+  // Fetch logo and convert to a PNG data URL for Satori (next/og).
+  // SVGs are rasterized via sharp since Satori can't render SVG <img> sources.
+  let logoDataUrl: string | null = null
+  if (club.logoUrl) {
+    try {
+      const res = await fetch(club.logoUrl, { signal: AbortSignal.timeout(5_000) })
+      if (res.ok) {
+        let pngBuf: Buffer
+        const raw = Buffer.from(await res.arrayBuffer())
+        if (club.logoUrl.endsWith('.svg')) {
+          pngBuf = await sharp(raw).resize(320, 320, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } }).png().toBuffer()
+        } else {
+          pngBuf = raw
+        }
+        logoDataUrl = `data:image/png;base64,${pngBuf.toString('base64')}`
+      }
+    } catch { /* fall back to favicon */ }
+  }
+
   return generateClubOgImage({
     clubName: club.name,
     activityType: activityTypeLabel,
     location: locationName,
-    logoUrl: club.logoUrl,
+    logoUrl: logoDataUrl,
     faviconDataUrl,
   })
 }
