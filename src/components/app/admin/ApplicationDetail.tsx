@@ -22,7 +22,6 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { PhoneInput } from '@/components/ui/phone-input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import {
   Select,
@@ -200,16 +199,17 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
   }
 
   const formBlock = (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Read-only metadata */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="rounded-xl border p-4">
         <span className="text-sm text-muted-foreground">{ta.submittedAt}: {submittedDate}</span>
       </div>
 
       {/* Editable fields */}
       <fieldset disabled={isPending} className="space-y-4">
         {/* Applicant section */}
-        <h3 className="text-base font-semibold">{ta.applicantSection}</h3>
+        <div className="rounded-xl border p-4 space-y-4">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{ta.applicantSection}</h3>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -268,10 +268,11 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
           )}
         </div>
 
-        <Separator />
+        </div>
 
         {/* Club Information section */}
-        <h3 className="text-base font-semibold">{ta.clubSection}</h3>
+        <div className="rounded-xl border p-4 space-y-4">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{ta.clubSection}</h3>
 
         <div className="space-y-2">
           <Label htmlFor="app-name">{ta.name} <span className="text-destructive">*</span></Label>
@@ -390,20 +391,17 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
           )}
         />
 
+        </div>
       </fieldset>
 
-      <Separator />
-
       {/* URL Slug — operator-defined */}
-      <div className="space-y-2">
+      <div className="rounded-xl border p-4 space-y-2">
         <Label htmlFor="app-slug">{ta.desiredSlug} <span className="text-destructive">*</span></Label>
         <p className="text-sm text-muted-foreground">{ta.desiredSlugHint}</p>
         <Input id="app-slug" value={fields.desiredSlug} onChange={(e) => updateField('desiredSlug', e.target.value)} maxLength={60} disabled={isPending} />
       </div>
 
-      <Separator />
-
-      <div className="space-y-2">
+      <div className="rounded-xl border p-4 space-y-2">
         <Label htmlFor="app-message">{ta.operatorMessage.label}</Label>
         <Textarea
           id="app-message"
@@ -417,7 +415,7 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
       </div>
 
       {/* Action buttons */}
-      <div className="flex gap-3">
+      <div className="rounded-xl border p-4 flex gap-3">
         <Button variant="outline" onClick={handleSave} disabled={isPending}>
           {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           {ta.saveChanges}
@@ -483,16 +481,18 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
 
   return (
     <Tabs defaultValue="edit" className="flex flex-col h-full min-h-0">
-      <TabsList className="mb-4">
-        <TabsTrigger value="edit">
-          <Pencil />
-          {ta.editTab}
-        </TabsTrigger>
-        <TabsTrigger value="preview">
-          <Eye />
-          {ta.previewTab}
-        </TabsTrigger>
-      </TabsList>
+      <div className="rounded-xl border p-4">
+        <TabsList>
+          <TabsTrigger value="edit">
+            <Pencil />
+            {ta.editTab}
+          </TabsTrigger>
+          <TabsTrigger value="preview">
+            <Eye />
+            {ta.previewTab}
+          </TabsTrigger>
+        </TabsList>
+      </div>
       <TabsContent value="edit" className="flex-1 min-h-0 overflow-y-auto">
         {formBlock}
       </TabsContent>

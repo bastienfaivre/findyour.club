@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import { FadeImage } from '@/components/app/FadeImage'
 import { toast } from 'sonner'
 import { X, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -132,7 +132,7 @@ export function PhotoGallery({ clubId, clubName, photos, maxPhotos, maxImageSize
               const isMain = index === 0
               return (
                 <div key={photo.id} className={`group relative h-28 sm:h-36 shrink-0 overflow-hidden ${isMain ? 'ring-2 ring-primary' : ''}`}>
-                  <Image
+                  <FadeImage
                     src={photo.url}
                     alt={photo.alt}
                     width={320}

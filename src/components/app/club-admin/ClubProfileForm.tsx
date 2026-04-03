@@ -12,8 +12,8 @@ import { useAutosave } from '@/hooks/use-autosave'
 import { SaveBar } from './SaveBar'
 import { UnsavedChangesDialog } from './UnsavedChangesDialog'
 import { LogoUpload, type LogoActions } from './LogoUpload'
-import { uploadLogo, persistLogo, deleteLogo, updateLogoAlt } from '@/app/[lang]/(dashboard)/club/[clubId]/actions'
-import { PhotoGallery } from './PhotoGallery'
+import { uploadLogo, persistLogo, deleteLogo } from '@/app/[lang]/(dashboard)/club/[clubId]/actions'
+// import { PhotoGallery } from './PhotoGallery' // photos disabled temporarily
 import { ProfilePreview } from './ProfilePreview'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -104,7 +104,7 @@ interface ClubProfileFormProps {
   confirmAction: (clubId: string) => Promise<{ success: boolean; data?: { verifiedAt: string }; error?: string }>
 }
 
-export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations: cs, initialData, activityTypeLabel, country, countryName, cantonCode, locationName, maxPhotos, maxImageSizeBytes, lastVerifiedAt, confirmAction }: ClubProfileFormProps) {
+export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations: cs, initialData, activityTypeLabel, country, countryName, cantonCode, locationName, maxPhotos: _maxPhotos, maxImageSizeBytes, lastVerifiedAt, confirmAction }: ClubProfileFormProps) {
   const [isPending, startTransition] = useTransition()
   const [isConfirming, startConfirmTransition] = useTransition()
   const { setIsDirty } = useAdminDirty()
@@ -114,7 +114,6 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
     upload: uploadLogo,
     persist: persistLogo,
     remove: deleteLogo,
-    updateAlt: updateLogoAlt,
   }
 
   const form = useForm<ClubProfileSaveInput>({
@@ -215,7 +214,7 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
       countryName={countryName}
       cantonCode={cantonCode}
       locationName={locationName}
-      photos={initialData.photos}
+      photos={[] /* photos disabled temporarily */}
       translations={{
         description: cs.description,
         schedule: cs.schedule,
@@ -240,7 +239,7 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
     about: !!watchedValues.description && !!watchedValues.schedule && !!watchedValues.howToJoin,
     contact: !!watchedValues.email,
     social: !!(watchedValues.instagramUrl || watchedValues.facebookUrl || watchedValues.xUrl || watchedValues.tiktokUrl || watchedValues.discordUrl || watchedValues.youtubeUrl || watchedValues.whatsappUrl || watchedValues.telegramUrl || watchedValues.githubUrl),
-    media: !!(initialData.logoUrl || initialData.photos.length > 0),
+    media: !!initialData.logoUrl, // photos disabled temporarily
   }
   const filledCount = Object.values(sectionsFilled).filter(Boolean).length
   const totalCount = Object.keys(sectionsFilled).length
@@ -250,7 +249,7 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
       <WelcomeBanner clubId={clubId} translations={t.welcome} />
 
       {draft && (
-        <div className="mb-6 flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950/30">
+        <div className="mb-4 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
           <RotateCcw className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
           <p className="flex-1 text-sm text-amber-800 dark:text-amber-300">{t.save.draftFound}</p>
           <Button
@@ -278,13 +277,13 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
       )}
 
       {lastVerifiedAt && (
-        <div className="mb-6">
+        <div className="mb-4">
           <VerificationCountdown lastVerifiedAt={lastVerifiedAt} t={t.settings.verification.countdown} />
         </div>
       )}
 
       {/* Completeness indicator */}
-      <div className="mb-6 flex items-center gap-3">
+      <div className="mb-4 rounded-xl border p-4 flex items-center gap-3">
         <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
           <div
             className="h-full rounded-full bg-green-500 transition-all duration-300"
@@ -296,7 +295,7 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
         </span>
       </div>
 
-      <fieldset disabled={isPending} className="space-y-6">
+      <fieldset disabled={isPending} className="space-y-4">
 
         {/* Section: Identity — Logo & Name */}
         <FormSection title={p.sections.identity} filled={sectionsFilled.identity}>
@@ -485,6 +484,7 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
         <FormSection title={p.sections.media} filled={sectionsFilled.media}>
           <LogoUpload
             clubId={clubId}
+            clubName={initialData.name}
             logoUrl={initialData.logoUrl}
             logoAlt={initialData.logoAlt}
             maxImageSizeBytes={maxImageSizeBytes}
@@ -492,6 +492,7 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
             actions={logoActions}
           />
 
+          {/* TODO: re-enable when photo feature is ready
           <PhotoGallery
             clubId={clubId}
             clubName={initialData.name}
@@ -500,6 +501,7 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
             maxImageSizeBytes={maxImageSizeBytes}
             translations={p.photos}
           />
+          */}
         </FormSection>
 
       </fieldset>
@@ -528,18 +530,20 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
       <AdminPageTitle title={p.title} />
       {/* Narrow container: tabbed with shadcn Tabs */}
       <Tabs defaultValue="edit" className="flex flex-col flex-1 min-h-0 @[74rem]:hidden">
-        <TabsList className="mb-4">
-          <TabsTrigger value="edit">
-            <Pencil />
-            {p.editTab}
-          </TabsTrigger>
-          <TabsTrigger value="preview">
-            <Eye />
-            {p.preview}
-          </TabsTrigger>
-        </TabsList>
+        <div className="rounded-xl border p-4">
+          <TabsList>
+            <TabsTrigger value="edit">
+              <Pencil />
+              {p.editTab}
+            </TabsTrigger>
+            <TabsTrigger value="preview">
+              <Eye />
+              {p.preview}
+            </TabsTrigger>
+          </TabsList>
+        </div>
         <TabsContent value="edit" className="overflow-y-auto">
-          <div className="w-full max-w-xl min-w-0">{formBlock}</div>
+          <div className="w-full max-w-2xl min-w-0">{formBlock}</div>
         </TabsContent>
         <TabsContent value="preview" className="overflow-y-auto">
           <div className="w-full">{previewBlock}</div>
@@ -547,8 +551,8 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
       </Tabs>
 
       {/* Wide container: side-by-side */}
-      <div className="hidden @[74rem]:flex gap-8 flex-1 min-h-0">
-        <div className="w-full max-w-xl min-w-0 overflow-y-auto">
+      <div className="hidden @[74rem]:flex gap-4 flex-1 min-h-0">
+        <div className="w-full max-w-2xl min-w-0 overflow-y-auto">
           {formBlock}
         </div>
         <div className="flex-1 min-w-0 overflow-y-auto">

@@ -19,9 +19,8 @@ export default async function AdminSettingsPage({ params }: AdminSettingsPagePro
   const { booleans, numbers, strings } = await getAllSettings()
 
   return (
-    <div>
+    <div className="w-full mx-auto max-w-2xl space-y-4">
       <AdminPageTitle title={s.title} />
-      <div className="max-w-2xl space-y-10">
 
         {/* ── Platform Controls ── */}
         <SettingsSection title={s.platformControls} description={s.platformControlsDescription}>
@@ -206,14 +205,13 @@ export default async function AdminSettingsPage({ params }: AdminSettingsPagePro
             />
           </div>
         </SettingsSection>
-      </div>
     </div>
   )
 }
 
 function SettingsSection({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-4">
+    <section className="rounded-xl border p-4 space-y-4">
       <div>
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{title}</h2>
         <p className="mt-1 text-sm text-muted-foreground">{description}</p>

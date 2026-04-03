@@ -104,14 +104,16 @@ export default async function InnerPage({ params }: Props) {
 
   return (
     <div
-      className="py-8 sm:py-16 lg:py-24"
+      className="w-full mx-auto max-w-3xl space-y-4"
       style={{
         '--primary': accentColor.primary,
         '--primary-foreground': accentColor.primaryForeground,
       } as React.CSSProperties}
     >
       <AdminPageTitle title={`${club.name} — ${page.label}`} backHref={`/${lang}/${country}/${parentSlug}`} />
-      <h1 className="text-2xl font-bold mb-6">{page.label}</h1>
+      <div className="rounded-xl border p-4">
+        <h1 className="text-2xl font-bold">{page.label}</h1>
+      </div>
       {page.elements.length > 0 ? (
         <div className="flex flex-col gap-4">
           {page.elements.map(element => (

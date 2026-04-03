@@ -3,7 +3,6 @@ import { getTranslations } from '@/lib/i18n/translations'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 import { prisma } from '@/server/db'
 import { Eye, Users, Building2, ClipboardList } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
 import { loadClubViews } from './actions'
 import { ClubViewsList } from './club-views-list'
 
@@ -80,72 +79,68 @@ export default async function AdminStatsPage({ params }: AdminStatsPageProps) {
   ])
 
   return (
-    <div>
+    <div className="w-full mx-auto max-w-2xl space-y-4">
       <AdminPageTitle title={s.title} />
-      <div className="max-w-xl space-y-10">
 
-        {/* Overview */}
-        <StatsSection title={s.overview} description={s.description}>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            <StatCard icon={<Building2 className="h-4 w-4" />} label={s.totalClubs} value={overview.totalClubs} />
-            <StatCard icon={<Building2 className="h-4 w-4" />} label={s.publishedClubs} value={overview.publishedClubs} />
-            <StatCard icon={<Users className="h-4 w-4" />} label={s.totalUsers} value={overview.totalUsers} />
-            <StatCard icon={<ClipboardList className="h-4 w-4" />} label={s.totalApplications} value={overview.totalApplications} />
-            <StatCard icon={<ClipboardList className="h-4 w-4" />} label={s.pendingApplications} value={overview.pendingApplications} />
-          </div>
-        </StatsSection>
+      {/* Overview */}
+      <div className="rounded-xl border p-4 space-y-4">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{s.overview}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{s.description}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <StatCard icon={<Building2 className="h-4 w-4" />} label={s.totalClubs} value={overview.totalClubs} />
+          <StatCard icon={<Building2 className="h-4 w-4" />} label={s.publishedClubs} value={overview.publishedClubs} />
+          <StatCard icon={<Users className="h-4 w-4" />} label={s.totalUsers} value={overview.totalUsers} />
+          <StatCard icon={<ClipboardList className="h-4 w-4" />} label={s.totalApplications} value={overview.totalApplications} />
+          <StatCard icon={<ClipboardList className="h-4 w-4" />} label={s.pendingApplications} value={overview.pendingApplications} />
+        </div>
+      </div>
 
-        {/* Page Views */}
-        <StatsSection title={s.pageViews} description={s.pageViewsDescription}>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            <StatCard icon={<Eye className="h-4 w-4" />} label={s.last7Days} value={pageViews.last7} sub={`${pageViews.unique7} ${s.uniqueVisitors.toLowerCase()}`} />
-            <StatCard icon={<Eye className="h-4 w-4" />} label={s.last30Days} value={pageViews.last30} sub={`${pageViews.unique30} ${s.uniqueVisitors.toLowerCase()}`} />
-            <StatCard icon={<Eye className="h-4 w-4" />} label={s.allTime} value={pageViews.allTime} />
-          </div>
-        </StatsSection>
+      {/* Page Views */}
+      <div className="rounded-xl border p-4 space-y-4">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{s.pageViews}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{s.pageViewsDescription}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <StatCard icon={<Eye className="h-4 w-4" />} label={s.last7Days} value={pageViews.last7} sub={`${pageViews.unique7} ${s.uniqueVisitors.toLowerCase()}`} />
+          <StatCard icon={<Eye className="h-4 w-4" />} label={s.last30Days} value={pageViews.last30} sub={`${pageViews.unique30} ${s.uniqueVisitors.toLowerCase()}`} />
+          <StatCard icon={<Eye className="h-4 w-4" />} label={s.allTime} value={pageViews.allTime} />
+        </div>
+      </div>
 
-        {/* Club Views */}
-        <StatsSection title={s.topClubs} description={s.topClubsDescription}>
-          <ClubViewsList
-            initialEntries={initialClubViews.entries}
-            initialTotal={initialClubViews.total}
-            days={DAYS}
-            translations={{
-              views: s.views,
-              noData: s.noData,
-              showMore: t.admin.showMore,
-              showingCount: t.admin.showingCount,
-            }}
-          />
-        </StatsSection>
+      {/* Club Views */}
+      <div className="rounded-xl border p-4 space-y-4">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{s.topClubs}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{s.topClubsDescription}</p>
+        </div>
+        <ClubViewsList
+          initialEntries={initialClubViews.entries}
+          initialTotal={initialClubViews.total}
+          days={DAYS}
+          translations={{
+            views: s.views,
+            noData: s.noData,
+            showMore: t.admin.showMore,
+            showingCount: t.admin.showingCount,
+          }}
+        />
       </div>
     </div>
   )
 }
 
-function StatsSection({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
-  return (
-    <section className="space-y-4">
-      <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{title}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-      </div>
-      {children}
-    </section>
-  )
-}
-
 function StatCard({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: number; sub?: string }) {
   return (
-    <Card className="py-0 gap-0">
-      <CardContent className="p-4">
-        <div className="flex items-center gap-2 text-muted-foreground mb-1">
-          {icon}
-          <span className="text-xs font-medium">{label}</span>
-        </div>
-        <p className="text-2xl font-bold tabular-nums">{value.toLocaleString()}</p>
-        {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
-      </CardContent>
-    </Card>
+    <div className="rounded-lg border p-4">
+      <div className="flex items-center gap-2 text-muted-foreground mb-1">
+        {icon}
+        <span className="text-xs font-medium">{label}</span>
+      </div>
+      <p className="text-2xl font-bold tabular-nums">{value.toLocaleString()}</p>
+      {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
+    </div>
   )
 }

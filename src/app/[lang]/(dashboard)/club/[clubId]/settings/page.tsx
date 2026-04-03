@@ -16,7 +16,7 @@ import { getNumberSetting } from '@/lib/server/platform-settings'
 
 function SettingsSection({ title, variant, children }: { title: string; variant?: 'danger'; children: React.ReactNode }) {
   return (
-    <section className="space-y-4">
+    <section className={`rounded-xl border p-4 space-y-4 ${variant === 'danger' ? 'border-destructive/30' : ''}`}>
       <h2 className={`text-sm font-semibold uppercase tracking-wide ${variant === 'danger' ? 'text-destructive' : 'text-muted-foreground'}`}>{title}</h2>
       {children}
     </section>
@@ -91,7 +91,7 @@ export default async function ClubSettingsPage({ params }: ClubSettingsPageProps
   const s = t.club.admin.settings.sections
 
   return (
-    <div className="max-w-xl space-y-10">
+    <div className="w-full mx-auto max-w-2xl space-y-4">
       <AdminPageTitle title={t.club.admin.settings.title} />
 
       {/* Section: Visibility */}

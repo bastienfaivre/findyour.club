@@ -3,49 +3,45 @@ import { Skeleton } from '@/components/ui/skeleton'
 export default function ClubPublicLoading() {
   return (
     <div className="flex flex-col">
-      {/* Hero — ClubHeroSection: size-24 avatar + text-2xl sm:text-4xl h1 */}
-      <section className="flex flex-col items-center text-center gap-6 py-16">
-        <Skeleton className="h-24 w-24 rounded-full" />
-        <Skeleton className="h-9 w-48" />
-      </section>
+      <div className="mx-auto w-full max-w-3xl space-y-4">
+        {/* Hero card */}
+        <div className="rounded-xl border p-4 flex flex-col items-center text-center gap-4">
+          <Skeleton className="h-24 w-24 rounded-full" />
+          <Skeleton className="h-9 w-48" />
+        </div>
 
-      {/* Content — ProfilePage max-w-3xl */}
-      <div className="mx-auto w-full max-w-3xl px-4">
-        {/* Photo carousel */}
-        <Skeleton className="h-64 w-full rounded-lg" />
-
-        {/* "Who we are" section — heading + text-sm lines */}
-        <section className="py-6">
-          <Skeleton className="h-6 w-[130px] mb-3" />
+        {/* "Who we are" section */}
+        <div className="rounded-xl border p-4 space-y-3">
+          <Skeleton className="h-6 w-[130px]" />
           <div className="space-y-2">
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-5/6" />
             <Skeleton className="h-4 w-3/4" />
           </div>
-        </section>
+        </div>
 
-        {/* "Schedule" section — text-lg font-semibold heading (~75px) + text-sm lines */}
-        <section className="py-6">
-          <Skeleton className="h-6 w-[75px] mb-3" />
+        {/* "Schedule" section */}
+        <div className="rounded-xl border p-4 space-y-3">
+          <Skeleton className="h-6 w-[75px]" />
           <div className="space-y-2">
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-4 w-5/6" />
           </div>
-        </section>
+        </div>
 
-        {/* "How to Join" section — heading (~95px) + text-sm lines */}
-        <section className="py-6">
-          <Skeleton className="h-6 w-[95px] mb-3" />
+        {/* "How to Join" section */}
+        <div className="rounded-xl border p-4 space-y-3">
+          <Skeleton className="h-6 w-[95px]" />
           <div className="space-y-2">
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-2/3" />
           </div>
-        </section>
+        </div>
 
-        {/* "Contact Info" section — heading (~105px) + icon rows */}
-        <section className="py-6">
-          <Skeleton className="h-6 w-[105px] mb-3" />
+        {/* "Contact Info" section */}
+        <div className="rounded-xl border p-4 space-y-3">
+          <Skeleton className="h-6 w-[105px]" />
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Skeleton className="h-4 w-4 shrink-0" />
@@ -60,7 +56,7 @@ export default function ClubPublicLoading() {
               <Skeleton className="h-4 w-[220px]" />
             </div>
           </div>
-        </section>
+        </div>
       </div>
     </div>
   )

@@ -10,7 +10,7 @@ export function ProfileSection({ title, children, icon }: ProfileSectionProps) {
   if (!children) return null
 
   return (
-    <section className="py-6">
+    <section className="rounded-xl border p-4">
       <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
         {icon}
         {title}

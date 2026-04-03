@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import Image from 'next/image'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { FadeImage } from '@/components/app/FadeImage'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { VisuallyHidden } from 'radix-ui'
 
@@ -67,7 +67,7 @@ export function PhotoCarousel({ photos, ariaLabel, goToPhotoLabel, closeLabel }:
               className="absolute left-0 z-0 h-32 sm:h-44 opacity-40 cursor-pointer transition-opacity hover:opacity-60"
               aria-label={goToPhotoLabel.replace('{n}', String(prevIndex + 1))}
             >
-              <Image
+              <FadeImage
                 src={photos[prevIndex].url}
                 alt={photos[prevIndex].alt}
                 width={300}
@@ -85,7 +85,7 @@ export function PhotoCarousel({ photos, ariaLabel, goToPhotoLabel, closeLabel }:
             onClick={() => setLightboxOpen(true)}
             aria-label={goToPhotoLabel.replace('{n}', String(current + 1))}
           >
-            <Image
+            <FadeImage
               src={photos[current].url}
               alt={photos[current].alt}
               width={800}
@@ -104,7 +104,7 @@ export function PhotoCarousel({ photos, ariaLabel, goToPhotoLabel, closeLabel }:
               className="absolute right-0 z-0 h-32 sm:h-44 opacity-40 cursor-pointer transition-opacity hover:opacity-60"
               aria-label={goToPhotoLabel.replace('{n}', String(nextIndex + 1))}
             >
-              <Image
+              <FadeImage
                 src={photos[nextIndex].url}
                 alt={photos[nextIndex].alt}
                 width={300}
@@ -187,7 +187,7 @@ export function PhotoCarousel({ photos, ariaLabel, goToPhotoLabel, closeLabel }:
                 className="absolute left-4 z-0 h-[50vh] opacity-30 cursor-pointer transition-opacity hover:opacity-50"
                 aria-label={goToPhotoLabel.replace('{n}', String(prevIndex + 1))}
               >
-                <Image
+                <FadeImage
                   src={photos[prevIndex].url}
                   alt={photos[prevIndex].alt}
                   width={600}
@@ -199,7 +199,7 @@ export function PhotoCarousel({ photos, ariaLabel, goToPhotoLabel, closeLabel }:
             )}
 
             {/* Main image */}
-            <Image
+            <FadeImage
               src={photos[current].url}
               alt={photos[current].alt}
               width={1600}
@@ -217,7 +217,7 @@ export function PhotoCarousel({ photos, ariaLabel, goToPhotoLabel, closeLabel }:
                 className="absolute right-4 z-0 h-[50vh] opacity-30 cursor-pointer transition-opacity hover:opacity-50"
                 aria-label={goToPhotoLabel.replace('{n}', String(nextIndex + 1))}
               >
-                <Image
+                <FadeImage
                   src={photos[nextIndex].url}
                   alt={photos[nextIndex].alt}
                   width={600}

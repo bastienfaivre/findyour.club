@@ -41,14 +41,16 @@ export default async function TotpSetupPage({ params }: TotpSetupPageProps) {
   const qrDataUrl = await QRCode.toDataURL(uri, { width: 200, margin: 2 })
 
   return (
-    <div className="max-w-xl space-y-6">
+    <div className="w-full mx-auto max-w-2xl space-y-4">
       <AdminPageTitle title={t.auth.totpSetup} />
-      <p className="text-muted-foreground text-sm">{t.auth.totpSetupSubtitle}</p>
-      <TotpSetupForm
-        qrDataUrl={qrDataUrl}
-        secret={secret}
-        t={{ codeSetup: t.auth.fields.codeSetup, verifying: t.auth.form.verifying, activate2fa: t.auth.form.activate2fa, copy: t.auth.form.copy, copied: t.auth.form.copied }}
-      />
+      <div className="rounded-xl border p-4 space-y-4">
+        <p className="text-muted-foreground text-sm">{t.auth.totpSetupSubtitle}</p>
+        <TotpSetupForm
+          qrDataUrl={qrDataUrl}
+          secret={secret}
+          t={{ codeSetup: t.auth.fields.codeSetup, verifying: t.auth.form.verifying, activate2fa: t.auth.form.activate2fa, copy: t.auth.form.copy, copied: t.auth.form.copied }}
+        />
+      </div>
     </div>
   )
 }

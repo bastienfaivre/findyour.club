@@ -141,11 +141,6 @@ export default async function ClubPage({ params }: Props) {
       } as React.CSSProperties}
     >
       <SearchBackTitle title={club.name} lang={lang} defaultCountry={country} />
-      {isVerificationExpired && (
-        <div role="alert" className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
-          {t.clubSite.freshnessExpiredBanner}
-        </div>
-      )}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
@@ -155,6 +150,7 @@ export default async function ClubPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c') }}
       />
       <ProfilePage
+        expiredBanner={isVerificationExpired ? t.clubSite.freshnessExpiredBanner : undefined}
         club={{
           name: club.name,
           logoUrl: club.logoUrl,
@@ -175,7 +171,7 @@ export default async function ClubPage({ params }: Props) {
           whatsappUrl: club.whatsappUrl,
           telegramUrl: club.telegramUrl,
           githubUrl: club.githubUrl,
-          photos: club.photos,
+          photos: [], // photos disabled temporarily
           activityTypeLabel,
           country,
           countryName,

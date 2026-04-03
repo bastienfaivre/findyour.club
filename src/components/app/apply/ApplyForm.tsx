@@ -22,7 +22,11 @@ import { applicationSchema, type ApplicationInput } from '@/lib/schemas/applicat
 import { SUPPORTED_LANGUAGES } from '@/lib/schemas/profile'
 import { SocialLinksFieldset } from '@/components/app/SocialLinksFieldset'
 import { SharePlatformButton } from '@/components/app/SharePlatformButton'
-import { submitApplication, type SubmitApplicationResult } from '@/app/[lang]/(dashboard)/apply/actions'
+import { toast } from 'sonner'
+import { submitApplication, getApplicationLogoUploadUrl, type SubmitApplicationResult } from '@/app/[lang]/(dashboard)/apply/actions'
+import { ALLOWED_IMAGE_TYPES } from '@/lib/r2'
+import Image from 'next/image'
+import { Loader2 } from 'lucide-react'
 import type { Translations } from '@/lib/i18n/translations'
 import type { SupportedLanguage } from '@/lib/i18n'
 import type { Country } from '@/lib/country'
@@ -70,6 +74,10 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
   const [locationOpen, setLocationOpen] = useState(false)
   const [locationQuery, setLocationQuery] = useState('')
   const [activeLocationIndex, setActiveLocationIndex] = useState(-1)
+  const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [logoKey, setLogoKey] = useState<string | null>(null)
+  const [logoUploading, setLogoUploading] = useState(false)
+  const logoInputRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const turnstileRef = useRef<TurnstileInstance | null>(null)
   const locationWrapperRef = useRef<HTMLDivElement>(null)
@@ -208,6 +216,34 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
     }
   }
 
+  const handleLogoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type as typeof ALLOWED_IMAGE_TYPES[number])) {
+      toast.error(t.apply.errors.logoErrorType)
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(t.apply.errors.logoErrorSize)
+      return
+    }
+    setLogoUploading(true)
+    try {
+      const result = await getApplicationLogoUploadUrl(file.type)
+      if (!result.success) { toast.error(result.error); return }
+      const uploadRes = await fetch(result.data.uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } })
+      if (!uploadRes.ok) { toast.error('Upload failed.'); return }
+      setLogoKey(result.data.key)
+      setLogoPreview(URL.createObjectURL(file))
+      setValue('logoKey', result.data.key)
+    } catch {
+      toast.error('Upload failed.')
+    } finally {
+      setLogoUploading(false)
+      if (logoInputRef.current) logoInputRef.current.value = ''
+    }
+  }
+
   const onSubmit = async (data: ApplicationInput) => {
     // Apply "same as" logic before submission
     if (sameEmail) {
@@ -284,6 +320,7 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
         </div>
       )}
 
+      <div>
       {/* ── STEP 1: About You ── */}
       <div className={step === 1 ? '' : 'hidden'}>
         <div className="space-y-6">
@@ -410,6 +447,39 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
               )}
             </div>
 
+            {/* Club Logo (optional) */}
+            <div className="space-y-2">
+              <Label>{t.apply.fields.logo}</Label>
+              <p className="text-sm text-muted-foreground">{t.apply.helpers.logo}</p>
+              <div className="flex items-center gap-4">
+                {logoPreview ? (
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center">
+                    <Image src={logoPreview} alt="" width={64} height={64} className="max-h-full max-w-full object-contain" />
+                  </div>
+                ) : logoKey ? (
+                  <div className="h-16 w-16 shrink-0 rounded-lg bg-muted flex items-center justify-center text-xs text-muted-foreground">OK</div>
+                ) : null}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => logoInputRef.current?.click()}
+                  disabled={logoUploading}
+                  className="min-h-[44px] min-w-[44px]"
+                >
+                  {logoUploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  {logoKey ? t.apply.fields.changeLogo : t.apply.fields.uploadLogo}
+                </Button>
+              </div>
+              <input
+                ref={logoInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/svg+xml"
+                className="hidden"
+                onChange={handleLogoSelect}
+              />
+            </div>
+
             {/* Activity Type */}
             <div className="space-y-2">
               <Label htmlFor="activityType">{t.apply.fields.activityType}<RequiredMark /></Label>
@@ -514,7 +584,7 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
                   >
                     {locationResults.map((loc, index) => (
                       <li
-                        key={loc.swisstopoId}
+                        key={`${loc.swisstopoId}-${index}`}
                         id={`location-option-${index}`}
                         role="option"
                         aria-selected={index === activeLocationIndex}
@@ -755,6 +825,7 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
             </Button>
           </div>
         </div>
+      </div>
       </div>
     </form>
   )

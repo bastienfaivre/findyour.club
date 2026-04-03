@@ -5,7 +5,6 @@ import type { Translations } from '@/lib/i18n/translations/types'
 import { useAdminSelection } from '@/components/app/AdminSelectionContext'
 import type { UserListItem } from './UserQueue'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 
 interface UserDetailProps {
   user: UserListItem
@@ -24,8 +23,8 @@ export function UserDetail({ user, translations: t, locale }: UserDetailProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
+    <div className="space-y-4">
+      <div className="rounded-xl border p-4">
         <div className="grid gap-3">
           <div>
             <p className="text-xs text-muted-foreground">{tu.firstName}</p>
@@ -60,10 +59,8 @@ export function UserDetail({ user, translations: t, locale }: UserDetailProps) {
         </div>
       </div>
 
-      <Separator />
-
-      <div className="space-y-3">
-        <h3 className="text-sm font-medium">{tu.managedClubs}</h3>
+      <div className="rounded-xl border p-4 space-y-3">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{tu.managedClubs}</h3>
         {user.memberships.length === 0 ? (
           <p className="text-sm text-muted-foreground">{tu.noManagedClubs}</p>
         ) : (

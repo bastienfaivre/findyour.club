@@ -150,7 +150,7 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
     : null
 
   const filtersBlock = (
-    <div className="space-y-3 mb-4">
+    <div className="rounded-xl border p-4 space-y-4 mb-4">
       <div className="relative">
         <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
         <Input
@@ -294,7 +294,7 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
               </button>
             )
           })}
-          <div className="flex flex-col items-center gap-2 pt-4">
+          <div className="rounded-xl border p-4 flex flex-col items-center gap-2 mt-4">
             {hasMore && (
               <Button variant="outline" className="w-full" onClick={() => setPageSize((s) => s + 20)}>
                 {t.admin.showMore}
@@ -329,17 +329,19 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
     <div className="@container flex flex-col h-full min-h-0">
       {/* Narrow: tabbed */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'list' | 'detail')} className="flex flex-col flex-1 min-h-0 @[56rem]:hidden">
-        <TabsList className="mb-4">
-          <TabsTrigger value="list">
-            <List />
-            {tc.title}
-          </TabsTrigger>
-          <TabsTrigger value="detail">
-            <FileSearch />
-            {tc.clubModeration}
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="list" className="overflow-y-auto max-w-xl">
+        <div className="rounded-xl border p-4">
+          <TabsList>
+            <TabsTrigger value="list">
+              <List />
+              {tc.title}
+            </TabsTrigger>
+            <TabsTrigger value="detail">
+              <FileSearch />
+              {tc.clubModeration}
+            </TabsTrigger>
+          </TabsList>
+        </div>
+        <TabsContent value="list" className="overflow-y-auto max-w-2xl">
           {filtersBlock}
           {listBlock}
         </TabsContent>
@@ -349,8 +351,8 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
       </Tabs>
 
       {/* Wide: side-by-side */}
-      <div className="hidden @[56rem]:flex gap-6 flex-1 min-h-0">
-        <div className="w-full max-w-xl min-w-0 overflow-y-auto">
+      <div className="hidden @[56rem]:flex gap-4 flex-1 min-h-0">
+        <div className="w-full max-w-2xl min-w-0 overflow-y-auto">
           {filtersBlock}
           {listBlock}
         </div>

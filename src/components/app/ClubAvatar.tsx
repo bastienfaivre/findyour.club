@@ -1,5 +1,5 @@
-import Image from 'next/image'
 import { cn } from '@/lib/utils'
+import { FadeImage } from '@/components/app/FadeImage'
 
 interface ClubAvatarProps {
   name: string
@@ -26,7 +26,7 @@ export function ClubAvatar({ name, logoUrl, logoAlt, size = 'md', className }: C
 
   return (
     <div className={cn('shrink-0 relative flex items-center justify-center', sizeClasses[size], className)}>
-      <Image
+      <FadeImage
         src={logoUrl || PLACEHOLDER}
         alt={logoAlt ?? name}
         width={px}
@@ -35,6 +35,7 @@ export function ClubAvatar({ name, logoUrl, logoAlt, size = 'md', className }: C
           'max-h-full max-w-full object-contain',
           !logoUrl && 'opacity-40',
         )}
+        skeletonClassName="rounded-lg"
         sizes={`${px}px`}
         {...(isSvg && { unoptimized: true })}
       />

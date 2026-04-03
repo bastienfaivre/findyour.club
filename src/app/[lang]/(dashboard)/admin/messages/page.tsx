@@ -158,7 +158,7 @@ export default async function AdminMessagesPage({ params }: AdminMessagesPagePro
   }
 
   return (
-    <div className="flex flex-col h-full min-h-0">
+    <div className="w-full mx-auto max-w-2xl flex flex-col h-full min-h-0">
       <AdminPageTitle title={t.admin.messages.title} />
       <ConversationQueue
         conversations={conversations}

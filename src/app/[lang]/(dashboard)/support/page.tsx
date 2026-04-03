@@ -4,7 +4,6 @@ import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { generatePlatformMetadata } from '@/components/app/seo/metadata'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
-import { Card, CardContent } from '@/components/ui/card'
 
 type Props = {
   params: Promise<{ lang: string }>
@@ -79,58 +78,52 @@ export default async function SupportPage({ params }: Props) {
   return (
     <>
       <AdminPageTitle title={t.nav.support} />
-      <div className="max-w-xl space-y-8">
-        {/* Header */}
-        <div>
+      <div className="w-full mx-auto max-w-2xl space-y-4">
+        {/* Header + intro */}
+        <div className="rounded-xl border p-4 space-y-3">
           <h1 className="text-2xl font-bold tracking-tight">
             {s.title}
           </h1>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground text-justify">
+          <p className="text-sm leading-relaxed text-muted-foreground text-justify">
             {s.intro}
           </p>
         </div>
 
         {/* Cost breakdown */}
-        <section className="space-y-4">
+        <div className="rounded-xl border p-4 space-y-4">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{s.costBreakdownTitle}</h2>
-          <Card className="py-0 gap-0">
-            <CardContent className="space-y-4 p-4">
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{s.domain}</span>
-                  <span className="font-medium tabular-nums">CHF {COSTS.domain.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{s.server}</span>
-                  <span className="font-medium tabular-nums">CHF {COSTS.server.toFixed(2)}</span>
-                </div>
-                <div className="border-t pt-2 flex justify-between font-semibold">
-                  <span>{s.totalPerYear}</span>
-                  <span className="tabular-nums">CHF {TOTAL_PER_YEAR.toFixed(2)}</span>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground">{s.costsDisclaimer}</p>
-            </CardContent>
-          </Card>
-        </section>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{s.domain}</span>
+              <span className="font-medium tabular-nums">CHF {COSTS.domain.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{s.server}</span>
+              <span className="font-medium tabular-nums">CHF {COSTS.server.toFixed(2)}</span>
+            </div>
+            <div className="border-t pt-2 flex justify-between font-semibold">
+              <span>{s.totalPerYear}</span>
+              <span className="tabular-nums">CHF {TOTAL_PER_YEAR.toFixed(2)}</span>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">{s.costsDisclaimer}</p>
+        </div>
 
         {/* Funded until */}
-        <Card className="py-0 gap-0 border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30">
-          <CardContent className="p-4">
-            <p className="text-sm font-medium text-green-800 dark:text-green-300">
-              {s.fundedUntil}
-            </p>
-            <p className="mt-1 text-2xl font-bold text-green-900 dark:text-green-200">
-              {fundedDate}
-            </p>
-            <p className="mt-2 text-sm text-green-700 dark:text-green-400">
-              {s.fundedUntilDate.replace('{date}', fundedDate)}
-            </p>
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/30">
+          <p className="text-sm font-medium text-green-800 dark:text-green-300">
+            {s.fundedUntil}
+          </p>
+          <p className="mt-1 text-2xl font-bold text-green-900 dark:text-green-200">
+            {fundedDate}
+          </p>
+          <p className="mt-2 text-sm text-green-700 dark:text-green-400">
+            {s.fundedUntilDate.replace('{date}', fundedDate)}
+          </p>
+        </div>
 
         {/* Contributors */}
-        <section className="space-y-4">
+        <div className="rounded-xl border p-4 space-y-4">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{s.contributorsTitle}</h2>
           <p className="text-sm text-muted-foreground">{s.contributorsIntro}</p>
           <ul className="space-y-2">
@@ -153,15 +146,13 @@ export default async function SupportPage({ params }: Props) {
               </li>
             ))}
           </ul>
-        </section>
+        </div>
 
         {/* Call to action */}
-        <Card className="py-0 gap-0 bg-muted/50">
-          <CardContent className="p-4">
-            <h2 className="text-sm font-semibold">{s.helpTitle}</h2>
-            <p className="mt-2 text-sm text-muted-foreground">{s.helpText}</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border bg-muted/50 p-4 space-y-2">
+          <h2 className="text-sm font-semibold">{s.helpTitle}</h2>
+          <p className="text-sm text-muted-foreground">{s.helpText}</p>
+        </div>
       </div>
     </>
   )

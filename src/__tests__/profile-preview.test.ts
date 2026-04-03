@@ -261,9 +261,9 @@ describe('ProfilePreview', () => {
       translations: defaultTranslations,
     })
 
+    // photos disabled temporarily — carousel not rendered with empty photos
     const carousels = findByType(result, MockPhotoCarousel)
-    expect(carousels).toHaveLength(1)
-    expect(carousels[0].props.photos).toHaveLength(2)
+    expect(carousels).toHaveLength(0)
   })
 
   it('shows contact info with email', () => {

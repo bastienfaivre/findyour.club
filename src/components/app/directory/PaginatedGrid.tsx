@@ -23,7 +23,7 @@ export function PaginatedGrid({ children, pageSize = 20, showingLabel, showMoreL
         {shown}
       </div>
       {all.length > 0 && (
-        <div className="mt-6 flex flex-col items-center gap-3">
+        <div className="mt-4 rounded-xl border p-4 flex flex-col items-center gap-3">
           {hasMore && (
             <Button variant="outline" size="lg" className="w-full max-w-xs" onClick={() => setVisible((v) => v + pageSize)}>
               {showMoreLabel}

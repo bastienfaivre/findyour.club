@@ -132,9 +132,9 @@ export function ChatThread({ messages: initialMessages, sendAction, loadOlderAct
   }
 
   return (
-    <div className="flex flex-col h-full min-h-0">
+    <div className="flex flex-col h-full min-h-0 gap-4">
       {/* Messages area */}
-      <div ref={scrollRef} role="log" aria-live="polite" className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
+      <div ref={scrollRef} role="log" aria-live="polite" className="flex-1 min-h-0 overflow-y-auto rounded-xl border p-4 space-y-3">
         {/* Load older button */}
         {hasOlder && loadOlderAction && (
           <div className="flex justify-center pb-2">
@@ -174,7 +174,7 @@ export function ChatThread({ messages: initialMessages, sendAction, loadOlderAct
       </div>
 
       {/* Input area */}
-      <div className="border-t p-3 flex gap-2 items-end">
+      <div className="rounded-xl border p-3 flex gap-2 items-end">
         <Textarea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}

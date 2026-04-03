@@ -42,7 +42,7 @@ export default async function SetupPage({ params }: SetupPageProps) {
   return (
     <div className="flex-1 flex items-center justify-center p-4">
       <AdminPageTitle title={t.auth.setPassword} />
-      <div className="max-w-md w-full space-y-6">
+      <div className="max-w-md w-full rounded-xl border p-4 space-y-4">
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-semibold">{t.auth.setPassword}</h1>
           <p className="text-muted-foreground text-sm">{t.auth.setPasswordSubtitle}</p>

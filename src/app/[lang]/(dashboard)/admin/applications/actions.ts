@@ -133,7 +133,7 @@ export async function approveApplication(applicationId: string, fields: Applicat
     const application = await prisma.application.findUnique({
       where: { id: applicationId },
       select: {
-        id: true, status: true,
+        id: true, status: true, logoUrl: true, logoAlt: true,
       },
     })
 
@@ -238,6 +238,8 @@ export async function approveApplication(applicationId: string, fields: Applicat
           whatsappUrl: fields.whatsappUrl,
           telegramUrl: fields.telegramUrl,
           githubUrl: fields.githubUrl,
+          logoUrl: application.logoUrl,
+          logoAlt: application.logoAlt,
           lastVerifiedAt: new Date(),
           isPublished: true,
           forceOffline: false,

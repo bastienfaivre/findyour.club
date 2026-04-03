@@ -9,7 +9,7 @@ export default function ClubAdminLoading() {
         <Skeleton className="h-10 flex-1" />
       </div>
 
-      <div className="w-full max-w-xl space-y-6">
+      <div className="mx-auto w-full max-w-2xl space-y-4">
         {/* Logo upload — 80px avatar + upload hint + button */}
         <div className="flex items-center gap-4">
           <Skeleton className="h-20 w-20 rounded-full shrink-0" />

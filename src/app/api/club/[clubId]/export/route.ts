@@ -81,9 +81,10 @@ export async function GET(
     imageDownloads.push({ url: club.logoUrl, baseName: 'logo' })
   }
 
-  for (const photo of club.photos) {
-    imageDownloads.push({ url: photo.url, baseName: `photos/${photo.position}` })
-  }
+  // Photos disabled temporarily
+  // for (const photo of club.photos) {
+  //   imageDownloads.push({ url: photo.url, baseName: `photos/${photo.position}` })
+  // }
 
   const imageResults = await Promise.allSettled(
     imageDownloads.map(async ({ url, baseName }) => {
@@ -151,11 +152,7 @@ export async function GET(
     logo: club.logoUrl
       ? { file: resolvedFiles.get('logo') ?? null, alt: club.logoAlt }
       : null,
-    photos: club.photos.map((p) => ({
-      file: resolvedFiles.get(`photos/${p.position}`) ?? null,
-      alt: p.alt,
-      position: p.position,
-    })),
+    photos: [], // photos disabled temporarily
     messages: club.supportMessages.map((m) => ({
       senderRole: m.senderRole,
       body: m.body,

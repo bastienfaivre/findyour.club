@@ -47,6 +47,7 @@ export const applicationSchema = z.object({
   whatsappUrl: optionalUrl,
   telegramUrl: optionalUrl,
   githubUrl: optionalUrl,
+  logoKey: z.string().max(500).optional(),
   turnstileToken: z.string().min(1, 'Bot protection is required'),
 }).refine(
   (data) => data.activityType !== 'other' || (data.otherDescription && data.otherDescription.trim().length > 0),

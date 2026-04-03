@@ -29,7 +29,8 @@ export function SaveBar({ isDirty, isPending, isValid, isConfirming, translation
 
   return (
     <>
-      <div className="sticky bottom-0 z-30 flex items-center justify-end gap-3 border-t border-border bg-background px-4 py-3">
+      <div className="sticky bottom-0 z-30 pt-4 bg-background">
+        <div className="flex items-center justify-end gap-3 rounded-xl border bg-background px-4 py-3">
         {isDirty ? (
           <>
             <Button
@@ -72,6 +73,7 @@ export function SaveBar({ isDirty, isPending, isValid, isConfirming, translation
             {t.save}
           </Button>
         )}
+        </div>
       </div>
 
       <UnsavedChangesDialog

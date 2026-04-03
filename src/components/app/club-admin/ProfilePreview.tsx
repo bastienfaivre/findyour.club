@@ -34,8 +34,7 @@ interface ProfilePreviewProps {
 export function ProfilePreview({ formValues, logoUrl, logoAlt, activityTypeLabel, country, countryName, cantonCode, locationName, photos, translations: t }: ProfilePreviewProps) {
   return (
     <div className="flex flex-col h-full min-h-0">
-      <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">{t.preview}</p>
-      <div className="flex-1 min-h-0 rounded-lg border bg-background shadow-sm overflow-hidden overflow-y-auto">
+      <div className="flex-1 min-h-0 rounded-xl border overflow-hidden overflow-y-auto p-4">
         <ProfilePage
           club={{
             ...formValues,

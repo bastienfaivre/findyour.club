@@ -34,7 +34,7 @@ export function RotatingWords({ prefix, words, interval = 2500 }: RotatingWordsP
   const [phase, setPhase] = useState<Phase>('visible')
   const [wordWidths, setWordWidths] = useState<number[]>([])
   const [colorIndex, setColorIndex] = useState(0)
-  const [isWrapped, setIsWrapped] = useState(false)
+  const [isWrapped] = useState(true)
   const prefersReducedMotion = useSyncExternalStore(
     (cb) => {
       const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -57,30 +57,6 @@ export function RotatingWords({ prefix, words, interval = 2500 }: RotatingWordsP
     setWordWidths(widths)
   }, [])
 
-  // Detect whether prefix + widest word would overflow a single line
-  useEffect(() => {
-    const container = containerRef.current
-    const prefixEl = prefixRef.current
-    if (!container || !prefixEl || !wordWidths.length) return
-
-    function checkWrap() {
-      const parent = container!.parentElement
-      if (!parent) return
-      const availableWidth = parent.clientWidth
-      const prefixWidth = prefixEl!.offsetWidth
-      const maxWordWidth = Math.max(...wordWidths)
-      // Approximate space character width using font size * 0.3
-      const fontSize = parseFloat(getComputedStyle(prefixEl!).fontSize)
-      const spaceWidth = fontSize * 0.3
-      const wouldOverflow = prefixWidth + spaceWidth + maxWordWidth > availableWidth
-      setIsWrapped(window.innerWidth < 1024 || wouldOverflow)
-    }
-
-    checkWrap()
-    const observer = new ResizeObserver(checkWrap)
-    observer.observe(container)
-    return () => observer.disconnect()
-  }, [wordWidths])
 
   const next = useCallback(() => {
     setPhase('exit')

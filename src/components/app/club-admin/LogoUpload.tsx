@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
   AlertDialog,
@@ -33,13 +32,13 @@ export interface LogoActions {
   upload: (clubId: string, contentType: string) => Promise<UploadResult>
   persist: (clubId: string, key: string, alt: string) => Promise<SimpleResult>
   remove: (clubId: string) => Promise<SimpleResult>
-  updateAlt: (clubId: string, alt: string) => Promise<SimpleResult>
 }
 
 const DEFAULT_MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024
 
 interface LogoUploadProps {
   clubId: string
+  clubName: string
   logoUrl: string | null
   logoAlt: string | null
   maxImageSizeBytes?: number
@@ -47,11 +46,10 @@ interface LogoUploadProps {
   actions: LogoActions
 }
 
-export function LogoUpload({ clubId, logoUrl, logoAlt, maxImageSizeBytes = DEFAULT_MAX_IMAGE_SIZE_BYTES, translations: t, actions }: LogoUploadProps) {
+export function LogoUpload({ clubId, clubName, logoUrl, logoAlt, maxImageSizeBytes = DEFAULT_MAX_IMAGE_SIZE_BYTES, translations: t, actions }: LogoUploadProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isPending, startTransition] = useTransition()
-  const [altText, setAltText] = useState(logoAlt ?? '')
   const [uploading, setUploading] = useState(false)
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,8 +84,8 @@ export function LogoUpload({ clubId, logoUrl, logoAlt, maxImageSizeBytes = DEFAU
         return
       }
 
-      // Persist in DB
-      const persistResult = await actions.persist(clubId, result.data.key, altText || file.name)
+      // Persist in DB — alt is auto-generated from club name
+      const persistResult = await actions.persist(clubId, result.data.key, `Logo of ${clubName}`)
       if (!persistResult.success) {
         toast.error(persistResult.error)
         return
@@ -106,21 +104,11 @@ export function LogoUpload({ clubId, logoUrl, logoAlt, maxImageSizeBytes = DEFAU
     startTransition(async () => {
       const result = await actions.remove(clubId)
       if (result.success) {
-        setAltText('')
         router.refresh()
       } else {
         toast.error(result.error)
       }
     })
-  }
-
-  const handleAltBlur = () => {
-    if (logoUrl && altText !== (logoAlt ?? '')) {
-      startTransition(async () => {
-        await actions.updateAlt(clubId, altText)
-        router.refresh()
-      })
-    }
   }
 
   const isLoading = isPending || uploading
@@ -134,7 +122,7 @@ export function LogoUpload({ clubId, logoUrl, logoAlt, maxImageSizeBytes = DEFAU
           <div className="flex h-20 w-20 shrink-0 items-center justify-center">
             <Image
               src={logoUrl}
-              alt={logoAlt ?? ''}
+              alt={logoAlt ?? clubName}
               width={80}
               height={80}
               className="max-h-full max-w-full object-contain"
@@ -191,19 +179,6 @@ export function LogoUpload({ clubId, logoUrl, logoAlt, maxImageSizeBytes = DEFAU
           />
         </div>
       </div>
-
-      {logoUrl && (
-        <div className="space-y-2">
-          <Label htmlFor="logoAlt">{t.altLabel}</Label>
-          <Input
-            id="logoAlt"
-            value={altText}
-            onChange={(e) => setAltText(e.target.value)}
-            onBlur={handleAltBlur}
-            placeholder={t.altPlaceholder}
-          />
-        </div>
-      )}
     </div>
   )
 }

@@ -30,7 +30,7 @@ export default async function LoginPage({ params, searchParams }: LoginPageProps
   return (
     <div className="flex-1 flex items-center justify-center p-4">
       <AdminPageTitle title={t.auth.signIn} />
-      <div className="max-w-md w-full space-y-6">
+      <div className="max-w-md w-full rounded-xl border p-4 space-y-4">
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-semibold">{t.auth.signIn}</h1>
           <p className="text-muted-foreground text-sm">{t.auth.signInSubtitle}</p>

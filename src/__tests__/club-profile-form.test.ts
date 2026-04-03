@@ -401,7 +401,8 @@ describe('ClubProfileForm', () => {
     expect((found[0] as AnyElement).props.clubId).toBe('club-1')
   })
 
-  it('renders the PhotoGallery sub-component', () => {
+  // photos disabled temporarily
+  it.skip('renders the PhotoGallery sub-component', () => {
     const result = renderForm()
     const found = findInTree(result, (n) => (n as AnyElement).type === PhotoGallery)
     expect(found.length).toBeGreaterThanOrEqual(1)

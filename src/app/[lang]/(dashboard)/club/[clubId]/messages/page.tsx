@@ -109,7 +109,7 @@ export default async function ClubMessagesPage({ params }: ClubMessagesPageProps
   }
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 -mb-4 sm:-mb-6 lg:-mb-8">
+    <div className="w-full mx-auto max-w-2xl flex flex-col flex-1 min-h-0 -mb-4">
       <AdminPageTitle title={t.club.admin.messages.title} />
       <ChatThread
         messages={chatMessages}

@@ -13,7 +13,7 @@ import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 
 function SettingsSection({ title, variant, children }: { title: string; variant?: 'danger'; children: React.ReactNode }) {
   return (
-    <section className="space-y-4">
+    <section className={`rounded-xl border p-4 space-y-4 ${variant === 'danger' ? 'border-destructive/30' : ''}`}>
       <h2 className={`text-sm font-semibold uppercase tracking-wide ${variant === 'danger' ? 'text-destructive' : 'text-muted-foreground'}`}>{title}</h2>
       {children}
     </section>
@@ -44,12 +44,14 @@ export default async function AccountPage({ params }: AccountPageProps) {
   ])
 
   return (
-    <div className="max-w-xl space-y-10">
+    <div className="w-full mx-auto max-w-2xl space-y-4">
       <AdminPageTitle title={t.auth.accountSettings} />
       <TotpEnrollmentBanner session={session} lang={lang} t={t.auth.banner} />
-      <p className="text-sm text-muted-foreground">
-        {t.auth.signedInAs} <span className="font-medium">{session.user.email}</span>
-      </p>
+      <div className="rounded-xl border p-4">
+        <p className="text-sm text-muted-foreground">
+          {t.auth.signedInAs} <span className="font-medium">{session.user.email}</span>
+        </p>
+      </div>
 
       <SettingsSection title={t.auth.profile.title}>
         <p className="text-sm text-muted-foreground">{t.auth.profile.description}</p>

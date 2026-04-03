@@ -409,6 +409,9 @@ export type Translations = {
       socialLinks: string
       desiredSlug: string
       otherDescription: string
+      logo: string
+      uploadLogo: string
+      changeLogo: string
     }
     sections: {
       identity: string
@@ -418,6 +421,7 @@ export type Translations = {
       url: string
     }
     helpers: {
+      logo: string
       activityType: string
       description: string
       schedule: string
@@ -468,6 +472,8 @@ export type Translations = {
       rateLimited: string
       turnstileFailed: string
       serverError: string
+      logoErrorType: string
+      logoErrorSize: string
     }
     submitting: string
   }

@@ -78,10 +78,8 @@ export function DeleteAccountSection({ lang, t }: DeleteAccountSectionProps) {
   }
 
   return (
-    <section className="space-y-4">
-      <div className="border-b border-destructive/30 pb-2">
-        <h2 className="text-lg font-medium text-destructive">{t.title}</h2>
-      </div>
+    <section className="rounded-xl border border-destructive/30 p-4 space-y-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-destructive">{t.title}</h2>
       <p className="text-sm text-muted-foreground">{t.description}</p>
 
       <AlertDialog open={open} onOpenChange={handleOpenChange}>

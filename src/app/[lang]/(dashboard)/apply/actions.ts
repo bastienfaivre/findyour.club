@@ -11,6 +11,7 @@ import { generateSlug } from '@/lib/slug'
 import { sendEmail } from '@/lib/email'
 import { buildApplicationSubmittedEmailHtml } from '@/lib/email-templates'
 import { getTranslations } from '@/lib/i18n/translations'
+import { generateUploadUrl, getPublicUrl, ALLOWED_IMAGE_TYPES } from '@/lib/r2'
 
 export type SubmitApplicationResult =
   | { success: true }
@@ -37,7 +38,7 @@ export async function submitApplication(data: unknown): Promise<SubmitApplicatio
       return { success: false, error: 'Invalid form data.', code: 'VALIDATION_ERROR' }
     }
 
-    const { applicantFirstName, applicantLastName, applicantPhone, applicantPreferredLanguage, name, email, clubEmail, country, activityType, otherDescription, location, description, schedule, contactPhone, contactAddress, howToJoin, externalWebsiteUrl, instagramUrl, facebookUrl, xUrl, tiktokUrl, discordUrl, youtubeUrl, whatsappUrl, telegramUrl, githubUrl, turnstileToken } = parsed.data
+    const { applicantFirstName, applicantLastName, applicantPhone, applicantPreferredLanguage, name, email, clubEmail, country, activityType, otherDescription, location, description, schedule, contactPhone, contactAddress, howToJoin, externalWebsiteUrl, instagramUrl, facebookUrl, xUrl, tiktokUrl, discordUrl, youtubeUrl, whatsappUrl, telegramUrl, githubUrl, logoKey, turnstileToken } = parsed.data
 
     const turnstileValid = await verifyTurnstileToken(turnstileToken)
     if (!turnstileValid) {
@@ -62,7 +63,7 @@ export async function submitApplication(data: unknown): Promise<SubmitApplicatio
         country,
         activityType: activityType === 'other' ? null : activityType,
         otherDescription: activityType === 'other' ? otherDescription : null,
-        locationId,
+        location: { connect: { id: locationId } },
         description,
         schedule,
         contactPhone,
@@ -79,6 +80,10 @@ export async function submitApplication(data: unknown): Promise<SubmitApplicatio
         telegramUrl: telegramUrl || null,
         githubUrl: githubUrl || null,
         desiredSlug: generateSlug(name),
+        ...(logoKey && {
+          logoUrl: getPublicUrl(logoKey),
+          logoAlt: `Logo of ${name}`,
+        }),
       },
     })
 
@@ -105,3 +110,31 @@ export async function submitApplication(data: unknown): Promise<SubmitApplicatio
     return { success: false, error: 'An unexpected error occurred.', code: 'SERVER_ERROR' }
   }
 }
+
+export type ApplicationLogoUploadResult =
+  | { success: true; data: { uploadUrl: string; key: string } }
+  | { success: false; error: string }
+
+export async function getApplicationLogoUploadUrl(contentType: string): Promise<ApplicationLogoUploadResult> {
+  try {
+    if (!ALLOWED_IMAGE_TYPES.includes(contentType as typeof ALLOWED_IMAGE_TYPES[number])) {
+      return { success: false, error: 'Invalid image type.' }
+    }
+
+    const headersList = await headers()
+    const forwarded = headersList.get('x-forwarded-for')
+    const ip = forwarded?.split(',')[0]?.trim() ?? 'unknown'
+
+    if (checkRateLimit('apply-logo:' + ip, { windowMs: 3_600_000, maxAttempts: 10 })) {
+      return { success: false, error: 'Too many uploads.' }
+    }
+
+    const ext = contentType.split('/')[1] === 'svg+xml' ? 'svg' : contentType.split('/')[1]
+    const { uploadUrl, key } = await generateUploadUrl('applications', ext)
+
+    return { success: true, data: { uploadUrl, key } }
+  } catch {
+    return { success: false, error: 'Upload failed.' }
+  }
+}
+

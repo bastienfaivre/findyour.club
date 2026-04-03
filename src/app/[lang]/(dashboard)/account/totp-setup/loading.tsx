@@ -2,24 +2,21 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export default function TotpSetupLoading() {
   return (
-    <div className="max-w-xl space-y-6">
-      {/* Subtitle text */}
-      <Skeleton className="h-4 w-[280px]" />
+    <div className="w-full mx-auto max-w-2xl space-y-4">
+      <div className="rounded-xl border p-4 space-y-4">
+        {/* Subtitle text */}
+        <Skeleton className="h-4 w-[280px]" />
 
-      {/* QR code + secret + copy button */}
-      <div className="space-y-6">
+        {/* QR code + secret + copy button */}
         <div className="flex flex-col items-center gap-4">
-          {/* QR code — 200x200 */}
           <Skeleton className="h-[200px] w-[200px] rounded border" />
-
-          {/* Secret key + copy button */}
           <div className="flex items-center gap-2">
             <Skeleton className="h-4 w-[260px]" />
             <Skeleton className="h-8 w-[60px] rounded-md" />
           </div>
         </div>
 
-        {/* OTP input — 6 digit slots centered */}
+        {/* OTP input */}
         <div className="flex flex-col items-center space-y-2">
           <Skeleton className="h-4 w-[260px]" />
           <div className="flex gap-1">

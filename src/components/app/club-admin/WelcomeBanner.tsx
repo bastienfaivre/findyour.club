@@ -44,7 +44,7 @@ export function WelcomeBanner({ clubId, translations: t }: WelcomeBannerProps) {
   if (!visible) return null
 
   return (
-    <div className="relative rounded-lg border border-blue-500/30 bg-blue-500/5 p-4 mb-6">
+    <div className="relative rounded-xl border border-blue-500/30 bg-blue-500/5 p-4 mb-4">
       <button
         type="button"
         onClick={dismiss}

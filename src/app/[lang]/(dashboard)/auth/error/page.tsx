@@ -30,7 +30,7 @@ export default async function AuthErrorPage({ params, searchParams }: AuthErrorP
   return (
     <div className="flex-1 flex items-center justify-center p-4">
       <AdminPageTitle title={t.auth.errorTitle} />
-      <div className="max-w-md w-full text-center space-y-4">
+      <div className="max-w-md w-full rounded-xl border p-4 text-center space-y-4">
         <h1 className="text-2xl font-semibold">{t.auth.errorTitle}</h1>
         <p className="text-muted-foreground">{message}</p>
         <Link href={`/${lang}/auth/login`} className="underline text-sm">

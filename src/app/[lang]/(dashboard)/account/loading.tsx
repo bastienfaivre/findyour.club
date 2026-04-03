@@ -2,60 +2,63 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export default function AccountLoading() {
   return (
-    <div className="max-w-xl space-y-10">
-      {/* "Signed in as user@example.com" — text-sm */}
-      <div className="flex items-center gap-1.5">
+    <div className="w-full mx-auto max-w-2xl space-y-4">
+      {/* "Signed in as" */}
+      <div className="rounded-xl border p-4 flex items-center gap-1.5">
         <Skeleton className="h-4 w-[85px]" />
         <Skeleton className="h-4 w-[180px]" />
       </div>
 
-      {/* Change Password section — text-lg heading */}
-      <section className="space-y-4">
-        <div className="border-b pb-2">
-          <Skeleton className="h-6 w-[140px]" />
+      {/* Profile section */}
+      <div className="rounded-xl border p-4 space-y-4">
+        <Skeleton className="h-4 w-[60px]" />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-[80px]" />
+            <Skeleton className="h-9 w-full rounded-md" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-[75px]" />
+            <Skeleton className="h-9 w-full rounded-md" />
+          </div>
         </div>
-        {/* "Current password" label (~120px) */}
+        <Skeleton className="h-9 w-[60px] rounded-md" />
+      </div>
+
+      {/* Change Password section */}
+      <div className="rounded-xl border p-4 space-y-4">
+        <Skeleton className="h-4 w-[140px]" />
         <div className="space-y-2">
           <Skeleton className="h-4 w-[120px]" />
           <Skeleton className="h-9 w-full rounded-md" />
         </div>
-        {/* "New password" label (~100px) + hint */}
         <div className="space-y-2">
           <Skeleton className="h-4 w-[100px]" />
           <Skeleton className="h-9 w-full rounded-md" />
-          <Skeleton className="h-3 w-[200px]" />
         </div>
-        {/* "Confirm new password" label (~150px) */}
         <div className="space-y-2">
           <Skeleton className="h-4 w-[150px]" />
           <Skeleton className="h-9 w-full rounded-md" />
         </div>
-        {/* "Update password" button (~130px) */}
         <Skeleton className="h-9 w-[130px] rounded-md" />
-      </section>
+      </div>
 
-      {/* Two-Factor Authentication section — text-lg heading (~210px) */}
-      <section className="space-y-4">
-        <div className="border-b pb-2">
-          <Skeleton className="h-6 w-[210px]" />
-        </div>
+      {/* Two-Factor Authentication section */}
+      <div className="rounded-xl border p-4 space-y-4">
+        <Skeleton className="h-4 w-[210px]" />
         <div className="flex items-center gap-3">
           <Skeleton className="h-5 w-[70px] rounded-full" />
           <Skeleton className="h-4 w-[220px]" />
         </div>
-        {/* "Enrol 2FA" / "Reset 2FA" button (~80px) */}
         <Skeleton className="h-9 w-[80px] rounded-md" />
-      </section>
+      </div>
 
-      {/* Passkeys section — text-lg heading (~75px) */}
-      <section className="space-y-4">
-        <div className="border-b pb-2">
-          <Skeleton className="h-6 w-[75px]" />
-        </div>
+      {/* Passkeys section */}
+      <div className="rounded-xl border p-4 space-y-4">
+        <Skeleton className="h-4 w-[75px]" />
         <Skeleton className="h-4 w-[180px]" />
-        {/* "Add passkey" button (~100px) */}
         <Skeleton className="h-9 w-[100px] rounded-md" />
-      </section>
+      </div>
     </div>
   )
 }

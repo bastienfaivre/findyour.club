@@ -175,7 +175,7 @@ export default async function DashboardLayout({ children, params }: DashboardLay
             />
           <SidebarInset className="h-svh overflow-hidden">
             {maintenanceBanner && (
-              <div className="shrink-0 bg-amber-100 px-4 py-2 text-center text-sm font-medium text-amber-900 dark:bg-amber-900/30 dark:text-amber-200">
+              <div className="shrink-0 bg-amber-100 px-4 py-2 text-center text-sm font-medium text-amber-900 dark:bg-amber-900 dark:text-amber-200 z-10">
                 {maintenanceBanner}
               </div>
             )}
@@ -186,7 +186,7 @@ export default async function DashboardLayout({ children, params }: DashboardLay
                 t={t.club.admin.settings.verification.banner}
               />
             )}
-            <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+            <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 bg-background z-10">
               <SidebarTriggerWithBadge hasBadges={hasBadges} className="-ml-1" />
               <Separator orientation="vertical" className="mr-2 !h-4" />
               <PageTitleDisplay />
@@ -194,7 +194,7 @@ export default async function DashboardLayout({ children, params }: DashboardLay
                 <PageActionDisplay />
               </div>
             </header>
-            <div id="main-content" className="flex-1 flex flex-col overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <div id="main-content" className="flex-1 flex flex-col overflow-y-auto p-4">
               {children}
             </div>
           </SidebarInset>

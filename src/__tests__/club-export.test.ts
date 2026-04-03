@@ -161,9 +161,7 @@ describe('GET /api/club/[clubId]/export', () => {
       file: 'logo.png',
       alt: 'Ski Club Logo',
     })
-    expect(data.photos).toEqual([
-      { file: 'photos/0.jpg', alt: 'Mountain', position: 0 },
-    ])
+    expect(data.photos).toEqual([]) // photos disabled temporarily
     expect(data.messages).toEqual([
       {
         senderRole: 'USER',
@@ -181,7 +179,7 @@ describe('GET /api/club/[clubId]/export', () => {
     const files = await extractZip(response)
 
     expect(files['logo.png']).toBeDefined()
-    expect(files['photos/0.jpg']).toBeDefined()
+    // expect(files['photos/0.jpg']).toBeDefined() // photos disabled temporarily
     expect(files['data.json']).toBeDefined()
     // Verify the image content matches what fetch returned
     expect(Array.from(files['logo.png'])).toEqual(Array.from(fakeImageData))

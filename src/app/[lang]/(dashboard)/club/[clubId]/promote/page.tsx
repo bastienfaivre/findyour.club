@@ -5,7 +5,6 @@ import { prisma } from '@/server/db'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
 import { DownloadButton } from '@/components/app/admin/DownloadButton'
 import { EmbedBadge } from '@/components/app/club-admin/EmbedBadge'
-import { Card, CardContent } from '@/components/ui/card'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
 
@@ -31,8 +30,10 @@ export default async function PromotePage({ params }: PromotePageProps) {
   return (
     <>
       <AdminPageTitle title={p.title} />
-      <div className="max-w-xl space-y-4">
-        <p className="text-muted-foreground">{p.description}</p>
+      <div className="w-full mx-auto max-w-2xl space-y-4">
+        <div className="rounded-xl border p-4">
+          <p className="text-muted-foreground">{p.description}</p>
+        </div>
 
         <EmbedBadge
           badgeUrl={badgeUrl}
@@ -47,33 +48,29 @@ export default async function PromotePage({ params }: PromotePageProps) {
           }}
         />
 
-        <Card className="py-0 gap-0">
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium">{p.story}</p>
-              <p className="text-sm text-muted-foreground">{p.storyDescription}</p>
-            </div>
-            <DownloadButton
-              href={`/api/club/${clubId}/story?lang=${uiLang}`}
-              filename={`${club.name.toLowerCase().replace(/\s+/g, '-')}-story.png`}
-              label={p.download}
-            />
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border p-4 flex items-center gap-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium">{p.story}</p>
+            <p className="text-sm text-muted-foreground">{p.storyDescription}</p>
+          </div>
+          <DownloadButton
+            href={`/api/club/${clubId}/story?lang=${uiLang}`}
+            filename={`${club.name.toLowerCase().replace(/\s+/g, '-')}-story.png`}
+            label={p.download}
+          />
+        </div>
 
-        <Card className="py-0 gap-0">
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium">{p.poster}</p>
-              <p className="text-sm text-muted-foreground">{p.posterDescription}</p>
-            </div>
-            <DownloadButton
-              href={`/api/club/${clubId}/poster?lang=${uiLang}`}
-              filename={`${club.name.toLowerCase().replace(/\s+/g, '-')}-poster.pdf`}
-              label={p.download}
-            />
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border p-4 flex items-center gap-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium">{p.poster}</p>
+            <p className="text-sm text-muted-foreground">{p.posterDescription}</p>
+          </div>
+          <DownloadButton
+            href={`/api/club/${clubId}/poster?lang=${uiLang}`}
+            filename={`${club.name.toLowerCase().replace(/\s+/g, '-')}-poster.pdf`}
+            label={p.download}
+          />
+        </div>
       </div>
     </>
   )

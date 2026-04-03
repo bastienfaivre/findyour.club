@@ -83,7 +83,7 @@ describe('submitApplication()', () => {
         country: 'ch',
         activityType: null,
         otherDescription: 'Skiing club',
-        locationId: 'loc-1',
+        location: { connect: { id: 'loc-1' } },
         description: 'A ski club in Valais.',
         schedule: 'Tuesdays 19h-21h',
         contactPhone: '+41 27 123 45 67',

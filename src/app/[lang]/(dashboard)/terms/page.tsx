@@ -27,15 +27,15 @@ export default async function TermsPage({ params }: Props) {
   const s = t.terms
 
   return (
-    <div className="py-8 sm:py-16 lg:py-24">
+    <>
       <AdminPageTitle title={t.layout.terms} />
-      <div className="max-w-xl space-y-10">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+      <div className="w-full mx-auto max-w-2xl space-y-4">
+        <div className="rounded-xl border p-4 space-y-3">
+          <h1 className="text-2xl font-bold tracking-tight">
             {s.title}
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">{s.lastUpdated}</p>
-          <p className="mt-6 text-lg leading-relaxed text-muted-foreground text-justify">
+          <p className="text-sm text-muted-foreground">{s.lastUpdated}</p>
+          <p className="text-sm leading-relaxed text-muted-foreground text-justify">
             {s.intro}
           </p>
         </div>
@@ -82,15 +82,15 @@ export default async function TermsPage({ params }: Props) {
           <p>{s.contact.content}</p>
         </Section>
       </div>
-    </div>
+    </>
   )
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-3">
-      <h2 className="text-xl font-semibold">{title}</h2>
-      <div className="space-y-3 text-muted-foreground leading-relaxed text-justify">{children}</div>
+    <div className="rounded-xl border p-4 space-y-3">
+      <h2 className="text-lg font-semibold">{title}</h2>
+      <div className="space-y-3 text-sm text-muted-foreground leading-relaxed text-justify">{children}</div>
     </div>
   )
 }

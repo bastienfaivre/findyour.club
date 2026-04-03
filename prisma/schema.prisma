@@ -262,6 +262,8 @@ model Application {
   whatsappUrl        String?         @map("whatsapp_url")
   telegramUrl        String?         @map("telegram_url")
   githubUrl          String?         @map("github_url")
+  logoUrl          String?           @map("logo_url")
+  logoAlt          String?           @map("logo_alt")
   desiredSlug      String?           @map("desired_slug")
   status           ApplicationStatus @default(PENDING)
   rejectionReason  String?           @map("rejection_reason")

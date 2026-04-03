@@ -4,7 +4,6 @@ import { useState, useCallback } from 'react'
 import { Check, Copy, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 
 interface EmbedBadgeProps {
   badgeUrl: string
@@ -65,8 +64,7 @@ export function EmbedBadge({
   }
 
   return (
-    <Card className="py-0 gap-0">
-      <CardContent className="space-y-4 p-4">
+    <div className="rounded-xl border p-4 space-y-4">
         <div>
           <p className="text-sm font-medium">{labels.title}</p>
           <p className="text-sm text-muted-foreground">{labels.description}</p>
@@ -106,7 +104,6 @@ export function EmbedBadge({
             {copied ? labels.copied : labels.copySnippet}
           </Button>
         </div>
-      </CardContent>
-    </Card>
+    </div>
   )
 }

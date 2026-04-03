@@ -396,6 +396,9 @@ export const de: Translations = {
       socialLinks: 'Soziale Medien',
       desiredSlug: 'Gewünschter URL-Slug',
       otherDescription: 'Beschreibe deinen Aktivitätstyp',
+      logo: 'Vereinslogo',
+      uploadLogo: 'Hochladen',
+      changeLogo: 'Ändern',
     },
     sections: {
       identity: 'Identität',
@@ -422,9 +425,10 @@ export const de: Translations = {
       desiredSlug: 'z. B. skiclub-wallis',
     },
     helpers: {
+      logo: 'Lade das Logo deines Vereins hoch (optional). Du kannst es auch später hinzufügen.',
       activityType: 'Versuche, deine Aktivit\u00e4t in einem einzigen Wort zu beschreiben (z.\u00a0B. Fussball, Musik, Schach). Wir f\u00fcgen neue Typen hinzu, sobald Vereine beitreten \u2014 falls deiner noch nicht aufgef\u00fchrt ist, w\u00e4hle \u00abAndere\u00bb und gib ihn unten ein, wir erstellen dann eine passende Kategorie.',
       description: 'Schreib so, als würdest du einem Freund von deinem Verein erzählen — wer ihr seid, was ihr macht, eure Gruppen oder Niveaus, und welche Atmosphäre ihr bietet.',
-      schedule: 'Teile deinen üblichen Zeitplan mit — eine Gruppe oder zehn, fest oder flexibel. Wenn er sich je nach Saison ändert oder kurzfristig bekannt gegeben wird, sag es einfach.',
+      schedule: 'Teile deinen üblichen Zeitplan und Treffpunkt mit — eine Gruppe oder zehn, fest oder flexibel. Gib den Ort, die Adresse oder das Gebiet an, damit die Leute wissen, wo sie hinkommen sollen. Wenn es sich je nach Saison ändert oder kurzfristig bekannt gegeben wird, sag es einfach.',
       howToJoin: 'Erkläre jemandem, der neugierig ist, was er als Nächstes tun soll — den ersten Schritt, eventuelle Kosten und ob Erfahrung nötig ist. Mach deutlich, wenn alle willkommen sind.',
     },
     requiredLegend: 'Erforderlich',
@@ -455,6 +459,8 @@ export const de: Translations = {
       rateLimited: 'Zu viele Einreichungen. Versuche es später erneut.',
       turnstileFailed: 'Bot-Schutz-Überprüfung fehlgeschlagen. Versuche es erneut.',
       serverError: 'Ein unerwarteter Fehler ist aufgetreten. Versuche es erneut.',
+      logoErrorType: 'Ungültiger Bildtyp. Verwende JPEG, PNG, WebP oder SVG.',
+      logoErrorSize: 'Das Bild muss kleiner als 5 MB sein.',
     },
     submitting: 'Wird gesendet…',
   },
@@ -547,7 +553,7 @@ export const de: Translations = {
         },
         helpers: {
           description: 'Schreib so, als würdest du einem Freund von deinem Verein erzählen — wer ihr seid, was ihr macht, eure Gruppen oder Niveaus, und welche Atmosphäre ihr bietet.',
-          schedule: 'Teile deinen üblichen Zeitplan mit — eine Gruppe oder zehn, fest oder flexibel. Wenn er sich je nach Saison ändert oder kurzfristig bekannt gegeben wird, sag es einfach.',
+          schedule: 'Teile deinen üblichen Zeitplan und Treffpunkt mit — eine Gruppe oder zehn, fest oder flexibel. Gib den Ort, die Adresse oder das Gebiet an, damit die Leute wissen, wo sie hinkommen sollen. Wenn es sich je nach Saison ändert oder kurzfristig bekannt gegeben wird, sag es einfach.',
           howToJoin: 'Erkläre jemandem, der neugierig ist, was er als Nächstes tun soll — den ersten Schritt, eventuelle Kosten und ob Erfahrung nötig ist. Mach deutlich, wenn alle willkommen sind.',
         },
         tips: {

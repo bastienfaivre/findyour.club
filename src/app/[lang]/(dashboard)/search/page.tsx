@@ -7,7 +7,6 @@ import { getTranslations } from '@/lib/i18n/translations'
 import { generatePlatformMetadata } from '@/components/app/seo/metadata'
 import { SharePlatformButton } from '@/components/app/SharePlatformButton'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { ClubCard, ClubCardSkeleton } from '@/components/app/directory/ClubCard'
 import { PaginatedGrid } from '@/components/app/directory/PaginatedGrid'
 import { DirectoryFilters } from '@/components/app/directory/DirectoryFilters'
@@ -128,64 +127,62 @@ export default async function SearchPage({ params, searchParams }: Props) {
   }))
 
   return (
-    <div>
+    <div className="space-y-4">
       <AdminPageTitle title={t.nav.search} />
-      <h1 className="text-2xl font-bold tracking-tight mb-6">{t.nav.search}</h1>
 
-      <Suspense fallback={null}>
-        <DirectoryFilters
-          countries={countryOptions}
-          cantons={cantonOptions}
-          activityTypes={activityOptions}
-          lang={lang}
-          labels={{
-            filterCountry: t.directory.filterCountry,
-            filterCanton: t.directory.filterCanton,
-            filterCity: t.directory.filterCity,
-            filterActivity: t.directory.filterActivity,
-            allCountries: t.directory.allCountries,
-            allCantons: t.directory.allCantons,
-            allActivities: t.directory.allActivities,
-            resetFilters: t.directory.resetFilters,
-          }}
-        />
-      </Suspense>
-
-      <div className="mt-4 flex items-center justify-between gap-4">
-        <p className="text-sm text-muted-foreground">
-          {t.directory.clubCount.replace('{count}', String(clubs.length))}
-        </p>
-        <VerifiedBadge label={t.directory.verifiedBadge} detail={t.directory.verifiedDetail} />
+      {/* Title + filters */}
+      <div className="rounded-xl border p-4 space-y-4">
+        <h1 className="text-2xl font-bold tracking-tight">{t.nav.search}</h1>
+        <Suspense fallback={null}>
+          <DirectoryFilters
+            countries={countryOptions}
+            cantons={cantonOptions}
+            activityTypes={activityOptions}
+            lang={lang}
+            labels={{
+              filterCountry: t.directory.filterCountry,
+              filterCanton: t.directory.filterCanton,
+              filterCity: t.directory.filterCity,
+              filterActivity: t.directory.filterActivity,
+              allCountries: t.directory.allCountries,
+              allCantons: t.directory.allCantons,
+              allActivities: t.directory.allActivities,
+              resetFilters: t.directory.resetFilters,
+            }}
+          />
+        </Suspense>
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-sm text-muted-foreground">
+            {t.directory.clubCount.replace('{count}', String(clubs.length))}
+          </p>
+          <VerifiedBadge label={t.directory.verifiedBadge} detail={t.directory.verifiedDetail} />
+        </div>
       </div>
 
       {clubs.length === 0 ? (
-        <div className="mt-12 flex flex-col items-center text-center text-muted-foreground">
-          <SearchX className="size-10 mb-3 opacity-50" />
+        <div className="rounded-xl border p-4 flex flex-col items-center text-center text-muted-foreground space-y-3">
+          <SearchX className="size-10 opacity-50" />
           <p>{t.directory.noResults}</p>
-          <p className="mt-1 text-sm">
-            {t.directory.noResultsHint}
-          </p>
-          <Card className="py-0 gap-0 mt-4 max-w-md mx-auto">
-            <CardContent className="p-4 text-center space-y-4">
-              <p className="text-sm text-foreground">{t.directory.shareCtaMessage}</p>
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                <SharePlatformButton label={t.platform.bootstrapShare} copiedMessage={t.clubSite.linkCopied} className="" />
-              </div>
-              <p className="text-sm text-foreground">{t.directory.listCtaMessage}</p>
-              <Button variant="outline" size="sm" asChild>
-                <Link href={`/${lang}/apply`}>
-                  <ClipboardList className="h-3.5 w-3.5" />
-                  {t.platform.bootstrapListClub}
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <p className="text-sm">{t.directory.noResultsHint}</p>
+          <div className="space-y-4 pt-2">
+            <p className="text-sm text-foreground">{t.directory.shareCtaMessage}</p>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <SharePlatformButton label={t.platform.bootstrapShare} copiedMessage={t.clubSite.linkCopied} className="" />
+            </div>
+            <p className="text-sm text-foreground">{t.directory.listCtaMessage}</p>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/${lang}/apply`}>
+                <ClipboardList className="h-3.5 w-3.5" />
+                {t.platform.bootstrapListClub}
+              </Link>
+            </Button>
+          </div>
         </div>
       ) : (
         <>
           <Suspense
             fallback={
-              <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {Array.from({ length: 6 }, (_, i) => (
                   <ClubCardSkeleton key={i} />
                 ))}
@@ -234,20 +231,18 @@ export default async function SearchPage({ params, searchParams }: Props) {
               })}
             </PaginatedGrid>
           </Suspense>
-          <Card className="py-0 gap-0 mt-6">
-            <CardContent className="p-4 text-center space-y-3">
-              <p className="text-sm text-muted-foreground">{t.directory.shareCtaMessage}</p>
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                <SharePlatformButton label={t.platform.bootstrapShare} copiedMessage={t.clubSite.linkCopied} className="" />
-                <Button variant="outline" size="sm" asChild>
-                  <Link href={`/${lang}/apply`}>
-                    <ClipboardList className="h-3.5 w-3.5" />
-                    {t.platform.bootstrapListClub}
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="rounded-xl border p-4 text-center space-y-3">
+            <p className="text-sm text-muted-foreground">{t.directory.shareCtaMessage}</p>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <SharePlatformButton label={t.platform.bootstrapShare} copiedMessage={t.clubSite.linkCopied} className="" />
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/${lang}/apply`}>
+                  <ClipboardList className="h-3.5 w-3.5" />
+                  {t.platform.bootstrapListClub}
+                </Link>
+              </Button>
+            </div>
+          </div>
         </>
       )}
     </div>

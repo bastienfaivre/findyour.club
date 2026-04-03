@@ -68,7 +68,7 @@ export default async function HomePage({ params }: Props) {
   const orgJsonLd = generatePlatformOrgJsonLd()
 
   return (
-    <>
+    <div className="w-full mx-auto max-w-2xl space-y-4">
       <AdminPageTitle title={t.nav.home} />
       <script
         type="application/ld+json"
@@ -78,29 +78,28 @@ export default async function HomePage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd).replace(/</g, '\\u003c') }}
       />
+
       {/* Hero */}
-      <section className="pt-8 sm:pt-16 lg:pt-24 text-center">
-        <div>
-          <h1 className="text-3xl sm:text-5xl font-extrabold leading-tight tracking-tight">
-            <RotatingWords
-              prefix={t.platform.headlinePrefix}
-              words={t.platform.headlineRotatingWords}
-            />
-          </h1>
-          <div className="mt-4 text-base text-muted-foreground">
-            <p>{t.platform.taglineBullets.intro}</p>
-            <div className="mt-2 grid grid-cols-2 gap-x-2 gap-y-0.5 text-left [&>strong]:justify-self-end">
-              <strong>{t.platform.taglineBullets.whoLabel}</strong><span>{t.platform.taglineBullets.whoText}</span>
-              <strong>{t.platform.taglineBullets.whenLabel}</strong><span>{t.platform.taglineBullets.whenText}</span>
-              <strong>{t.platform.taglineBullets.howLabel}</strong><span>{t.platform.taglineBullets.howText}</span>
-            </div>
-            <p className="mt-2">{t.platform.taglineBullets.closing}</p>
+      <div className="rounded-xl border p-4 text-center">
+        <h1 className="text-3xl sm:text-5xl font-extrabold leading-tight tracking-tight">
+          <RotatingWords
+            prefix={t.platform.headlinePrefix}
+            words={t.platform.headlineRotatingWords}
+          />
+        </h1>
+        <div className="mt-4 text-base text-muted-foreground">
+          <p>{t.platform.taglineBullets.intro}</p>
+          <div className="mt-2 grid grid-cols-2 gap-x-2 gap-y-0.5 text-left [&>strong]:justify-self-end">
+            <strong>{t.platform.taglineBullets.whoLabel}</strong><span>{t.platform.taglineBullets.whoText}</span>
+            <strong>{t.platform.taglineBullets.whenLabel}</strong><span>{t.platform.taglineBullets.whenText}</span>
+            <strong>{t.platform.taglineBullets.howLabel}</strong><span>{t.platform.taglineBullets.howText}</span>
           </div>
+          <p className="mt-2">{t.platform.taglineBullets.closing}</p>
         </div>
-      </section>
+      </div>
 
       {/* Bootstrap message */}
-      <div className="mt-6 mx-auto max-w-lg rounded-lg border border-green-200 bg-green-50 p-5 text-center dark:border-green-900 dark:bg-green-950/30">
+      <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-center dark:border-green-900 dark:bg-green-950/30">
         <p className="text-sm font-medium text-green-800 dark:text-green-300">
           {t.platform.bootstrapMessage}
         </p>
@@ -121,17 +120,16 @@ export default async function HomePage({ params }: Props) {
       </div>
 
       {/* City search */}
-      <section className="mt-6">
+      <div className="rounded-xl border p-4">
         <HomeCitySearch
           lang={lang}
           placeholder={t.platform.searchCityPlaceholder}
           buttonLabel={t.platform.searchCityButton}
         />
-      </section>
+      </div>
 
       {/* Countries */}
-      <section className="py-8 sm:py-16 lg:py-24 text-center">
-        {/* Available now */}
+      <div className="rounded-xl border p-4 text-center">
         <h2 className="mb-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           {t.platform.availableNow}
         </h2>
@@ -148,7 +146,6 @@ export default async function HomePage({ params }: Props) {
           ))}
         </div>
 
-        {/* Coming soon */}
         {comingSoonCountries.length > 0 && (
           <>
             <h2 className="mb-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
@@ -173,7 +170,7 @@ export default async function HomePage({ params }: Props) {
         <p className="mt-8 text-sm text-muted-foreground">
           {t.platform.trustLine}
         </p>
-      </section>
-    </>
+      </div>
+    </div>
   )
 }

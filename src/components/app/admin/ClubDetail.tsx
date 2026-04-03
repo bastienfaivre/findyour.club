@@ -3,13 +3,12 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import Image from 'next/image'
-import { Loader2, Pencil, Eye, X } from 'lucide-react'
+import { Loader2, Pencil, Eye } from 'lucide-react'
 import type { Translations } from '@/lib/i18n/translations/types'
 import { extractClubEditableFields } from '@/lib/schemas/club'
 import type { ClubEditableFields } from '@/lib/schemas/club'
 import { SocialLinksFieldset } from '@/components/app/SocialLinksFieldset'
-import { updateClubFields, operatorDeleteClubPhoto, operatorDeleteClubLogo, operatorUploadClubLogo, operatorPersistClubLogo, operatorUpdateClubLogoAlt, operatorDeleteClub } from '@/app/[lang]/(dashboard)/admin/clubs/[id]/actions'
+import { updateClubFields, /* operatorDeleteClubPhoto, */ operatorDeleteClubLogo, operatorUploadClubLogo, operatorPersistClubLogo, operatorDeleteClub } from '@/app/[lang]/(dashboard)/admin/clubs/[id]/actions'
 import { useAdminSelection } from '@/components/app/AdminSelectionContext'
 import type { ClubListItem } from './ClubQueue'
 import type { ActivityTypeOption, CountryOption } from './types'
@@ -21,14 +20,12 @@ import { LogoUpload, type LogoActions } from '@/components/app/club-admin/LogoUp
 import { EmbedBadge } from '@/components/app/club-admin/EmbedBadge'
 import { CountryFlag } from '@/components/ui/country-flag'
 import { DownloadButton } from '@/components/app/admin/DownloadButton'
-import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { PhoneInput } from '@/components/ui/phone-input'
-import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   Select,
@@ -78,7 +75,7 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
   // Centralized form state
   const initialFields = extractClubEditableFields(club)
   const [fields, setFields] = useState<ClubEditableFields>(initialFields)
-  const [photos, setPhotos] = useState(club.photos)
+  // const [photos, setPhotos] = useState(club.photos) // photos disabled temporarily
 
   const updateField = <K extends keyof ClubEditableFields>(key: K, value: ClubEditableFields[K]) => {
     setFields(prev => ({ ...prev, [key]: value }))
@@ -88,9 +85,9 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
     upload: operatorUploadClubLogo,
     persist: operatorPersistClubLogo,
     remove: operatorDeleteClubLogo,
-    updateAlt: operatorUpdateClubLogoAlt,
   }
 
+  /* photos disabled temporarily
   const handleDeletePhoto = (photoId: string) => {
     startTransition(async () => {
       const result = await operatorDeleteClubPhoto(club.id, photoId)
@@ -102,6 +99,7 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
       }
     })
   }
+  */
 
   const canSave = fields.name.trim() && fields.email.trim() && fields.slug.trim()
 
@@ -142,17 +140,22 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
   }
 
   const formBlock = (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Logo */}
+      <div className="rounded-xl border p-4">
       <LogoUpload
         clubId={club.id}
+        clubName={club.name}
         logoUrl={club.logoUrl}
         logoAlt={club.logoAlt ?? null}
         translations={t.club.admin.clubProfile.logo}
         actions={logoActions}
       />
 
+      </div>
+
       {/* Editable fields */}
+      <div className="rounded-xl border p-4">
       <fieldset disabled={isPending} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="club-name">{tc.name} <span className="text-destructive">*</span></Label>
@@ -259,8 +262,9 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
           <Input id="club-slug" value={fields.slug} onChange={(e) => updateField('slug', e.target.value)} maxLength={60} />
         </div>
       </fieldset>
+      </div>
 
-      {/* Photos */}
+      {/* TODO: re-enable when photo feature is ready
       <div className="space-y-3">
         <Label>{tc.photoSection}</Label>
         {photos.length > 0 ? (
@@ -290,24 +294,24 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
           <p className="text-sm text-muted-foreground">{tc.noPhotos}</p>
         )}
       </div>
+      */}
 
       {/* Save button */}
-      <Button onClick={handleSave} disabled={isPending || !canSave}>
-        {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-        {tc.saveChanges}
-      </Button>
-
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      <Separator />
+      <div className="rounded-xl border p-4 flex items-center gap-4">
+        <Button onClick={handleSave} disabled={isPending || !canSave}>
+          {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          {tc.saveChanges}
+        </Button>
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+      </div>
 
       {/* Status & moderation */}
-      <section className="space-y-4">
-        <h3 className="text-base font-semibold">{tc.status}</h3>
+      <div className="rounded-xl border p-4 space-y-4">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{tc.status}</h3>
         <div className="flex items-center gap-3">
           {club.forceOffline ? (
             <Badge variant="destructive">{tc.moderatedOffline}</Badge>
@@ -325,13 +329,11 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
             <ForceOfflineDialog clubId={club.id} clubName={club.name} clubs={tc} common={t.common} />
           )}
         </div>
-      </section>
-
-      <Separator />
+      </div>
 
       {/* Members */}
-      <section className="space-y-3">
-        <h3 className="text-base font-semibold">{tc.members}</h3>
+      <div className="rounded-xl border p-4 space-y-3">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{tc.members}</h3>
         {club.members.length === 0 ? (
           <p className="text-sm text-muted-foreground">{tc.noMembers}</p>
         ) : (
@@ -361,13 +363,11 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
             })}
           </div>
         )}
-      </section>
-
-      <Separator />
+      </div>
 
       {/* Promote */}
-      <section className="space-y-4">
-        <h3 className="text-sm font-medium">{p.title}</h3>
+      <div className="rounded-xl border p-4 space-y-4">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{p.title}</h3>
         <p className="text-sm text-muted-foreground">{p.description}</p>
 
         <EmbedBadge
@@ -383,39 +383,33 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
           }}
         />
 
-        <Card className="py-0 gap-0">
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium">{p.story}</p>
-              <p className="text-sm text-muted-foreground">{p.storyDescription}</p>
-            </div>
-            <DownloadButton
-              href={`/api/club/${club.id}/story?lang=${locale}`}
-              filename={`${club.name.toLowerCase().replace(/\s+/g, '-')}-story.png`}
-              label={p.download}
-            />
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border p-4 flex items-center gap-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium">{p.story}</p>
+            <p className="text-sm text-muted-foreground">{p.storyDescription}</p>
+          </div>
+          <DownloadButton
+            href={`/api/club/${club.id}/story?lang=${locale}`}
+            filename={`${club.name.toLowerCase().replace(/\s+/g, '-')}-story.png`}
+            label={p.download}
+          />
+        </div>
 
-        <Card className="py-0 gap-0">
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium">{p.poster}</p>
-              <p className="text-sm text-muted-foreground">{p.posterDescription}</p>
-            </div>
-            <DownloadButton
-              href={`/api/club/${club.id}/poster?lang=${locale}`}
-              filename={`${club.name.toLowerCase().replace(/\s+/g, '-')}-poster.pdf`}
-              label={p.download}
-            />
-          </CardContent>
-        </Card>
-      </section>
-
-      <Separator />
+        <div className="rounded-xl border p-4 flex items-center gap-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium">{p.poster}</p>
+            <p className="text-sm text-muted-foreground">{p.posterDescription}</p>
+          </div>
+          <DownloadButton
+            href={`/api/club/${club.id}/poster?lang=${locale}`}
+            filename={`${club.name.toLowerCase().replace(/\s+/g, '-')}-poster.pdf`}
+            label={p.download}
+          />
+        </div>
+      </div>
 
       {/* Delete club */}
-      <section className="space-y-3">
+      <div className="rounded-xl border border-destructive/30 p-4 space-y-3">
         <AlertDialog open={deleteOpen} onOpenChange={(open) => { setDeleteOpen(open); if (!open) setDeleteConfirmText('') }}>
           <AlertDialogTrigger asChild>
             <Button variant="destructive" size="sm">{tc.deleteClub}</Button>
@@ -458,7 +452,7 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </section>
+      </div>
 
     </div>
   )
@@ -486,7 +480,7 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
       }}
       logoUrl={club.logoUrl}
       logoAlt={null}
-      photos={photos}
+      photos={[] /* photos disabled temporarily */}
       translations={{
         description: cs.description,
         schedule: cs.schedule,
@@ -507,16 +501,18 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
 
   return (
     <Tabs defaultValue="edit" className="flex flex-col h-full min-h-0">
-      <TabsList className="mb-4">
-        <TabsTrigger value="edit">
-          <Pencil />
-          {tc.editTab}
-        </TabsTrigger>
-        <TabsTrigger value="preview">
-          <Eye />
-          {tc.previewTab}
-        </TabsTrigger>
-      </TabsList>
+      <div className="rounded-xl border p-4">
+        <TabsList>
+          <TabsTrigger value="edit">
+            <Pencil />
+            {tc.editTab}
+          </TabsTrigger>
+          <TabsTrigger value="preview">
+            <Eye />
+            {tc.previewTab}
+          </TabsTrigger>
+        </TabsList>
+      </div>
       <TabsContent value="edit" className="flex-1 min-h-0 overflow-y-auto">
         {formBlock}
       </TabsContent>

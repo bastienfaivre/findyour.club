@@ -97,20 +97,21 @@ async function fetchSwissLocations(q: string, lang: string): Promise<SwissLocati
   const data = await res.json() as { results: SwisstopoFeature[] }
 
   // Only accept gg25 (official municipalities) — stable BFS IDs, consistent data
-  const seen = new Set<string>()
+  // Deduplicate by swisstopoId, keeping the longest name variant
+  // (bilingual names like "Biel/Bienne" are more complete than "Bienne" alone)
+  const byId = new Map<string, SwissLocationResult>()
 
-  return data.results
-    .filter(r => r.attrs.origin === 'gg25')
-    .map(r => parseSwisstopoResult(r))
-    .filter((r): r is SwissLocationResult => {
-      if (r === null) return false
-      // Deduplicate by name+cantonCode
-      const key = `${r.name}:${r.cantonCode}`
-      if (seen.has(key)) return false
-      seen.add(key)
-      return true
-    })
-    .slice(0, 10)
+  for (const r of data.results) {
+    if (r.attrs.origin !== 'gg25') continue
+    const parsed = parseSwisstopoResult(r)
+    if (!parsed) continue
+    const existing = byId.get(parsed.swisstopoId)
+    if (!existing || parsed.name.length > existing.name.length) {
+      byId.set(parsed.swisstopoId, parsed)
+    }
+  }
+
+  return Array.from(byId.values()).slice(0, 10)
 }
 
 /**

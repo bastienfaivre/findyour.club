@@ -396,6 +396,9 @@ export const fr: Translations = {
       socialLinks: 'Réseaux sociaux',
       desiredSlug: 'Slug URL souhaité',
       otherDescription: "Décris ton type d'activité",
+      logo: 'Logo du club',
+      uploadLogo: 'Importer',
+      changeLogo: 'Changer',
     },
     sections: {
       identity: 'Identité',
@@ -422,9 +425,10 @@ export const fr: Translations = {
       desiredSlug: 'ex. ski-club-valais',
     },
     helpers: {
+      logo: 'Importe le logo de ton club (optionnel). Tu pourras aussi l\u2019ajouter plus tard.',
       activityType: 'Essaie de d\u00e9crire ton activit\u00e9 en un seul mot (ex.\u00a0: football, musique, \u00e9checs). Nous ajoutons de nouveaux types au fur et \u00e0 mesure \u2014 si le tien n\u2019est pas encore list\u00e9, s\u00e9lectionne \u00ab\u00a0Autre\u00a0\u00bb et indique-le ci-dessous, nous cr\u00e9erons une cat\u00e9gorie adapt\u00e9e.',
       description: "Parle de ton club comme si tu l'expliquais à un ami — qui vous êtes, ce que vous faites, vos groupes ou niveaux, et l'ambiance que vous proposez.",
-      schedule: "Donne tes horaires habituels — un groupe ou dix, fixe ou flexible. Si ça change selon la saison ou se décide à la dernière minute, dis-le franchement.",
+      schedule: "Donne tes horaires habituels et où vous vous retrouvez — un groupe ou dix, fixe ou flexible. Précise le lieu, l'adresse ou le quartier pour que les gens sachent où venir. Si ça change selon la saison ou se décide à la dernière minute, dis-le franchement.",
       howToJoin: "Dis à quelqu'un qui hésite ce qu'il doit faire concrètement — la première étape, le coût éventuel, et si les portes sont ouvertes à tout le monde.",
     },
     requiredLegend: 'Obligatoire',
@@ -455,6 +459,8 @@ export const fr: Translations = {
       rateLimited: 'Trop de soumissions. Réessaie plus tard.',
       turnstileFailed: 'La vérification anti-bot a échoué. Réessaie.',
       serverError: 'Une erreur inattendue est survenue. Réessaie.',
+      logoErrorType: 'Type d\u2019image non valide. Utilise JPEG, PNG, WebP ou SVG.',
+      logoErrorSize: 'L\u2019image doit faire moins de 5 Mo.',
     },
     submitting: 'Envoi…',
   },
@@ -547,7 +553,7 @@ export const fr: Translations = {
         },
         helpers: {
           description: "Parle de ton club comme si tu l'expliquais à un ami — qui vous êtes, ce que vous faites, vos groupes ou niveaux, et l'ambiance que vous proposez.",
-          schedule: "Donne tes horaires habituels — un groupe ou dix, fixe ou flexible. Si ça change selon la saison ou se décide à la dernière minute, dis-le franchement.",
+          schedule: "Donne tes horaires habituels et où vous vous retrouvez — un groupe ou dix, fixe ou flexible. Précise le lieu, l'adresse ou le quartier pour que les gens sachent où venir. Si ça change selon la saison ou se décide à la dernière minute, dis-le franchement.",
           howToJoin: "Dis à quelqu'un qui hésite ce qu'il doit faire concrètement — la première étape, le coût éventuel, et si les portes sont ouvertes à tout le monde.",
         },
         tips: {

@@ -10,6 +10,7 @@ import type { Translations } from '@/lib/i18n/translations/types'
 import { useAdminSelection } from '@/components/app/AdminSelectionContext'
 import { ApplicationDetail } from './ApplicationDetail'
 import { Badge } from '@/components/ui/badge'
+import { ClubAvatar } from '@/components/app/ClubAvatar'
 import { RemovableFilterBadge } from '@/components/ui/removable-filter-badge'
 import {
   Select,
@@ -143,7 +144,7 @@ export function ApplicationQueue({ applications, activityTypes, countries, canto
   const activeActivityName = availableActivities.find((a) => a.slug === filterActivity)?.name
 
   const filtersBlock = (
-    <div className="space-y-3 mb-4">
+    <div className="rounded-xl border p-4 space-y-4 mb-4">
       <div className="relative">
         <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
         <Input
@@ -251,18 +252,23 @@ export function ApplicationQueue({ applications, activityTypes, countries, canto
                     : 'hover:bg-muted/50'
                 )}
               >
-                <p className="font-medium truncate">{app.name}</p>
-                <div className="flex flex-wrap items-center gap-2 mt-1">
-                  {activityLabel && (
-                    <Badge variant="secondary" className="text-xs">{activityLabel}</Badge>
-                  )}
-                  <span className="text-xs text-muted-foreground"><CountryFlag code={app.country} /></span>
-                  <span className="text-xs text-muted-foreground">{date}</span>
+                <div className="flex items-center gap-3">
+                  <ClubAvatar name={app.name} logoUrl={app.logoUrl} logoAlt={app.logoAlt} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium truncate">{app.name}</p>
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                      {activityLabel && (
+                        <Badge variant="secondary" className="text-xs">{activityLabel}</Badge>
+                      )}
+                      <span className="text-xs text-muted-foreground"><CountryFlag code={app.country} /></span>
+                      <span className="text-xs text-muted-foreground">{date}</span>
+                    </div>
+                  </div>
                 </div>
               </button>
             )
           })}
-          <div className="flex flex-col items-center gap-2 pt-4">
+          <div className="rounded-xl border p-4 flex flex-col items-center gap-2 mt-4">
             {hasMore && (
               <Button variant="outline" className="w-full" onClick={() => setPageSize((s) => s + 20)}>
                 {t.admin.showMore}
@@ -298,17 +304,19 @@ export function ApplicationQueue({ applications, activityTypes, countries, canto
     <div className="@container flex flex-col h-full min-h-0">
       {/* Narrow: tabbed */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'list' | 'review')} className="flex flex-col flex-1 min-h-0 @[56rem]:hidden">
-        <TabsList className="mb-4">
-          <TabsTrigger value="list">
-            <List />
-            {ta.title}
-          </TabsTrigger>
-          <TabsTrigger value="review">
-            <FileSearch />
-            {ta.reviewTab}
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="list" className="overflow-y-auto max-w-xl">
+        <div className="rounded-xl border p-4">
+          <TabsList>
+            <TabsTrigger value="list">
+              <List />
+              {ta.title}
+            </TabsTrigger>
+            <TabsTrigger value="review">
+              <FileSearch />
+              {ta.reviewTab}
+            </TabsTrigger>
+          </TabsList>
+        </div>
+        <TabsContent value="list" className="overflow-y-auto max-w-2xl">
           {filtersBlock}
           {listBlock}
         </TabsContent>
@@ -318,8 +326,8 @@ export function ApplicationQueue({ applications, activityTypes, countries, canto
       </Tabs>
 
       {/* Wide: side-by-side */}
-      <div className="hidden @[56rem]:flex gap-6 flex-1 min-h-0">
-        <div className="w-full max-w-xl min-w-0 overflow-y-auto">
+      <div className="hidden @[56rem]:flex gap-4 flex-1 min-h-0">
+        <div className="w-full max-w-2xl min-w-0 overflow-y-auto">
           {filtersBlock}
           {listBlock}
         </div>

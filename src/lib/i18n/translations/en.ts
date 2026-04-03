@@ -396,6 +396,9 @@ export const en: Translations = {
       socialLinks: 'Social media',
       desiredSlug: 'Desired URL Slug',
       otherDescription: 'Describe your activity type',
+      logo: 'Club Logo',
+      uploadLogo: 'Upload',
+      changeLogo: 'Change',
     },
     sections: {
       identity: 'Identity',
@@ -422,9 +425,10 @@ export const en: Translations = {
       desiredSlug: 'e.g. ski-club-valais',
     },
     helpers: {
+      logo: 'Upload your club logo (optional). You can also add it later.',
       activityType: "Try to describe your activity in a single word (e.g. football, music, chess). We add new types as clubs join \u2014 if yours isn\u2019t listed yet, select \u201cOther\u201d and enter it below, we\u2019ll create a proper category for it.",
       description: "Write this like you're telling a friend about your club — who you are, what you do, all your groups or levels, and the kind of welcome people can expect.",
-      schedule: "Share your usual schedule — one group or ten, fixed or flexible. If it changes by season or gets announced last-minute, just say so.",
+      schedule: "Share your usual schedule and where you meet — one group or ten, fixed or flexible. Include the venue, address, or area so people know where to show up. If it changes by season or gets announced last-minute, just say so.",
       howToJoin: "Tell someone who's curious what to do next — the first step, any cost, and whether they need experience or gear. Reassure them if the door is open.",
     },
     requiredLegend: 'Required',
@@ -455,6 +459,8 @@ export const en: Translations = {
       rateLimited: 'Too many submissions. Please try again later.',
       turnstileFailed: 'Bot protection verification failed. Please try again.',
       serverError: 'An unexpected error occurred. Please try again.',
+      logoErrorType: 'Invalid image type. Please use JPEG, PNG, WebP, or SVG.',
+      logoErrorSize: 'Image must be under 5 MB.',
     },
     submitting: 'Submitting…',
   },
@@ -547,7 +553,7 @@ export const en: Translations = {
         },
         helpers: {
           description: "Write this like you're telling a friend about your club — who you are, what you do, all your groups or levels, and the kind of welcome people can expect.",
-          schedule: "Share your usual schedule — one group or ten, fixed or flexible. If it changes by season or gets announced last-minute, just say so.",
+          schedule: "Share your usual schedule and where you meet — one group or ten, fixed or flexible. Include the venue, address, or area so people know where to show up. If it changes by season or gets announced last-minute, just say so.",
           howToJoin: "Tell someone who's curious what to do next — the first step, any cost, and whether they need experience or gear. Reassure them if the door is open.",
         },
         tips: {

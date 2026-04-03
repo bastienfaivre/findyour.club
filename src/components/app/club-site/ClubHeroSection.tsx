@@ -19,7 +19,7 @@ export function ClubHeroSection({ club }: ClubHeroSectionProps) {
   const hasLocation = club.country && club.countryName
 
   return (
-    <section className="flex flex-col items-center text-center gap-4 sm:gap-6 py-8 sm:py-16">
+    <section className="flex flex-col items-center text-center gap-4 sm:gap-6 rounded-xl border p-4">
       <ClubAvatar
         name={club.name}
         logoUrl={club.logoUrl}

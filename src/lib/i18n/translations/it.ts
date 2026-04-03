@@ -396,6 +396,9 @@ export const it: Translations = {
       socialLinks: 'Social media',
       desiredSlug: 'Slug URL desiderato',
       otherDescription: 'Descrivi il tuo tipo di attività',
+      logo: 'Logo del club',
+      uploadLogo: 'Carica',
+      changeLogo: 'Cambia',
     },
     sections: {
       identity: 'Identità',
@@ -422,9 +425,10 @@ export const it: Translations = {
       desiredSlug: 'es. sci-club-vallese',
     },
     helpers: {
+      logo: 'Carica il logo del tuo club (opzionale). Puoi anche aggiungerlo in seguito.',
       activityType: 'Prova a descrivere la tua attivit\u00e0 in una sola parola (es. calcio, musica, scacchi). Aggiungiamo nuovi tipi man mano che i club si uniscono \u2014 se il tuo non \u00e8 ancora elencato, seleziona \u00abAltro\u00bb e indicalo qui sotto, creeremo una categoria apposita.',
       description: 'Scrivi come se stessi spiegando il tuo club a un amico — chi siete, cosa fate, i vostri gruppi o livelli, e il tipo di accoglienza che offrite.',
-      schedule: 'Condividi il tuo solito programma — un gruppo o dieci, fisso o flessibile. Se cambia in base alla stagione o si decide all\'ultimo momento, dillo chiaramente.',
+      schedule: 'Condividi il tuo solito programma e dove vi incontrate — un gruppo o dieci, fisso o flessibile. Indica il luogo, l\'indirizzo o la zona così la gente sa dove venire. Se cambia in base alla stagione o si decide all\'ultimo momento, dillo chiaramente.',
       howToJoin: 'Di\' a qualcuno di curioso cosa fare adesso — il primo passo, eventuali costi e se serve esperienza. Rassicuralo se la porta è aperta a tutti.',
     },
     requiredLegend: 'Obbligatorio',
@@ -455,6 +459,8 @@ export const it: Translations = {
       rateLimited: 'Troppi invii. Riprova più tardi.',
       turnstileFailed: 'Verifica anti-bot fallita. Riprova.',
       serverError: 'Si è verificato un errore imprevisto. Riprova.',
+      logoErrorType: 'Tipo di immagine non valido. Usa JPEG, PNG, WebP o SVG.',
+      logoErrorSize: "L'immagine deve essere inferiore a 5 MB.",
     },
     submitting: 'Invio…',
   },
@@ -547,7 +553,7 @@ export const it: Translations = {
         },
         helpers: {
           description: 'Scrivi come se stessi spiegando il tuo club a un amico — chi siete, cosa fate, i vostri gruppi o livelli, e il tipo di accoglienza che offrite.',
-          schedule: 'Condividi il tuo solito programma — un gruppo o dieci, fisso o flessibile. Se cambia in base alla stagione o si decide all\'ultimo momento, dillo chiaramente.',
+          schedule: 'Condividi il tuo solito programma e dove vi incontrate — un gruppo o dieci, fisso o flessibile. Indica il luogo, l\'indirizzo o la zona così la gente sa dove venire. Se cambia in base alla stagione o si decide all\'ultimo momento, dillo chiaramente.',
           howToJoin: 'Di\' a qualcuno di curioso cosa fare adesso — il primo passo, eventuali costi e se serve esperienza. Rassicuralo se la porta è aperta a tutti.',
         },
         tips: {

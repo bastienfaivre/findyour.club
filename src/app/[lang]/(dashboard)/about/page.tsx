@@ -3,7 +3,6 @@ import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { generatePlatformMetadata } from '@/components/app/seo/metadata'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
-import { Card, CardContent } from '@/components/ui/card'
 
 type Props = {
   params: Promise<{ lang: string }>
@@ -29,27 +28,22 @@ export default async function AboutPage({ params }: Props) {
   return (
     <>
       <AdminPageTitle title={t.nav.about} />
-      <div className="max-w-xl space-y-6">
-        <div>
+      <div className="w-full mx-auto max-w-2xl space-y-4">
+        <div className="rounded-xl border p-4 space-y-4">
           <h1 className="text-2xl font-bold tracking-tight">
             {t.platform.about.title}
           </h1>
-        </div>
-
-        <Card className="py-0 gap-0">
-          <CardContent className="space-y-4 p-4">
-            {t.platform.about.content.map((paragraph, i) => (
-              <p key={i} className="text-sm leading-relaxed text-muted-foreground text-justify">
-                {paragraph}
-              </p>
-            ))}
-            <p className="text-sm font-medium italic text-muted-foreground pt-2">
-              {t.platform.about.author}
+          {t.platform.about.content.map((paragraph, i) => (
+            <p key={i} className="text-sm leading-relaxed text-muted-foreground text-justify">
+              {paragraph}
             </p>
-          </CardContent>
-        </Card>
+          ))}
+          <p className="text-sm font-medium italic text-muted-foreground pt-2">
+            {t.platform.about.author}
+          </p>
+        </div>
         {/* TODO: uncomment when video is ready
-        <div>
+        <div className="rounded-xl border p-4">
           <YouTubeEmbed videoId="dQw4w9WgXcQ" title="About findyour.club" />
         </div>
         */}
