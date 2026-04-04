@@ -12,6 +12,7 @@ import { PageTitleProvider, PageTitleDisplay, PageActionDisplay } from '@/compon
 import { SearchStateProvider } from '@/components/app/SearchStateContext'
 import { AdminSelectionProvider } from '@/components/app/AdminSelectionContext'
 import { VerificationBanner } from '@/components/app/club-admin/VerificationBanner'
+import { BackgroundPattern } from '@/components/app/BackgroundPattern'
 import { APPROACHING_THRESHOLD_DAYS } from '@/lib/verification'
 import { getStringSetting } from '@/lib/server/platform-settings'
 
@@ -194,8 +195,11 @@ export default async function DashboardLayout({ children, params }: DashboardLay
                 <PageActionDisplay />
               </div>
             </header>
-            <div id="main-content" className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden p-4">
-              {children}
+            <div className="relative isolate flex-1 flex flex-col overflow-hidden">
+              <BackgroundPattern />
+              <div id="main-content" className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden overscroll-contain p-4">
+                {children}
+              </div>
             </div>
           </SidebarInset>
           </SidebarProvider>
