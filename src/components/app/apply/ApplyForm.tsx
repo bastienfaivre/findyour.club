@@ -271,7 +271,7 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
 
   if (submitted) {
     return (
-      <div className="rounded-md border border-green-200 bg-green-50 p-6 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
+      <div className="rounded-md border border-green-200 tint-green p-6 text-green-800 dark:border-green-800 dark:tint-green dark:text-green-200">
         <p>{t.apply.success}</p>
       </div>
     )
@@ -284,7 +284,7 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
     <form onSubmit={formOnSubmit} className="space-y-6" noValidate>
       {/* Responsible person warning */}
       {step === 1 && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-5 text-center dark:border-amber-900 dark:bg-amber-950/30">
+        <div className="rounded-lg border border-amber-200 tint-amber p-5 text-center dark:border-amber-900 dark:tint-amber">
           <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
             {t.apply.responsibleWarning}
           </p>

@@ -249,7 +249,7 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
       <WelcomeBanner clubId={clubId} translations={t.welcome} />
 
       {draft && (
-        <div className="mb-4 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
+        <div className="mb-4 flex items-center gap-3 rounded-xl border border-amber-200 tint-amber p-4 dark:border-amber-900 dark:tint-amber">
           <RotateCcw className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
           <p className="flex-1 text-sm text-amber-800 dark:text-amber-300">{t.save.draftFound}</p>
           <Button

@@ -44,7 +44,7 @@ export function ProfilePage({ club, translations, expiredBanner }: ProfilePagePr
     <div className="flex flex-col">
       <div className="mx-auto w-full max-w-3xl space-y-4">
         {expiredBanner && (
-          <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-medium text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+          <div role="alert" className="rounded-xl border border-amber-200 tint-amber p-4 text-sm font-medium text-amber-800 dark:border-amber-900 dark:tint-amber dark:text-amber-300">
             {expiredBanner}
           </div>
         )}

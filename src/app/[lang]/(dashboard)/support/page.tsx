@@ -110,7 +110,7 @@ export default async function SupportPage({ params }: Props) {
         </div>
 
         {/* Funded until */}
-        <div className="rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/30">
+        <div className="rounded-xl border border-green-200 tint-green p-4 dark:border-green-900 dark:tint-green">
           <p className="text-sm font-medium text-green-800 dark:text-green-300">
             {s.fundedUntil}
           </p>
@@ -149,7 +149,7 @@ export default async function SupportPage({ params }: Props) {
         </div>
 
         {/* Call to action */}
-        <div className="rounded-xl border bg-muted/50 p-4 space-y-2">
+        <div className="rounded-xl border bg-muted p-4 space-y-2">
           <h2 className="text-sm font-semibold">{s.helpTitle}</h2>
           <p className="text-sm text-muted-foreground">{s.helpText}</p>
         </div>

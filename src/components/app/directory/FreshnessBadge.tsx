@@ -17,9 +17,9 @@ function getState(lastVerifiedAt: Date | null): VerificationState {
 }
 
 const stateStyles: Record<VerificationState, string> = {
-  healthy: 'border-green-300 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950/30 dark:text-green-300',
-  approaching: 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300',
-  expired: 'border-red-300 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300',
+  healthy: 'border-green-300 tint-green text-green-800 dark:border-green-800 dark:tint-green dark:text-green-300',
+  approaching: 'border-amber-300 tint-amber text-amber-800 dark:border-amber-800 dark:tint-amber dark:text-amber-300',
+  expired: 'border-red-300 tint-red text-red-800 dark:border-red-800 dark:tint-red dark:text-red-300',
 }
 
 export function FreshnessBadge({ lastVerifiedAt, upToDateLabel, notVerifiedLabel, approachingLabel, className }: FreshnessBadgeProps) {

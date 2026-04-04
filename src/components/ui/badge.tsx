@@ -13,9 +13,9 @@ const badgeVariants = cva(
         secondary:
           "bg-muted-foreground/20 text-secondary-foreground [a&]:hover:bg-muted-foreground/30",
         destructive:
-          "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300 [a&]:hover:bg-red-200 dark:[a&]:hover:bg-red-900",
+          "bg-red-100 text-red-800 dark:tint-red dark:text-red-300 [a&]:hover:bg-red-200 dark:[a&]:hover:bg-red-900",
         success:
-          "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300 [a&]:hover:bg-green-200 dark:[a&]:hover:bg-green-900",
+          "bg-green-100 text-green-800 dark:tint-green dark:text-green-300 [a&]:hover:bg-green-200 dark:[a&]:hover:bg-green-900",
         outline:
           "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         ghost: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",

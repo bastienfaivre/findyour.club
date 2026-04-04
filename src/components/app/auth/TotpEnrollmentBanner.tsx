@@ -17,7 +17,7 @@ export function TotpEnrollmentBanner({ session, lang, t }: TotpEnrollmentBannerP
   return (
     <div
       role="alert"
-      className="rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-950 dark:text-amber-300 px-4 py-3 text-sm font-medium flex items-center justify-between"
+      className="rounded-xl border border-amber-200 tint-amber text-amber-950 dark:border-amber-900 dark:tint-amber dark:text-amber-300 px-4 py-3 text-sm font-medium flex items-center justify-between"
     >
       <span>
         {t.pre}{' '}

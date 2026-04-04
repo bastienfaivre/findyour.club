@@ -99,7 +99,7 @@ export default async function HomePage({ params }: Props) {
       </div>
 
       {/* Bootstrap message */}
-      <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-center dark:border-green-900 dark:bg-green-950/30">
+      <div className="rounded-xl border border-green-200 tint-green p-4 text-center dark:border-green-900 dark:tint-green">
         <p className="text-sm font-medium text-green-800 dark:text-green-300">
           {t.platform.bootstrapMessage}
         </p>

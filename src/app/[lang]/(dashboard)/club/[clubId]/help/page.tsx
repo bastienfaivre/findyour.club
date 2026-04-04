@@ -84,7 +84,7 @@ export default async function HelpPage({ params }: HelpPageProps) {
         </div>
 
         {/* Tip */}
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 flex gap-3">
+        <div className="rounded-xl border border-amber-200 tint-amber dark:border-amber-900 dark:tint-amber p-4 flex gap-3">
           <Lightbulb className="h-5 w-5 shrink-0 text-amber-500 mt-0.5" />
           <div>
             <p className="text-sm font-medium">{h.tip}</p>
