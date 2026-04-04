@@ -131,9 +131,10 @@ export async function sendClubMessage(
   const guard = await authGuard(clubId, lang)
   if (!guard.ok) return guard.result
 
+  const t = getT(lang)
   const session = await getAuthSession()
   if (!session?.user?.id) {
-    return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' }
+    return { success: false, error: t.errors.notAuthenticated, code: 'UNAUTHORIZED' }
   }
 
   const maxMessages = await getNumberSetting('rate.support_messages_per_hour')
@@ -179,9 +180,10 @@ export async function markConversationRead(
   const guard = await authGuard(clubId, lang)
   if (!guard.ok) return guard.result
 
+  const t = getT(lang)
   const session = await getAuthSession()
   if (!session?.user?.id) {
-    return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' }
+    return { success: false, error: t.errors.notAuthenticated, code: 'UNAUTHORIZED' }
   }
 
   await prisma.conversationReadCursor.upsert({

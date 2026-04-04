@@ -48,13 +48,13 @@ export async function inviteEditor(
     select: { id: true },
   })
   if (!callerOwnership) {
-    return { success: false, error: 'Only club owners can invite editors.', code: 'FORBIDDEN' }
+    return { success: false, error: t.errors.ownerOnly, code: 'FORBIDDEN' }
   }
 
   // Rate limit invitations
   const maxInvites = await getNumberSetting('rate.invitations_per_hour')
   if (checkRateLimit(`invite:${session.user.id}:${club.id}`, { windowMs: 3_600_000, maxAttempts: maxInvites })) {
-    return { success: false, error: 'Too many invitations. Please wait before sending another.', code: 'VALIDATION_ERROR' }
+    return { success: false, error: t.errors.tooManyInvitations, code: 'VALIDATION_ERROR' }
   }
 
   // Enforce max editors limit
@@ -63,13 +63,13 @@ export async function inviteEditor(
     where: { clubId: club.id, role: 'EDITOR', status: { in: ['ACTIVE', 'PENDING'] } },
   })
   if (editorCount >= maxEditors) {
-    return { success: false, error: `Maximum of ${maxEditors} editor(s) reached.`, code: 'VALIDATION_ERROR' }
+    return { success: false, error: t.errors.maxEditorsReached, code: 'VALIDATION_ERROR' }
   }
 
   // Validate email
   const parsed = inviteSchema.safeParse({ email: formData.get('email') })
   if (!parsed.success) {
-    return { success: false, error: 'Invalid email address.', code: 'VALIDATION_ERROR' }
+    return { success: false, error: t.errors.invalidEmail, code: 'VALIDATION_ERROR' }
   }
   const { email } = parsed.data
 
@@ -88,7 +88,7 @@ export async function inviteEditor(
   if (existingMember) {
     const isActive = existingMember.memberships.some(m => m.status === 'ACTIVE')
     if (isActive) {
-      return { success: false, error: 'This person is already a member.', code: 'ALREADY_MEMBER' }
+      return { success: false, error: t.errors.alreadyMember, code: 'ALREADY_MEMBER' }
     }
     const isPending = existingMember.memberships.some(m => m.status === 'PENDING')
     if (isPending) {
@@ -97,7 +97,7 @@ export async function inviteEditor(
         select: { id: true },
       })
       if (validInvitation) {
-        return { success: false, error: 'This person already has a pending invite.', code: 'ALREADY_MEMBER' }
+        return { success: false, error: t.errors.pendingInvite, code: 'ALREADY_MEMBER' }
       }
       // Invitation expired → clean up stale PENDING membership and any expired invitation records
       await prisma.$transaction([

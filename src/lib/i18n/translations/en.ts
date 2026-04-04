@@ -1140,5 +1140,13 @@ export const en: Translations = {
     alreadyReviewed: 'Application already reviewed.',
     notAuthenticated: 'Not authenticated.',
     clubNotFound: 'Club not found.',
+    ownerOnly: 'Only club owners can perform this action.',
+    tooManyInvitations: 'Too many invitations. Please wait before sending another.',
+    maxEditorsReached: 'Maximum number of editors reached.',
+    invalidEmail: 'Invalid email address.',
+    alreadyMember: 'This person is already a member.',
+    pendingInvite: 'This person already has a pending invite.',
+    wrongPassword: 'Current password is incorrect.',
+    passwordBreached: 'This password has appeared in a data breach. Please choose a different one.',
   },
 }

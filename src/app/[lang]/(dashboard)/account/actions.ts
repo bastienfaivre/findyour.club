@@ -66,12 +66,12 @@ export async function changePassword(input: unknown, lang?: string): Promise<Cha
 
   const currentValid = await argon2.verify(user.passwordHash, parsed.data.currentPassword)
   if (!currentValid) {
-    return { success: false, error: 'Current password is incorrect.', code: 'WRONG_PASSWORD' }
+    return { success: false, error: t.errors.wrongPassword, code: 'WRONG_PASSWORD' }
   }
 
   // HaveIBeenPwned check (k-anonymity — same pattern as setupPassword)
   if (await isPasswordBreached(parsed.data.password)) {
-    return { success: false, error: 'This password has appeared in a data breach. Please choose a different one.', code: 'PASSWORD_BREACHED' }
+    return { success: false, error: t.errors.passwordBreached, code: 'PASSWORD_BREACHED' }
   }
 
   const newHash = await argon2.hash(parsed.data.password)

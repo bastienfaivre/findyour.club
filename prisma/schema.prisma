@@ -569,3 +569,14 @@ model TicketReply {
   @@map("ticket_replies")
 }
 
+// ─── PLATFORM SETTINGS (stored as feature_flags) ────────────────────────────
+
+model FeatureFlag {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("feature_flags")
+}
+

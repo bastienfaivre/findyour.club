@@ -1103,5 +1103,13 @@ export type Translations = {
     alreadyReviewed: string
     notAuthenticated: string
     clubNotFound: string
+    ownerOnly: string
+    tooManyInvitations: string
+    maxEditorsReached: string
+    invalidEmail: string
+    alreadyMember: string
+    pendingInvite: string
+    wrongPassword: string
+    passwordBreached: string
   }
 }

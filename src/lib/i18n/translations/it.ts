@@ -1132,5 +1132,13 @@ export const it: Translations = {
     alreadyReviewed: 'Candidatura gi\u00e0 esaminata.',
     notAuthenticated: 'Non autenticato.',
     clubNotFound: 'Club non trovato.',
+    ownerOnly: 'Solo i proprietari del club possono eseguire questa azione.',
+    tooManyInvitations: 'Troppe invitazioni. Attendi prima di inviarne un\u2019altra.',
+    maxEditorsReached: 'Numero massimo di redattori raggiunto.',
+    invalidEmail: 'Indirizzo e-mail non valido.',
+    alreadyMember: 'Questa persona \u00e8 gi\u00e0 membro.',
+    pendingInvite: 'Questa persona ha gi\u00e0 un invito in sospeso.',
+    wrongPassword: 'La password attuale non \u00e8 corretta.',
+    passwordBreached: 'Questa password \u00e8 apparsa in una violazione di dati. Scegline un\u2019altra.',
   },
 }

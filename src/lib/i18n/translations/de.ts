@@ -1132,5 +1132,13 @@ export const de: Translations = {
     alreadyReviewed: 'Bewerbung bereits \u00fcberpr\u00fcft.',
     notAuthenticated: 'Nicht authentifiziert.',
     clubNotFound: 'Verein nicht gefunden.',
+    ownerOnly: 'Nur Vereinsinhaber k\u00f6nnen diese Aktion durchf\u00fchren.',
+    tooManyInvitations: 'Zu viele Einladungen. Bitte warte, bevor du eine weitere sendest.',
+    maxEditorsReached: 'Maximale Anzahl an Redakteuren erreicht.',
+    invalidEmail: 'Ung\u00fcltige E-Mail-Adresse.',
+    alreadyMember: 'Diese Person ist bereits Mitglied.',
+    pendingInvite: 'Diese Person hat bereits eine ausstehende Einladung.',
+    wrongPassword: 'Das aktuelle Passwort ist falsch.',
+    passwordBreached: 'Dieses Passwort wurde in einem Datenleck gefunden. Bitte w\u00e4hle ein anderes.',
   },
 }

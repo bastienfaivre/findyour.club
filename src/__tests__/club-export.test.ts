@@ -4,7 +4,6 @@ import { unzipSync, strFromU8 } from 'fflate'
 vi.mock('@/server/db', () => ({
   prisma: {
     club: { findFirst: vi.fn() },
-    auditLog: { create: vi.fn().mockResolvedValue({}) },
   },
 }))
 vi.mock('@/server/auth', () => ({

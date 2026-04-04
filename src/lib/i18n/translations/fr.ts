@@ -1157,5 +1157,13 @@ export const fr: Translations = {
     alreadyReviewed: 'Candidature d\u00e9j\u00e0 examin\u00e9e.',
     notAuthenticated: 'Non authentifi\u00e9.',
     clubNotFound: 'Club introuvable.',
+    ownerOnly: 'Seuls les propri\u00e9taires du club peuvent effectuer cette action.',
+    tooManyInvitations: 'Trop d\u2019invitations. Merci de patienter avant d\u2019en envoyer une autre.',
+    maxEditorsReached: 'Nombre maximum d\u2019\u00e9diteurs atteint.',
+    invalidEmail: 'Adresse e-mail invalide.',
+    alreadyMember: 'Cette personne est d\u00e9j\u00e0 membre.',
+    pendingInvite: 'Cette personne a d\u00e9j\u00e0 une invitation en attente.',
+    wrongPassword: 'Le mot de passe actuel est incorrect.',
+    passwordBreached: 'Ce mot de passe est apparu dans une fuite de donn\u00e9es. Merci d\u2019en choisir un autre.',
   },
 }
