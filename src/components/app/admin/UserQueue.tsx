@@ -78,7 +78,7 @@ export function UserQueue({ users, translations: t, locale }: UserQueueProps) {
 
   if (users.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+      <div className="rounded-xl border p-6 flex flex-col items-center justify-center py-12 text-muted-foreground">
         <UsersIcon className="size-10 mb-3 opacity-50" />
         <p>{tu.noUsers}</p>
       </div>
@@ -183,7 +183,7 @@ export function UserQueue({ users, translations: t, locale }: UserQueueProps) {
       locale={locale}
     />
   ) : (
-    <div className="flex flex-col items-center justify-center h-48 text-sm text-muted-foreground">
+    <div className="rounded-xl border p-6 flex flex-col items-center justify-center h-48 text-sm text-muted-foreground">
       <FileSearch className="size-8 mb-2 opacity-40" />
       {tu.selectUser}
     </div>

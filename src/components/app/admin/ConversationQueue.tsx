@@ -170,7 +170,7 @@ export function ConversationQueue({ conversations, sendAction, markReadAction, l
       </div>
     </div>
   ) : (
-    <div className="flex flex-col items-center justify-center h-48 text-sm text-muted-foreground">
+    <div className="rounded-xl border p-6 flex flex-col items-center justify-center h-48 text-sm text-muted-foreground">
       <MessageSquare className="size-8 mb-2 opacity-40" />
       {t.admin.selectConversation}
     </div>

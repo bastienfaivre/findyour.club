@@ -136,7 +136,7 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
 
   if (clubs.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+      <div className="rounded-xl border p-6 flex flex-col items-center justify-center py-12 text-muted-foreground">
         <Building2Icon className="size-10 mb-3 opacity-50" />
         <p>{tc.noClubs}</p>
       </div>
@@ -319,7 +319,7 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
       locale={locale}
     />
   ) : (
-    <div className="flex flex-col items-center justify-center h-48 text-sm text-muted-foreground">
+    <div className="rounded-xl border p-6 flex flex-col items-center justify-center h-48 text-sm text-muted-foreground">
       <FileSearch className="size-8 mb-2 opacity-40" />
       {tc.selectClub}
     </div>

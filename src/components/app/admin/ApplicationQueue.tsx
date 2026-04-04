@@ -132,7 +132,7 @@ export function ApplicationQueue({ applications, activityTypes, countries, canto
 
   if (visibleApplications.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+      <div className="rounded-xl border p-6 flex flex-col items-center justify-center py-12 text-muted-foreground">
         <Inbox className="size-10 mb-3 opacity-50" />
         <p>{ta.empty}</p>
       </div>
@@ -294,7 +294,7 @@ export function ApplicationQueue({ applications, activityTypes, countries, canto
       onActionComplete={handleActionComplete}
     />
   ) : (
-    <div className="flex flex-col items-center justify-center h-48 text-sm text-muted-foreground">
+    <div className="rounded-xl border p-6 flex flex-col items-center justify-center h-48 text-sm text-muted-foreground">
       <FileSearch className="size-8 mb-2 opacity-40" />
       {ta.selectApplication}
     </div>
