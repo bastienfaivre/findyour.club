@@ -463,6 +463,10 @@ export const fr: Translations = {
       logoErrorSize: 'L\u2019image doit faire moins de 5 Mo.',
     },
     submitting: 'Envoi…',
+    verification: {
+      title: 'Vérification rapide',
+      description: 'Complète la vérification ci-dessous pour soumettre ta candidature.',
+    },
   },
   club: {
     settings: 'Paramètres',

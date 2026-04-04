@@ -463,6 +463,10 @@ export const de: Translations = {
       logoErrorSize: 'Das Bild muss kleiner als 5 MB sein.',
     },
     submitting: 'Wird gesendet…',
+    verification: {
+      title: 'Kurze Überprüfung',
+      description: 'Bitte schliesse die Überprüfung unten ab, um deine Bewerbung einzureichen.',
+    },
   },
   club: {
     settings: 'Einstellungen',

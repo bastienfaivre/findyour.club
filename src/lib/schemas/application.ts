@@ -17,7 +17,14 @@ export const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 const optionalUrl = z.union([z.string().url(), z.literal('')]).optional()
 
-export const applicationSchema = z.object({
+const otherDescriptionRefinement = {
+  check: (data: { activityType: string; otherDescription?: string }) =>
+    data.activityType !== 'other' || (!!data.otherDescription && data.otherDescription.trim().length > 0),
+  message: 'Please describe your activity type',
+  path: ['otherDescription'] as const,
+}
+
+const applicationBaseSchema = z.object({
   // Step 1 — Applicant info
   applicantFirstName: z.string().trim().min(1, 'First name is required').max(100),
   applicantLastName: z.string().trim().min(1, 'Last name is required').max(100),
@@ -48,13 +55,18 @@ export const applicationSchema = z.object({
   telegramUrl: optionalUrl,
   githubUrl: optionalUrl,
   logoKey: z.string().max(500).optional(),
-  turnstileToken: z.string().min(1, 'Bot protection is required'),
-}).refine(
-  (data) => data.activityType !== 'other' || (data.otherDescription && data.otherDescription.trim().length > 0),
-  { message: 'Please describe your activity type', path: ['otherDescription'] },
-)
+})
+
+export const applicationSchema = applicationBaseSchema
+  .extend({ turnstileToken: z.string().min(1, 'Bot protection is required') })
+  .refine(otherDescriptionRefinement.check, { message: otherDescriptionRefinement.message, path: [...otherDescriptionRefinement.path] })
+
+/** Client-side schema without turnstileToken — used for form validation before showing the captcha dialog. */
+export const applicationFormSchema = applicationBaseSchema
+  .refine(otherDescriptionRefinement.check, { message: otherDescriptionRefinement.message, path: [...otherDescriptionRefinement.path] })
 
 export type ApplicationInput = z.infer<typeof applicationSchema>
+export type ApplicationFormInput = z.infer<typeof applicationFormSchema>
 
 /**
  * Central definition of all operator-editable application fields.

@@ -463,6 +463,10 @@ export const en: Translations = {
       logoErrorSize: 'Image must be under 5 MB.',
     },
     submitting: 'Submitting…',
+    verification: {
+      title: 'Quick verification',
+      description: 'Please complete the check below to submit your application.',
+    },
   },
   club: {
     settings: 'Settings',

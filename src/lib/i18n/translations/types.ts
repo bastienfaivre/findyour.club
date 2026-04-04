@@ -476,6 +476,10 @@ export type Translations = {
       logoErrorSize: string
     }
     submitting: string
+    verification: {
+      title: string
+      description: string
+    }
   }
   club: {
     settings: string

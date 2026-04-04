@@ -18,14 +18,24 @@ import {
 } from '@/components/ui/select'
 import { PhoneInput } from '@/components/ui/phone-input'
 import { CountryFlag, CantonFlag } from '@/components/ui/country-flag'
-import { applicationSchema, type ApplicationInput } from '@/lib/schemas/application'
+import { applicationFormSchema, type ApplicationFormInput } from '@/lib/schemas/application'
 import { SUPPORTED_LANGUAGES } from '@/lib/schemas/profile'
 import { SocialLinksFieldset } from '@/components/app/SocialLinksFieldset'
 import { SharePlatformButton } from '@/components/app/SharePlatformButton'
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
-import { submitApplication, getApplicationLogoUploadUrl, type SubmitApplicationResult } from '@/app/[lang]/(dashboard)/apply/actions'
+import { submitApplication, getApplicationLogoUploadUrl, getApplicationLogoPublicUrl, type SubmitApplicationResult } from '@/app/[lang]/(dashboard)/apply/actions'
 import { ALLOWED_IMAGE_TYPES } from '@/lib/r2'
 import Image from 'next/image'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Loader2 } from 'lucide-react'
 import type { Translations } from '@/lib/i18n/translations'
 import type { SupportedLanguage } from '@/lib/i18n'
@@ -62,21 +72,91 @@ function RequiredMark() {
   return <span className="text-destructive" aria-hidden="true"> *</span>
 }
 
-export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Props) {
+const STORAGE_KEY = 'apply-form-draft'
+
+type FormDraft = {
+  values: Partial<ApplicationFormInput>
+  step: number
+  sameEmail: boolean
+  samePhone: boolean
+  locationQuery: string
+  logoKey: string | null
+}
+
+function loadDraft(): FormDraft | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    return JSON.parse(raw) as FormDraft
+  } catch {
+    return null
+  }
+}
+
+function clearDraft() {
+  try { localStorage.removeItem(STORAGE_KEY) } catch { /* noop */ }
+}
+
+export function ApplyForm(props: Props) {
+  const [draft, setDraft] = useState<FormDraft | null | undefined>(undefined)
+
+  useEffect(() => {
+    setDraft(loadDraft()) // eslint-disable-line react-hooks/set-state-in-effect
+  }, [])
+
+  if (draft === undefined) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-5 w-48" />
+        <Skeleton className="h-4 w-32" />
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-9 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-9 w-full" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return <ApplyFormInner {...props} draft={draft} />
+}
+
+function ApplyFormInner({ lang, t, activityTypes, countries, userProfile, draft }: Props & { draft: FormDraft | null }) {
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ''
 
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(draft?.step ?? 1)
   const [submitted, setSubmitted] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
-  const [sameEmail, setSameEmail] = useState(false)
-  const [samePhone, setSamePhone] = useState(false)
+  const [sameEmail, setSameEmail] = useState(draft?.sameEmail ?? false)
+  const [samePhone, setSamePhone] = useState(draft?.samePhone ?? false)
   const [locationResults, setLocationResults] = useState<LocationResult[]>([])
   const [locationOpen, setLocationOpen] = useState(false)
-  const [locationQuery, setLocationQuery] = useState('')
+  const [locationQuery, setLocationQuery] = useState(draft?.locationQuery ?? '')
   const [activeLocationIndex, setActiveLocationIndex] = useState(-1)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
-  const [logoKey, setLogoKey] = useState<string | null>(null)
+  const [logoKey, setLogoKey] = useState<string | null>(draft?.logoKey ?? null)
   const [logoUploading, setLogoUploading] = useState(false)
+  const [showTurnstileDialog, setShowTurnstileDialog] = useState(false)
+  const pendingDataRef = useRef<ApplicationFormInput | null>(null)
   const logoInputRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const turnstileRef = useRef<TurnstileInstance | null>(null)
@@ -90,9 +170,10 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
     getValues,
     trigger,
     control,
+    watch,
     formState: { errors, isSubmitting },
-  } = useForm<ApplicationInput>({
-    resolver: zodResolver(applicationSchema),
+  } = useForm<ApplicationFormInput>({
+    resolver: zodResolver(applicationFormSchema),
     defaultValues: {
       applicantFirstName: userProfile?.firstName ?? '',
       applicantLastName: userProfile?.lastName ?? '',
@@ -100,7 +181,7 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
       applicantPhone: userProfile?.phone ?? '',
       applicantPreferredLanguage: (userProfile?.preferredLanguage ?? lang) as typeof SUPPORTED_LANGUAGES[number],
       country: countries[0]?.code ?? 'ch',
-      turnstileToken: '',
+      ...draft?.values,
     },
     mode: 'onBlur',
   })
@@ -108,6 +189,48 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
   const watchedActivityType = useWatch({ control, name: 'activityType' })
   const watchedEmail = useWatch({ control, name: 'email' })
   const watchedPhone = useWatch({ control, name: 'applicantPhone' })
+
+  // Restore logo preview from draft
+  useEffect(() => {
+    if (draft?.logoKey) {
+      getApplicationLogoPublicUrl(draft.logoKey).then((url) => {
+        if (url) setLogoPreview(url)
+      })
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Persist form state to localStorage on every form value change
+  useEffect(() => {
+    const subscription = watch((formValues) => {
+      try {
+        const data: FormDraft = {
+          values: formValues as Partial<ApplicationFormInput>,
+          step,
+          sameEmail,
+          samePhone,
+          locationQuery,
+          logoKey,
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+      } catch { /* storage full or unavailable */ }
+    })
+    return () => subscription.unsubscribe()
+  }, [watch, step, sameEmail, samePhone, locationQuery, logoKey])
+
+  // Also save non-form state changes (step, checkboxes, etc.)
+  useEffect(() => {
+    try {
+      const data: FormDraft = {
+        values: getValues(),
+        step,
+        sameEmail,
+        samePhone,
+        locationQuery,
+        logoKey,
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    } catch { /* storage full or unavailable */ }
+  }, [step, sameEmail, samePhone, locationQuery, logoKey, getValues])
 
   // Clean up debounce timer on unmount
   useEffect(() => {
@@ -244,29 +367,39 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
     }
   }
 
-  const onSubmit = async (data: ApplicationInput) => {
-    // Apply "same as" logic before submission
+  const onSubmit = (data: ApplicationFormInput) => {
+    // Apply "same as" logic before storing
     if (sameEmail) {
       data.clubEmail = ''
     }
     if (samePhone && data.applicantPhone) {
       data.contactPhone = data.applicantPhone
     }
+    // Store validated data and show Turnstile dialog
+    pendingDataRef.current = data
+    setShowTurnstileDialog(true)
+  }
 
+  const handleTurnstileSuccess = async (token: string) => {
+    const data = pendingDataRef.current
+    if (!data) return
+    setShowTurnstileDialog(false)
     setServerError(null)
-    const result: SubmitApplicationResult = await submitApplication(data, lang)
+    const result: SubmitApplicationResult = await submitApplication({ ...data, turnstileToken: token }, lang)
     if (result.success) {
+      clearDraft()
       setSubmitted(true)
     } else {
       if (result.code === 'RATE_LIMITED') {
         setServerError(t.apply.errors.rateLimited)
       } else if (result.code === 'TURNSTILE_FAILED') {
         setServerError(t.apply.errors.turnstileFailed)
-        turnstileRef.current?.reset()
       } else {
         setServerError(t.apply.errors.serverError)
       }
     }
+    pendingDataRef.current = null
+    turnstileRef.current?.reset()
   }
 
   if (submitted) {
@@ -800,20 +933,6 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
             />
           </section>
 
-          {/* Turnstile */}
-          {siteKey && (
-            <Turnstile
-              ref={turnstileRef}
-              siteKey={siteKey}
-              onSuccess={(token) => setValue('turnstileToken', token, { shouldValidate: true })}
-              onExpire={() => { setValue('turnstileToken', '', { shouldValidate: true }); turnstileRef.current?.reset() }}
-              onError={() => setValue('turnstileToken', '', { shouldValidate: true })}
-            />
-          )}
-          {errors.turnstileToken && (
-            <p className="text-sm text-destructive">{t.apply.errors.turnstileFailed}</p>
-          )}
-
           {/* Back / Submit */}
           <div className="flex justify-between">
             <Button type="button" variant="outline" onClick={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }) }} className="min-h-[44px] min-w-[44px]">
@@ -826,6 +945,36 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
         </div>
       </div>
       </div>
+
+      {/* Turnstile verification dialog */}
+      <AlertDialog open={showTurnstileDialog} onOpenChange={(open) => {
+        if (!open) {
+          setShowTurnstileDialog(false)
+          pendingDataRef.current = null
+          turnstileRef.current?.reset()
+        }
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader className="!place-items-center !text-center">
+            <AlertDialogTitle>{t.apply.verification.title}</AlertDialogTitle>
+            <AlertDialogDescription>{t.apply.verification.description}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-center overflow-x-auto">
+            {siteKey && showTurnstileDialog && (
+              <Turnstile
+                ref={turnstileRef}
+                siteKey={siteKey}
+                onSuccess={handleTurnstileSuccess}
+                onExpire={() => turnstileRef.current?.reset()}
+                onError={() => turnstileRef.current?.reset()}
+              />
+            )}
+          </div>
+          <AlertDialogFooter className="justify-center sm:justify-center">
+            <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </form>
   )
 }

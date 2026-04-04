@@ -141,3 +141,8 @@ export async function getApplicationLogoUploadUrl(contentType: string, lang?: st
   }
 }
 
+export async function getApplicationLogoPublicUrl(key: string): Promise<string | null> {
+  if (!key) return null
+  return getPublicUrl(key)
+}
+
