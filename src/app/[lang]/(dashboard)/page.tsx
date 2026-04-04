@@ -68,7 +68,7 @@ export default async function HomePage({ params }: Props) {
   const orgJsonLd = generatePlatformOrgJsonLd()
 
   return (
-    <div className="w-full mx-auto max-w-2xl space-y-4">
+    <>
       <AdminPageTitle title={t.nav.home} />
       <script
         type="application/ld+json"
@@ -78,7 +78,7 @@ export default async function HomePage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd).replace(/</g, '\\u003c') }}
       />
-
+    <div className="w-full mx-auto max-w-2xl space-y-4">
       {/* Hero */}
       <div className="rounded-xl border p-4 text-center">
         <h1 className="text-3xl sm:text-5xl font-extrabold leading-tight tracking-tight">
@@ -172,5 +172,6 @@ export default async function HomePage({ params }: Props) {
         </p>
       </div>
     </div>
+    </>
   )
 }

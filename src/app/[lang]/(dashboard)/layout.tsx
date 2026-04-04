@@ -194,7 +194,7 @@ export default async function DashboardLayout({ children, params }: DashboardLay
                 <PageActionDisplay />
               </div>
             </header>
-            <div id="main-content" className="flex-1 flex flex-col overflow-y-auto p-4">
+            <div id="main-content" className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden p-4">
               {children}
             </div>
           </SidebarInset>

@@ -104,9 +104,9 @@ export default async function ClubsPage({ params }: ClubsPageProps) {
       <AdminPageTitle title={t.admin.clubs.title} />
 
       {/* Data freshness overview */}
-      <div className="mb-4 flex items-center gap-4 rounded-xl border p-4">
+      <div className="mb-4 rounded-xl border p-4 space-y-2">
         <h3 className="text-sm font-semibold">{t.admin.clubs.freshness.title}</h3>
-        <div className="flex items-center gap-3 text-sm">
+        <div className="flex flex-wrap items-center gap-3 text-sm">
           <span className="flex items-center gap-1.5">
             <span className="inline-block h-2.5 w-2.5 rounded-full bg-green-500" />
             {t.admin.clubs.freshness.verified}: <strong>{verified}</strong>

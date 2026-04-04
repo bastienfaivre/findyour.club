@@ -542,10 +542,10 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
             </TabsTrigger>
           </TabsList>
         </div>
-        <TabsContent value="edit" className="overflow-y-auto">
+        <TabsContent value="edit" className="overflow-y-auto overflow-x-hidden">
           <div className="w-full max-w-2xl min-w-0">{formBlock}</div>
         </TabsContent>
-        <TabsContent value="preview" className="overflow-y-auto">
+        <TabsContent value="preview" className="overflow-y-auto overflow-x-hidden">
           <div className="w-full">{previewBlock}</div>
         </TabsContent>
       </Tabs>
