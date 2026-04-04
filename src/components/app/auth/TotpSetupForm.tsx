@@ -18,10 +18,11 @@ interface TotpSetupFormT {
 interface TotpSetupFormProps {
   qrDataUrl: string
   secret: string
+  lang: string
   t: TotpSetupFormT
 }
 
-export function TotpSetupForm({ qrDataUrl, secret, t }: TotpSetupFormProps) {
+export function TotpSetupForm({ qrDataUrl, secret, lang, t }: TotpSetupFormProps) {
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
@@ -39,7 +40,7 @@ export function TotpSetupForm({ qrDataUrl, secret, t }: TotpSetupFormProps) {
     setError(null)
 
     startTransition(async () => {
-      const result = await enrollTotp({ code })
+      const result = await enrollTotp({ code }, lang)
       if (result && !result.success) {
         setError(result.error)
         setCode('')

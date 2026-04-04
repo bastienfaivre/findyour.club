@@ -14,11 +14,12 @@ function getStorageOrigins(): string {
 
 function setCspHeaders(response: NextResponse) {
   const storageOrigins = getStorageOrigins()
+  const isDev = process.env.NODE_ENV !== 'production'
   response.headers.set(
     'Content-Security-Policy',
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com",
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://challenges.cloudflare.com`,
       "style-src 'self' 'unsafe-inline'",
       `img-src 'self' data: blob: https: ${storageOrigins}`.trim(),
       "font-src 'self'",
@@ -29,6 +30,7 @@ function setCspHeaders(response: NextResponse) {
       "form-action 'self'",
     ].join('; '),
   )
+  response.headers.set('X-Frame-Options', 'DENY')
 }
 
 export function proxy(request: NextRequest) {

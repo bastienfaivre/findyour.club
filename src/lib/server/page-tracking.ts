@@ -15,7 +15,7 @@ function getDailySalt(): string {
 
   // Generate a deterministic-per-day but unpredictable salt.
   // Uses a dedicated env var (falls back to CRON_SECRET) to avoid coupling auth secrets with analytics.
-  const secret = process.env.IP_HASH_SECRET ?? process.env.CRON_SECRET ?? 'fallback-dev-salt'
+  const secret = process.env.IP_HASH_SECRET ?? 'fallback-dev-salt'
   const salt = createHash('sha256').update(`${secret}:${today}`).digest('hex')
   cachedSalt = { date: today, value: salt }
   return salt

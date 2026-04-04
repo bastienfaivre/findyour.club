@@ -19,7 +19,7 @@ export function CountryButton({
   comingSoon,
 }: CountryButtonProps) {
   const className =
-    'flex items-center gap-3 rounded-[10px] border px-4 py-[10px] text-left text-card-foreground transition-all' +
+    'flex items-center gap-3 rounded-xl border px-4 py-2.5 text-left text-card-foreground transition-all' +
     (comingSoon
       ? ' opacity-45 cursor-default'
       : ' hover:border-muted-foreground hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring')
@@ -31,8 +31,8 @@ export function CountryButton({
           <CountryFlag code={country} className="h-7 w-auto" />
         </span>
         <div className="flex flex-col gap-px">
-          <span className="text-[13px] font-semibold">{countryName}</span>
-          <span className="text-[11px] text-muted-foreground">
+          <span className="text-sm leading-tight font-semibold">{countryName}</span>
+          <span className="text-xs text-muted-foreground">
             {clubCountLabel}
           </span>
         </div>
@@ -50,8 +50,8 @@ export function CountryButton({
         <CountryFlag code={country} className="h-7 w-auto" />
       </span>
       <div className="flex flex-col gap-px">
-        <span className="text-[13px] font-semibold">{countryName}</span>
-        <span className="text-[11px] text-muted-foreground">
+        <span className="text-sm leading-tight font-semibold">{countryName}</span>
+        <span className="text-xs text-muted-foreground">
           {clubCountLabel}
         </span>
       </div>

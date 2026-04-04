@@ -126,7 +126,7 @@ type ClubMetadataOptions = {
 export function generateClubMetadata({
   clubName,
   clubDescription,
-  clubLogoUrl,
+  clubLogoUrl: _clubLogoUrl,
   clubSlug,
   country,
   lang,

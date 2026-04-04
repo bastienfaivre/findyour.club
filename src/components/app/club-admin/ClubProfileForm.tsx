@@ -15,11 +15,12 @@ import { LogoUpload, type LogoActions } from './LogoUpload'
 import { uploadLogo, persistLogo, deleteLogo } from '@/app/[lang]/(dashboard)/club/[clubId]/actions'
 // import { PhotoGallery } from './PhotoGallery' // photos disabled temporarily
 import { ProfilePreview } from './ProfilePreview'
+import { FormSection } from './FormSection'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { PhoneInput } from '@/components/ui/phone-input'
-import { Pencil, Eye, CheckCircle2, Circle, RotateCcw } from 'lucide-react'
+import { Pencil, Eye, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { HelpTip } from '@/components/ui/help-tip'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -28,22 +29,6 @@ import { VerificationCountdown } from './VerificationCountdown'
 import type { Translations } from '@/lib/i18n/translations/types'
 import { SocialLinksFieldset } from '@/components/app/SocialLinksFieldset'
 import { WelcomeBanner } from './WelcomeBanner'
-
-function FormSection({ title, filled, children }: { title: string; filled: boolean; children: React.ReactNode }) {
-  return (
-    <section className="rounded-lg border p-4 space-y-4">
-      <div className="flex items-center gap-2">
-        {filled ? (
-          <CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />
-        ) : (
-          <Circle className="h-4 w-4 shrink-0 text-muted-foreground/40" />
-        )}
-        <h3 className="text-sm font-medium">{title}</h3>
-      </div>
-      {children}
-    </section>
-  )
-}
 
 export interface ClubPhoto {
   id: string

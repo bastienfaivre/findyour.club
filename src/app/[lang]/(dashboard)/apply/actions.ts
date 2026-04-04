@@ -10,6 +10,7 @@ import { getBooleanSetting, getNumberSetting, getStringSetting } from '@/lib/ser
 import { generateSlug } from '@/lib/slug'
 import { sendEmail } from '@/lib/email'
 import { buildApplicationSubmittedEmailHtml } from '@/lib/email-templates'
+import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { generateUploadUrl, getPublicUrl, ALLOWED_IMAGE_TYPES } from '@/lib/r2'
 
@@ -17,11 +18,12 @@ export type SubmitApplicationResult =
   | { success: true }
   | { success: false; error: string; code: 'REGISTRATIONS_CLOSED' | 'RATE_LIMITED' | 'VALIDATION_ERROR' | 'TURNSTILE_FAILED' | 'SERVER_ERROR' }
 
-export async function submitApplication(data: unknown): Promise<SubmitApplicationResult> {
+export async function submitApplication(data: unknown, lang?: string): Promise<SubmitApplicationResult> {
+  const t = getTranslations(resolveUILang(lang ?? 'en'))
   try {
     const registrationsOpen = await getBooleanSetting('registrations_enabled')
     if (!registrationsOpen) {
-      return { success: false, error: 'Registrations are currently closed.', code: 'REGISTRATIONS_CLOSED' }
+      return { success: false, error: t.errors.registrationsClosed, code: 'REGISTRATIONS_CLOSED' }
     }
 
     const headersList = await headers()
@@ -30,19 +32,19 @@ export async function submitApplication(data: unknown): Promise<SubmitApplicatio
 
     const maxAttempts = await getNumberSetting('rate.applications_per_hour')
     if (checkRateLimit('apply:' + ip, { windowMs: 3_600_000, maxAttempts })) {
-      return { success: false, error: 'Too many submissions.', code: 'RATE_LIMITED' }
+      return { success: false, error: t.errors.tooManyAttempts, code: 'RATE_LIMITED' }
     }
 
     const parsed = applicationSchema.safeParse(data)
     if (!parsed.success) {
-      return { success: false, error: 'Invalid form data.', code: 'VALIDATION_ERROR' }
+      return { success: false, error: t.errors.validationError, code: 'VALIDATION_ERROR' }
     }
 
     const { applicantFirstName, applicantLastName, applicantPhone, applicantPreferredLanguage, name, email, clubEmail, country, activityType, otherDescription, location, description, schedule, contactPhone, contactAddress, howToJoin, externalWebsiteUrl, instagramUrl, facebookUrl, xUrl, tiktokUrl, discordUrl, youtubeUrl, whatsappUrl, telegramUrl, githubUrl, logoKey, turnstileToken } = parsed.data
 
     const turnstileValid = await verifyTurnstileToken(turnstileToken)
     if (!turnstileValid) {
-      return { success: false, error: 'Bot protection failed.', code: 'TURNSTILE_FAILED' }
+      return { success: false, error: t.errors.botProtectionFailed, code: 'TURNSTILE_FAILED' }
     }
 
     const { locationId } = await upsertSwissLocation({
@@ -107,7 +109,7 @@ export async function submitApplication(data: unknown): Promise<SubmitApplicatio
 
     return { success: true }
   } catch {
-    return { success: false, error: 'An unexpected error occurred.', code: 'SERVER_ERROR' }
+    return { success: false, error: t.errors.serverError, code: 'SERVER_ERROR' }
   }
 }
 
@@ -115,10 +117,11 @@ export type ApplicationLogoUploadResult =
   | { success: true; data: { uploadUrl: string; key: string } }
   | { success: false; error: string }
 
-export async function getApplicationLogoUploadUrl(contentType: string): Promise<ApplicationLogoUploadResult> {
+export async function getApplicationLogoUploadUrl(contentType: string, lang?: string): Promise<ApplicationLogoUploadResult> {
+  const t = getTranslations(resolveUILang(lang ?? 'en'))
   try {
     if (!ALLOWED_IMAGE_TYPES.includes(contentType as typeof ALLOWED_IMAGE_TYPES[number])) {
-      return { success: false, error: 'Invalid image type.' }
+      return { success: false, error: t.errors.invalidImageType }
     }
 
     const headersList = await headers()
@@ -126,7 +129,7 @@ export async function getApplicationLogoUploadUrl(contentType: string): Promise<
     const ip = forwarded?.split(',')[0]?.trim() ?? 'unknown'
 
     if (checkRateLimit('apply-logo:' + ip, { windowMs: 3_600_000, maxAttempts: 10 })) {
-      return { success: false, error: 'Too many uploads.' }
+      return { success: false, error: t.errors.tooManyAttempts }
     }
 
     const ext = contentType.split('/')[1] === 'svg+xml' ? 'svg' : contentType.split('/')[1]
@@ -134,7 +137,7 @@ export async function getApplicationLogoUploadUrl(contentType: string): Promise<
 
     return { success: true, data: { uploadUrl, key } }
   } catch {
-    return { success: false, error: 'Upload failed.' }
+    return { success: false, error: t.errors.uploadFailed }
   }
 }
 

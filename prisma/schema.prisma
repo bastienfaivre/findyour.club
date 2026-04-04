@@ -226,9 +226,8 @@ model Club {
   events             Event[]
   galleryItems       GalleryItem[]
   documents          Document[]
-  healthChecks       HealthCheck[]
-
   @@unique([slug, country])
+  @@index([country, status, isPublished])
   @@map("clubs")
 }
 
@@ -493,23 +492,11 @@ model WebauthnCredential {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("webauthn_credentials")
 }
 
 // ─── PLATFORM OPERATIONS ─────────────────────────────────────────────────────
-
-model AuditLog {
-  id        String   @id @default(cuid())
-  actorId   String   @map("actor_id")
-  action    String // e.g. "APPROVE_APPLICATION", "SUSPEND_CLUB", "UPDATE_SETTING"
-  targetId  String?  @map("target_id")
-  oldValue  Json?    @map("old_value")
-  newValue  Json?    @map("new_value")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  // NOTE: No UPDATE or DELETE operations on audit_log — append-only table
-  @@map("audit_logs")
-}
 
 model ClubPhoto {
   id        String   @id @default(cuid())
@@ -582,35 +569,3 @@ model TicketReply {
   @@map("ticket_replies")
 }
 
-model HealthCheck {
-  id             String   @id @default(cuid())
-  clubId         String   @map("club_id")
-  lighthousePerf Float?   @map("lighthouse_perf")
-  lighthouseA11y Float?   @map("lighthouse_a11y")
-  lighthouseSEO  Float?   @map("lighthouse_seo")
-  uptimePct      Float?   @map("uptime_pct")
-  checkedAt      DateTime @default(now()) @map("checked_at")
-
-  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
-
-  @@map("health_checks")
-}
-
-model MigrationLog {
-  id              String   @id @default(cuid())
-  templateVersion String   @map("template_version")
-  migratedAt      DateTime @default(now()) @map("migrated_at")
-  clubsAffected   Int      @map("clubs_affected")
-  migrationType   String   @map("migration_type") // "content-safe" | "structural"
-
-  @@map("migration_logs")
-}
-
-model FeatureFlag {
-  id        String   @id @default(cuid())
-  key       String   @unique
-  value     Json
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("feature_flags")
-}

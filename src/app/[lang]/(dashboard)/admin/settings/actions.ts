@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { getAuthSession } from '@/server/auth'
+import { requireOperator } from '@/lib/server/auth-guards'
 import {
   setSetting,
   isValidSettingKey,
@@ -13,10 +13,12 @@ import {
 export async function updateSetting(
   key: string,
   value: boolean | number | string,
-): Promise<{ success: boolean; error?: string }> {
-  const session = await getAuthSession()
-  if (!session?.user || session.user.role !== 'OPERATOR') {
-    return { success: false, error: 'Unauthorized.' }
+): Promise<{ success: boolean; error?: string; code?: string }> {
+  const guard = await requireOperator()
+  if ('error' in guard) return guard.error
+  const { session } = guard
+  if (session.user.totpEnabled && !session.user.totpVerified) {
+    return { success: false, error: 'TOTP verification required.', code: 'TOTP_REQUIRED' }
   }
 
   if (!isValidSettingKey(key)) {

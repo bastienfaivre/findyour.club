@@ -2,8 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/server/db'
-import { getAuthSession } from '@/server/auth'
 import { sendEmail } from '@/lib/email'
+import { requireOperator } from '@/lib/server/auth-guards'
 import { buildOperatorMessageEmailHtml, buildForceOfflineEmailHtml } from '@/lib/email-templates'
 import { isEmailEnabled } from '@/lib/server/email-settings'
 import { resolveUILang } from '@/lib/i18n'
@@ -31,9 +31,11 @@ async function getClubOwnerLanguage(clubId: string): Promise<string> {
 
 export async function sendSupportMessage(clubId: string, body: string): Promise<ModerationActionResult> {
   try {
-    const session = await getAuthSession()
-    if (!session?.user || session.user.role !== 'OPERATOR') {
-      return { success: false, error: 'Unauthorized.', code: 'UNAUTHORIZED' }
+    const guard = await requireOperator()
+    if ('error' in guard) return guard.error
+    const { session } = guard
+    if (session.user.totpEnabled && !session.user.totpVerified) {
+      return { success: false, error: 'TOTP verification required.', code: 'TOTP_REQUIRED' }
     }
 
     const trimmed = body.trim()
@@ -63,7 +65,9 @@ export async function sendSupportMessage(clubId: string, body: string): Promise<
       create: { clubId: club.id, userId: session.user.id, lastReadAt: new Date() },
     })
 
-    if (await isEmailEnabled('email.operator_message')) {
+    // Fire-and-forget: DB record is the source of truth (ADR-004)
+    isEmailEnabled('email.operator_message').then(async (enabled) => {
+      if (!enabled) return
       try {
         const emailLang = resolveUILang(await getClubOwnerLanguage(club.id))
         const emailT = getTranslations(emailLang).emails.operatorMessage
@@ -78,10 +82,10 @@ export async function sendSupportMessage(clubId: string, body: string): Promise<
           subject: emailT.subject.replace('{clubName}', club.name),
           html,
         })
-      } catch {
-        // DB record is the source of truth — email failure is non-blocking (ADR-004)
+      } catch (err) {
+        console.error('[operator-message-email] Failed to send:', err)
       }
-    }
+    })
 
     revalidatePath('/[lang]/admin', 'layout')
     revalidatePath('/[lang]/(dashboard)', 'layout')
@@ -94,9 +98,11 @@ export async function sendSupportMessage(clubId: string, body: string): Promise<
 
 export async function toggleForceOffline(clubId: string, reason: string): Promise<ModerationActionResult> {
   try {
-    const session = await getAuthSession()
-    if (!session?.user || session.user.role !== 'OPERATOR') {
-      return { success: false, error: 'Unauthorized.', code: 'UNAUTHORIZED' }
+    const guard = await requireOperator()
+    if ('error' in guard) return guard.error
+    const { session } = guard
+    if (session.user.totpEnabled && !session.user.totpVerified) {
+      return { success: false, error: 'TOTP verification required.', code: 'TOTP_REQUIRED' }
     }
 
     const trimmed = reason.trim()
@@ -129,7 +135,9 @@ export async function toggleForceOffline(clubId: string, reason: string): Promis
       }),
     ])
 
-    if (await isEmailEnabled('email.force_offline')) {
+    // Fire-and-forget: DB record is the source of truth (ADR-004)
+    isEmailEnabled('email.force_offline').then(async (enabled) => {
+      if (!enabled) return
       try {
         const emailLang = resolveUILang(await getClubOwnerLanguage(club.id))
         const emailT = getTranslations(emailLang).emails.forceOffline
@@ -144,10 +152,10 @@ export async function toggleForceOffline(clubId: string, reason: string): Promis
           subject: emailT.subject.replace('{clubName}', club.name),
           html,
         })
-      } catch {
-        // DB record is the source of truth — email failure is non-blocking (ADR-004)
+      } catch (err) {
+        console.error('[force-offline-email] Failed to send:', err)
       }
-    }
+    })
 
     revalidatePath(`/[lang]/${club.country}/[club]`, 'page')
     revalidatePath(`/[lang]/[country]`, 'page')
@@ -162,9 +170,11 @@ export async function toggleForceOffline(clubId: string, reason: string): Promis
 
 export async function liftForceOffline(clubId: string): Promise<ModerationActionResult> {
   try {
-    const session = await getAuthSession()
-    if (!session?.user || session.user.role !== 'OPERATOR') {
-      return { success: false, error: 'Unauthorized.', code: 'UNAUTHORIZED' }
+    const guard = await requireOperator()
+    if ('error' in guard) return guard.error
+    const { session } = guard
+    if (session.user.totpEnabled && !session.user.totpVerified) {
+      return { success: false, error: 'TOTP verification required.', code: 'TOTP_REQUIRED' }
     }
 
     const club = await prisma.club.findUnique({
@@ -196,9 +206,11 @@ export async function updateClubFields(
   fields: ClubEditableFields,
 ): Promise<ModerationActionResult> {
   try {
-    const session = await getAuthSession()
-    if (!session?.user || session.user.role !== 'OPERATOR') {
-      return { success: false, error: 'Unauthorized.', code: 'UNAUTHORIZED' }
+    const guard = await requireOperator()
+    if ('error' in guard) return guard.error
+    const { session } = guard
+    if (session.user.totpEnabled && !session.user.totpVerified) {
+      return { success: false, error: 'TOTP verification required.', code: 'TOTP_REQUIRED' }
     }
 
     const trimmedSlug = fields.slug.trim()
@@ -287,9 +299,11 @@ export async function operatorDeleteClubLogo(
   clubId: string,
 ): Promise<ModerationActionResult> {
   try {
-    const session = await getAuthSession()
-    if (!session?.user || session.user.role !== 'OPERATOR') {
-      return { success: false, error: 'Unauthorized.', code: 'UNAUTHORIZED' }
+    const guard = await requireOperator()
+    if ('error' in guard) return guard.error
+    const { session } = guard
+    if (session.user.totpEnabled && !session.user.totpVerified) {
+      return { success: false, error: 'TOTP verification required.', code: 'TOTP_REQUIRED' }
     }
 
     const club = await prisma.club.findUnique({
@@ -326,9 +340,11 @@ export async function operatorUploadClubLogo(
   | { success: false; error: string; code: string }
 > {
   try {
-    const session = await getAuthSession()
-    if (!session?.user || session.user.role !== 'OPERATOR') {
-      return { success: false, error: 'Unauthorized.', code: 'UNAUTHORIZED' }
+    const guard = await requireOperator()
+    if ('error' in guard) return guard.error
+    const { session } = guard
+    if (session.user.totpEnabled && !session.user.totpVerified) {
+      return { success: false, error: 'TOTP verification required.', code: 'TOTP_REQUIRED' }
     }
 
     if (!ALLOWED_IMAGE_TYPES.includes(contentType as typeof ALLOWED_IMAGE_TYPES[number])) {
@@ -359,9 +375,11 @@ export async function operatorPersistClubLogo(
   alt: string,
 ): Promise<ModerationActionResult> {
   try {
-    const session = await getAuthSession()
-    if (!session?.user || session.user.role !== 'OPERATOR') {
-      return { success: false, error: 'Unauthorized.', code: 'UNAUTHORIZED' }
+    const guard = await requireOperator()
+    if ('error' in guard) return guard.error
+    const { session } = guard
+    if (session.user.totpEnabled && !session.user.totpVerified) {
+      return { success: false, error: 'TOTP verification required.', code: 'TOTP_REQUIRED' }
     }
 
     const club = await prisma.club.findUnique({
@@ -406,9 +424,11 @@ export async function operatorUpdateClubLogoAlt(
   alt: string,
 ): Promise<ModerationActionResult> {
   try {
-    const session = await getAuthSession()
-    if (!session?.user || session.user.role !== 'OPERATOR') {
-      return { success: false, error: 'Unauthorized.', code: 'UNAUTHORIZED' }
+    const guard = await requireOperator()
+    if ('error' in guard) return guard.error
+    const { session } = guard
+    if (session.user.totpEnabled && !session.user.totpVerified) {
+      return { success: false, error: 'TOTP verification required.', code: 'TOTP_REQUIRED' }
     }
 
     const club = await prisma.club.findUnique({
@@ -438,9 +458,11 @@ export async function operatorDeleteClubPhoto(
   photoId: string,
 ): Promise<ModerationActionResult> {
   try {
-    const session = await getAuthSession()
-    if (!session?.user || session.user.role !== 'OPERATOR') {
-      return { success: false, error: 'Unauthorized.', code: 'UNAUTHORIZED' }
+    const guard = await requireOperator()
+    if ('error' in guard) return guard.error
+    const { session } = guard
+    if (session.user.totpEnabled && !session.user.totpVerified) {
+      return { success: false, error: 'TOTP verification required.', code: 'TOTP_REQUIRED' }
     }
 
     const photo = await prisma.clubPhoto.findFirst({
@@ -470,9 +492,11 @@ export async function operatorDeleteClubPhoto(
 
 export async function operatorDeleteClub(clubId: string): Promise<ModerationActionResult> {
   try {
-    const session = await getAuthSession()
-    if (!session?.user || session.user.role !== 'OPERATOR') {
-      return { success: false, error: 'Unauthorized.', code: 'UNAUTHORIZED' }
+    const guard = await requireOperator()
+    if ('error' in guard) return guard.error
+    const { session } = guard
+    if (session.user.totpEnabled && !session.user.totpVerified) {
+      return { success: false, error: 'TOTP verification required.', code: 'TOTP_REQUIRED' }
     }
 
     const club = await prisma.club.findUnique({

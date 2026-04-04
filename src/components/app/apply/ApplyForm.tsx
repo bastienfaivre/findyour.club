@@ -229,7 +229,7 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
     }
     setLogoUploading(true)
     try {
-      const result = await getApplicationLogoUploadUrl(file.type)
+      const result = await getApplicationLogoUploadUrl(file.type, lang)
       if (!result.success) { toast.error(result.error); return }
       const uploadRes = await fetch(result.data.uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } })
       if (!uploadRes.ok) { toast.error('Upload failed.'); return }
@@ -254,7 +254,7 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
     }
 
     setServerError(null)
-    const result: SubmitApplicationResult = await submitApplication(data)
+    const result: SubmitApplicationResult = await submitApplication(data, lang)
     if (result.success) {
       setSubmitted(true)
     } else {
@@ -277,7 +277,6 @@ export function ApplyForm({ lang, t, activityTypes, countries, userProfile }: Pr
     )
   }
 
-  // eslint-disable-next-line react-hooks/refs -- react-hook-form's handleSubmit is not a React ref
   const formOnSubmit = handleSubmit(onSubmit)
 
   return (

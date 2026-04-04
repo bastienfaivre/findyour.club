@@ -2,8 +2,8 @@
 
 import { randomBytes, createHash } from 'crypto'
 import { prisma } from '@/server/db'
-import { getAuthSession } from '@/server/auth'
 import { slugRegex } from '@/lib/schemas/application'
+import { requireOperator } from '@/lib/server/auth-guards'
 import type { ApplicationEditableFields } from '@/lib/schemas/application'
 import { isReservedSlug } from '@/lib/slug'
 import { inferDefaultLanguage } from '@/lib/country'
@@ -18,13 +18,15 @@ export type { ApplicationEditableFields } from '@/lib/schemas/application'
 
 export type ApplicationActionResult =
   | { success: true }
-  | { success: false; error: string; code: 'NOT_FOUND' | 'ALREADY_REVIEWED' | 'UNAUTHORIZED' | 'SLUG_REQUIRED' | 'SLUG_INVALID' | 'SLUG_CONFLICT' | 'EMAIL_FAILED' | 'SERVER_ERROR' }
+  | { success: false; error: string; code: 'NOT_FOUND' | 'ALREADY_REVIEWED' | 'UNAUTHORIZED' | 'TOTP_REQUIRED' | 'SLUG_REQUIRED' | 'SLUG_INVALID' | 'SLUG_CONFLICT' | 'EMAIL_FAILED' | 'SERVER_ERROR' }
 
 export async function saveApplication(applicationId: string, fields: ApplicationEditableFields): Promise<ApplicationActionResult> {
   try {
-    const session = await getAuthSession()
-    if (!session?.user || session.user.role !== 'OPERATOR') {
-      return { success: false, error: 'Unauthorized.', code: 'UNAUTHORIZED' }
+    const guard = await requireOperator()
+    if ('error' in guard) return guard.error
+    const { session } = guard
+    if (session.user.totpEnabled && !session.user.totpVerified) {
+      return { success: false, error: 'TOTP verification required.', code: 'TOTP_REQUIRED' }
     }
 
     const application = await prisma.application.findUnique({
@@ -91,9 +93,11 @@ export async function saveApplication(applicationId: string, fields: Application
 
 export async function approveApplication(applicationId: string, fields: ApplicationEditableFields, operatorMessage?: string): Promise<ApplicationActionResult> {
   try {
-    const session = await getAuthSession()
-    if (!session?.user || session.user.role !== 'OPERATOR') {
-      return { success: false, error: 'Unauthorized.', code: 'UNAUTHORIZED' }
+    const guard = await requireOperator()
+    if ('error' in guard) return guard.error
+    const { session } = guard
+    if (session.user.totpEnabled && !session.user.totpVerified) {
+      return { success: false, error: 'TOTP verification required.', code: 'TOTP_REQUIRED' }
     }
 
     const trimmedSlug = fields.desiredSlug.trim()
@@ -373,6 +377,9 @@ export async function approveApplication(applicationId: string, fields: Applicat
 }
 
 export async function getApplicantClubs(email: string): Promise<{ id: string; name: string; role: string }[]> {
+  const guard = await requireOperator()
+  if ('error' in guard) return []
+
   const user = await prisma.user.findUnique({
     where: { email },
     select: {
@@ -391,9 +398,11 @@ export async function getApplicantClubs(email: string): Promise<{ id: string; na
 
 export async function rejectApplication(applicationId: string, reason?: string): Promise<ApplicationActionResult> {
   try {
-    const session = await getAuthSession()
-    if (!session?.user || session.user.role !== 'OPERATOR') {
-      return { success: false, error: 'Unauthorized.', code: 'UNAUTHORIZED' }
+    const guard = await requireOperator()
+    if ('error' in guard) return guard.error
+    const { session } = guard
+    if (session.user.totpEnabled && !session.user.totpVerified) {
+      return { success: false, error: 'TOTP verification required.', code: 'TOTP_REQUIRED' }
     }
 
     if (reason && reason.length > 2000) {

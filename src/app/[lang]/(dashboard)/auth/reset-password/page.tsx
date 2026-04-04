@@ -32,6 +32,7 @@ export default async function ResetPasswordPage({ params }: ResetPasswordPagePro
           <p className="text-muted-foreground text-sm">{t.auth.resetPassword.subtitle}</p>
         </div>
         <ResetPasswordForm
+          lang={lang}
           t={{
             newPassword: t.auth.fields.newPassword,
             confirmPassword: t.auth.fields.confirmPassword,

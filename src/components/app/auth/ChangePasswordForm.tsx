@@ -16,7 +16,7 @@ interface ChangePasswordFormT {
   passwordChanged: string
 }
 
-export function ChangePasswordForm({ t }: { t: ChangePasswordFormT }) {
+export function ChangePasswordForm({ t, lang }: { t: ChangePasswordFormT; lang: string }) {
   const [currentPassword, setCurrentPassword] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -26,7 +26,7 @@ export function ChangePasswordForm({ t }: { t: ChangePasswordFormT }) {
     e.preventDefault()
 
     startTransition(async () => {
-      const result = await changePassword({ currentPassword, password, confirmPassword })
+      const result = await changePassword({ currentPassword, password, confirmPassword }, lang)
       if (!result.success) {
         toast.error(result.error)
         return

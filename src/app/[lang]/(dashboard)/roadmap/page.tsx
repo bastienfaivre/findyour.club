@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { resolveUILang } from '@/lib/i18n'
+import { resolveUILang, SUPPORTED_LANGUAGES } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import { generatePlatformMetadata } from '@/components/app/seo/metadata'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
@@ -18,6 +18,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     path: `/${lang}/roadmap`,
     lang,
   })
+}
+
+export function generateStaticParams() {
+  return SUPPORTED_LANGUAGES.map((lang) => ({ lang }))
 }
 
 export default async function RoadmapPage({ params }: Props) {

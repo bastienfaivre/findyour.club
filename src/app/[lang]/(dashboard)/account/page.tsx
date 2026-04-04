@@ -56,6 +56,7 @@ export default async function AccountPage({ params }: AccountPageProps) {
       <SettingsSection title={t.auth.profile.title}>
         <p className="text-sm text-muted-foreground">{t.auth.profile.description}</p>
         <ProfileSection
+          lang={lang}
           initialData={{
             firstName: userProfile?.firstName ?? '',
             lastName: userProfile?.lastName ?? '',
@@ -68,7 +69,7 @@ export default async function AccountPage({ params }: AccountPageProps) {
       </SettingsSection>
 
       <SettingsSection title={t.auth.changePassword}>
-        <ChangePasswordForm t={{
+        <ChangePasswordForm lang={lang} t={{
           currentPassword: t.auth.fields.currentPassword,
           newPassword: t.auth.fields.newPassword,
           confirmPassword: t.auth.fields.confirmPassword,

@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import { zipSync, strToU8 } from 'fflate'
 import { getAuthSession } from '@/server/auth'
 import { prisma } from '@/server/db'
-import { logAuditEvent } from '@/lib/server/audit'
 
 export async function GET(
   _request: Request,
@@ -71,8 +70,6 @@ export async function GET(
   if (!club) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
-
-  logAuditEvent({ actorId: session.user.id, action: 'CLUB_EXPORT', targetId: clubId })
 
   // Download images in parallel
   const imageDownloads: { url: string; baseName: string }[] = []

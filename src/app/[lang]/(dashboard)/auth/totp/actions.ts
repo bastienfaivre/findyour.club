@@ -7,14 +7,16 @@ import { prisma } from '@/server/db'
 import { totpVerifySchema } from '@/lib/schemas/user'
 import { verifyTotpCode } from '@/lib/totp'
 import { checkRateLimit, clearRateLimit } from '@/lib/rate-limit'
-import { encodeTotpVerifiedCookie } from '@/lib/setup-cookie'
-import { isSupportedLanguage, PLATFORM_FALLBACK_LANG } from '@/lib/i18n'
+import { isSupportedLanguage, PLATFORM_FALLBACK_LANG, resolveUILang } from '@/lib/i18n'
+import { getTranslations } from '@/lib/i18n/translations'
+import { setTotpVerifiedCookie } from '@/lib/server/cookie-utils'
 
 export type TotpChallengeResult =
   | { success: false; error: string; code: 'UNAUTHENTICATED' | 'VALIDATION_ERROR' | 'TOTP_INVALID' | 'RATE_LIMITED' | 'TOTP_NOT_CONFIGURED' }
   | { success: true }
 
-export async function verifyTotpChallenge(input: unknown): Promise<TotpChallengeResult> {
+export async function verifyTotpChallenge(input: unknown, lang?: string): Promise<TotpChallengeResult> {
+  const t = getTranslations(resolveUILang(lang ?? 'en'))
   const headersList = await headers()
   // x-forwarded-for is set by Nginx; relies on correct proxy configuration in production
   const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1'
@@ -24,7 +26,7 @@ export async function verifyTotpChallenge(input: unknown): Promise<TotpChallenge
   if (checkRateLimit(ipRateLimitKey)) {
     return {
       success: false,
-      error: 'Too many attempts. Please wait before trying again.',
+      error: t.errors.tooManyAttempts,
       code: 'RATE_LIMITED',
     }
   }
@@ -34,7 +36,7 @@ export async function verifyTotpChallenge(input: unknown): Promise<TotpChallenge
   // verified TOTP yet, so totp_verified would be absent/invalid regardless.
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
-    return { success: false, error: 'Session expired. Please log in again.', code: 'UNAUTHENTICATED' }
+    return { success: false, error: t.errors.notAuthenticated, code: 'UNAUTHENTICATED' }
   }
 
   // Per-user rate limit — prevents brute-force even if attacker rotates IPs
@@ -42,14 +44,14 @@ export async function verifyTotpChallenge(input: unknown): Promise<TotpChallenge
   if (checkRateLimit(userRateLimitKey)) {
     return {
       success: false,
-      error: 'Too many attempts. Please wait before trying again.',
+      error: t.errors.tooManyAttempts,
       code: 'RATE_LIMITED',
     }
   }
 
   const parsed = totpVerifySchema.safeParse(input)
   if (!parsed.success) {
-    return { success: false, error: 'Code must be exactly 6 digits.', code: 'VALIDATION_ERROR' }
+    return { success: false, error: t.errors.validationError, code: 'VALIDATION_ERROR' }
   }
 
   const user = await prisma.user.findUnique({
@@ -74,25 +76,17 @@ export async function verifyTotpChallenge(input: unknown): Promise<TotpChallenge
   clearRateLimit(userRateLimitKey)
 
   // Mark TOTP as verified via an encrypted HttpOnly cookie
-  const isProduction = process.env.NODE_ENV === 'production'
-  const cookieStore = await cookies()
-  cookieStore.set('totp_verified', encodeTotpVerifiedCookie(session.user.id), {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 30, // 30 days
-    path: '/',
-    domain: process.env.COOKIE_DOMAIN,
-  })
+  await setTotpVerifiedCookie(session.user.id)
 
+  const cookieStore = await cookies()
   const langValue = cookieStore.get('platform_lang')?.value
-  const lang = isSupportedLanguage(langValue) ? langValue : PLATFORM_FALLBACK_LANG
+  const redirectLang = isSupportedLanguage(langValue) ? langValue : PLATFORM_FALLBACK_LANG
   const firstClubId = user.memberships[0]?.clubId
   if (user.role === 'OPERATOR') {
-    redirect(`/${lang}/admin/stats`)
+    redirect(`/${redirectLang}/admin/stats`)
   } else if (firstClubId) {
-    redirect(`/${lang}/club/${firstClubId}`)
+    redirect(`/${redirectLang}/club/${firstClubId}`)
   } else {
-    redirect(`/${lang}/`)
+    redirect(`/${redirectLang}/`)
   }
 }

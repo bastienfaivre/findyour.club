@@ -44,7 +44,7 @@ export function ManageTotpSection({ totpEnabled, lang, t, commonT }: ManageTotpS
   function handleRemove() {
     setError(null)
     startTransition(async () => {
-      const result = await removeTotp()
+      const result = await removeTotp(lang)
       if (!result.success) {
         setError(result.error)
         return

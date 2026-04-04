@@ -115,7 +115,7 @@ describe('saveClubProfile', () => {
 
     expect(result).toEqual({
       success: false,
-      error: 'Not a member of this club.',
+      error: 'Unauthorized.',
       code: 'FORBIDDEN',
     })
   })

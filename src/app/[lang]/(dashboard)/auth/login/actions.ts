@@ -1,14 +1,15 @@
 'use server'
 import { randomBytes } from 'crypto'
-import { cookies, headers } from 'next/headers'
+import { headers } from 'next/headers'
 import argon2 from 'argon2'
 import { prisma } from '@/server/db'
 import { type UserRole } from '@/generated/prisma/client'
 import { loginSchema } from '@/lib/schemas/user'
 import { checkRateLimit, clearRateLimit } from '@/lib/rate-limit'
-import { SESSION_COOKIE_NAME } from '@/server/auth'
-import { encodeTotpVerifiedCookie } from '@/lib/setup-cookie'
 import { getNumberSetting } from '@/lib/server/platform-settings'
+import { setSessionCookie, setTotpVerifiedCookie } from '@/lib/server/cookie-utils'
+import { resolveUILang } from '@/lib/i18n'
+import { getTranslations } from '@/lib/i18n/translations'
 
 export type LoginResult =
   | { success: false; error: string; code: 'VALIDATION_ERROR' | 'INVALID_CREDENTIALS' | 'RATE_LIMITED' | 'SERVER_ERROR' }
@@ -21,7 +22,8 @@ export type LoginResult =
  * (signIn('credentials') throws UnsupportedStrategyError). We bypass the next-auth
  * signIn flow and create the session manually — identical to what enrollTotp() does.
  */
-export async function loginWithCredentials(input: unknown): Promise<LoginResult> {
+export async function loginWithCredentials(input: unknown, lang?: string): Promise<LoginResult> {
+  const t = getTranslations(resolveUILang(lang ?? 'en'))
   // Rate-limit by IP to prevent password brute-force attacks
   const headersList = await headers()
   // x-forwarded-for is set by Nginx; relies on correct proxy configuration in production
@@ -30,18 +32,18 @@ export async function loginWithCredentials(input: unknown): Promise<LoginResult>
 
   const maxAttempts = await getNumberSetting('rate.login_attempts_per_hour')
   if (checkRateLimit(rateLimitKey, { windowMs: 3_600_000, maxAttempts })) {
-    return { success: false, error: 'Too many attempts. Please wait before trying again.', code: 'RATE_LIMITED' }
+    return { success: false, error: t.errors.tooManyAttempts, code: 'RATE_LIMITED' }
   }
 
   const parsed = loginSchema.safeParse(input)
   if (!parsed.success) {
-    return { success: false, error: 'Invalid email or password.', code: 'VALIDATION_ERROR' }
+    return { success: false, error: t.errors.invalidCredentials, code: 'VALIDATION_ERROR' }
   }
 
   // Per-email rate limit — prevents brute-force even if attacker spoofs x-forwarded-for
   const emailRateLimitKey = `login:email:${parsed.data.email.toLowerCase()}`
   if (checkRateLimit(emailRateLimitKey, { windowMs: 3_600_000, maxAttempts: 10 })) {
-    return { success: false, error: 'Too many attempts. Please wait before trying again.', code: 'RATE_LIMITED' }
+    return { success: false, error: t.errors.tooManyAttempts, code: 'RATE_LIMITED' }
   }
 
   const user = await prisma.user.findUnique({
@@ -53,12 +55,12 @@ export async function loginWithCredentials(input: unknown): Promise<LoginResult>
   })
 
   if (!user || !user.passwordHash) {
-    return { success: false, error: 'Invalid email or password.', code: 'INVALID_CREDENTIALS' }
+    return { success: false, error: t.errors.invalidCredentials, code: 'INVALID_CREDENTIALS' }
   }
 
   const valid = await argon2.verify(user.passwordHash, parsed.data.password)
   if (!valid) {
-    return { success: false, error: 'Invalid email or password.', code: 'INVALID_CREDENTIALS' }
+    return { success: false, error: t.errors.invalidCredentials, code: 'INVALID_CREDENTIALS' }
   }
 
   // Clear rate limits on successful credential verification
@@ -72,30 +74,14 @@ export async function loginWithCredentials(input: unknown): Promise<LoginResult>
   try {
     await prisma.session.create({ data: { sessionToken, userId: user.id, expires } })
   } catch {
-    return { success: false, error: 'Login failed. Please try again.', code: 'SERVER_ERROR' }
+    return { success: false, error: t.errors.serverError, code: 'SERVER_ERROR' }
   }
 
-  const isProduction = process.env.NODE_ENV === 'production'
-  const cookieStore = await cookies()
-  cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'lax',
-    path: '/',
-    expires,
-    domain: process.env.COOKIE_DOMAIN,
-  })
+  await setSessionCookie(sessionToken, expires)
 
   // If TOTP is not enrolled, mark the session as verified immediately
   if (!user.totpEnabled) {
-    cookieStore.set('totp_verified', encodeTotpVerifiedCookie(user.id), {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
-      domain: process.env.COOKIE_DOMAIN,
-    })
+    await setTotpVerifiedCookie(user.id)
   }
 
   const firstClubId = user.memberships[0]?.clubId ?? null

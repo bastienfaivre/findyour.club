@@ -997,6 +997,7 @@ export type Translations = {
     cantonActivityDescription: string
     browseByActivity: string
     browseByRegion: string
+    ogHomeSubtitle: string
   }
   activityTypes: Record<string, string>
   emails: {
@@ -1086,5 +1087,21 @@ export type Translations = {
       cta: string
       verifyButton: string
     }
+  }
+  errors: {
+    unauthorized: string
+    notFound: string
+    serverError: string
+    validationError: string
+    tooManyAttempts: string
+    invalidCredentials: string
+    botProtectionFailed: string
+    registrationsClosed: string
+    invalidImageType: string
+    uploadFailed: string
+    emailFailed: string
+    alreadyReviewed: string
+    notAuthenticated: string
+    clubNotFound: string
   }
 }

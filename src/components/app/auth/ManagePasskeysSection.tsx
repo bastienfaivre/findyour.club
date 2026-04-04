@@ -79,7 +79,7 @@ export function ManagePasskeysSection({ passkeys, lang, t, commonT }: ManagePass
   function handleRemove(credentialId: string) {
     setError(null)
     startTransition(async () => {
-      const result = await deletePasskey(credentialId)
+      const result = await deletePasskey(credentialId, lang)
       if (!result.success) {
         setError(result.error)
         return

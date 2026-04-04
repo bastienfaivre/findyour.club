@@ -21,7 +21,6 @@ const CLUB_SCOPED_READ_MODELS = new Set([
   'supportMessage',
   'conversationReadCursor',
   'supportTicket',
-  'healthCheck',
 ])
 
 /**

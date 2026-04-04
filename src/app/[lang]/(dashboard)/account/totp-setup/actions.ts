@@ -5,9 +5,10 @@ import { prisma } from '@/server/db'
 import { getAuthSession } from '@/server/auth'
 import { totpVerifySchema } from '@/lib/schemas/user'
 import { verifyTotpCode } from '@/lib/totp'
-import { encodeTotpVerifiedCookie } from '@/lib/setup-cookie'
 import { checkRateLimit, clearRateLimit } from '@/lib/rate-limit'
-import { isSupportedLanguage, PLATFORM_FALLBACK_LANG } from '@/lib/i18n'
+import { isSupportedLanguage, PLATFORM_FALLBACK_LANG, resolveUILang } from '@/lib/i18n'
+import { getTranslations } from '@/lib/i18n/translations'
+import { setTotpVerifiedCookie } from '@/lib/server/cookie-utils'
 
 export type EnrollTotpResult =
   | { success: false; error: string; code: 'UNAUTHORIZED' | 'VALIDATION_ERROR' | 'TOTP_INVALID' | 'SERVER_ERROR' | 'RATE_LIMITED' }
@@ -19,32 +20,33 @@ export type EnrollTotpResult =
  * the user must have already passed the TOTP challenge (totpVerified=true) to prevent
  * an attacker with a stolen session token from replacing the TOTP secret.
  */
-export async function enrollTotp(input: unknown): Promise<EnrollTotpResult> {
+export async function enrollTotp(input: unknown, lang?: string): Promise<EnrollTotpResult> {
+  const t = getTranslations(resolveUILang(lang ?? 'en'))
   // Rate-limit enrollment attempts per IP — same policy as the TOTP challenge (5/10 min).
   // Prevents an attacker with a stolen session token from brute-forcing the pending TOTP secret.
   const headersList = await headers()
   const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1'
   if (checkRateLimit(`totp-enroll:${ip}`)) {
-    return { success: false, error: 'Too many attempts. Please wait before trying again.', code: 'RATE_LIMITED' }
+    return { success: false, error: t.errors.tooManyAttempts, code: 'RATE_LIMITED' }
   }
 
   const session = await getAuthSession()
   const userId = session?.user?.id ?? null
 
   if (!userId) {
-    return { success: false, error: 'Session expired. Please log in again.', code: 'UNAUTHORIZED' }
+    return { success: false, error: t.errors.notAuthenticated, code: 'UNAUTHORIZED' }
   }
 
   // Re-enrollment guard: if TOTP is already enrolled, the user must have verified it
   // before they can replace their secret. Blocks half-authenticated attackers.
   // session is non-null here — userId guard above ensures session.user.id exists.
   if (session!.user.totpEnabled && !session!.user.totpVerified) {
-    return { success: false, error: 'Please complete the TOTP challenge before re-enrolling.', code: 'UNAUTHORIZED' }
+    return { success: false, error: t.errors.unauthorized, code: 'UNAUTHORIZED' }
   }
 
   const parsed = totpVerifySchema.safeParse(input)
   if (!parsed.success) {
-    return { success: false, error: 'Code must be exactly 6 digits.', code: 'VALIDATION_ERROR' }
+    return { success: false, error: t.errors.validationError, code: 'VALIDATION_ERROR' }
   }
 
   // Retrieve the pending TOTP secret from DB
@@ -54,12 +56,12 @@ export async function enrollTotp(input: unknown): Promise<EnrollTotpResult> {
   })
 
   if (!user?.pendingTotpSecret) {
-    return { success: false, error: 'Setup session invalid. Please start over.', code: 'UNAUTHORIZED' }
+    return { success: false, error: t.errors.notAuthenticated, code: 'UNAUTHORIZED' }
   }
 
   const valid = await verifyTotpCode(user.pendingTotpSecret, parsed.data.code)
   if (!valid) {
-    return { success: false, error: 'Invalid code. Please check your authenticator app and try again.', code: 'TOTP_INVALID' }
+    return { success: false, error: t.errors.validationError, code: 'TOTP_INVALID' }
   }
 
   // Mark TOTP as enrolled and clear the pending secret
@@ -73,27 +75,19 @@ export async function enrollTotp(input: unknown): Promise<EnrollTotpResult> {
       },
     })
   } catch {
-    return { success: false, error: 'Failed to save TOTP configuration. Please try again.', code: 'SERVER_ERROR' }
+    return { success: false, error: t.errors.serverError, code: 'SERVER_ERROR' }
   }
 
   // Clear rate limit on success
   clearRateLimit(`totp-enroll:${ip}`)
 
   // Mark TOTP as verified — user just proved possession of the device
-  const isProduction = process.env.NODE_ENV === 'production'
-  const cookieStore = await cookies()
-  cookieStore.set('totp_verified', encodeTotpVerifiedCookie(userId), {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 60 * 60 * 24 * 30, // 30 days
-    domain: process.env.COOKIE_DOMAIN,
-  })
+  await setTotpVerifiedCookie(userId)
 
+  const cookieStore = await cookies()
   const langValue = cookieStore.get('platform_lang')?.value
-  const lang = isSupportedLanguage(langValue) ? langValue : PLATFORM_FALLBACK_LANG
-  redirect(`/${lang}/account`)
+  const redirectLang = isSupportedLanguage(langValue) ? langValue : PLATFORM_FALLBACK_LANG
+  redirect(`/${redirectLang}/account`)
 }
 
 /**

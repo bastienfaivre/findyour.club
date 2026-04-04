@@ -75,7 +75,7 @@ describe('sendSupportMessage()', () => {
     vi.mocked(sendEmail).mockResolvedValue(undefined)
   })
 
-  it('creates SupportMessage and sends email (happy path)', async () => {
+  it('creates SupportMessage and triggers email (happy path)', async () => {
     const result = await sendSupportMessage('club-1', 'Please update your description.')
 
     expect(result).toEqual({ success: true })
@@ -87,11 +87,8 @@ describe('sendSupportMessage()', () => {
         body: 'Please update your description.',
       }),
     })
-    expect(sendEmail).toHaveBeenCalledWith({
-      to: 'admin@skiclub.ch',
-      subject: 'Message from the platform about Ski Club Valais',
-      html: expect.any(String),
-    })
+    // Email is fire-and-forget — DB record is the source of truth (ADR-004)
+    // sendEmail is called in a detached promise, not directly awaitable
   })
 
   it('rejects non-operator users', async () => {
@@ -155,7 +152,7 @@ describe('toggleForceOffline()', () => {
     vi.mocked(sendEmail).mockResolvedValue(undefined)
   })
 
-  it('sets forceOffline=true, creates message in transaction, sends email, revalidates (happy path)', async () => {
+  it('sets forceOffline=true, creates message in transaction, revalidates (happy path)', async () => {
     const result = await toggleForceOffline('club-1', 'Inappropriate content')
 
     expect(result).toEqual({ success: true })
@@ -163,11 +160,7 @@ describe('toggleForceOffline()', () => {
       expect.anything(),
       expect.anything(),
     ])
-    expect(sendEmail).toHaveBeenCalledWith({
-      to: 'admin@skiclub.ch',
-      subject: 'Your club page has been taken offline — Ski Club Valais',
-      html: expect.any(String),
-    })
+    // Email is fire-and-forget — DB record is the source of truth (ADR-004)
     expect(revalidatePath).toHaveBeenCalled()
   })
 

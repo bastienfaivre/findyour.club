@@ -12,8 +12,13 @@ import { getNumberSetting } from '@/lib/server/platform-settings'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
+import type { Translations } from '@/lib/i18n/translations'
 
 const inviteSchema = z.object({ email: z.string().email() })
+
+function getT(lang?: string): Translations {
+  return getTranslations(resolveUILang(lang ?? 'en'))
+}
 
 export type InviteEditorResult =
   | { success: true }
@@ -23,17 +28,19 @@ export async function inviteEditor(
   clubId: string,
   _prevState: InviteEditorResult | null,
   formData: FormData,
+  lang?: string,
 ): Promise<InviteEditorResult> {
+  const t = getT(lang)
   const session = await getAuthSession()
   if (!session?.user?.id) {
-    return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' }
+    return { success: false, error: t.errors.notAuthenticated, code: 'UNAUTHORIZED' }
   }
 
   const club = await prisma.club.findUnique({
     where: { id: clubId },
     select: { id: true, name: true },
   })
-  if (!club) return { success: false, error: 'Club not found.', code: 'UNAUTHORIZED' }
+  if (!club) return { success: false, error: t.errors.clubNotFound, code: 'UNAUTHORIZED' }
 
   // Verify caller is OWNER of this club
   const callerOwnership = await prisma.clubMembership.findFirst({
@@ -157,7 +164,7 @@ export async function inviteEditor(
         where: { userId: user.id, clubId: club.id, status: 'PENDING' },
       }),
     ])
-    return { success: false, error: 'Failed to send the invitation email. Please try again.', code: 'SERVER_ERROR' }
+    return { success: false, error: t.errors.emailFailed, code: 'SERVER_ERROR' }
   }
 
   return { success: true }
@@ -170,17 +177,19 @@ export type CancelInviteResult =
 export async function cancelInvite(
   clubId: string,
   membershipId: string,
+  lang?: string,
 ): Promise<CancelInviteResult> {
+  const t = getT(lang)
   const session = await getAuthSession()
   if (!session?.user?.id) {
-    return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' }
+    return { success: false, error: t.errors.notAuthenticated, code: 'UNAUTHORIZED' }
   }
 
   const club = await prisma.club.findUnique({
     where: { id: clubId },
     select: { id: true },
   })
-  if (!club) return { success: false, error: 'Club not found.', code: 'UNAUTHORIZED' }
+  if (!club) return { success: false, error: t.errors.clubNotFound, code: 'UNAUTHORIZED' }
 
   const callerOwnership = await prisma.clubMembership.findFirst({
     where: { userId: session.user.id, clubId: club.id, status: 'ACTIVE', role: 'OWNER' },
@@ -204,7 +213,7 @@ export async function cancelInvite(
       prisma.clubMembership.delete({ where: { id: membership.id } }),
     ])
   } catch {
-    return { success: false, error: 'Failed to cancel invitation.', code: 'SERVER_ERROR' }
+    return { success: false, error: t.errors.serverError, code: 'SERVER_ERROR' }
   }
 
   return { success: true }
@@ -214,11 +223,12 @@ export type DeleteClubResult =
   | { success: true }
   | { success: false; error: string; code: 'UNAUTHORIZED' | 'FORBIDDEN' | 'NOT_FOUND' | 'SERVER_ERROR' }
 
-export async function ownerDeleteClub(clubId: string): Promise<DeleteClubResult> {
+export async function ownerDeleteClub(clubId: string, lang?: string): Promise<DeleteClubResult> {
+  const t = getT(lang)
   try {
     const session = await getAuthSession()
     if (!session?.user?.id) {
-      return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' }
+      return { success: false, error: t.errors.notAuthenticated, code: 'UNAUTHORIZED' }
     }
 
     // Verify caller is an ACTIVE OWNER of this club
@@ -241,7 +251,7 @@ export async function ownerDeleteClub(clubId: string): Promise<DeleteClubResult>
       },
     })
     if (!club) {
-      return { success: false, error: 'Club not found.', code: 'NOT_FOUND' }
+      return { success: false, error: t.errors.clubNotFound, code: 'NOT_FOUND' }
     }
 
     // Best-effort R2 cleanup (before transaction)
@@ -261,7 +271,7 @@ export async function ownerDeleteClub(clubId: string): Promise<DeleteClubResult>
 
     return { success: true }
   } catch {
-    return { success: false, error: 'An unexpected error occurred.', code: 'SERVER_ERROR' }
+    return { success: false, error: t.errors.serverError, code: 'SERVER_ERROR' }
   }
 }
 
@@ -272,17 +282,19 @@ export type TransferOwnershipResult =
 export async function transferOwnership(
   clubId: string,
   targetMembershipId: string,
+  lang?: string,
 ): Promise<TransferOwnershipResult> {
+  const t = getT(lang)
   const session = await getAuthSession()
   if (!session?.user?.id) {
-    return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' }
+    return { success: false, error: t.errors.notAuthenticated, code: 'UNAUTHORIZED' }
   }
 
   const club = await prisma.club.findUnique({
     where: { id: clubId },
     select: { id: true },
   })
-  if (!club) return { success: false, error: 'Club not found.', code: 'UNAUTHORIZED' }
+  if (!club) return { success: false, error: t.errors.clubNotFound, code: 'UNAUTHORIZED' }
 
   // Verify caller is an ACTIVE OWNER
   const callerMembership = await prisma.clubMembership.findFirst({
@@ -335,7 +347,7 @@ export async function transferOwnership(
       }),
     ])
   } catch {
-    return { success: false, error: 'Failed to transfer ownership. Please try again.', code: 'SERVER_ERROR' }
+    return { success: false, error: t.errors.serverError, code: 'SERVER_ERROR' }
   }
 
   return { success: true }
@@ -348,17 +360,19 @@ export type RevokeAccessResult =
 export async function revokeAccess(
   clubId: string,
   targetMembershipId: string,
+  lang?: string,
 ): Promise<RevokeAccessResult> {
+  const t = getT(lang)
   const session = await getAuthSession()
   if (!session?.user?.id) {
-    return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' }
+    return { success: false, error: t.errors.notAuthenticated, code: 'UNAUTHORIZED' }
   }
 
   const club = await prisma.club.findUnique({
     where: { id: clubId },
     select: { id: true },
   })
-  if (!club) return { success: false, error: 'Club not found.', code: 'UNAUTHORIZED' }
+  if (!club) return { success: false, error: t.errors.clubNotFound, code: 'UNAUTHORIZED' }
 
   const callerIsOwner = await prisma.clubMembership.findFirst({
     where: { userId: session.user.id, clubId: club.id, status: 'ACTIVE', role: 'OWNER' },
@@ -406,7 +420,7 @@ export async function revokeAccess(
     if (e instanceof Error && (e as Error & { code?: string }).code === 'LAST_OWNER') {
       return { success: false, error: e.message, code: 'LAST_OWNER' }
     }
-    return { success: false, error: 'Failed to revoke access. Please try again.', code: 'SERVER_ERROR' }
+    return { success: false, error: t.errors.serverError, code: 'SERVER_ERROR' }
   }
 
   return { success: true }

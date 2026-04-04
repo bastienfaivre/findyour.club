@@ -27,7 +27,11 @@ export async function loadClubViews(
     return { entries: [], total: 0 }
   }
 
-  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+  const safeOffset = Math.max(0, Math.min(Math.floor(offset), 100_000))
+  const safeLimit = Math.max(1, Math.min(Math.floor(limit), 500))
+  const safeDays = Math.max(1, Math.min(Math.floor(days), 365))
+
+  const since = new Date(Date.now() - safeDays * 24 * 60 * 60 * 1000)
 
   type CountRow = { count: bigint }
   type TopRow = { club_id: string; views: bigint }
@@ -41,7 +45,7 @@ export async function loadClubViews(
         SELECT club_id, COUNT(*) as views FROM page_events
         WHERE event_type = 'page_view' AND visited_at >= ${since}
         GROUP BY club_id ORDER BY views DESC
-        LIMIT ${limit} OFFSET ${offset}`,
+        LIMIT ${safeLimit} OFFSET ${safeOffset}`,
     ),
   ])
 

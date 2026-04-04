@@ -32,7 +32,7 @@ export default async function TotpChallengePage({ params }: TotpChallengePagePro
           <h1 className="text-2xl font-semibold">{t.auth.twoFactor}</h1>
           <p className="text-muted-foreground text-sm">{t.auth.twoFactorSubtitle}</p>
         </div>
-        <TotpForm t={{ codeTotp: t.auth.fields.codeTotp, verifying: t.auth.form.verifying, verify: t.auth.form.verify }} />
+        <TotpForm lang={lang} t={{ codeTotp: t.auth.fields.codeTotp, verifying: t.auth.form.verifying, verify: t.auth.form.verify }} />
       </div>
     </div>
   )

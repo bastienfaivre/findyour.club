@@ -68,7 +68,7 @@ export function DeleteAccountSection({ lang, t }: DeleteAccountSectionProps) {
   function handleDelete() {
     setError(null)
     startTransition(async () => {
-      const result = await deleteAccount()
+      const result = await deleteAccount(lang)
       if (result.success) {
         router.push(`/${lang}/auth/login`)
       } else {

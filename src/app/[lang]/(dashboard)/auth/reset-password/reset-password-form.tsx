@@ -21,7 +21,7 @@ interface ResetPasswordFormT {
   strengthStrong: string
 }
 
-export function ResetPasswordForm({ t }: { t: ResetPasswordFormT }) {
+export function ResetPasswordForm({ t, lang }: { t: ResetPasswordFormT; lang: string }) {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -34,7 +34,7 @@ export function ResetPasswordForm({ t }: { t: ResetPasswordFormT }) {
     setError(null)
 
     startTransition(async () => {
-      const result = await resetPassword({ password, confirmPassword })
+      const result = await resetPassword({ password, confirmPassword }, lang)
       if (result && !result.success) {
         setError(result.error)
       }

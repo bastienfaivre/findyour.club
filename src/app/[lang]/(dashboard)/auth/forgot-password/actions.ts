@@ -18,6 +18,7 @@ export type ForgotPasswordResult =
  * Always returns success to prevent email enumeration.
  */
 export async function requestPasswordReset(email: string, lang: string): Promise<ForgotPasswordResult> {
+  const t = getTranslations(resolveUILang(lang))
   // Rate-limit by IP
   const headersList = await headers()
   const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1'
@@ -26,11 +27,11 @@ export async function requestPasswordReset(email: string, lang: string): Promise
 
   // Rate-limit by IP (broad abuse prevention)
   if (checkRateLimit(`password-reset:ip:${ip}`, { windowMs: 3_600_000, maxAttempts })) {
-    return { success: false, error: 'Too many attempts. Please wait before trying again.', code: 'RATE_LIMITED' }
+    return { success: false, error: t.errors.tooManyAttempts, code: 'RATE_LIMITED' }
   }
 
   if (!email || typeof email !== 'string' || !email.includes('@')) {
-    return { success: false, error: 'Invalid email address.', code: 'VALIDATION_ERROR' }
+    return { success: false, error: t.errors.validationError, code: 'VALIDATION_ERROR' }
   }
 
   const normalizedEmail = email.trim().toLowerCase()

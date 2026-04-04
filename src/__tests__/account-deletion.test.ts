@@ -214,6 +214,6 @@ describe('deleteAccount()', () => {
     vi.mocked(prisma.$transaction as any).mockRejectedValue(new Error('DB error'))
 
     const result = await deleteAccount()
-    expect(result).toEqual({ success: false, error: 'Failed to delete account. Please try again.' })
+    expect(result).toEqual({ success: false, error: 'An unexpected error occurred.' })
   })
 })

@@ -16,3 +16,7 @@ export function isSupportedLanguage(value: unknown): value is SupportedLanguage 
 export function resolveUILang(lang: string): SupportedLanguage {
   return isSupportedLanguage(lang) ? lang : PLATFORM_FALLBACK_LANG
 }
+
+export function plural(count: number, singular: string, plural: string): string {
+  return count === 1 ? singular : plural
+}

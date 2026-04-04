@@ -32,6 +32,22 @@ vi.mock('@/lib/i18n/translations', () => ({
         subject: 'You are invited to {clubName}',
       },
     },
+    errors: {
+      unauthorized: 'Unauthorized.',
+      notFound: 'Not found.',
+      serverError: 'An unexpected error occurred.',
+      validationError: 'Invalid input.',
+      tooManyAttempts: 'Too many attempts. Please wait before trying again.',
+      invalidCredentials: 'Invalid email or password.',
+      botProtectionFailed: 'Bot protection failed.',
+      registrationsClosed: 'Registrations are currently closed.',
+      invalidImageType: 'Invalid image type.',
+      uploadFailed: 'Upload failed.',
+      emailFailed: 'Failed to send the invitation email. Please try again.',
+      alreadyReviewed: 'Application already reviewed.',
+      notAuthenticated: 'Not authenticated.',
+      clubNotFound: 'Club not found.',
+    },
   }),
 }))
 vi.mock('@/lib/email-templates', () => ({

@@ -1,11 +1,13 @@
 'use server'
-import { createHash } from 'crypto'
 import argon2 from 'argon2'
-import { cookies } from 'next/headers'
 import { prisma } from '@/server/db'
 import { getAuthSession } from '@/server/auth'
 import { changePasswordSchema } from '@/lib/schemas/user'
 import { profileSchema } from '@/lib/schemas/profile'
+import { isPasswordBreached } from '@/lib/password-validation'
+import { clearTotpVerifiedCookie, clearAllAuthCookies } from '@/lib/server/cookie-utils'
+import { resolveUILang } from '@/lib/i18n'
+import { getTranslations } from '@/lib/i18n/translations'
 
 // ─── Profile ──────────────────────────────────────────────────────────────────
 
@@ -13,15 +15,16 @@ export type UpdateProfileResult =
   | { success: false; error: string; code: 'UNAUTHORIZED' | 'VALIDATION_ERROR' }
   | { success: true }
 
-export async function updateProfile(input: unknown): Promise<UpdateProfileResult> {
+export async function updateProfile(input: unknown, lang?: string): Promise<UpdateProfileResult> {
+  const t = getTranslations(resolveUILang(lang ?? 'en'))
   const session = await getAuthSession()
   if (!session?.user?.id) {
-    return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' }
+    return { success: false, error: t.errors.notAuthenticated, code: 'UNAUTHORIZED' }
   }
 
   const parsed = profileSchema.safeParse(input)
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.', code: 'VALIDATION_ERROR' }
+    return { success: false, error: parsed.error.issues[0]?.message ?? t.errors.validationError, code: 'VALIDATION_ERROR' }
   }
 
   await prisma.user.update({
@@ -41,15 +44,16 @@ export type ChangePasswordResult =
   | { success: false; error: string; code: 'UNAUTHORIZED' | 'VALIDATION_ERROR' | 'WRONG_PASSWORD' | 'PASSWORD_BREACHED' | 'SERVER_ERROR' }
   | { success: true }
 
-export async function changePassword(input: unknown): Promise<ChangePasswordResult> {
+export async function changePassword(input: unknown, lang?: string): Promise<ChangePasswordResult> {
+  const t = getTranslations(resolveUILang(lang ?? 'en'))
   const session = await getAuthSession()
   if (!session?.user?.id) {
-    return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' }
+    return { success: false, error: t.errors.notAuthenticated, code: 'UNAUTHORIZED' }
   }
 
   const parsed = changePasswordSchema.safeParse(input)
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input.', code: 'VALIDATION_ERROR' }
+    return { success: false, error: parsed.error.issues[0]?.message ?? t.errors.validationError, code: 'VALIDATION_ERROR' }
   }
 
   const user = await prisma.user.findUnique({
@@ -57,7 +61,7 @@ export async function changePassword(input: unknown): Promise<ChangePasswordResu
     select: { passwordHash: true },
   })
   if (!user?.passwordHash) {
-    return { success: false, error: 'Account not set up.', code: 'UNAUTHORIZED' }
+    return { success: false, error: t.errors.notAuthenticated, code: 'UNAUTHORIZED' }
   }
 
   const currentValid = await argon2.verify(user.passwordHash, parsed.data.currentPassword)
@@ -66,23 +70,8 @@ export async function changePassword(input: unknown): Promise<ChangePasswordResu
   }
 
   // HaveIBeenPwned check (k-anonymity — same pattern as setupPassword)
-  const sha1 = createHash('sha1').update(parsed.data.password).digest('hex').toUpperCase()
-  const prefix = sha1.slice(0, 5)
-  const suffix = sha1.slice(5)
-  try {
-    const res = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
-      headers: { 'Add-Padding': 'true' },
-    })
-    if (res.ok) {
-      const text = await res.text()
-      const isPwned = text.split('\r\n').some(l => l.split(':')[0] === suffix) ||
-        text.split('\n').some(l => l.split(':')[0] === suffix)
-      if (isPwned) {
-        return { success: false, error: 'This password has appeared in a data breach. Please choose a different one.', code: 'PASSWORD_BREACHED' }
-      }
-    }
-  } catch {
-    // HIBP unavailable — proceed
+  if (await isPasswordBreached(parsed.data.password)) {
+    return { success: false, error: 'This password has appeared in a data breach. Please choose a different one.', code: 'PASSWORD_BREACHED' }
   }
 
   const newHash = await argon2.hash(parsed.data.password)
@@ -95,10 +84,11 @@ export type RemoveTotpResult =
   | { success: false; error: string; code: 'UNAUTHORIZED' | 'SERVER_ERROR' }
   | { success: true }
 
-export async function removeTotp(): Promise<RemoveTotpResult> {
+export async function removeTotp(lang?: string): Promise<RemoveTotpResult> {
+  const t = getTranslations(resolveUILang(lang ?? 'en'))
   const session = await getAuthSession()
   if (!session?.user?.id || !session.user.totpVerified) {
-    return { success: false, error: 'Not authenticated or TOTP not verified for this session.', code: 'UNAUTHORIZED' }
+    return { success: false, error: t.errors.notAuthenticated, code: 'UNAUTHORIZED' }
   }
 
   await prisma.user.update({
@@ -107,16 +97,7 @@ export async function removeTotp(): Promise<RemoveTotpResult> {
   })
 
   // Clear totp_verified cookie — no longer needed once TOTP is disabled
-  const isProduction = process.env.NODE_ENV === 'production'
-  const cookieStore = await cookies()
-  cookieStore.set('totp_verified', '', {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 0,
-    domain: process.env.COOKIE_DOMAIN,
-  })
+  await clearTotpVerifiedCookie()
 
   return { success: true }
 }
@@ -170,10 +151,11 @@ export type DeleteAccountResult =
   | { success: true }
   | { success: false; error: string }
 
-export async function deleteAccount(): Promise<DeleteAccountResult> {
+export async function deleteAccount(lang?: string): Promise<DeleteAccountResult> {
+  const t = getTranslations(resolveUILang(lang ?? 'en'))
   const session = await getAuthSession()
   if (!session?.user?.id) {
-    return { success: false, error: 'Not authenticated.' }
+    return { success: false, error: t.errors.notAuthenticated }
   }
 
   const userId = session.user.id
@@ -205,23 +187,11 @@ export async function deleteAccount(): Promise<DeleteAccountResult> {
       await tx.user.delete({ where: { id: userId } })
     })
   } catch {
-    return { success: false, error: 'Failed to delete account. Please try again.' }
+    return { success: false, error: t.errors.serverError }
   }
 
   // 3. Clear session cookies
-  const cookieStore = await cookies()
-  const isProduction = process.env.NODE_ENV === 'production'
-  const cookieOpts = {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'lax' as const,
-    path: '/',
-    maxAge: 0,
-    domain: process.env.COOKIE_DOMAIN,
-  }
-  cookieStore.set('next-auth.session-token', '', cookieOpts)
-  cookieStore.set('__Secure-next-auth.session-token', '', cookieOpts)
-  cookieStore.set('totp_verified', '', cookieOpts)
+  await clearAllAuthCookies()
 
   return { success: true }
 }

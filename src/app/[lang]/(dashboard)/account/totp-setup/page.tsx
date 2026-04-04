@@ -48,6 +48,7 @@ export default async function TotpSetupPage({ params }: TotpSetupPageProps) {
         <TotpSetupForm
           qrDataUrl={qrDataUrl}
           secret={secret}
+          lang={lang}
           t={{ codeSetup: t.auth.fields.codeSetup, verifying: t.auth.form.verifying, activate2fa: t.auth.form.activate2fa, copy: t.auth.form.copy, copied: t.auth.form.copied }}
         />
       </div>

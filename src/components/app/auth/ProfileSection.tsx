@@ -23,6 +23,7 @@ interface ProfileSectionProps {
     phone: string
     preferredLanguage: string
   }
+  lang: string
   t: {
     firstName: string
     lastName: string
@@ -36,7 +37,7 @@ interface ProfileSectionProps {
   }
 }
 
-export function ProfileSection({ initialData, t, commonT }: ProfileSectionProps) {
+export function ProfileSection({ initialData, lang, t, commonT }: ProfileSectionProps) {
   const [firstName, setFirstName] = useState(initialData.firstName)
   const [lastName, setLastName] = useState(initialData.lastName)
   const [phone, setPhone] = useState(initialData.phone)
@@ -59,7 +60,7 @@ export function ProfileSection({ initialData, t, commonT }: ProfileSectionProps)
         lastName,
         phone: phone || undefined,
         preferredLanguage,
-      })
+      }, lang)
       if (result.success) {
         setMessage({ type: 'success', text: t.saved })
       } else {

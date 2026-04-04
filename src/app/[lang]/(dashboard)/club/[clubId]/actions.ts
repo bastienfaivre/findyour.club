@@ -9,20 +9,28 @@ import { generateUploadUrl, deleteObject, extractR2Key, getPublicUrl, ALLOWED_IM
 import { sanitizeSvg } from '@/lib/svg-sanitize'
 import { getNumberSetting } from '@/lib/server/platform-settings'
 import { checkRateLimit } from '@/lib/rate-limit'
+import { resolveUILang } from '@/lib/i18n'
+import { getTranslations } from '@/lib/i18n/translations'
+import type { Translations } from '@/lib/i18n/translations'
 
 export type ActionResult<T = undefined> =
   | { success: true; data: T }
   | { success: false; error: string; code?: string }
+
+function getT(lang?: string): Translations {
+  return getTranslations(resolveUILang(lang ?? 'en'))
+}
 
 // ── Auth guard helper ──
 
 type AuthGuardError = { ok: false; result: { success: false; error: string; code: string } }
 type AuthGuardSuccess = { ok: true; club: { id: string; name: string; slug: string; country: string }; membership: { id: string; role: string } }
 
-async function authGuard(clubId: string, requiredRole?: 'OWNER'): Promise<AuthGuardError | AuthGuardSuccess> {
+async function authGuard(clubId: string, lang?: string, requiredRole?: 'OWNER'): Promise<AuthGuardError | AuthGuardSuccess> {
+  const t = getT(lang)
   const session = await getAuthSession()
   if (!session?.user?.id) {
-    return { ok: false, result: { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' } }
+    return { ok: false, result: { success: false, error: t.errors.notAuthenticated, code: 'UNAUTHORIZED' } }
   }
 
   const club = await prisma.club.findUnique({
@@ -30,16 +38,16 @@ async function authGuard(clubId: string, requiredRole?: 'OWNER'): Promise<AuthGu
     select: { id: true, name: true, slug: true, country: true },
   })
   if (!club) {
-    return { ok: false, result: { success: false, error: 'Club not found.', code: 'NOT_FOUND' } }
+    return { ok: false, result: { success: false, error: t.errors.clubNotFound, code: 'NOT_FOUND' } }
   }
 
   const membership = await getClubActiveMembership(session.user.id, club.id)
   if (!membership) {
-    return { ok: false, result: { success: false, error: 'Not a member of this club.', code: 'FORBIDDEN' } }
+    return { ok: false, result: { success: false, error: t.errors.unauthorized, code: 'FORBIDDEN' } }
   }
 
   if (requiredRole && membership.role !== requiredRole) {
-    return { ok: false, result: { success: false, error: 'Insufficient permissions.', code: 'FORBIDDEN' } }
+    return { ok: false, result: { success: false, error: t.errors.unauthorized, code: 'FORBIDDEN' } }
   }
 
   return { ok: true, club, membership }
@@ -56,8 +64,8 @@ function revalidateClubPaths(_club: { slug: string; country: string }) {
 
 export type ConfirmClubDataResult = ActionResult<{ verifiedAt: string }>
 
-export async function confirmClubData(clubId: string): Promise<ConfirmClubDataResult> {
-  const guard = await authGuard(clubId)
+export async function confirmClubData(clubId: string, lang?: string): Promise<ConfirmClubDataResult> {
+  const guard = await authGuard(clubId, lang)
   if (!guard.ok) return guard.result
 
   if (checkRateLimit(`verify:${guard.club.id}`, { windowMs: 3_600_000, maxAttempts: 10 })) {
@@ -81,8 +89,8 @@ export async function confirmClubData(clubId: string): Promise<ConfirmClubDataRe
 
 export type TogglePublishResult = ActionResult<{ isPublished: boolean }>
 
-export async function togglePublish(clubId: string): Promise<TogglePublishResult> {
-  const guard = await authGuard(clubId, 'OWNER')
+export async function togglePublish(clubId: string, lang?: string): Promise<TogglePublishResult> {
+  const guard = await authGuard(clubId, lang, 'OWNER')
   if (!guard.ok) return guard.result
 
   const result = await prisma.$transaction(async (tx) => {
@@ -118,8 +126,9 @@ export async function togglePublish(clubId: string): Promise<TogglePublishResult
 export async function sendClubMessage(
   clubId: string,
   body: string,
+  lang?: string,
 ): Promise<ActionResult<undefined>> {
-  const guard = await authGuard(clubId)
+  const guard = await authGuard(clubId, lang)
   if (!guard.ok) return guard.result
 
   const session = await getAuthSession()
@@ -165,8 +174,9 @@ export async function sendClubMessage(
 
 export async function markConversationRead(
   clubId: string,
+  lang?: string,
 ): Promise<ActionResult<undefined>> {
-  const guard = await authGuard(clubId)
+  const guard = await authGuard(clubId, lang)
   if (!guard.ok) return guard.result
 
   const session = await getAuthSession()
@@ -190,8 +200,9 @@ export type SaveClubProfileResult = ActionResult<{ savedAt: string }>
 export async function saveClubProfile(
   clubId: string,
   input: ClubProfileSaveInput,
+  lang?: string,
 ): Promise<SaveClubProfileResult> {
-  const guard = await authGuard(clubId)
+  const guard = await authGuard(clubId, lang)
   if (!guard.ok) return guard.result
 
   const parsed = clubProfileSaveSchema.safeParse(input)
@@ -253,8 +264,9 @@ export type PresignedUrlResult = ActionResult<{ uploadUrl: string; key: string; 
 export async function getPresignedUploadUrl(
   clubId: string,
   contentType: string,
+  lang?: string,
 ): Promise<PresignedUrlResult> {
-  const guard = await authGuard(clubId)
+  const guard = await authGuard(clubId, lang)
   if (!guard.ok) return guard.result
 
   if (!ALLOWED_IMAGE_TYPES.includes(contentType as typeof ALLOWED_IMAGE_TYPES[number])) {
@@ -287,8 +299,9 @@ export async function createClubPhoto(
   clubId: string,
   key: string,
   alt: string,
+  lang?: string,
 ): Promise<CreatePhotoResult> {
-  const guard = await authGuard(clubId)
+  const guard = await authGuard(clubId, lang)
   if (!guard.ok) return guard.result
 
   // Validate key belongs to this club
@@ -347,8 +360,9 @@ export async function createClubPhoto(
 export async function deleteClubPhoto(
   clubId: string,
   photoId: string,
+  lang?: string,
 ): Promise<ActionResult<undefined>> {
-  const guard = await authGuard(clubId)
+  const guard = await authGuard(clubId, lang)
   if (!guard.ok) return guard.result
 
   const photo = await prisma.clubPhoto.findFirst({
@@ -380,8 +394,9 @@ export async function deleteClubPhoto(
 export async function setMainPhoto(
   clubId: string,
   photoId: string,
+  lang?: string,
 ): Promise<ActionResult<undefined>> {
-  const guard = await authGuard(clubId)
+  const guard = await authGuard(clubId, lang)
   if (!guard.ok) return guard.result
 
   const photo = await prisma.clubPhoto.findFirst({
@@ -423,8 +438,9 @@ export type UploadLogoResult = ActionResult<{ uploadUrl: string; key: string; pu
 export async function uploadLogo(
   clubId: string,
   contentType: string,
+  lang?: string,
 ): Promise<UploadLogoResult> {
-  const guard = await authGuard(clubId)
+  const guard = await authGuard(clubId, lang)
   if (!guard.ok) return guard.result
 
   if (!ALLOWED_IMAGE_TYPES.includes(contentType as typeof ALLOWED_IMAGE_TYPES[number])) {
@@ -449,8 +465,9 @@ export async function persistLogo(
   clubId: string,
   key: string,
   alt: string,
+  lang?: string,
 ): Promise<ActionResult<undefined>> {
-  const guard = await authGuard(clubId)
+  const guard = await authGuard(clubId, lang)
   if (!guard.ok) return guard.result
 
   // Validate key belongs to this club
@@ -489,8 +506,8 @@ export async function persistLogo(
 
 // ── Delete Logo ──
 
-export async function deleteLogo(clubId: string): Promise<ActionResult<undefined>> {
-  const guard = await authGuard(clubId)
+export async function deleteLogo(clubId: string, lang?: string): Promise<ActionResult<undefined>> {
+  const guard = await authGuard(clubId, lang)
   if (!guard.ok) return guard.result
 
   const club = await prisma.club.findUnique({
@@ -521,8 +538,9 @@ export async function deleteLogo(clubId: string): Promise<ActionResult<undefined
 export async function updateLogoAlt(
   clubId: string,
   alt: string,
+  lang?: string,
 ): Promise<ActionResult<undefined>> {
-  const guard = await authGuard(clubId)
+  const guard = await authGuard(clubId, lang)
   if (!guard.ok) return guard.result
 
   const trimmedAlt = alt.slice(0, 500)

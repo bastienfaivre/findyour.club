@@ -1,25 +1,29 @@
 'use server'
-import { randomBytes, createHash } from 'crypto'
+import { randomBytes } from 'crypto'
 import argon2 from 'argon2'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/server/db'
 import { setupPasswordSchema } from '@/lib/schemas/user'
-import { decodeSetupCookie, SETUP_COOKIE_NAME, encodeTotpVerifiedCookie } from '@/lib/setup-cookie'
-import { SESSION_COOKIE_NAME } from '@/server/auth'
+import { decodeSetupCookie, SETUP_COOKIE_NAME } from '@/lib/setup-cookie'
+import { isPasswordBreached } from '@/lib/password-validation'
+import { setSessionCookie, setTotpVerifiedCookie } from '@/lib/server/cookie-utils'
+import { resolveUILang } from '@/lib/i18n'
+import { getTranslations } from '@/lib/i18n/translations'
 
 export type SetupPasswordResult =
   | { success: false; error: string; code: 'UNAUTHORIZED' | 'ALREADY_CONFIGURED' | 'VALIDATION_ERROR' | 'PASSWORD_BREACHED' | 'SERVER_ERROR' }
   | { success: true }
 
 export async function setupPassword(input: unknown, lang?: string): Promise<SetupPasswordResult> {
+  const t = getTranslations(resolveUILang(lang ?? 'en'))
   // Validate setup session cookie
   const cookieStore = await cookies()
   const setupCookie = cookieStore.get(SETUP_COOKIE_NAME)
   const userId = setupCookie ? decodeSetupCookie(setupCookie.value) : null
 
   if (!userId) {
-    return { success: false, error: 'Session expired. Please request a new setup link.', code: 'UNAUTHORIZED' }
+    return { success: false, error: t.errors.notAuthenticated, code: 'UNAUTHORIZED' }
   }
 
   // Guard: reject if a password is already set (prevents setup_session replay after completion)
@@ -37,36 +41,19 @@ export async function setupPassword(input: unknown, lang?: string): Promise<Setu
   // Validate input
   const parsed = setupPasswordSchema.safeParse(input)
   if (!parsed.success) {
-    const firstError = parsed.error.issues[0]?.message ?? 'Invalid input'
+    const firstError = parsed.error.issues[0]?.message ?? t.errors.validationError
     return { success: false, error: firstError, code: 'VALIDATION_ERROR' }
   }
 
   const { firstName, lastName, phone, preferredLanguage, password } = parsed.data
 
   // HaveIBeenPwned check (k-anonymity — only first 5 chars of SHA-1 sent)
-  const sha1 = createHash('sha1').update(password).digest('hex').toUpperCase()
-  const prefix = sha1.slice(0, 5)
-  const suffix = sha1.slice(5)
-
-  try {
-    const res = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
-      headers: { 'Add-Padding': 'true' },
-    })
-    if (res.ok) {
-      const text = await res.text()
-      const isPwned = text.split('\r\n').some(line => line.split(':')[0] === suffix) ||
-        text.split('\n').some(line => line.split(':')[0] === suffix)
-      if (isPwned) {
-        return {
-          success: false,
-          error: 'This password has appeared in a data breach. Please choose a different password.',
-          code: 'PASSWORD_BREACHED',
-        }
-      }
+  if (await isPasswordBreached(password)) {
+    return {
+      success: false,
+      error: 'This password has appeared in a data breach. Please choose a different password.',
+      code: 'PASSWORD_BREACHED',
     }
-    // If HIBP unreachable, allow setup to proceed (availability > perfect security for this check)
-  } catch {
-    // HIBP unavailable — proceed
   }
 
   // Hash with argon2 (default: argon2id)
@@ -105,29 +92,13 @@ export async function setupPassword(input: unknown, lang?: string): Promise<Setu
       }),
     ])
   } catch {
-    return { success: false, error: 'Failed to complete account setup. Please try again.', code: 'SERVER_ERROR' }
+    return { success: false, error: t.errors.serverError, code: 'SERVER_ERROR' }
   }
 
-  const isProduction = process.env.NODE_ENV === 'production'
-
-  cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'lax',
-    path: '/',
-    expires,
-    domain: process.env.COOKIE_DOMAIN,
-  })
+  await setSessionCookie(sessionToken, expires)
 
   // totpEnabled is false at this point — mark as verified immediately
-  cookieStore.set('totp_verified', encodeTotpVerifiedCookie(userId), {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 60 * 60 * 24 * 30, // 30 days
-    domain: process.env.COOKIE_DOMAIN,
-  })
+  await setTotpVerifiedCookie(userId)
 
   // Clear the setup_session cookie — user is now fully authenticated
   cookieStore.delete(SETUP_COOKIE_NAME)

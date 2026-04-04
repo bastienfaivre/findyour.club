@@ -12,7 +12,7 @@ interface TotpFormT {
   verify: string
 }
 
-export function TotpForm({ t }: { t: TotpFormT }) {
+export function TotpForm({ t, lang }: { t: TotpFormT; lang: string }) {
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -24,7 +24,7 @@ export function TotpForm({ t }: { t: TotpFormT }) {
     setError(null)
 
     startTransition(async () => {
-      const result = await verifyTotpChallenge({ code: value })
+      const result = await verifyTotpChallenge({ code: value }, lang)
       if (result && !result.success) {
         setError(result.error)
         setCode('')

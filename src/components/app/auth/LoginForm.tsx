@@ -34,7 +34,7 @@ export function LoginForm({ callbackUrl, lang, t }: LoginFormProps) {
     setError(null)
 
     startTransition(async () => {
-      const result = await loginWithCredentials({ email, password })
+      const result = await loginWithCredentials({ email, password }, lang)
 
       if (!result.success) {
         setError(result.error)
