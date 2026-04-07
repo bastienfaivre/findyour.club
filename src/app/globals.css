@@ -45,7 +45,7 @@
 /* Base: zinc color palette (OKLCH) */
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
+  --background: oklch(0.967 0.001 286.375);
   --foreground: oklch(0.141 0.005 285.75);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.141 0.005 285.75);
@@ -115,7 +115,7 @@
    Color tints use background-image (gradient) which layers on top of background-color. */
 #main-content .rounded-xl,
 #main-content .rounded-lg {
-  background-color: var(--background);
+  background-color: var(--card);
 }
 #main-content .tint-green  { background-image: linear-gradient(oklch(0.72 0.17 142 / 10%), oklch(0.72 0.17 142 / 10%)); }
 #main-content .tint-amber  { background-image: linear-gradient(oklch(0.77 0.17 75 / 10%), oklch(0.77 0.17 75 / 10%)); }

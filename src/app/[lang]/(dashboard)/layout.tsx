@@ -188,7 +188,7 @@ export default async function DashboardLayout({ children, params }: DashboardLay
                 t={t.club.admin.settings.verification.banner}
               />
             )}
-            <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 bg-background z-10">
+            <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 bg-card z-10">
               <SidebarTriggerWithBadge hasBadges={hasBadges} className="-ml-1" />
               <Separator orientation="vertical" className="mr-2 !h-4" />
               <PageTitleDisplay />

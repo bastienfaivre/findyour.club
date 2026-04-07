@@ -919,7 +919,6 @@ function ApplyFormInner({ lang, t, activityTypes, countries, userProfile, draft 
 
           {/* Section: Social Media */}
           <section className="rounded-lg border p-4 space-y-4">
-            <h3 className="text-sm font-medium">{t.apply.sections.social}</h3>
             <SocialLinksFieldset
               label={t.apply.fields.socialLinks}
               renderInput={(platform) => (
