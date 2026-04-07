@@ -122,4 +122,12 @@
 #main-content .tint-red    { background-image: linear-gradient(oklch(0.64 0.25 25 / 10%), oklch(0.64 0.25 25 / 10%)); }
 #main-content .tint-blue   { background-image: linear-gradient(oklch(0.62 0.21 255 / 10%), oklch(0.62 0.21 255 / 10%)); }
 
-/* Activity icons background pattern — rendered by BackgroundPattern component */
+/* Activity icons background pattern  */
+.bg-pattern {
+  background-image: url('/bg-pattern-light.svg');
+  background-repeat: repeat;
+  background-size: 336px 224px;
+}
+.dark .bg-pattern {
+  background-image: url('/bg-pattern-dark.svg');
+}
