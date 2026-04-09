@@ -91,15 +91,9 @@ export default async function HomePage({ params }: Props) {
             words={t.platform.headlineRotatingWords}
           />
         </h1>
-        <div className="mt-4 text-base text-muted-foreground">
-          <p>{t.platform.taglineBullets.intro}</p>
-          <div className="mt-2 grid grid-cols-2 gap-x-2 gap-y-0.5 text-left [&>strong]:justify-self-end">
-            <strong>{t.platform.taglineBullets.whoLabel}</strong><span>{t.platform.taglineBullets.whoText}</span>
-            <strong>{t.platform.taglineBullets.whenLabel}</strong><span>{t.platform.taglineBullets.whenText}</span>
-            <strong>{t.platform.taglineBullets.howLabel}</strong><span>{t.platform.taglineBullets.howText}</span>
-          </div>
-          <p className="mt-2">{t.platform.taglineBullets.closing}</p>
-        </div>
+        <p className="mt-3 text-sm text-muted-foreground">{t.platform.taglineBullets.intro}</p>
+        <p className="mt-2 text-lg font-semibold tracking-wide text-foreground">{t.platform.taglineBullets.slogan}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{t.platform.taglineBullets.subtitle} {t.platform.taglineBullets.closing}</p>
       </div>
 
       {/* Bootstrap message */}

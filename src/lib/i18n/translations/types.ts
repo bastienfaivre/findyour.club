@@ -417,8 +417,6 @@ export type Translations = {
       identity: string
       about: string
       contact: string
-      social: string
-      url: string
     }
     helpers: {
       logo: string
@@ -780,15 +778,10 @@ export type Translations = {
     headline: string
     headlinePrefix: string
     headlineRotatingWords: string[]
-    tagline: string
     taglineBullets: {
       intro: string
-      whoLabel: string
-      whoText: string
-      whenLabel: string
-      whenText: string
-      howLabel: string
-      howText: string
+      slogan: string
+      subtitle: string
       closing: string
     }
     trustLine: string

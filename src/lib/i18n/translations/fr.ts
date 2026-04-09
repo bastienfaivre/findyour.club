@@ -404,8 +404,6 @@ export const fr: Translations = {
       identity: 'Identité',
       about: 'À propos de ton club',
       contact: 'Coordonnées',
-      social: 'Réseaux sociaux',
-      url: 'URL du club',
     },
     placeholders: {
       firstName: 'ex. Jean',
@@ -807,15 +805,10 @@ export const fr: Translations = {
       'groupe de guitare',
       'club d\'athlétisme'
     ],
-    tagline: 'L\'essentiel sur tous les clubs près de chez vous, rien de plus.',
     taglineBullets: {
-      intro: "findyour.club rassemble l'essentiel sur tous les clubs et associations :",
-      whoLabel: 'Qui',
-      whoText: 'sont-ils ?',
-      whenLabel: 'Quand',
-      whenText: 'se retrouvent-ils ?',
-      howLabel: 'Comment',
-      howText: 'peux-tu les rejoindre ?',
+      intro: "L'essentiel sur tous les clubs près de chez toi.",
+      slogan: 'Qui. Quand. Comment.',
+      subtitle: 'Qui ils sont, quand ils se retrouvent, comment les rejoindre.',
       closing: 'Rien de plus.',
     },
     trustLine: 'Gratuit pour tous les clubs. Vérifié manuellement.',
