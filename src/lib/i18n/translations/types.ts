@@ -290,6 +290,7 @@ export type Translations = {
       pendingApplications: string
       pageViews: string
       pageViewsDescription: string
+      last24Hours: string
       last7Days: string
       last30Days: string
       allTime: string

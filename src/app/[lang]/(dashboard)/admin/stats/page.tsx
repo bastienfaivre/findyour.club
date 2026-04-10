@@ -43,21 +43,26 @@ async function getPageViewStats() {
       WHERE event_type = 'page_view' AND visited_at >= ${since} AND ip_hash IS NOT NULL`
 
   const now = new Date()
+  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-  const [last7, last30, allTime, unique7, unique30] = await Promise.all([
+  const [last24, last7, last30, allTime, unique24, unique7, unique30] = await Promise.all([
+    countSince(oneDayAgo),
     countSince(sevenDaysAgo),
     countSince(thirtyDaysAgo),
     countSince(),
+    uniqueSince(oneDayAgo),
     uniqueSince(sevenDaysAgo),
     uniqueSince(thirtyDaysAgo),
   ])
 
   return {
+    last24: Number(last24[0]?.count ?? 0),
     last7: Number(last7[0]?.count ?? 0),
     last30: Number(last30[0]?.count ?? 0),
     allTime: Number(allTime[0]?.count ?? 0),
+    unique24: Number(unique24[0]?.count ?? 0),
     unique7: Number(unique7[0]?.count ?? 0),
     unique30: Number(unique30[0]?.count ?? 0),
   }
@@ -103,7 +108,8 @@ export default async function AdminStatsPage({ params }: AdminStatsPageProps) {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{s.pageViews}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{s.pageViewsDescription}</p>
         </div>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-4">
+          <StatCard icon={<Eye className="h-4 w-4" />} label={s.last24Hours} value={pageViews.last24} sub={`${pageViews.unique24} ${s.uniqueVisitors.toLowerCase()}`} />
           <StatCard icon={<Eye className="h-4 w-4" />} label={s.last7Days} value={pageViews.last7} sub={`${pageViews.unique7} ${s.uniqueVisitors.toLowerCase()}`} />
           <StatCard icon={<Eye className="h-4 w-4" />} label={s.last30Days} value={pageViews.last30} sub={`${pageViews.unique30} ${s.uniqueVisitors.toLowerCase()}`} />
           <StatCard icon={<Eye className="h-4 w-4" />} label={s.allTime} value={pageViews.allTime} />

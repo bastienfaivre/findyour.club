@@ -282,6 +282,7 @@ export const de: Translations = {
       pendingApplications: 'Ausstehende Bewerbungen',
       pageViews: 'Seitenaufrufe',
       pageViewsDescription: 'Gesamtzahl der Seitenaufrufe aller Club-Seiten.',
+      last24Hours: 'Letzte 24 Stunden',
       last7Days: 'Letzte 7 Tage',
       last30Days: 'Letzte 30 Tage',
       allTime: 'Gesamter Zeitraum',

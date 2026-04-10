@@ -282,6 +282,7 @@ export const fr: Translations = {
       pendingApplications: 'Candidatures en attente',
       pageViews: 'Pages vues',
       pageViewsDescription: 'Nombre total de pages vues sur tous les clubs.',
+      last24Hours: '24 dernières heures',
       last7Days: '7 derniers jours',
       last30Days: '30 derniers jours',
       allTime: 'Depuis toujours',

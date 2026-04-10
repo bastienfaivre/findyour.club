@@ -35,7 +35,7 @@
     "next": "16.2.1",
     "next-auth": "4.24.13",
     "next-themes": "^0.4.6",
-    "nodemailer": "^8.0.4",
+    "nodemailer": "^8.0.5",
     "otplib": "^13.4.0",
     "pg": "8.20.0",
     "qrcode": "^1.5.4",
@@ -56,8 +56,8 @@
       "argon2"
     ],
     "overrides": {
-      "hono": ">=4.12.7",
-      "@hono/node-server": ">=1.19.10",
+      "hono": ">=4.12.12",
+      "@hono/node-server": ">=1.19.13",
       "lodash": ">=4.17.23",
       "express-rate-limit": ">=8.2.2",
       "flatted": ">=3.4.2",
