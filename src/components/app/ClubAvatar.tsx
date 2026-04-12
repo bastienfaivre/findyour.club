@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { getActivityTypeIcon } from '@/lib/activity-types'
 import { FadeImage } from '@/components/app/FadeImage'
+import { ActivityTypeIcon } from '@/components/app/ActivityTypeIcon'
 
 interface ClubAvatarProps {
   name: string
@@ -36,12 +36,11 @@ export function ClubAvatar({ name, activityType, logoUrl, logoAlt, size = 'md', 
   const [imgErrored, setImgErrored] = useState(false)
 
   const showIcon = !logoUrl || imgErrored
-  const Icon = getActivityTypeIcon(activityType)
 
   if (showIcon) {
     return (
       <div className={cn('shrink-0 relative flex items-center justify-center', sizeClasses[size], className)}>
-        <Icon className={cn(iconSizeClasses[size], 'text-foreground')} strokeWidth={1.5} />
+        <ActivityTypeIcon slug={activityType} className={cn(iconSizeClasses[size], 'text-foreground')} />
       </div>
     )
   }
