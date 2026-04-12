@@ -84,6 +84,7 @@ export default async function ClubAdminPage({ params }: ClubAdminPageProps) {
     <ClubProfileForm
       clubId={clubId}
       translations={t.club.admin}
+      activityType={club.activityType}
       activityTypeLabel={club.activityType ? (t.activityTypes[club.activityType] ?? club.activityType) : null}
       country={club.country}
       countryName={countryName}

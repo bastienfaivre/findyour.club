@@ -7,6 +7,7 @@ export type ClubHeroSectionProps = {
     name: string
     logoUrl: string | null
     logoAlt: string | null
+    activityType?: string | null
     activityTypeLabel?: string | null
     country?: string | null
     countryName?: string | null
@@ -22,6 +23,7 @@ export function ClubHeroSection({ club }: ClubHeroSectionProps) {
     <section className="flex flex-col items-center text-center gap-4 sm:gap-6 rounded-xl border p-4">
       <ClubAvatar
         name={club.name}
+        activityType={club.activityType ?? null}
         logoUrl={club.logoUrl}
         logoAlt={club.logoAlt}
         size="xl"

@@ -78,6 +78,7 @@ interface ClubProfileFormProps {
     photos: string
   }
   initialData: ClubProfileData
+  activityType?: string | null
   activityTypeLabel?: string | null
   country?: string | null
   countryName?: string | null
@@ -89,7 +90,7 @@ interface ClubProfileFormProps {
   confirmAction: (clubId: string) => Promise<{ success: boolean; data?: { verifiedAt: string }; error?: string }>
 }
 
-export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations: cs, initialData, activityTypeLabel, country, countryName, cantonCode, locationName, maxPhotos: _maxPhotos, maxImageSizeBytes, lastVerifiedAt, confirmAction }: ClubProfileFormProps) {
+export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations: cs, initialData, activityType, activityTypeLabel, country, countryName, cantonCode, locationName, maxPhotos: _maxPhotos, maxImageSizeBytes, lastVerifiedAt, confirmAction }: ClubProfileFormProps) {
   const [isPending, startTransition] = useTransition()
   const [isConfirming, startConfirmTransition] = useTransition()
   const { setIsDirty } = useAdminDirty()
@@ -194,6 +195,7 @@ export function ClubProfileForm({ clubId, translations: t, clubSiteTranslations:
       formValues={watchedValues}
       logoUrl={initialData.logoUrl}
       logoAlt={initialData.logoAlt}
+      activityType={activityType}
       activityTypeLabel={activityTypeLabel}
       country={country}
       countryName={countryName}

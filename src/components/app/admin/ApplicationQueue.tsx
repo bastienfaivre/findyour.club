@@ -253,7 +253,7 @@ export function ApplicationQueue({ applications, activityTypes, countries, canto
                 )}
               >
                 <div className="flex items-center gap-3">
-                  <ClubAvatar name={app.name} logoUrl={app.logoUrl} logoAlt={app.logoAlt} size="sm" />
+                  <ClubAvatar name={app.name} activityType={app.activityType ?? null} logoUrl={app.logoUrl} logoAlt={app.logoAlt} size="sm" />
                   <div className="min-w-0 flex-1">
                     <p className="font-medium truncate">{app.name}</p>
                     <div className="flex flex-wrap items-center gap-2 mt-1">

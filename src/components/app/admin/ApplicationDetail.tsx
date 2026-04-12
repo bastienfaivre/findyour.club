@@ -223,6 +223,7 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
       }}
       logoUrl={null}
       logoAlt={null}
+      activityType={fields.activityType}
       photos={[]}
       translations={{
         description: cs.description,

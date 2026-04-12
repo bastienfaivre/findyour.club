@@ -172,6 +172,7 @@ export default async function ClubPage({ params }: Props) {
           telegramUrl: club.telegramUrl,
           githubUrl: club.githubUrl,
           photos: [], // photos disabled temporarily
+          activityType: club.activityType,
           activityTypeLabel,
           country,
           countryName,

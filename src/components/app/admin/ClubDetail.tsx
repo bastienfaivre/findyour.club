@@ -480,6 +480,7 @@ export function ClubDetail({ club, activityTypes, countries, translations: t, lo
       }}
       logoUrl={club.logoUrl}
       logoAlt={null}
+      activityType={club.activityType}
       photos={[] /* photos disabled temporarily */}
       translations={{
         description: cs.description,

@@ -8,6 +8,7 @@ interface ProfilePreviewProps {
   formValues: ClubProfileSaveInput
   logoUrl: string | null
   logoAlt: string | null
+  activityType?: string | null
   activityTypeLabel?: string | null
   country?: string | null
   countryName?: string | null
@@ -31,7 +32,7 @@ interface ProfilePreviewProps {
   }
 }
 
-export function ProfilePreview({ formValues, logoUrl, logoAlt, activityTypeLabel, country, countryName, cantonCode, locationName, photos, translations: t }: ProfilePreviewProps) {
+export function ProfilePreview({ formValues, logoUrl, logoAlt, activityType, activityTypeLabel, country, countryName, cantonCode, locationName, photos, translations: t }: ProfilePreviewProps) {
   return (
     <div className="flex flex-col h-full min-h-0">
       <div className="flex-1 min-h-0 rounded-xl border overflow-hidden overflow-y-auto p-4">
@@ -45,6 +46,7 @@ export function ProfilePreview({ formValues, logoUrl, logoAlt, activityTypeLabel
             schedule: formValues.schedule || null,
             howToJoin: formValues.howToJoin || null,
             email: formValues.email,
+            activityType,
             activityTypeLabel,
             country,
             countryName,

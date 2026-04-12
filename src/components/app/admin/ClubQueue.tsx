@@ -260,7 +260,7 @@ export function ClubQueue({ clubs, activityTypes, countries, translations: t, lo
                     : 'hover:bg-muted/50'
                 )}
               >
-                <ClubAvatar name={club.name} logoUrl={club.logoUrl} logoAlt={club.logoAlt} size="lg" className="size-14 shrink-0" />
+                <ClubAvatar name={club.name} activityType={club.activityType} logoUrl={club.logoUrl} logoAlt={club.logoAlt} size="lg" className="size-14 shrink-0" />
                 <div className="flex flex-col gap-1 min-w-0 flex-1">
                   <span className="font-semibold truncate leading-tight">{club.name}</span>
                   <div className="flex items-center gap-1.5 flex-wrap">

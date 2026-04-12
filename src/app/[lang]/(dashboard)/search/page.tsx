@@ -217,6 +217,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
                     logoUrl={club.logoUrl}
                     logoAlt={club.logoAlt}
                     activityType={activityName}
+                    activityTypeSlug={activitySlug}
                     locationName={locationName}
                     cantonCode={cantonCode}
                     cantonName={cantonLabel}

@@ -13,6 +13,7 @@ type ClubCardProps = {
   logoUrl?: string | null
   logoAlt?: string | null
   activityType?: string | null
+  activityTypeSlug?: string | null
   locationName?: string | null
   cantonCode?: string | null
   cantonName?: string | null
@@ -30,6 +31,7 @@ export function ClubCard({
   logoUrl,
   logoAlt,
   activityType,
+  activityTypeSlug,
   locationName,
   cantonCode,
   cantonName,
@@ -43,7 +45,7 @@ export function ClubCard({
       aria-label={ariaLabel}
       className="flex items-center gap-4 overflow-hidden rounded-xl border p-3 text-card-foreground transition-all hover:border-muted-foreground hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
-      <ClubAvatar name={name} logoUrl={logoUrl} logoAlt={logoAlt} size="lg" className="size-14 shrink-0" />
+      <ClubAvatar name={name} activityType={activityTypeSlug ?? null} logoUrl={logoUrl} logoAlt={logoAlt} size="lg" className="size-14 shrink-0" />
       <div className="flex flex-col gap-1 min-w-0 flex-1">
         <span className="font-semibold truncate leading-tight">{name}</span>
         <div className="flex items-center gap-1.5">
