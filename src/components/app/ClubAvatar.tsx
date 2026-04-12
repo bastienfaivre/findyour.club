@@ -35,6 +35,8 @@ export function ClubAvatar({ name, logoUrl, logoAlt, size = 'md', className }: C
           'max-h-full max-w-full object-contain',
           !logoUrl && 'opacity-40',
         )}
+        fallbackSrc={PLACEHOLDER}
+        fallbackClassName="opacity-40"
         skeletonClassName="rounded-lg"
         sizes={`${px}px`}
         {...(isSvg && { unoptimized: true })}

@@ -7,13 +7,20 @@ import { cn } from '@/lib/utils'
 type FadeImageProps = ImageProps & {
   /** Class for the skeleton placeholder */
   skeletonClassName?: string
+  /** Fallback src used when the image fails to load */
+  fallbackSrc?: string
+  /** Extra class applied when fallback is active */
+  fallbackClassName?: string
 }
 
-export function FadeImage({ className, skeletonClassName, onLoad, src, alt, ...props }: FadeImageProps) {
+export function FadeImage({ className, skeletonClassName, fallbackSrc, fallbackClassName, onLoad, src, alt, ...props }: FadeImageProps) {
   // Track which src has been loaded — when src changes, loaded resets naturally
   const srcKey = useMemo(() => (typeof src === 'string' ? src : JSON.stringify(src)), [src])
   const [loadedSrc, setLoadedSrc] = useState<string | null>(null)
+  const [errored, setErrored] = useState(false)
   const loaded = loadedSrc === srcKey
+
+  const activeSrc = errored && fallbackSrc ? fallbackSrc : src
 
   const handleLoad = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -25,20 +32,26 @@ export function FadeImage({ className, skeletonClassName, onLoad, src, alt, ...p
     [onLoad, src],
   )
 
+  const handleError = useCallback(() => {
+    if (fallbackSrc && !errored) setErrored(true)
+  }, [fallbackSrc, errored])
+
   return (
     <span className="relative inline-flex items-center justify-center h-full w-full">
-      {!loaded && (
+      {!loaded && !errored && (
         <span className={cn('absolute inset-0 bg-muted animate-pulse', skeletonClassName)} />
       )}
       <Image
-        src={src}
+        src={activeSrc}
         alt={alt}
         className={cn(
           'transition-opacity duration-300',
           className,
-          !loaded && 'opacity-0',
+          !loaded && !errored && 'opacity-0',
+          errored && fallbackClassName,
         )}
         onLoad={handleLoad}
+        onError={handleError}
         {...props}
       />
     </span>
