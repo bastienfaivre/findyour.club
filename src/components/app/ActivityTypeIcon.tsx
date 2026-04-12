@@ -11,5 +11,5 @@ const DEFAULT_ICON = Users
 
 export function ActivityTypeIcon({ slug, className }: { slug: string | null | undefined; className?: string }) {
   const Icon = slug && isValidActivityType(slug) ? ICONS[slug] : DEFAULT_ICON
-  return <Icon className={className} strokeWidth={1.5} />
+  return <Icon className={className} strokeWidth={1.5} style={{ opacity: 0.2 }} />
 }
