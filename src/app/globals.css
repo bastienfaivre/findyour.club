@@ -112,15 +112,18 @@
 }
 
 /* Cards inside main-content are opaque over the activity pattern.
-   Color tints use background-image (gradient) which layers on top of background-color. */
-#main-content .rounded-xl,
-#main-content .rounded-lg {
-  background-color: var(--card);
+   Color tints use background-image (gradient) which layers on top of background-color.
+   Placed in @layer base so Tailwind utilities (bg-primary, bg-muted, etc.) can override. */
+@layer base {
+  #main-content .rounded-xl,
+  #main-content .rounded-lg {
+    background-color: var(--card);
+  }
+  #main-content .tint-green  { background-image: linear-gradient(oklch(0.72 0.17 142 / 10%), oklch(0.72 0.17 142 / 10%)); }
+  #main-content .tint-amber  { background-image: linear-gradient(oklch(0.77 0.17 75 / 10%), oklch(0.77 0.17 75 / 10%)); }
+  #main-content .tint-red    { background-image: linear-gradient(oklch(0.64 0.25 25 / 10%), oklch(0.64 0.25 25 / 10%)); }
+  #main-content .tint-blue   { background-image: linear-gradient(oklch(0.62 0.21 255 / 10%), oklch(0.62 0.21 255 / 10%)); }
 }
-#main-content .tint-green  { background-image: linear-gradient(oklch(0.72 0.17 142 / 10%), oklch(0.72 0.17 142 / 10%)); }
-#main-content .tint-amber  { background-image: linear-gradient(oklch(0.77 0.17 75 / 10%), oklch(0.77 0.17 75 / 10%)); }
-#main-content .tint-red    { background-image: linear-gradient(oklch(0.64 0.25 25 / 10%), oklch(0.64 0.25 25 / 10%)); }
-#main-content .tint-blue   { background-image: linear-gradient(oklch(0.62 0.21 255 / 10%), oklch(0.62 0.21 255 / 10%)); }
 
 /* Activity icons background pattern  */
 .bg-pattern {
