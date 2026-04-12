@@ -1057,7 +1057,7 @@ export const it: Translations = {
       liveLine: 'La pagina del tuo club \u00e8 ora online su:',
       setupLine: 'Clicca il pulsante qui sotto per impostare la tua password e proteggere il tuo account.',
       setupButton: 'Configura il tuo account',
-      expiry: 'Questo link scade tra 24 ore. Se non hai richiesto questo, puoi ignorare questa e-mail.',
+      expiry: 'Questo link scade tra 7 giorni. Se non hai richiesto questo, puoi ignorare questa e-mail.',
     },
     rejection: {
       subject: 'Riguardo alla tua candidatura per {clubName}',

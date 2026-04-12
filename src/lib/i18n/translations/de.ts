@@ -1057,7 +1057,7 @@ export const de: Translations = {
       liveLine: 'Ihre Club-Seite ist jetzt online unter:',
       setupLine: 'Klicken Sie auf die Schaltfl\u00e4che unten, um Ihr Passwort festzulegen und Ihr Konto zu sichern.',
       setupButton: 'Konto einrichten',
-      expiry: 'Dieser Link l\u00e4uft in 24 Stunden ab. Wenn Sie dies nicht angefordert haben, k\u00f6nnen Sie diese E-Mail ignorieren.',
+      expiry: 'Dieser Link l\u00e4uft in 7 Tagen ab. Wenn Sie dies nicht angefordert haben, k\u00f6nnen Sie diese E-Mail ignorieren.',
     },
     rejection: {
       subject: 'Bez\u00fcglich Ihrer Bewerbung f\u00fcr {clubName}',

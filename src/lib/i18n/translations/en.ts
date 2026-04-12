@@ -1065,7 +1065,7 @@ export const en: Translations = {
       liveLine: 'Your club page is now live at:',
       setupLine: 'Click the button below to set your password and secure your account.',
       setupButton: 'Set up your account',
-      expiry: 'This link expires in 24 hours. If you did not request this, you can safely ignore this email.',
+      expiry: 'This link expires in 7 days. If you did not request this, you can safely ignore this email.',
     },
     rejection: {
       subject: 'Regarding your application for {clubName}',

@@ -1082,7 +1082,7 @@ export const fr: Translations = {
       liveLine: 'Votre page de club est d\u00e9sormais en ligne\u00a0:',
       setupLine: 'Cliquez sur le bouton ci-dessous pour d\u00e9finir votre mot de passe et s\u00e9curiser votre compte.',
       setupButton: 'Configurer votre compte',
-      expiry: 'Ce lien expire dans 24 heures. Si vous n\u2019avez pas fait cette demande, vous pouvez ignorer cet e-mail.',
+      expiry: 'Ce lien expire dans 7 jours. Si vous n\u2019avez pas fait cette demande, vous pouvez ignorer cet e-mail.',
     },
     rejection: {
       subject: 'Concernant votre candidature pour {clubName}',

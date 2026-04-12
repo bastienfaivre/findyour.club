@@ -296,7 +296,7 @@ export async function approveApplication(applicationId: string, fields: Applicat
         where: { id: user.id },
         data: {
           magicToken: tokenHash,
-          magicTokenExp: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+          magicTokenExp: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
         },
       })
 
