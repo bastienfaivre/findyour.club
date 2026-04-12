@@ -1039,6 +1039,7 @@ export const de: Translations = {
     ogHomeSubtitle: 'Finde jeden Verein in deiner N\u00e4he \u2014 wer sie sind, wann sie sich treffen, wie du beitreten kannst. Kostenlos und gepr\u00fcft.',
   },
   activityTypes: {
+    nature: 'Natur',
     volleyball: 'Volleyball',
     other: 'Andere',
   },

@@ -1047,6 +1047,7 @@ export const en: Translations = {
     yoga: 'Yoga',
     swimming: 'Swimming',
     chess: 'Chess',
+    nature: 'Nature',
     volleyball: 'Volleyball',
     other: 'Other',
   },

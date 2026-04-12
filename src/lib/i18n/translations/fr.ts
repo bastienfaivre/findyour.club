@@ -1064,6 +1064,7 @@ export const fr: Translations = {
     ogHomeSubtitle: 'Trouve n\u2019importe quel club pr\u00e8s de chez toi \u2014 qui ils sont, quand ils se retrouvent, comment les rejoindre. Gratuit et v\u00e9rifi\u00e9.',
   },
   activityTypes: {
+    nature: 'Nature',
     volleyball: 'Volleyball',
     other: 'Autre',
   },

@@ -1039,6 +1039,7 @@ export const it: Translations = {
     ogHomeSubtitle: 'Trova qualsiasi club vicino a te \u2014 chi sono, quando si incontrano, come iscriversi. Gratuito e verificato.',
   },
   activityTypes: {
+    nature: 'Natura',
     volleyball: 'Pallavolo',
     other: 'Altro',
   },
