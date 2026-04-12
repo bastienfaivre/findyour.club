@@ -612,7 +612,7 @@ describe('buildAcceptanceEmailHtml()', () => {
     expect(html).toContain('Ski Club Valais')
     expect(html).toContain('http://localhost:3000/fr/ch/ski-club-valais')
     expect(html).toContain('http://localhost:3000/fr/auth/magic-link?token=abc123')
-    expect(html).toContain('24 hours')
+    expect(html).toContain('7 days')
     expect(html).toContain('set your password')
   })
 
