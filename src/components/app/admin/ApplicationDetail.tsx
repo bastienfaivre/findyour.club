@@ -240,8 +240,8 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
         telegramUrl: fields.telegramUrl || null,
         githubUrl: fields.githubUrl || null,
       }}
-      logoUrl={null}
-      logoAlt={null}
+      logoUrl={application.logoUrl ?? null}
+      logoAlt={application.logoAlt ?? null}
       activityType={fields.activityType}
       photos={[]}
       translations={{
