@@ -1,19 +1,25 @@
 import type { NextConfig } from 'next'
 
+function r2RemotePattern(): { protocol: 'https'; hostname: string } | null {
+  const url = process.env.R2_PUBLIC_URL
+  if (!url) return null
+  try {
+    const { hostname } = new URL(url)
+    return { protocol: 'https', hostname }
+  } catch {
+    return null
+  }
+}
+
+const r2Pattern = r2RemotePattern()
+
 const nextConfig: NextConfig = {
   output: 'standalone',
   images: {
     remotePatterns: [
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-      },
-      {
-        protocol: 'https',
-        hostname: 'picsum.photos',
-      },
-// Add your R2 public hostname here for production, e.g.:
-      // { protocol: 'https', hostname: 'pub-xxx.r2.dev' },
+      { protocol: 'http', hostname: 'localhost' },
+      { protocol: 'https', hostname: 'picsum.photos' },
+      ...(r2Pattern ? [r2Pattern] : []),
     ],
     // Allow image optimization to fetch from localhost (MinIO) in dev.
     // Safe because this is a self-hosted platform, not a public image proxy.
