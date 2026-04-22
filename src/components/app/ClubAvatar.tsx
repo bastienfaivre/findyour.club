@@ -32,7 +32,6 @@ const iconSizeClasses = {
 
 export function ClubAvatar({ name, activityType, logoUrl, logoAlt, size = 'md', className }: ClubAvatarProps) {
   const px = sizePx[size]
-  const isSvg = logoUrl?.endsWith('.svg')
   const [imgErrored, setImgErrored] = useState(false)
 
   const showIcon = !logoUrl || imgErrored
@@ -56,7 +55,7 @@ export function ClubAvatar({ name, activityType, logoUrl, logoAlt, size = 'md', 
         skeletonClassName="rounded-lg"
         sizes={`${px}px`}
         onError={() => setImgErrored(true)}
-        {...(isSvg && { unoptimized: true })}
+        unoptimized
       />
     </div>
   )
