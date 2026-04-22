@@ -1041,6 +1041,7 @@ export const it: Translations = {
   activityTypes: {
     nature: 'Natura',
     volleyball: 'Pallavolo',
+    'tennis-de-table': 'Tennis da tavolo',
     other: 'Altro',
   },
   emails: {

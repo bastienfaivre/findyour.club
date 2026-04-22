@@ -1066,6 +1066,7 @@ export const fr: Translations = {
   activityTypes: {
     nature: 'Nature',
     volleyball: 'Volleyball',
+    'tennis-de-table': 'Tennis de table',
     other: 'Autre',
   },
   emails: {

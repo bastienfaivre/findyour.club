@@ -1,6 +1,7 @@
 'use server'
 
 import { randomBytes, createHash } from 'crypto'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/server/db'
 import { slugRegex } from '@/lib/schemas/application'
 import { requireOperator } from '@/lib/server/auth-guards'
@@ -13,6 +14,8 @@ import { upsertSwissLocation } from '@/lib/server/location'
 import { isEmailEnabled } from '@/lib/server/email-settings'
 import { resolveUILang } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
+import { deleteObject, extractR2Key, generateUploadUrl, getPublicUrl, getObjectBuffer, putObject, ALLOWED_IMAGE_TYPES } from '@/lib/r2'
+import { sanitizeSvg } from '@/lib/svg-sanitize'
 
 export type { ApplicationEditableFields } from '@/lib/schemas/application'
 
@@ -457,6 +460,139 @@ export async function rejectApplication(applicationId: string, reason?: string):
       // between our findUnique and updateMany. Email was already sent (can't un-send).
       return { success: false, error: 'Application already reviewed.', code: 'ALREADY_REVIEWED' }
     }
+
+    return { success: true }
+  } catch {
+    return { success: false, error: 'An unexpected error occurred.', code: 'SERVER_ERROR' }
+  }
+}
+
+export type ApplicationLogoResult =
+  | { success: true }
+  | { success: false; error: string; code: string }
+
+export async function operatorUploadApplicationLogo(
+  applicationId: string,
+  contentType: string,
+): Promise<
+  | { success: true; data: { uploadUrl: string; key: string } }
+  | { success: false; error: string; code: string }
+> {
+  try {
+    const guard = await requireOperator()
+    if ('error' in guard) return guard.error
+    const { session } = guard
+    if (session.user.totpEnabled && !session.user.totpVerified) {
+      return { success: false, error: 'TOTP verification required.', code: 'TOTP_REQUIRED' }
+    }
+
+    if (!ALLOWED_IMAGE_TYPES.includes(contentType as typeof ALLOWED_IMAGE_TYPES[number])) {
+      return { success: false, error: 'Invalid file type.', code: 'INVALID_TYPE' }
+    }
+
+    const application = await prisma.application.findUnique({
+      where: { id: applicationId },
+      select: { id: true, status: true },
+    })
+    if (!application) {
+      return { success: false, error: 'Application not found.', code: 'NOT_FOUND' }
+    }
+    if (application.status !== 'PENDING') {
+      return { success: false, error: 'Application already reviewed.', code: 'ALREADY_REVIEWED' }
+    }
+
+    const ext = contentType === 'image/jpeg' ? 'jpg' : contentType === 'image/svg+xml' ? 'svg' : contentType.split('/')[1]
+    const { uploadUrl, key } = await generateUploadUrl(applicationId, ext)
+
+    return { success: true, data: { uploadUrl, key } }
+  } catch {
+    return { success: false, error: 'An unexpected error occurred.', code: 'SERVER_ERROR' }
+  }
+}
+
+export async function operatorPersistApplicationLogo(
+  applicationId: string,
+  key: string,
+  alt: string,
+): Promise<ApplicationLogoResult> {
+  try {
+    const guard = await requireOperator()
+    if ('error' in guard) return guard.error
+    const { session } = guard
+    if (session.user.totpEnabled && !session.user.totpVerified) {
+      return { success: false, error: 'TOTP verification required.', code: 'TOTP_REQUIRED' }
+    }
+
+    const application = await prisma.application.findUnique({
+      where: { id: applicationId },
+      select: { id: true, status: true, logoUrl: true },
+    })
+    if (!application) {
+      return { success: false, error: 'Application not found.', code: 'NOT_FOUND' }
+    }
+    if (application.status !== 'PENDING') {
+      return { success: false, error: 'Application already reviewed.', code: 'ALREADY_REVIEWED' }
+    }
+
+    if (!key.startsWith(`${applicationId}/`)) {
+      return { success: false, error: 'Invalid file key.', code: 'INVALID_KEY' }
+    }
+
+    if (key.endsWith('.svg')) {
+      const raw = await getObjectBuffer(key)
+      const sanitized = sanitizeSvg(raw.toString('utf-8'))
+      await putObject(key, Buffer.from(sanitized, 'utf-8'), 'image/svg+xml')
+    }
+
+    if (application.logoUrl) {
+      try { await deleteObject(extractR2Key(application.logoUrl)) } catch { /* best-effort */ }
+    }
+
+    await prisma.application.update({
+      where: { id: applicationId },
+      data: { logoUrl: getPublicUrl(key), logoAlt: alt.slice(0, 500) },
+    })
+
+    revalidatePath('/[lang]/admin', 'layout')
+
+    return { success: true }
+  } catch {
+    return { success: false, error: 'An unexpected error occurred.', code: 'SERVER_ERROR' }
+  }
+}
+
+export async function operatorDeleteApplicationLogo(
+  applicationId: string,
+): Promise<ApplicationLogoResult> {
+  try {
+    const guard = await requireOperator()
+    if ('error' in guard) return guard.error
+    const { session } = guard
+    if (session.user.totpEnabled && !session.user.totpVerified) {
+      return { success: false, error: 'TOTP verification required.', code: 'TOTP_REQUIRED' }
+    }
+
+    const application = await prisma.application.findUnique({
+      where: { id: applicationId },
+      select: { id: true, status: true, logoUrl: true },
+    })
+    if (!application) {
+      return { success: false, error: 'Application not found.', code: 'NOT_FOUND' }
+    }
+    if (application.status !== 'PENDING') {
+      return { success: false, error: 'Application already reviewed.', code: 'ALREADY_REVIEWED' }
+    }
+
+    if (application.logoUrl) {
+      try { await deleteObject(extractR2Key(application.logoUrl)) } catch { /* best-effort */ }
+    }
+
+    await prisma.application.update({
+      where: { id: applicationId },
+      data: { logoUrl: null, logoAlt: null },
+    })
+
+    revalidatePath('/[lang]/admin', 'layout')
 
     return { success: true }
   } catch {

@@ -10,7 +10,7 @@
  * 3. Add a fallback icon in ActivityTypeIcon.tsx
  * 4. Deploy
  */
-export const ACTIVITY_TYPES = ['nature', 'volleyball'] as const
+export const ACTIVITY_TYPES = ['nature', 'volleyball', 'tennis-de-table'] as const
 
 export type ActivityTypeSlug = (typeof ACTIVITY_TYPES)[number]
 

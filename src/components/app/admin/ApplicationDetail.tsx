@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import type { Translations } from '@/lib/i18n/translations/types'
 import { extractEditableFields } from '@/lib/schemas/application'
 import type { ApplicationEditableFields } from '@/lib/schemas/application'
-import { approveApplication, rejectApplication, saveApplication, getApplicantClubs } from '@/app/[lang]/(dashboard)/admin/applications/actions'
+import { approveApplication, rejectApplication, saveApplication, getApplicantClubs, operatorUploadApplicationLogo, operatorPersistApplicationLogo, operatorDeleteApplicationLogo } from '@/app/[lang]/(dashboard)/admin/applications/actions'
 import { useAdminSelection } from '@/components/app/AdminSelectionContext'
 import type { ApplicationWithRelations } from './ApplicationQueue'
 import type { ActivityTypeOption, CountryOption } from './types'
@@ -16,6 +16,8 @@ import { ProfilePreview } from '@/components/app/club-admin/ProfilePreview'
 import { ApplicantSection } from './ApplicantSection'
 import { ClubInformationSection } from './ClubInformationSection'
 import { ApplicationActions } from './ApplicationActions'
+import { LogoUpload } from '@/components/app/club-admin/LogoUpload'
+import type { LogoActions } from '@/components/app/club-admin/LogoUpload'
 
 const ERROR_CODE_MAP: Record<string, keyof Translations['admin']['applications']['errors']> = {
   NOT_FOUND: 'notFound',
@@ -43,6 +45,12 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
   const [error, setError] = useState<string | null>(null)
   const ta = t.admin.applications
   const cs = t.clubSite
+
+  const logoActions: LogoActions = {
+    upload: (_id, contentType) => operatorUploadApplicationLogo(application.id, contentType),
+    persist: (_id, key, alt) => operatorPersistApplicationLogo(application.id, key, alt),
+    remove: (_id) => operatorDeleteApplicationLogo(application.id),
+  }
 
   // Centralized form state
   const initialFields = extractEditableFields(application)
@@ -177,6 +185,17 @@ export function ApplicationDetail({ application, activityTypes, countries, trans
           translations={t}
           updateField={updateField}
         />
+
+        <div className="rounded-xl border p-4">
+          <LogoUpload
+            clubId={application.id}
+            clubName={fields.name}
+            logoUrl={application.logoUrl ?? null}
+            logoAlt={application.logoAlt ?? null}
+            translations={t.club.admin.clubProfile.logo}
+            actions={logoActions}
+          />
+        </div>
       </fieldset>
 
       <ApplicationActions

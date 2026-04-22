@@ -1049,6 +1049,7 @@ export const en: Translations = {
     chess: 'Chess',
     nature: 'Nature',
     volleyball: 'Volleyball',
+    'tennis-de-table': 'Table Tennis',
     other: 'Other',
   },
   emails: {
