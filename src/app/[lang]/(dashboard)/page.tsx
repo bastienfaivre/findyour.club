@@ -1,6 +1,4 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { ClipboardList } from 'lucide-react'
 import { resolveUILang, SUPPORTED_LANGUAGES } from '@/lib/i18n'
 import { getTranslations } from '@/lib/i18n/translations'
 import {
@@ -10,8 +8,6 @@ import {
 } from '@/components/app/seo/metadata'
 import { CountryButton } from '@/components/app/directory/CountryButton'
 import { AdminPageTitle } from '@/components/app/admin/AdminPageTitle'
-import { SharePlatformButton } from '@/components/app/SharePlatformButton'
-import { Button } from '@/components/ui/button'
 import { RotatingWords } from '@/components/app/RotatingWords'
 import { HomeCitySearch } from '@/components/app/HomeCitySearch'
 import { prisma } from '@/server/db'
@@ -94,27 +90,6 @@ export default async function HomePage({ params }: Props) {
         <p className="mt-3 text-sm text-muted-foreground">{t.platform.taglineBullets.intro}</p>
         <p className="mt-2 text-lg font-semibold tracking-wide text-foreground">{t.platform.taglineBullets.slogan}</p>
         <p className="mt-1 text-sm text-muted-foreground">{t.platform.taglineBullets.subtitle} {t.platform.taglineBullets.closing}</p>
-      </div>
-
-      {/* Bootstrap message */}
-      <div className="rounded-xl border border-green-200 tint-green p-4 text-center dark:border-green-900 dark:tint-green">
-        <p className="text-sm font-medium text-green-800 dark:text-green-300">
-          {t.platform.bootstrapMessage}
-        </p>
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-          <SharePlatformButton label={t.platform.bootstrapShare} copiedMessage={t.clubSite.linkCopied} />
-          <Button
-            variant="outline"
-            size="sm"
-            asChild
-            className="border-green-300 text-green-800 hover:bg-green-100 dark:border-green-800 dark:text-green-200 dark:hover:bg-green-900/40"
-          >
-            <Link href={`/${lang}/apply`}>
-              <ClipboardList className="h-3.5 w-3.5" />
-              {t.platform.bootstrapListClub}
-            </Link>
-          </Button>
-        </div>
       </div>
 
       {/* City search */}

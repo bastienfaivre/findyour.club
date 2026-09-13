@@ -795,7 +795,6 @@ export type Translations = {
     availableNow: string
     comingSoon: string
     activityTypes: string
-    bootstrapMessage: string
     bootstrapShare: string
     bootstrapListClub: string
     searchCityPlaceholder: string

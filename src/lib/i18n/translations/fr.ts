@@ -820,7 +820,6 @@ export const fr: Translations = {
     availableNow: 'Disponible dès maintenant',
     comingSoon: 'Bientôt disponible',
     activityTypes: 'Types d\'activité',
-    bootstrapMessage: 'findyour.club vient d\'être lancé ! Aide-nous à atteindre notre objectif en partageant findyour.club avec les clubs et associations de ta région. Plus il y en a, plus ça sera facile pour tout le monde de trouver sa communauté.',
     bootstrapShare: 'Partage findyour.club',
     bootstrapListClub: 'Inscris ton club',
     searchCityPlaceholder: 'Rechercher une ville en Suisse...',

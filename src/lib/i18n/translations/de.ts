@@ -795,7 +795,6 @@ export const de: Translations = {
     availableNow: 'Jetzt verfügbar',
     comingSoon: 'Demnächst',
     activityTypes: 'Aktivitätstypen',
-    bootstrapMessage: 'Wir sind gerade gestartet! Hilf uns zu wachsen, indem du findyour.club mit Vereinen in deiner Gegend teilst. Je mehr Vereine mitmachen, desto einfacher wird es für alle, ihre Gemeinschaft zu finden.',
     bootstrapShare: 'findyour.club teilen',
     bootstrapListClub: 'Deinen Verein eintragen',
     searchCityPlaceholder: 'Stadt in der Schweiz suchen...',
