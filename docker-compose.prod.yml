@@ -13,7 +13,7 @@ services:
       retries: 5
 
   migrate:
-    image: ghcr.io/clashware/findyour.club:migrate
+    image: ghcr.io/bastienfaivre/findyour.club:migrate
     env_file: .env.production
     depends_on:
       postgres:
@@ -22,7 +22,7 @@ services:
     profiles: ["migrate"]
 
   nextjs:
-    image: ghcr.io/clashware/findyour.club:latest
+    image: ghcr.io/bastienfaivre/findyour.club:latest
     restart: unless-stopped
     ports: []  # Not exposed directly — Nginx handles all traffic on 80/443
     env_file: .env.production
